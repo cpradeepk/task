@@ -131,6 +131,31 @@ export function getCurrentUser(): User | null {
   return userStr ? JSON.parse(userStr) : null
 }
 
+// Fetch with timeout to prevent hanging
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = 15000 // 15 second timeout for user operations
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout: ${url} took longer than ${timeoutMs}ms`)
+    }
+    throw error
+  }
+}
+
 export async function updateUser(updatedUser: User): Promise<boolean> {
   try {
     // Cannot update admin user
@@ -138,14 +163,18 @@ export async function updateUser(updatedUser: User): Promise<boolean> {
       return false
     }
 
-    // Update user via API
-    const response = await fetch(`/api/users/${updatedUser.employeeId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
+    // Update user via API with timeout
+    const response = await fetchWithTimeout(
+      `/api/users/${updatedUser.employeeId}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedUser)
       },
-      body: JSON.stringify(updatedUser)
-    })
+      15000 // 15 second timeout
+    )
 
     const success = response.ok
 
@@ -166,14 +195,18 @@ export async function updateUser(updatedUser: User): Promise<boolean> {
 
 export async function addUser(newUser: Omit<User, 'createdAt' | 'updatedAt'>): Promise<boolean> {
   try {
-    // Add user via API
-    const response = await fetch('/api/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    // Add user via API with timeout
+    const response = await fetchWithTimeout(
+      '/api/users',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newUser)
       },
-      body: JSON.stringify(newUser)
-    })
+      15000 // 15 second timeout
+    )
 
     return response.ok
   } catch (error) {

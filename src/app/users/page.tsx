@@ -24,6 +24,31 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import { useLoading } from '@/contexts/LoadingContext'
 
+// Fetch with timeout to prevent hanging
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = 15000
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout: ${url} took longer than ${timeoutMs}ms`)
+    }
+    throw error
+  }
+}
+
 export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -140,13 +165,17 @@ export default function UserManagement() {
     setSendingCredentials(user.employeeId)
 
     try {
-      const response = await fetch(`/api/users/${user.employeeId}/send-credentials`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetchWithTimeout(
+        `/api/users/${user.employeeId}/send-credentials`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}),
         },
-        body: JSON.stringify({}), // Password will be taken from Google Sheets
-      })
+        15000 // 15 second timeout
+      )
 
       const result = await response.json()
 
@@ -157,7 +186,8 @@ export default function UserManagement() {
       }
     } catch (error) {
       console.error('Failed to send credentials email:', error)
-      alert('❌ Failed to send credentials email. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send credentials email'
+      alert(`❌ ${errorMessage}. Please try again.`)
     } finally {
       setSendingCredentials(null)
     }
@@ -204,13 +234,17 @@ export default function UserManagement() {
           // Automatically send credentials email for new user if email is provided
           if (userData.email) {
             try {
-              const response = await fetch(`/api/users/${userData.employeeId}/send-credentials`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
+              const response = await fetchWithTimeout(
+                `/api/users/${userData.employeeId}/send-credentials`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({}),
                 },
-                body: JSON.stringify({}), // Password will be taken from Google Sheets
-              })
+                15000 // 15 second timeout
+              )
 
               const result = await response.json()
 
@@ -221,7 +255,8 @@ export default function UserManagement() {
               }
             } catch (emailError) {
               console.error('Failed to send credentials email:', emailError)
-              alert(`✅ User created successfully! However, failed to send credentials email. You can send it manually from the user list.`)
+              const errorMessage = emailError instanceof Error ? emailError.message : 'Unknown error'
+              alert(`✅ User created successfully! However, ${errorMessage}. You can send it manually from the user list.`)
             }
           } else {
             alert('✅ User created successfully!')
