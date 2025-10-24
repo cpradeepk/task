@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllWFH, createWFH } from '@/lib/db/wfh'
+import { withTimeout } from '@/lib/db/config'
 
 export async function GET() {
   try {
     console.log('Fetching WFH applications from MySQL')
-    const wfhApplications = await getAllWFH()
+    const wfhApplications = await withTimeout(
+      getAllWFH(),
+      10000,
+      'Failed to fetch WFH applications - database timeout'
+    )
 
     return NextResponse.json({
       success: true,
@@ -13,10 +18,11 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Failed to get WFH applications:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get WFH applications'
 
     return NextResponse.json({
       success: false,
-      error: 'Failed to get WFH applications'
+      error: errorMessage
     }, { status: 500 })
   }
 }

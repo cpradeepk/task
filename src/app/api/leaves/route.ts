@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllLeaves, createLeave } from '@/lib/db/leaves'
+import { withTimeout } from '@/lib/db/config'
 
 export async function GET() {
   try {
     console.log('Fetching leave applications from MySQL')
-    const leaves = await getAllLeaves()
+    const leaves = await withTimeout(
+      getAllLeaves(),
+      10000,
+      'Failed to fetch leave applications - database timeout'
+    )
 
     return NextResponse.json({
       success: true,
@@ -13,10 +18,11 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Failed to get leave applications:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get leave applications'
 
     return NextResponse.json({
       success: false,
-      error: 'Failed to get leave applications'
+      error: errorMessage
     }, { status: 500 })
   }
 }

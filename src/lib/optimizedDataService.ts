@@ -9,6 +9,31 @@ const CACHE_DURATION = {
   applications: 2 * 60 * 1000, // 2 minutes
 }
 
+// Fetch with timeout wrapper to prevent hanging
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = 10000 // 10 second default timeout
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout: ${url} took longer than ${timeoutMs}ms`)
+    }
+    throw error
+  }
+}
+
 interface CacheEntry<T> {
   data: T
   timestamp: number
@@ -260,9 +285,9 @@ export const optimizedDataService = {
     }
   },
 
-  // API fetch methods
+  // API fetch methods with timeout
   async fetchAllUsers(): Promise<User[]> {
-    const response = await fetch('/api/users')
+    const response = await fetchWithTimeout('/api/users', {}, 10000)
     if (!response.ok) {
       throw new Error('Failed to fetch users')
     }
@@ -271,7 +296,7 @@ export const optimizedDataService = {
   },
 
   async fetchUserById(employeeId: string): Promise<User | null> {
-    const response = await fetch(`/api/users/${employeeId}`)
+    const response = await fetchWithTimeout(`/api/users/${employeeId}`, {}, 10000)
     if (!response.ok) {
       if (response.status === 404) {
         return null
@@ -283,7 +308,7 @@ export const optimizedDataService = {
   },
 
   async fetchTasksByUser(employeeId: string): Promise<Task[]> {
-    const response = await fetch(`/api/tasks/user/${employeeId}`)
+    const response = await fetchWithTimeout(`/api/tasks/user/${employeeId}`, {}, 10000)
     if (!response.ok) {
       throw new Error('Failed to fetch tasks')
     }
@@ -292,7 +317,7 @@ export const optimizedDataService = {
   },
 
   async fetchLeaveApplicationsByUser(employeeId: string): Promise<LeaveApplication[]> {
-    const response = await fetch(`/api/leaves/user/${employeeId}`)
+    const response = await fetchWithTimeout(`/api/leaves/user/${employeeId}`, {}, 10000)
     if (!response.ok) {
       throw new Error('Failed to fetch leave applications')
     }
@@ -301,7 +326,7 @@ export const optimizedDataService = {
   },
 
   async fetchWFHApplicationsByUser(employeeId: string): Promise<WFHApplication[]> {
-    const response = await fetch(`/api/wfh/user/${employeeId}`)
+    const response = await fetchWithTimeout(`/api/wfh/user/${employeeId}`, {}, 10000)
     if (!response.ok) {
       throw new Error('Failed to fetch WFH applications')
     }
@@ -310,7 +335,7 @@ export const optimizedDataService = {
   },
 
   async fetchTeamMembers(managerId: string): Promise<User[]> {
-    const response = await fetch(`/api/users?managerId=${managerId}`)
+    const response = await fetchWithTimeout(`/api/users?managerId=${managerId}`, {}, 10000)
     if (!response.ok) {
       throw new Error('Failed to fetch team members')
     }

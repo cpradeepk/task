@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllTasks, createTask } from '@/lib/db/tasks'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
+import { withTimeout } from '@/lib/db/config'
 
 export async function GET() {
   try {
-    // Get tasks from MySQL
-    const tasks = await getAllTasks()
+    // Get tasks from MySQL with timeout
+    const tasks = await withTimeout(
+      getAllTasks(),
+      10000,
+      'Failed to fetch tasks - database timeout'
+    )
+
     return NextResponse.json({
       success: true,
       data: tasks,
@@ -14,9 +20,11 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Failed to get tasks from MySQL:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get tasks - MySQL unavailable'
+
     return NextResponse.json({
       success: false,
-      error: 'Failed to get tasks - MySQL unavailable'
+      error: errorMessage
     }, { status: 500 })
   }
 }
