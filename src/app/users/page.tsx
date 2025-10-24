@@ -62,13 +62,14 @@ export default function UserManagement() {
   const [sendingCredentials, setSendingCredentials] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<number>(0)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const router = useRouter()
-  const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
 
-  // Handle hydration
+  // Handle hydration and get current user once
   useEffect(() => {
     setIsHydrated(true)
+    setCurrentUser(getCurrentUser())
   }, [])
 
   // Optimized user loading with caching
