@@ -18,10 +18,8 @@ export const DB_CONFIG = {
   connectionLimit: 20, // Increased from 10 to handle more concurrent requests
   queueLimit: 0, // Unlimited queue
 
-  // Timeout settings to prevent hanging
+  // Timeout settings to prevent hanging (mysql2 valid options)
   connectTimeout: 10000, // 10 seconds to establish connection
-  acquireTimeout: 10000, // 10 seconds to acquire connection from pool
-  timeout: 10000, // 10 seconds for query execution
 
   // Keep-alive settings
   enableKeepAlive: true,

@@ -36,6 +36,21 @@ interface TaskRow extends RowDataPacket {
 
 // Convert database row to Task object
 function rowToTask(row: TaskRow): Task {
+  // Safely parse support field
+  let support: string[] = []
+  try {
+    const supportValue = row.support || '[]'
+    // Handle empty string or whitespace
+    if (supportValue.trim() === '') {
+      support = []
+    } else {
+      support = JSON.parse(supportValue)
+    }
+  } catch (error) {
+    console.error('Failed to parse support field for task:', row.task_id, 'Value:', row.support, 'Error:', error)
+    support = []
+  }
+
   return {
     id: row.internal_id,
     taskId: row.task_id,
@@ -44,7 +59,7 @@ function rowToTask(row: TaskRow): Task {
     description: row.description,
     assignedTo: row.assigned_to,
     assignedBy: row.assigned_by,
-    support: JSON.parse(row.support || '[]'),
+    support: support,
     startDate: row.start_date,
     endDate: row.end_date,
     priority: row.priority as Task['priority'],

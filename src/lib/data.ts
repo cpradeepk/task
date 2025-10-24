@@ -1,11 +1,25 @@
 // Utility functions for Amtariksha Task Management System
 // All data operations use Google Sheets via the dataService
 
-// Task ID generation
+// Task ID generation with guaranteed uniqueness
+let lastTimestamp = 0
+let counter = 0
+
 export function generateTaskId(): string {
   const timestamp = Date.now()
+
+  // If same millisecond, increment counter
+  if (timestamp === lastTimestamp) {
+    counter++
+  } else {
+    lastTimestamp = timestamp
+    counter = 0
+  }
+
+  // Use timestamp + counter + random for uniqueness
   const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-  return `JSR-${timestamp}${random}`
+  const uniqueCounter = counter.toString().padStart(3, '0')
+  return `JSR-${timestamp}${uniqueCounter}${random}`
 }
 
 // Utility ID generation

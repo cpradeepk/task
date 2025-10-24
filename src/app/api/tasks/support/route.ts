@@ -92,10 +92,11 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      // Generate unique task ID
+      // Generate unique task ID with better uniqueness guarantee
       const timestamp = Date.now()
-      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const supportTaskId = `JSR-${timestamp}${random}`
+      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+      const microRandom = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+      const supportTaskId = `JSR-${timestamp}${random}${microRandom}`
 
       // Create support task
       const supportTask = {
