@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { LeaveSheetsService } from '@/lib/sheets/leaves'
-
-const leaveService = new LeaveSheetsService()
+import { getLeavesByEmployeeId } from '@/lib/db/leaves'
 
 export async function GET(
   request: NextRequest,
@@ -17,11 +15,11 @@ export async function GET(
       )
     }
 
-    const leaves = await leaveService.getLeaveApplicationsByUser(employeeId)
+    const leaves = await getLeavesByEmployeeId(employeeId)
     return NextResponse.json({
       success: true,
       data: leaves,
-      source: 'google_sheets'
+      source: 'mysql'
     })
   } catch (error) {
     console.error('Failed to get leave applications for user:', error)

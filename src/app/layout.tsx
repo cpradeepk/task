@@ -8,8 +8,8 @@ import ChunkErrorBoundary from '@/components/error/ChunkErrorBoundary'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'EassyLife - Task Management System',
-  description: 'EassyLife Task Management System for efficient workflow management',
+  title: 'Amtariksha - Task Management System',
+  description: 'Amtariksha Task Management System for efficient workflow management',
 }
 
 export default function RootLayout({

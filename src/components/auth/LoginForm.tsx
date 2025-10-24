@@ -58,15 +58,15 @@ export default function LoginForm() {
         <div className="text-center">
           <div className="mx-auto h-16 w-16">
             <Image
-              src="/images/logos/eassylife.png"
-              alt="EassyLife Logo"
+              src="/images/logos/amtariksha_icon.png"
+              alt="Amtariksha Logo"
               width={90}
               height={90}
               className="object-contain"
             />
           </div>
           <h2 className="text-3xl font-bold text-black">
-            EassyLife Login
+            Amtariksha Login
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Job Status Report Management System
@@ -98,7 +98,7 @@ export default function LoginForm() {
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                   className="input-field pl-10"
-                  placeholder="e.g., EL-0001 or admin-001 (case-insensitive)"
+                  placeholder="e.g., AM-0001 or admin-001 (case-insensitive)"
                 />
               </div>
             </div>

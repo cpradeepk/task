@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { UserSheetsService } from '@/lib/sheets/users'
-
-const userService = new UserSheetsService()
+import { getAllUsers, createUser } from '@/lib/db/users'
 
 // Admin user constant - only hardcoded user in the system
 const ADMIN_USER = {
   employeeId: 'admin-001',
   name: 'System Admin',
-  email: 'admin@eassy.life',
+  email: 'mailcpk@gmail.com',
   phone: '+91-9999999999',
   department: 'Technology',
   isTodayTask: false,
@@ -21,8 +19,8 @@ const ADMIN_USER = {
 
 export async function GET() {
   try {
-    // Get users from Google Sheets
-    const users = await userService.getAllUsers()
+    // Get users from MySQL
+    const users = await getAllUsers()
 
     // Always ensure admin user is included
     const hasAdmin = users.some(user => user.employeeId === 'admin-001')
@@ -33,7 +31,7 @@ export async function GET() {
     const response = NextResponse.json({
       success: true,
       data: users,
-      source: 'google_sheets',
+      source: 'mysql',
       timestamp: Date.now()
     })
 
@@ -42,14 +40,14 @@ export async function GET() {
 
     return response
   } catch (error) {
-    console.error('Failed to get users from Google Sheets:', error)
+    console.error('Failed to get users from MySQL:', error)
 
-    // Return only admin user if Google Sheets fails
+    // Return only admin user if MySQL fails
     const response = NextResponse.json({
       success: true,
       data: [ADMIN_USER],
       source: 'admin_only',
-      error: 'Google Sheets unavailable',
+      error: 'MySQL unavailable',
       timestamp: Date.now()
     })
 
@@ -64,18 +62,18 @@ export async function POST(request: NextRequest) {
   try {
     const userData = await request.json()
 
-    // Add user to Google Sheets
-    const userId = await userService.addUser(userData)
+    // Add user to MySQL
+    const user = await createUser(userData)
     return NextResponse.json({
       success: true,
-      data: userId,
-      source: 'google_sheets'
+      data: user,
+      source: 'mysql'
     })
   } catch (error) {
-    console.error('Failed to add user to Google Sheets:', error)
+    console.error('Failed to add user to MySQL:', error)
     return NextResponse.json({
       success: false,
-      error: 'Failed to add user - Google Sheets unavailable'
+      error: 'Failed to add user - MySQL unavailable'
     }, { status: 500 })
   }
 }

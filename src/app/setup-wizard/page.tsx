@@ -12,7 +12,7 @@ export default function SetupWizardPage() {
     {
       id: 1,
       title: 'Create Google Cloud Project',
-      description: 'Set up a new Google Cloud project for the EassyLife system'
+      description: 'Set up a new Google Cloud project for the Amtariksha system'
     },
     {
       id: 2,
@@ -65,7 +65,7 @@ export default function SetupWizardPage() {
                 <li>Go to the Google Cloud Console</li>
                 <li>Click &quot;Select a project&quot; at the top</li>
                 <li>Click &quot;New Project&quot;</li>
-                <li>Enter project name: &quot;EassyLife Task Management&quot;</li>
+                <li>Enter project name: &quot;Amtariksha Task Management&quot;</li>
                 <li>Click &quot;Create&quot;</li>
               </ol>
               <a 
@@ -120,7 +120,7 @@ export default function SetupWizardPage() {
               <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
                 <li>Go to &quot;APIs &amp; Services&quot; → &quot;Credentials&quot;</li>
                 <li>Click &quot;Create Credentials&quot; → &quot;Service Account&quot;</li>
-                <li>Enter service account name: &quot;eassylife-sheets-service&quot;</li>
+                <li>Enter service account name: &quot;Amtariksha-sheets-service&quot;</li>
                 <li>Click &quot;Create and Continue&quot;</li>
                 <li>Skip role assignment (click &quot;Continue&quot;)</li>
                 <li>Click &quot;Done&quot;</li>
@@ -378,7 +378,7 @@ GOOGLE_CLIENT_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/your-se
               <span className="font-medium text-green-800">Setup Complete!</span>
             </div>
             <p className="text-sm text-green-700 mt-1">
-              Your Google Sheets integration is now configured. You can start using the EassyLife system with cloud-based data storage.
+              Your Google Sheets integration is now configured. You can start using the Amtariksha system with cloud-based data storage.
             </p>
             <a 
               href="/dashboard" 

@@ -1,5 +1,5 @@
 /**
- * Centralized department constants for the EassyLife application
+ * Centralized department constants for the Amtariksha application
  * This ensures consistency across all department dropdowns and selections
  */
 

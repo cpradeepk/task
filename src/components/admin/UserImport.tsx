@@ -20,9 +20,9 @@ export default function UserImport() {
 
   // Sample CSV format for users
   const sampleCsvData = `Employee_ID,Name,Email,Phone,Department,Role,Password,Manager_Email,Telegram_Token,Is_Today_Task,Warning_Count
-EL-0001,John Doe,john@eassy.life,+91-9876543210,Technology,employee,password123,manager@eassy.life,,false,0
-EL-0002,Jane Smith,jane@eassy.life,+91-9876543211,Marketing,employee,password456,manager@eassy.life,,true,0
-EL-0003,Manager User,manager@eassy.life,+91-9876543212,Technology,top_management,manager123,,,false,0`
+AM-0001,John Doe,john@eassy.life,+91-9876543210,Technology,employee,password123,manager@eassy.life,,false,0
+AM-0002,Jane Smith,jane@eassy.life,+91-9876543211,Marketing,employee,password456,manager@eassy.life,,true,0
+AM-0003,Manager User,manager@eassy.life,+91-9876543212,Technology,top_management,manager123,,,false,0`
 
   const downloadSampleCsv = () => {
     const blob = new Blob([sampleCsvData], { type: 'text/csv' })

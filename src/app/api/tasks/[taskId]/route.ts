@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TaskSheetsService } from '@/lib/sheets/tasks'
+import { updateTask, deleteTask } from '@/lib/db/tasks'
 import { calculateTotalHours } from '@/lib/dailyHours'
-
-const taskService = new TaskSheetsService()
 
 export async function PUT(
   request: NextRequest,
@@ -28,18 +26,18 @@ export async function PUT(
       }, { status: 400 })
     }
 
-    // Update task in Google Sheets
-    const success = await taskService.updateTask(taskId, updates)
+    // Update task in MySQL
+    const task = await updateTask(taskId, updates)
     return NextResponse.json({
-      success,
-      data: success,
-      source: 'google_sheets'
+      success: true,
+      data: task,
+      source: 'mysql'
     })
   } catch (error) {
-    console.error('Failed to update task in Google Sheets:', error)
+    console.error('Failed to update task in MySQL:', error)
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to update task - Google Sheets unavailable'
+      error: error instanceof Error ? error.message : 'Failed to update task - MySQL unavailable'
     }, { status: 500 })
   }
 }
@@ -51,18 +49,18 @@ export async function DELETE(
   try {
     const { taskId } = await params
 
-    // Delete task from Google Sheets
-    const success = await taskService.deleteTask(taskId)
+    // Delete task from MySQL
+    await deleteTask(taskId)
     return NextResponse.json({
-      success,
-      data: success,
-      source: 'google_sheets'
+      success: true,
+      data: true,
+      source: 'mysql'
     })
   } catch (error) {
-    console.error('Failed to delete task from Google Sheets:', error)
+    console.error('Failed to delete task from MySQL:', error)
     return NextResponse.json({
       success: false,
-      error: 'Failed to delete task - Google Sheets unavailable'
+      error: 'Failed to delete task - MySQL unavailable'
     }, { status: 500 })
   }
 }

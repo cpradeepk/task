@@ -1,4 +1,4 @@
-// Utility functions for EassyLife Task Management System
+// Utility functions for Amtariksha Task Management System
 // All data operations use Google Sheets via the dataService
 
 // Task ID generation

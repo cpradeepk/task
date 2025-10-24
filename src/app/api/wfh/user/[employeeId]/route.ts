@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { WFHSheetsService } from '@/lib/sheets/wfh'
-
-const wfhService = new WFHSheetsService()
+import { getWFHByEmployeeId } from '@/lib/db/wfh'
 
 export async function GET(
   request: NextRequest,
@@ -17,11 +15,11 @@ export async function GET(
       )
     }
 
-    const wfhApplications = await wfhService.getWFHApplicationsByUser(employeeId)
+    const wfhApplications = await getWFHByEmployeeId(employeeId)
     return NextResponse.json({
       success: true,
       data: wfhApplications,
-      source: 'google_sheets'
+      source: 'mysql'
     })
   } catch (error) {
     console.error('Failed to get WFH applications for user:', error)

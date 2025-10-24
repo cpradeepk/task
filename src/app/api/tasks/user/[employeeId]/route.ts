@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TaskSheetsService } from '@/lib/sheets/tasks'
-
-const taskService = new TaskSheetsService()
+import { getTasksByEmployeeId, getSupportTasksForEmployee } from '@/lib/db/tasks'
 
 export async function GET(
   request: NextRequest,
@@ -18,12 +16,17 @@ export async function GET(
     }
 
     // Get tasks for the specific user (both owned and supported)
-    const tasks = await taskService.getTasksByUser(employeeId)
+    const ownedTasks = await getTasksByEmployeeId(employeeId)
+    const supportTasks = await getSupportTasksForEmployee(employeeId)
+
+    // Combine and deduplicate tasks
+    const allTasks = [...ownedTasks, ...supportTasks]
+    const uniqueTasks = Array.from(new Map(allTasks.map(task => [task.taskId, task])).values())
 
     return NextResponse.json({
       success: true,
-      data: tasks,
-      source: 'google_sheets'
+      data: uniqueTasks,
+      source: 'mysql'
     })
   } catch (error) {
     console.error('Failed to get tasks for user:', error)

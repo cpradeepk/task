@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TaskSheetsService } from '@/lib/sheets/tasks'
-import { UserSheetsService } from '@/lib/sheets/users'
+import { getAllTasks, createTask } from '@/lib/db/tasks'
+import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
-
-const taskService = new TaskSheetsService()
-const userService = new UserSheetsService()
 
 export async function GET() {
   try {
-    // Get tasks from Google Sheets
-    const tasks = await taskService.getAllTasks()
+    // Get tasks from MySQL
+    const tasks = await getAllTasks()
     return NextResponse.json({
       success: true,
       data: tasks,
-      source: 'google_sheets'
+      source: 'mysql'
     })
   } catch (error) {
-    console.error('Failed to get tasks from Google Sheets:', error)
+    console.error('Failed to get tasks from MySQL:', error)
     return NextResponse.json({
       success: false,
-      error: 'Failed to get tasks - Google Sheets unavailable'
+      error: 'Failed to get tasks - MySQL unavailable'
     }, { status: 500 })
   }
 }
@@ -44,29 +41,29 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Add task to Google Sheets
-    const taskId = await taskService.addTask(taskData)
+    // Add task to MySQL
+    const task = await createTask(taskData)
 
     // Send email notification for task creation
     try {
       if (emailService.isAvailable()) {
         // Get creator details
-        const creator = await userService.getUserByEmployeeId(taskData.createdBy)
+        const creator = await getUserByEmployeeId(taskData.createdBy || taskData.assignedBy)
 
         // Get assigned user details for display
-        const assignedUser = await userService.getUserByEmployeeId(taskData.assignedTo)
+        const assignedUser = await getUserByEmployeeId(taskData.assignedTo)
 
         if (creator) {
           await emailService.sendTaskCreatedEmail({
             creatorName: creator.name,
             creatorEmail: creator.email,
-            managerEmail: creator.managerId ? (await userService.getUserByEmployeeId(creator.managerId))?.email : undefined,
-            taskTitle: taskData.title,
+            managerEmail: creator.managerId ? (await getUserByEmployeeId(creator.managerId))?.email : undefined,
+            taskTitle: taskData.description || 'New Task',
             taskDescription: taskData.description || 'No description provided',
             priority: taskData.priority || 'Medium',
-            dueDate: taskData.dueDate || 'Not specified',
+            dueDate: taskData.endDate || 'Not specified',
             assignedTo: assignedUser?.name || taskData.assignedTo,
-            taskId: taskId,
+            taskId: task.taskId,
           })
 
           console.log('✅ Task creation email sent successfully')
@@ -79,14 +76,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: taskId,
-      source: 'google_sheets'
+      data: task,
+      source: 'mysql'
     })
   } catch (error) {
-    console.error('Failed to add task to Google Sheets:', error)
+    console.error('Failed to add task to MySQL:', error)
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to add task - Google Sheets unavailable'
+      error: error instanceof Error ? error.message : 'Failed to add task - MySQL unavailable'
     }, { status: 500 })
   }
 }

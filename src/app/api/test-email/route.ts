@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
         result = await emailService.sendUserCredentialsEmail({
           userEmail: data.userEmail || 'test@example.com',
           userName: data.userName || 'Test User',
-          employeeId: data.employeeId || 'EL-001',
+          employeeId: data.employeeId || 'AM-001',
           temporaryPassword: data.temporaryPassword || 'TempPass123!',
           department: data.department || 'IT',
           role: data.role || 'Employee',

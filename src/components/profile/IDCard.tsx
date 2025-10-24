@@ -33,7 +33,7 @@ export default function IDCard({ user }: IDCardProps) {
   }
 
   const generateQRData = () => {
-    return `EassyLife-${user.employeeId}-${user.name}-${user.department}`
+    return `Amtariksha-${user.employeeId}-${user.name}-${user.department}`
   }
 
   const handlePrint = () => {
@@ -223,8 +223,8 @@ export default function IDCard({ user }: IDCardProps) {
                   <div className="flex items-center justify-center mb-3 border-b border-gray-200 pb-2">
                     <div className="flex items-center space-x-2">
                       <Image
-                        src="/images/logos/eassylife.png"
-                        alt="EassyLife Logo"
+                        src="/images/logos/amtariksha_icon.png"
+                        alt="Amtariksha Logo"
                         width={40}
                         height={40}
                         className="object-contain"
@@ -232,7 +232,7 @@ export default function IDCard({ user }: IDCardProps) {
                       <div className="text-leftError: API request failed: 500
     at GoogleSheetsDataService.executeApiCall (webpack-internal:///(app-pages-browser)/./src/lib/sheets/index.ts:29:23)
     at async handleLeaveApproval (webpack-internal:///(app-pages-browser)/./src/app/approvals/page.tsx:117:25)">
-                        <div className="text-lg font-bold text-primary">EassyLife</div>
+                        <div className="text-lg font-bold text-primary">Amtariksha</div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">Employee Identification</div>
                       </div>
                     </div>

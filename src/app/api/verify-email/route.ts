@@ -75,7 +75,7 @@ export async function GET() {
       const testData = {
         userName: 'Test User',
         userEmail: 'test@example.com',
-        employeeId: 'EL-TEST',
+        employeeId: 'AM-TEST',
         temporaryPassword: 'TestPass123!',
         department: 'IT',
         role: 'Employee',
@@ -85,7 +85,7 @@ export async function GET() {
       
       const html = getUserCredentialsHtmlTemplate(testData)
       const hasPlaceholders = html.includes('{{')
-      const hasContent = html.includes('Test User') && html.includes('EL-TEST')
+      const hasContent = html.includes('Test User') && html.includes('AM-TEST')
       
       addTest('Template Generation', !hasPlaceholders && hasContent, {
         htmlLength: html.length,
@@ -116,7 +116,7 @@ export async function GET() {
       const emailResult = await emailService.sendUserCredentialsEmail({
         userEmail: 'verification@test.com',
         userName: 'Verification Test User',
-        employeeId: 'EL-VERIFY',
+        employeeId: 'AM-VERIFY',
         temporaryPassword: 'VerifyPass123!',
         department: 'Testing',
         role: 'Test Employee',

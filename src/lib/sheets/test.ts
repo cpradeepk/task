@@ -121,7 +121,7 @@ export class SheetsTestSuite {
       this.testResults['tasks_get_all'] = Array.isArray(tasks)
       
       // Test getting tasks by user
-      const userTasks = await dataService.getTasksByUser('EL-0001')
+      const userTasks = await dataService.getTasksByUser('AM-0001')
       this.testResults['tasks_get_by_user'] = Array.isArray(userTasks)
       
       // Test task utility functions
@@ -160,7 +160,7 @@ export class SheetsTestSuite {
       this.testResults['leaves_get_all'] = Array.isArray(leaves)
       
       // Test getting leave applications by user
-      const userLeaves = await dataService.getLeaveApplicationsByUser('EL-0001')
+      const userLeaves = await dataService.getLeaveApplicationsByUser('AM-0001')
       this.testResults['leaves_get_by_user'] = Array.isArray(userLeaves)
       
     } catch (error) {
@@ -182,7 +182,7 @@ export class SheetsTestSuite {
       this.testResults['wfh_get_all'] = Array.isArray(wfhs)
       
       // Test getting WFH applications by user
-      const userWFHs = await dataService.getWFHApplicationsByUser('EL-0001')
+      const userWFHs = await dataService.getWFHApplicationsByUser('AM-0001')
       this.testResults['wfh_get_by_user'] = Array.isArray(userWFHs)
       
     } catch (error) {

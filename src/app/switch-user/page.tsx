@@ -7,7 +7,7 @@ export default function SwitchUserPage() {
 
   const switchToTopManagement = () => {
     const topMgmtUser = {
-      employeeId: 'EL-0001',
+      employeeId: 'AM-0001',
       name: 'Vikas Mahesh',
       email: 'vikasmahesh@eassy.life',
       phone: '9920025624',
@@ -27,7 +27,7 @@ export default function SwitchUserPage() {
 
   const switchToEmployee = () => {
     const employeeUser = {
-      employeeId: 'EL-0002',
+      employeeId: 'AM-0002',
       name: 'Shubham Pawar',
       email: 'shubham@eassylife.in',
       phone: '9322249398',

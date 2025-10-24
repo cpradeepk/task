@@ -1,50 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { LeaveSheetsService } from '@/lib/sheets/leaves'
-
-const leaveService = new LeaveSheetsService()
-
-// Simple in-memory cache for leave applications
-let leavesCache: { data: any[], timestamp: number } | null = null
-const CACHE_DURATION = 60000 // 60 seconds
+import { getAllLeaves, createLeave } from '@/lib/db/leaves'
 
 export async function GET() {
   try {
-    // Check cache first
-    if (leavesCache && Date.now() - leavesCache.timestamp < CACHE_DURATION) {
-      console.log('Returning cached leave applications')
-      return NextResponse.json({
-        success: true,
-        data: leavesCache.data,
-        source: 'cache'
-      })
-    }
-
-    console.log('Fetching fresh leave applications')
-    const leaves = await leaveService.getAllLeaveApplications()
-
-    // Cache the result
-    leavesCache = {
-      data: leaves,
-      timestamp: Date.now()
-    }
+    console.log('Fetching leave applications from MySQL')
+    const leaves = await getAllLeaves()
 
     return NextResponse.json({
       success: true,
       data: leaves,
-      source: 'google_sheets'
+      source: 'mysql'
     })
   } catch (error) {
     console.error('Failed to get leave applications:', error)
-
-    // If we have cached data and the error is quota-related, return cached data
-    if (leavesCache && error instanceof Error && error.message.includes('quota exceeded')) {
-      console.log('Returning stale cached data due to quota error')
-      return NextResponse.json({
-        success: true,
-        data: leavesCache.data,
-        source: 'stale_cache'
-      })
-    }
 
     return NextResponse.json({
       success: false,
@@ -56,7 +24,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
+
     // Validate required fields
     const requiredFields = ['employeeId', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'reason']
     for (const field of requiredFields) {
@@ -68,11 +36,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const leaveId = await leaveService.addLeaveApplication(body)
+    const leave = await createLeave(body)
 
     return NextResponse.json({
       success: true,
-      data: leaveId,
+      data: leave,
       message: 'Leave application created successfully'
     }, { status: 201 })
   } catch (error) {

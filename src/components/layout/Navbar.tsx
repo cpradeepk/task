@@ -131,15 +131,15 @@ export default function Navbar() {
             <Link href="/dashboard" className="flex items-center space-x-3">
               <div className="h-10 w-10 flex items-center justify-center">
                 <Image
-                  src="/images/logos/eassylife.png"
-                  alt="EassyLife Logo"
+                  src="/images/logos/amtariksha_icon.png"
+                  alt="Amtariksha Logo"
                   width={40}
                   height={40}
                   className="object-contain"
                 />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-black">EassyLife</h1>
+                <h1 className="text-xl font-bold text-black">Amtariksha</h1>
                 <p className="text-xs text-gray-600">{getRoleDisplayName(currentUser.role)}</p>
               </div>
             </Link>

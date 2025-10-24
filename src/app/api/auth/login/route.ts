@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { UserSheetsService } from '@/lib/sheets/users'
-
-const userService = new UserSheetsService()
+import { authenticateUser } from '@/lib/db/users'
 
 // Admin user constant
 const ADMIN_USER = {
   employeeId: 'admin-001',
   name: 'System Admin',
-  email: 'admin@eassy.life',
+  email: 'mailcpk@gmail.com',
   phone: '+91-9999999999',
   department: 'Technology',
   isTodayTask: false,
@@ -32,14 +30,14 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Authenticate user from Google Sheets
-    const user = await userService.authenticateUser(employeeId, password)
+    // Authenticate user from MySQL
+    const user = await authenticateUser(employeeId, password)
 
     if (user) {
       return NextResponse.json({
         success: true,
         data: user,
-        source: 'google_sheets'
+        source: 'mysql'
       })
     } else {
       return NextResponse.json({
@@ -51,7 +49,7 @@ export async function POST(request: NextRequest) {
     console.error('Failed to authenticate user:', error)
     return NextResponse.json({
       success: false,
-      error: 'Authentication failed - Google Sheets unavailable'
+      error: 'Authentication failed - MySQL unavailable'
     }, { status: 500 })
   }
 }

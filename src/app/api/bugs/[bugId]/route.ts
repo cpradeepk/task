@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { BugSheetsService } from '@/lib/sheets/bugs'
-
-const bugService = new BugSheetsService()
+import { getBugById, updateBug, deleteBug } from '@/lib/db/bugs'
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +15,7 @@ export async function GET(
       }, { status: 400 })
     }
 
-    const bug = await bugService.getBugById(bugId)
+    const bug = await getBugById(bugId)
 
     if (!bug) {
       return NextResponse.json({
@@ -54,17 +52,11 @@ export async function PUT(
       }, { status: 400 })
     }
 
-    const success = await bugService.updateBug(bugId, updates)
-
-    if (!success) {
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to update bug'
-      }, { status: 500 })
-    }
+    const bug = await updateBug(bugId, updates)
 
     return NextResponse.json({
       success: true,
+      data: bug,
       message: 'Bug updated successfully'
     })
   } catch (error) {
@@ -90,14 +82,7 @@ export async function DELETE(
       }, { status: 400 })
     }
 
-    const success = await bugService.deleteBug(bugId)
-
-    if (!success) {
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to delete bug'
-      }, { status: 500 })
-    }
+    await deleteBug(bugId)
 
     return NextResponse.json({
       success: true,

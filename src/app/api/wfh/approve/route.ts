@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { WFHSheetsService } from '@/lib/sheets/wfh'
-
-const wfhService = new WFHSheetsService()
+import { approveWFH } from '@/lib/db/wfh'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,19 +12,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const success = await wfhService.approveWFHApplication(id, approverId, remarks)
+    const wfh = await approveWFH(id, approverId, remarks)
 
-    if (success) {
-      return NextResponse.json({
-        success: true,
-        message: 'WFH application approved successfully'
-      })
-    } else {
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to approve WFH application'
-      }, { status: 500 })
-    }
+    return NextResponse.json({
+      success: true,
+      data: wfh,
+      message: 'WFH application approved successfully'
+    })
   } catch (error) {
     console.error('Failed to approve WFH application:', error)
     return NextResponse.json({

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { UserSheetsService } from '@/lib/sheets/users'
+import { resetWarningCount } from '@/lib/db/users'
 
 export async function POST(
   request: NextRequest,
@@ -15,8 +15,7 @@ export async function POST(
       )
     }
 
-    const userService = new UserSheetsService()
-    const result = await userService.resetWarningCount(employeeId)
+    const result = await resetWarningCount(employeeId)
 
     return NextResponse.json({
       success: true,

@@ -576,5 +576,5 @@ export const getUserCredentialsTemplate = (data: {
     </div>
   `
 
-  return getBaseTemplate(content, 'Welcome to EassyLife - Your Account Details')
+  return getBaseTemplate(content, 'Welcome to Amtariksha - Your Account Details')
 }

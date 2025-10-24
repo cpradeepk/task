@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { UserSheetsService } from '@/lib/sheets/users'
+import { incrementWarningCount } from '@/lib/db/users'
 
 export async function POST(
   request: NextRequest,
@@ -15,8 +15,7 @@ export async function POST(
       )
     }
 
-    const userService = new UserSheetsService()
-    const result = await userService.incrementWarningCount(employeeId)
+    const result = await incrementWarningCount(employeeId)
 
     return NextResponse.json({
       success: true,

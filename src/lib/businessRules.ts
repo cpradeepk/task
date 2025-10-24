@@ -3,10 +3,10 @@
 
 import { Task, User } from './types'
 import { DateUtils } from './dateUtils'
-import { TaskSheetsService } from './sheets/tasks'
-import { UserSheetsService } from './sheets/users'
-import { LeaveSheetsService } from './sheets/leaves'
-import { WFHSheetsService } from './sheets/wfh'
+import { getAllTasks, updateTask, getTasksByStatus } from './db/tasks'
+import { getAllUsers } from './db/users'
+import { getAllLeaves } from './db/leaves'
+import { getAllWFH } from './db/wfh'
 
 /**
  * Business Rules Configuration
@@ -37,10 +37,8 @@ export class TaskStatusService {
    */
   static async updateDelayedTasks(): Promise<{ updated: number; tasks: any[] }> {
     try {
-      // Use the sheets service directly to avoid circular API calls
-      const { TaskSheetsService } = await import('./sheets/tasks')
-      const taskSheetsService = new TaskSheetsService()
-      const tasks = await taskSheetsService.getAllTasks()
+      // Use MySQL database directly to avoid circular API calls
+      const tasks = await getAllTasks()
       const today = DateUtils.getTodayString()
       const updatedTasks: any[] = []
 
@@ -48,7 +46,7 @@ export class TaskStatusService {
         // Check if task should be marked as delayed
         if (this.shouldMarkAsDelayed(task, today)) {
           try {
-            await taskSheetsService.updateTask(task.id, { status: 'Delayed' })
+            await updateTask(task.taskId, { status: 'Delayed' })
             updatedTasks.push({
               ...task,
               status: 'Delayed',
@@ -97,8 +95,7 @@ export class TaskStatusService {
     delayedTasks: any[]
   }> {
     try {
-      const taskService = new TaskSheetsService()
-      const tasks = await taskService.getAllTasks()
+      const tasks = await getAllTasks()
       const today = DateUtils.getTodayString()
 
       const delayedTasks = tasks.filter(task => task.status === 'Delayed')
@@ -320,8 +317,8 @@ export class WorkHoursService {
   static async checkHalfDayApplication(employeeId: string, date: string): Promise<boolean> {
     try {
       // Check WFH applications for half-day
-      const wfhService = new WFHSheetsService()
-      const wfhApplications = await wfhService.getWFHApplicationsByUser(employeeId)
+      const { getWFHByEmployeeId } = await import('./db/wfh')
+      const wfhApplications = await getWFHByEmployeeId(employeeId)
       const halfDayWFH = wfhApplications.some(wfh =>
         (wfh.fromDate === date || (wfh.fromDate <= date && wfh.toDate >= date)) &&
         wfh.status.toLowerCase() === 'approved' &&
@@ -329,8 +326,8 @@ export class WorkHoursService {
       )
 
       // Check leave applications for half-day
-      const leaveService = new LeaveSheetsService()
-      const leaveApplications = await leaveService.getLeaveApplicationsByUser(employeeId)
+      const { getLeavesByEmployeeId } = await import('./db/leaves')
+      const leaveApplications = await getLeavesByEmployeeId(employeeId)
       const halfDayLeave = leaveApplications.some(leave =>
         leave.fromDate === date &&
         leave.toDate === date &&
@@ -356,15 +353,15 @@ export class WorkHoursService {
   }> {
     try {
       const requiredHours = await this.getRequiredWorkHours(employeeId, date)
-      
+
       // Get user's hours log
-      const userService = new UserSheetsService()
-      const user = await userService.getUserByEmployeeId(employeeId)
+      const { getUserByEmployeeId } = await import('./db/users')
+      const user = await getUserByEmployeeId(employeeId)
       const actualHours = user?.hoursLog ? DateUtils.parseHoursFromLog(user.hoursLog, date) : 0
-      
+
       const deficit = Math.max(0, requiredHours - actualHours)
       const isValid = deficit === 0
-      
+
       return {
         isValid,
         requiredHours,
@@ -394,14 +391,13 @@ export class WorkHoursService {
     status: 'compliant' | 'deficit' | 'holiday'
   }>> {
     try {
-      const userService = new UserSheetsService()
-      const users = await userService.getAllUsers()
+      const users = await getAllUsers()
       const report = []
 
       for (const user of users) {
         if (user.role === 'employee' || user.role === 'top_management') {
           const validation = await this.validateWorkHours(user.employeeId, date)
-          
+
           let status: 'compliant' | 'deficit' | 'holiday' = 'compliant'
           if (validation.requiredHours === 0) {
             status = 'holiday'

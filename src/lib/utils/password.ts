@@ -5,7 +5,7 @@
 
 /**
  * Generate a temporary password for a new user
- * Format: {employeeId}@2024 (e.g., EL-0001@2024)
+ * Format: {employeeId}@2024 (e.g., AM-0001@2024)
  * This follows the existing pattern used in the system
  */
 export function generateTemporaryPassword(employeeId: string): string {

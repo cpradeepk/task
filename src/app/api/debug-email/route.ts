@@ -30,7 +30,7 @@ export async function GET() {
       const testTemplate = getUserCredentialsHtmlTemplate({
         userName: 'Test User',
         userEmail: 'test@example.com',
-        employeeId: 'EL-TEST',
+        employeeId: 'AM-TEST',
         temporaryPassword: 'TestPass123!',
         department: 'IT',
         role: 'Employee',
@@ -53,7 +53,7 @@ export async function GET() {
       const emailResult = await emailService.sendUserCredentialsEmail({
         userEmail: 'test@example.com',
         userName: 'Debug Test User',
-        employeeId: 'EL-DEBUG',
+        employeeId: 'AM-DEBUG',
         temporaryPassword: 'DebugPass123!',
         department: 'IT',
         role: 'Employee',

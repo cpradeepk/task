@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TaskSheetsService } from '@/lib/sheets/tasks'
-
-const taskService = new TaskSheetsService()
+import { getAllTasks, getTaskById } from '@/lib/db/tasks'
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,23 +9,22 @@ export async function GET(request: NextRequest) {
 
     if (mainTaskId) {
       // Get all support tasks for a main task
-      const allTasks = await taskService.getAllTasks()
-      const supportTasks = allTasks.filter(task => 
+      const allTasks = await getAllTasks()
+      const supportTasks = allTasks.filter(task =>
         task.subTask && task.subTask.includes(mainTaskId)
       )
 
       return NextResponse.json({
         success: true,
         data: supportTasks,
-        source: 'google_sheets'
+        source: 'mysql'
       })
     }
 
     if (supportTaskId) {
       // Get main task for a support task
-      const allTasks = await taskService.getAllTasks()
-      const supportTask = allTasks.find(task => task.taskId === supportTaskId)
-      
+      const supportTask = await getTaskById(supportTaskId)
+
       if (!supportTask || !supportTask.subTask || !supportTask.subTask.includes('Support for:')) {
         return NextResponse.json({
           success: false,
@@ -36,7 +33,7 @@ export async function GET(request: NextRequest) {
       }
 
       const mainTaskId = supportTask.subTask.replace('Support for: ', '')
-      const mainTask = allTasks.find(task => task.taskId === mainTaskId)
+      const mainTask = await getTaskById(mainTaskId)
 
       return NextResponse.json({
         success: true,
@@ -44,7 +41,7 @@ export async function GET(request: NextRequest) {
           supportTask,
           mainTask
         },
-        source: 'google_sheets'
+        source: 'mysql'
       })
     }
 
@@ -74,8 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the main task
-    const allTasks = await taskService.getAllTasks()
-    const mainTask = allTasks.find(task => task.taskId === mainTaskId)
+    const mainTask = await getTaskById(mainTaskId)
 
     if (!mainTask) {
       return NextResponse.json({
@@ -87,6 +83,8 @@ export async function POST(request: NextRequest) {
     const createdTaskIds: string[] = []
 
     // Create support tasks for each support member
+    const { createTask } = await import('@/lib/db/tasks')
+
     for (const supportMemberId of supportMembers) {
       const supportUser = users.find((user: any) => user.employeeId === supportMemberId)
       if (!supportUser) {
@@ -119,8 +117,8 @@ export async function POST(request: NextRequest) {
         dailyHours: '{}'
       }
 
-      const taskId = await taskService.addTask(supportTask)
-      createdTaskIds.push(taskId)
+      const task = await createTask(supportTask)
+      createdTaskIds.push(task.taskId)
     }
 
     return NextResponse.json({
@@ -129,7 +127,7 @@ export async function POST(request: NextRequest) {
         createdTasks: createdTaskIds.length,
         taskIds: createdTaskIds
       },
-      source: 'google_sheets'
+      source: 'mysql'
     })
 
   } catch (error) {

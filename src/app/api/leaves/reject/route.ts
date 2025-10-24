@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { LeaveSheetsService } from '@/lib/sheets/leaves'
-
-const leaveService = new LeaveSheetsService()
+import { rejectLeave } from '@/lib/db/leaves'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,19 +12,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const success = await leaveService.rejectLeaveApplication(id, approverId, remarks)
+    const leave = await rejectLeave(id, approverId, remarks)
 
-    if (success) {
-      return NextResponse.json({
-        success: true,
-        message: 'Leave application rejected successfully'
-      })
-    } else {
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to reject leave application'
-      }, { status: 500 })
-    }
+    return NextResponse.json({
+      success: true,
+      data: leave,
+      message: 'Leave application rejected successfully'
+    })
   } catch (error) {
     console.error('Failed to reject leave application:', error)
     return NextResponse.json({

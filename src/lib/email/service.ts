@@ -95,7 +95,7 @@ export class EmailService {
         priority: nodemailerPriority || 'normal',
         headers: {
           'X-Email-Type': options.type,
-          'X-Mailer': 'EassyLife Task Management System',
+          'X-Mailer': 'Amtariksha Task Management System',
         },
       }
 

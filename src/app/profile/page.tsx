@@ -440,7 +440,7 @@ export default function Profile() {
                 onChange={handleInputChange}
                 disabled={!isEditing}
                 className={`input-field ${!isEditing ? 'bg-gray-50' : ''}`}
-                placeholder="manager@eassy.life"
+                placeholder="amtariksha@gmail.com"
               />
             </div>
 

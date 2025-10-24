@@ -46,11 +46,11 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
       // Use existing users data instead of making API call
       const users = existingUsers
 
-      // Filter only EL- prefixed IDs and extract numbers
+      // Filter only AM- prefixed IDs and extract numbers
       const elIds = users
-        .filter((user: any) => user.employeeId?.startsWith('EL-'))
+        .filter((user: any) => user.employeeId?.startsWith('AM-'))
         .map((user: any) => {
-          const match = user.employeeId.match(/^EL-(\d{4})$/)
+          const match = user.employeeId.match(/^AM-(\d{4})$/)
           return match ? parseInt(match[1], 10) : 0
         })
         .filter((num: number) => num > 0)
@@ -59,12 +59,12 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
       const maxId = elIds.length > 0 ? Math.max(...elIds) : 0
       const nextId = maxId + 1
 
-      // Format as EL-0001, EL-0002, etc.
-      return `EL-${nextId.toString().padStart(4, '0')}`
+      // Format as AM-0001, AM-0002, etc.
+      return `AM-${nextId.toString().padStart(4, '0')}`
     } catch (error) {
       console.error('Error generating Employee ID:', error)
-      // Fallback to EL-0001 if there's an error
-      return 'EL-0001'
+      // Fallback to AM-0001 if there's an error
+      return 'AM-0001'
     } finally {
       setIsGeneratingId(false)
     }
@@ -246,7 +246,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
       }
 
       // Employee ID format validation (auto-generated IDs should always be valid)
-      if (!formData.employeeId.match(/^(EL-\d{4}|admin-\d{3})$/)) {
+      if (!formData.employeeId.match(/^(AM-\d{4}|admin-\d{3})$/)) {
         throw new Error('Invalid Employee ID format')
       }
 
@@ -338,7 +338,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                 </div>
                 {!user && (
                   <p className="text-xs text-secondary-500 mt-1">
-                    Employee ID is automatically generated in format EL-0001, EL-0002, etc.
+                    Employee ID is automatically generated in format AM-0001, AM-0002, etc.
                   </p>
                 )}
               </div>
@@ -374,7 +374,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                     onChange={handleInputChange}
                     required
                     className="input-field-with-icon"
-                    placeholder="user@eassy.life"
+                    placeholder="amtariksha@gmail.com"
                   />
                 </div>
               </div>
@@ -459,7 +459,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                     value={formData.managerEmail}
                     onChange={handleInputChange}
                     className="input-field"
-                    placeholder="manager@eassy.life"
+                    placeholder="amtariksha@gmail.com"
                   />
                   {isLookingUpManager && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

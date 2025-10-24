@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { BugCommentsService } from '@/lib/sheets/bugs'
-
-const commentsService = new BugCommentsService()
+import { getBugComments, addBugComment } from '@/lib/db/bugs'
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +15,7 @@ export async function GET(
       }, { status: 400 })
     }
 
-    const comments = await commentsService.getCommentsByBugId(bugId)
+    const comments = await getBugComments(bugId)
 
     return NextResponse.json({
       success: true,
@@ -54,17 +52,15 @@ export async function POST(
       }, { status: 400 })
     }
 
-    const success = await commentsService.addComment(bugId, commentedBy, commentText)
-
-    if (!success) {
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to add comment'
-      }, { status: 500 })
-    }
+    const comment = await addBugComment({
+      bugId,
+      commentedBy,
+      commentText
+    })
 
     return NextResponse.json({
       success: true,
+      data: comment,
       message: 'Comment added successfully'
     })
   } catch (error) {

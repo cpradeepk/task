@@ -8,7 +8,7 @@ const CURRENT_USER_KEY = 'jsr_current_user'
 const ADMIN_USER: User = {
   employeeId: 'admin-001',
   name: 'System Admin',
-  email: 'admin@eassy.life',
+  email: 'mailcpk@gmail.com',
   phone: '+91-9999999999',
   department: 'Technology',
   isTodayTask: false,

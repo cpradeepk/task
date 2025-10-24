@@ -21,7 +21,7 @@ export const EMAIL_CONFIG = {
 
   // Default sender information
   from: {
-    name: process.env.EMAIL_FROM_NAME || 'EassyLife Task Management',
+    name: process.env.EMAIL_FROM_NAME || 'Amtariksha Task Management',
     email: process.env.EMAIL_FROM_EMAIL || 'manager@eassy.life',
   },
 
@@ -30,9 +30,9 @@ export const EMAIL_CONFIG = {
   // Email templates configuration
   templates: {
     baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-    logoUrl: process.env.EMAIL_LOGO_URL || '/images/logos/eassylife.png',
-    companyName: 'EassyLife',
-    supportContact: 'manager@eassy.life',
+    logoUrl: process.env.EMAIL_LOGO_URL || '/images/logos/amtariksha_icon.png',
+    companyName: 'Amtariksha',
+    supportContact: 'mailcpk@gmail.com',
   },
 
   // Feature flags

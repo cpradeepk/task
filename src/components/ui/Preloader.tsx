@@ -60,7 +60,7 @@ export default function Preloader({
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto animate-bounce-in">
             <span className="text-black font-bold text-xl">E</span>
           </div>
-          <h1 className="text-2xl font-bold text-black mt-4">EassyLife</h1>
+          <h1 className="text-2xl font-bold text-black mt-4">Amtariksha</h1>
         </div>
 
         {/* Loading spinner */}
