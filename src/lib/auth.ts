@@ -4,7 +4,7 @@ import { User } from './types'
 
 const CURRENT_USER_KEY = 'jsr_current_user'
 
-// Only admin user is hardcoded - all other users come from Google Sheets
+// Only admin user is hardcoded - all other users come from MySQL database
 const ADMIN_USER: User = {
   employeeId: 'admin-001',
   name: 'System Admin',
@@ -24,9 +24,9 @@ export async function initializeUsers(): Promise<void> {
   try {
     // Initialize user system by checking if users can be loaded
     await getAllUsers()
-    console.log('User authentication system initialized with Google Sheets')
+    console.log('User authentication system initialized with MySQL database')
   } catch (error) {
-    console.error('Failed to initialize users from Google Sheets:', error)
+    console.error('Failed to initialize users from MySQL database:', error)
     console.log('Falling back to admin-only authentication')
   }
 }

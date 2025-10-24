@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { WFHSheetsService } from '@/lib/sheets/wfh'
-import { UserSheetsService } from '@/lib/sheets/users'
+import { rejectWFH, getWFHById } from '@/lib/db/wfh'
+import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
-
-const wfhService = new WFHSheetsService()
-const userService = new UserSheetsService()
 
 export async function POST(
   request: NextRequest,
@@ -28,33 +25,29 @@ export async function POST(
       }, { status: 400 })
     }
 
-    const success = await wfhService.rejectWFHApplication(id, approverId, remarks)
+    // Reject WFH in MySQL
+    const wfh = await rejectWFH(id, approverId, remarks)
 
-    if (success) {
+    if (wfh) {
       // Send email notification for WFH rejection
       try {
         if (emailService.isAvailable()) {
-          // Get WFH application details
-          const wfhApplication = await wfhService.getWFHApplicationById(id)
+          // Get user details
+          const user = await getUserByEmployeeId(wfh.employeeId)
+          const approver = await getUserByEmployeeId(approverId)
 
-          if (wfhApplication) {
-            // Get user details
-            const user = await userService.getUserByEmployeeId(wfhApplication.employeeId)
-            const approver = await userService.getUserByEmployeeId(approverId)
+          if (user) {
+            await emailService.sendWFHStatusEmail({
+              userEmail: user.email,
+              userName: user.name,
+              wfhDate: wfh.fromDate,
+              reason: wfh.reason,
+              status: 'rejected',
+              approvedBy: approver?.name || approverId,
+              comments: remarks,
+            })
 
-            if (user) {
-              await emailService.sendWFHStatusEmail({
-                userEmail: user.email,
-                userName: user.name,
-                wfhDate: wfhApplication.fromDate,
-                reason: wfhApplication.reason,
-                status: 'rejected',
-                approvedBy: approver?.name || approverId,
-                comments: remarks,
-              })
-
-              console.log('✅ WFH rejection email sent successfully')
-            }
+            console.log('✅ WFH rejection email sent successfully')
           }
         }
       } catch (emailError) {

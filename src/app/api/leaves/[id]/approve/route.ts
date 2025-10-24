@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { LeaveSheetsService } from '@/lib/sheets/leaves'
-import { UserSheetsService } from '@/lib/sheets/users'
+import { approveLeave, getLeaveById } from '@/lib/db/leaves'
+import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
-
-const leaveService = new LeaveSheetsService()
-const userService = new UserSheetsService()
 
 export async function POST(
   request: NextRequest,
@@ -28,42 +25,38 @@ export async function POST(
       }, { status: 400 })
     }
 
-    const success = await leaveService.approveLeaveApplication(id, approverId, remarks)
+    // Approve leave in MySQL
+    const leave = await approveLeave(id, approverId, remarks)
 
-    if (success) {
+    if (leave) {
       // Send email notification for leave approval
       try {
         if (emailService.isAvailable()) {
-          // Get leave application details
-          const leaveApplication = await leaveService.getLeaveApplicationById(id)
+          // Get user details
+          const user = await getUserByEmployeeId(leave.employeeId)
+          const approver = await getUserByEmployeeId(approverId)
 
-          if (leaveApplication) {
-            // Get user details
-            const user = await userService.getUserByEmployeeId(leaveApplication.employeeId)
-            const approver = await userService.getUserByEmployeeId(approverId)
+          if (user) {
+            // Calculate days between fromDate and toDate
+            const fromDate = new Date(leave.fromDate)
+            const toDate = new Date(leave.toDate)
+            const timeDiff = toDate.getTime() - fromDate.getTime()
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1
 
-            if (user) {
-              // Calculate days between fromDate and toDate
-              const fromDate = new Date(leaveApplication.fromDate)
-              const toDate = new Date(leaveApplication.toDate)
-              const timeDiff = toDate.getTime() - fromDate.getTime()
-              const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1
+            await emailService.sendLeaveStatusEmail({
+              userEmail: user.email,
+              userName: user.name,
+              leaveType: leave.leaveType,
+              startDate: leave.fromDate,
+              endDate: leave.toDate,
+              days: daysDiff,
+              status: 'approved',
+              reason: leave.reason,
+              approvedBy: approver?.name || approverId,
+              comments: remarks,
+            })
 
-              await emailService.sendLeaveStatusEmail({
-                userEmail: user.email,
-                userName: user.name,
-                leaveType: leaveApplication.leaveType,
-                startDate: leaveApplication.fromDate,
-                endDate: leaveApplication.toDate,
-                days: daysDiff,
-                status: 'approved',
-                reason: leaveApplication.reason,
-                approvedBy: approver?.name || approverId,
-                comments: remarks,
-              })
-
-              console.log('✅ Leave approval email sent successfully')
-            }
+            console.log('✅ Leave approval email sent successfully')
           }
         }
       } catch (emailError) {

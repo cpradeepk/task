@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HalfDayService } from '@/lib/businessRules'
-import { LeaveSheetsService } from '@/lib/sheets/leaves'
-import { WFHSheetsService } from '@/lib/sheets/wfh'
-
-const leaveService = new LeaveSheetsService()
-const wfhService = new WFHSheetsService()
+import { getLeavesByEmployeeId } from '@/lib/db/leaves'
+import { getWFHByEmployeeId } from '@/lib/db/wfh'
 
 export async function GET(request: NextRequest) {
   try {
@@ -50,12 +47,12 @@ export async function GET(request: NextRequest) {
       }
 
       try {
-        // Check existing leave applications
-        const leaves = await leaveService.getLeaveApplicationsByUser(employeeId)
+        // Check existing leave applications from MySQL
+        const leaves = await getLeavesByEmployeeId(employeeId)
         const existingLeave = leaves.find(leave =>
           leave.fromDate <= date &&
           leave.toDate >= date &&
-          ['pending', 'approved'].includes(leave.status)
+          ['Pending', 'Approved'].includes(leave.status)
         )
 
         if (existingLeave) {
@@ -66,15 +63,15 @@ export async function GET(request: NextRequest) {
               conflictType: 'leave',
               conflictDetails: `You already have a ${existingLeave.leaveType} leave application for this date.`
             },
-            source: 'google_sheets'
+            source: 'mysql'
           })
         }
 
-        // Check existing WFH applications
-        const wfhApps = await wfhService.getWFHApplicationsByUser(employeeId)
+        // Check existing WFH applications from MySQL
+        const wfhApps = await getWFHByEmployeeId(employeeId)
         const existingWFH = wfhApps.find(wfh =>
           (wfh.fromDate === date || (wfh.fromDate <= date && wfh.toDate >= date)) &&
-          ['pending', 'approved'].includes(wfh.status.toLowerCase())
+          ['Pending', 'Approved'].includes(wfh.status)
         )
 
         if (existingWFH) {
@@ -85,14 +82,14 @@ export async function GET(request: NextRequest) {
               conflictType: 'wfh',
               conflictDetails: `You already have a ${existingWFH.wfhType} WFH application for this date.`
             },
-            source: 'google_sheets'
+            source: 'mysql'
           })
         }
 
         return NextResponse.json({
           success: true,
           data: { hasConflict: false },
-          source: 'google_sheets'
+          source: 'mysql'
         })
       } catch (error) {
         console.error('Error checking existing applications:', error)

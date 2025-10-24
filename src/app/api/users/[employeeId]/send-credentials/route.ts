@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { UserSheetsService } from '@/lib/sheets/users'
+import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
-
-const userService = new UserSheetsService()
 
 export async function POST(
   request: NextRequest,
@@ -18,9 +16,9 @@ export async function POST(
       }, { status: 400 })
     }
 
-    // Get user details
-    const user = await userService.getUserByEmployeeId(employeeId)
-    
+    // Get user details from MySQL
+    const user = await getUserByEmployeeId(employeeId)
+
     if (!user) {
       return NextResponse.json({
         success: false,
@@ -54,16 +52,16 @@ export async function POST(
     // Get manager details if available
     let managerName = undefined
     if (user.managerId) {
-      const manager = await userService.getUserByEmployeeId(user.managerId)
+      const manager = await getUserByEmployeeId(user.managerId)
       managerName = manager?.name
     }
 
-    // Send credentials email using password from Google Sheets
+    // Send credentials email using password from MySQL
     const emailResult = await emailService.sendUserCredentialsEmail({
       userEmail: user.email,
       userName: user.name,
       employeeId: user.employeeId,
-      temporaryPassword: user.password, // Use password from Google Sheets
+      temporaryPassword: user.password, // Use password from MySQL
       department: user.department || 'Not specified',
       role: user.role || 'Employee',
       manager: managerName,

@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { WFHSheetsService } from '@/lib/sheets/wfh'
-import { UserSheetsService } from '@/lib/sheets/users'
+import { approveWFH, getWFHById } from '@/lib/db/wfh'
+import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
-
-const wfhService = new WFHSheetsService()
-const userService = new UserSheetsService()
 
 export async function POST(
   request: NextRequest,
@@ -28,50 +25,29 @@ export async function POST(
       }, { status: 400 })
     }
 
-    let success = false
-    try {
-      success = await wfhService.approveWFHApplication(id, approverId, remarks)
-    } catch (error) {
-      console.error('Error during WFH approval:', error)
+    // Approve WFH in MySQL
+    const wfh = await approveWFH(id, approverId, remarks)
 
-      // If it's a quota error, return a more specific error message
-      if (error instanceof Error && error.message.includes('quota exceeded')) {
-        return NextResponse.json({
-          success: false,
-          error: 'Google Sheets quota exceeded. Please try again in a few minutes.',
-          retryAfter: 300 // 5 minutes
-        }, { status: 429 })
-      }
-
-      // Re-throw other errors
-      throw error
-    }
-
-    if (success) {
+    if (wfh) {
       // Send email notification for WFH approval
       try {
         if (emailService.isAvailable()) {
-          // Get WFH application details
-          const wfhApplication = await wfhService.getWFHApplicationById(id)
+          // Get user details
+          const user = await getUserByEmployeeId(wfh.employeeId)
+          const approver = await getUserByEmployeeId(approverId)
 
-          if (wfhApplication) {
-            // Get user details
-            const user = await userService.getUserByEmployeeId(wfhApplication.employeeId)
-            const approver = await userService.getUserByEmployeeId(approverId)
+          if (user) {
+            await emailService.sendWFHStatusEmail({
+              userEmail: user.email,
+              userName: user.name,
+              wfhDate: wfh.fromDate,
+              reason: wfh.reason,
+              status: 'approved',
+              approvedBy: approver?.name || approverId,
+              comments: remarks,
+            })
 
-            if (user) {
-              await emailService.sendWFHStatusEmail({
-                userEmail: user.email,
-                userName: user.name,
-                wfhDate: wfhApplication.fromDate,
-                reason: wfhApplication.reason,
-                status: 'approved',
-                approvedBy: approver?.name || approverId,
-                comments: remarks,
-              })
-
-              console.log('✅ WFH approval email sent successfully')
-            }
+            console.log('✅ WFH approval email sent successfully')
           }
         }
       } catch (emailError) {
