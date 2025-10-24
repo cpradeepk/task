@@ -13,9 +13,17 @@ export const DB_CONFIG = {
   ssl: {
     rejectUnauthorized: false // AWS RDS requires SSL
   },
+  // Connection pool settings
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+  connectionLimit: 20, // Increased from 10 to handle more concurrent requests
+  queueLimit: 0, // Unlimited queue
+
+  // Timeout settings to prevent hanging
+  connectTimeout: 10000, // 10 seconds to establish connection
+  acquireTimeout: 10000, // 10 seconds to acquire connection from pool
+  timeout: 10000, // 10 seconds for query execution
+
+  // Keep-alive settings
   enableKeepAlive: true,
   keepAliveInitialDelay: 0
 }
@@ -93,11 +101,30 @@ export async function withRetry<T>(
   try {
     return await operation()
   } catch (error) {
+    // Don't retry on timeout errors - fail fast
+    if (error instanceof Error && error.message.includes('timeout')) {
+      throw new Error('Database operation timed out. Please try again.')
+    }
+
     if (retries > 0) {
       await new Promise(resolve => setTimeout(resolve, RETRY_CONFIG.retryDelay))
       return withRetry(operation, retries - 1)
     }
     throw error
   }
+}
+
+// Helper function to add timeout to any async operation
+export async function withTimeout<T>(
+  operation: Promise<T>,
+  timeoutMs: number = 15000, // 15 seconds default
+  errorMessage: string = 'Operation timed out'
+): Promise<T> {
+  return Promise.race([
+    operation,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+    )
+  ])
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllUsers, createUser } from '@/lib/db/users'
+import { withTimeout } from '@/lib/db/config'
 
 // Admin user constant - only hardcoded user in the system
 const ADMIN_USER = {
@@ -19,8 +20,12 @@ const ADMIN_USER = {
 
 export async function GET() {
   try {
-    // Get users from MySQL
-    const users = await getAllUsers()
+    // Get users from MySQL with timeout
+    const users = await withTimeout(
+      getAllUsers(),
+      10000, // 10 second timeout
+      'Failed to fetch users - database timeout'
+    )
 
     // Always ensure admin user is included
     const hasAdmin = users.some(user => user.employeeId === 'admin-001')
@@ -41,13 +46,14 @@ export async function GET() {
     return response
   } catch (error) {
     console.error('Failed to get users from MySQL:', error)
+    const errorMessage = error instanceof Error ? error.message : 'MySQL unavailable'
 
     // Return only admin user if MySQL fails
     const response = NextResponse.json({
       success: true,
       data: [ADMIN_USER],
       source: 'admin_only',
-      error: 'MySQL unavailable',
+      error: errorMessage,
       timestamp: Date.now()
     })
 
@@ -62,8 +68,13 @@ export async function POST(request: NextRequest) {
   try {
     const userData = await request.json()
 
-    // Add user to MySQL
-    const user = await createUser(userData)
+    // Add user to MySQL with timeout
+    const user = await withTimeout(
+      createUser(userData),
+      15000, // 15 second timeout for create operations
+      'Failed to create user - database timeout'
+    )
+
     return NextResponse.json({
       success: true,
       data: user,
@@ -71,9 +82,11 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to add user to MySQL:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to add user - MySQL unavailable'
+
     return NextResponse.json({
       success: false,
-      error: 'Failed to add user - MySQL unavailable'
+      error: errorMessage
     }, { status: 500 })
   }
 }

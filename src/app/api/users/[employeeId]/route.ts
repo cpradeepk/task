@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserByEmployeeId, updateUser } from '@/lib/db/users'
+import { withTimeout } from '@/lib/db/config'
 
 // Admin user constant
 const ADMIN_USER = {
@@ -33,8 +34,13 @@ export async function GET(
       })
     }
 
-    // Get user from MySQL
-    const user = await getUserByEmployeeId(employeeId)
+    // Get user from MySQL with timeout
+    const user = await withTimeout(
+      getUserByEmployeeId(employeeId),
+      10000,
+      'Failed to fetch user - database timeout'
+    )
+
     return NextResponse.json({
       success: true,
       data: user,
@@ -42,9 +48,11 @@ export async function GET(
     })
   } catch (error) {
     console.error('Failed to get user from MySQL:', error)
+    const errorMessage = error instanceof Error ? error.message : 'User not found or MySQL unavailable'
+
     return NextResponse.json({
       success: false,
-      error: 'User not found or MySQL unavailable'
+      error: errorMessage
     }, { status: 404 })
   }
 }
@@ -65,8 +73,13 @@ export async function PUT(
       }, { status: 403 })
     }
 
-    // Update user in MySQL
-    const user = await updateUser(employeeId, userData)
+    // Update user in MySQL with timeout
+    const user = await withTimeout(
+      updateUser(employeeId, userData),
+      15000,
+      'Failed to update user - database timeout'
+    )
+
     return NextResponse.json({
       success: true,
       data: user,
@@ -74,9 +87,11 @@ export async function PUT(
     })
   } catch (error) {
     console.error('Failed to update user in MySQL:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update user - MySQL unavailable'
+
     return NextResponse.json({
       success: false,
-      error: 'Failed to update user - MySQL unavailable'
+      error: errorMessage
     }, { status: 500 })
   }
 }
