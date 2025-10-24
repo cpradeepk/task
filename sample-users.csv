@@ -1,0 +1,9 @@
+Employee_ID,Name,Email,Phone,Department,Role,Password,Manager_Email,Telegram_Token,Is_Today_Task,Warning_Count
+EL-0001,Vikas Mahesh,vikasmahesh@eassy.life,9920025624,CEO,top_management,password123,,,false,0
+EL-0002,Shubham Pawar,shubham@eassylife.in,9322249398,Backend - Node js,employee,password456,vikasmahesh@eassy.life,,true,0
+EL-0003,Mohini Sharma,mohini@eassylife.in,9876543210,Frontend - Webapp,employee,password789,vikasmahesh@eassy.life,,true,0
+EL-0004,Keval Shah,keval@eassylife.in,9876543210,Frontend - Android,employee,password101,vikasmahesh@eassy.life,,true,0
+EL-0007,Dhruv Patel,dhruv@eassylife.in,9876543210,Digital Marketing,employee,password202,vikasmahesh@eassy.life,,true,0
+EL-0015,Sakshi Sharma,sakshi@eassylife.in,9876543210,Customer grievances,employee,password303,vikasmahesh@eassy.life,,true,0
+EL-0024,Kashvi Patel,kashvi@eassylife.in,9876543210,Brand Partnerships,employee,password404,vikasmahesh@eassy.life,,false,0
+EL-0027,Shadab Khan,shadab@eassylife.in,9876543210,Operations,employee,password505,vikasmahesh@eassy.life,,true,0
