@@ -101,11 +101,58 @@ export async function POST(request: NextRequest) {
           manager: data.manager || 'Manager Name',
         })
         break
-        
+
+      case 'support_assigned':
+        result = await emailService.sendSupportAssignedEmail({
+          supportMemberEmail: data.supportMemberEmail || 'test@example.com',
+          supportMemberName: data.supportMemberName || 'Test Support Member',
+          mainTaskId: data.mainTaskId || 'JSR-123456',
+          mainTaskDescription: data.mainTaskDescription || 'Implement new feature for the application',
+          priority: data.priority || 'U&I',
+          dueDate: data.dueDate || '2025-12-31',
+          assignedBy: data.assignedBy || 'Manager Name',
+          supportTaskId: data.supportTaskId || 'JSR-123457',
+        })
+        break
+
+      case 'bug_assigned':
+        result = await emailService.sendBugAssignedEmail({
+          assigneeEmail: data.assigneeEmail || 'test@example.com',
+          assigneeName: data.assigneeName || 'Test Developer',
+          assignedByEmail: data.assignedByEmail,
+          assignedByName: data.assignedByName || 'Manager Name',
+          bugId: data.bugId || 'BUG-123456',
+          bugTitle: data.bugTitle || 'Login button not working',
+          bugDescription: data.bugDescription || 'The login button does not respond when clicked on the homepage.',
+          severity: data.severity || 'Critical',
+          priority: data.priority || 'High',
+          category: data.category || 'UI',
+          platform: data.platform || 'Web',
+          environment: data.environment || 'Production',
+        })
+        break
+
+      case 'bug_created':
+        result = await emailService.sendBugCreatedEmail({
+          reporterEmail: data.reporterEmail || 'test@example.com',
+          reporterName: data.reporterName || 'Test Reporter',
+          assigneeEmail: data.assigneeEmail,
+          bugId: data.bugId || 'BUG-123456',
+          bugTitle: data.bugTitle || 'Login button not working',
+          bugDescription: data.bugDescription || 'The login button does not respond when clicked on the homepage.',
+          status: data.status || 'New',
+          severity: data.severity || 'Critical',
+          priority: data.priority || 'High',
+          category: data.category || 'UI',
+          platform: data.platform || 'Web',
+          environment: data.environment || 'Production',
+        })
+        break
+
       default:
         return NextResponse.json({
           success: false,
-          error: 'Invalid email type. Use: task_created, leave_approved, leave_rejected, user_credentials'
+          error: 'Invalid email type. Use: task_created, leave_approved, leave_rejected, user_credentials, support_assigned, bug_assigned, bug_created'
         }, { status: 400 })
     }
 

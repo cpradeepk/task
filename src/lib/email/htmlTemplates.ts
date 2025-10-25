@@ -11,7 +11,10 @@ const TEMPLATES = {
   USER_CREDENTIALS: 'email-preview.html',
   TASK_CREATION: 'task-creation-email-preview.html',
   LEAVE_APPROVAL: 'leave-approval-email-preview.html',
-  LEAVE_REJECTION: 'leave-rejection-email-preview.html'
+  LEAVE_REJECTION: 'leave-rejection-email-preview.html',
+  SUPPORT_ASSIGNMENT: 'support-assignment-email.html',
+  BUG_ASSIGNMENT: 'bug-assignment-email.html',
+  BUG_CREATION: 'bug-creation-email.html'
 }
 
 // Read template file from public directory
@@ -135,5 +138,146 @@ export function getLeaveStatusHtmlTemplate(data: {
     currentYear: new Date().getFullYear()
   }
   
+  return replacePlaceholders(template, templateData)
+}
+
+/**
+ * Support Assignment Email Template
+ *
+ * Sends email to support team members when they are assigned to help with a task.
+ *
+ * @param data - Support assignment details
+ * @returns HTML email template with support assignment information
+ */
+export function getSupportAssignmentHtmlTemplate(data: {
+  supportMemberName: string
+  mainTaskId: string
+  mainTaskDescription: string
+  priority: string
+  dueDate: string
+  assignedBy: string
+  supportTaskId: string
+  baseUrl?: string
+}) {
+  const template = readTemplate('SUPPORT_ASSIGNMENT')
+
+  // Determine priority class for styling
+  const priorityClass = data.priority.toLowerCase().includes('high') || data.priority.includes('U&I')
+    ? 'high'
+    : data.priority.toLowerCase().includes('low') || data.priority.includes('NU&NI')
+    ? 'low'
+    : 'medium'
+
+  const templateData = {
+    supportMemberName: data.supportMemberName,
+    mainTaskId: data.mainTaskId,
+    mainTaskDescription: data.mainTaskDescription,
+    priority: data.priority,
+    priorityClass: priorityClass,
+    dueDate: data.dueDate,
+    assignedBy: data.assignedBy,
+    supportTaskId: data.supportTaskId,
+    baseUrl: data.baseUrl || 'http://localhost:3000',
+    currentYear: new Date().getFullYear()
+  }
+
+  return replacePlaceholders(template, templateData)
+}
+
+/**
+ * Bug Assignment Email Template
+ *
+ * Sends email to developer when a bug is assigned to them.
+ *
+ * @param data - Bug assignment details
+ * @returns HTML email template with bug assignment information
+ */
+export function getBugAssignmentHtmlTemplate(data: {
+  assigneeName: string
+  assignedByName: string
+  bugId: string
+  bugTitle: string
+  bugDescription: string
+  severity: string
+  priority: string
+  category: string
+  platform: string
+  environment: string
+  baseUrl?: string
+}) {
+  const template = readTemplate('BUG_ASSIGNMENT')
+
+  // Determine severity class for styling
+  const severityClass = data.severity.toLowerCase()
+
+  // Determine priority class for styling
+  const priorityClass = data.priority.toLowerCase()
+
+  const templateData = {
+    assigneeName: data.assigneeName,
+    assignedByName: data.assignedByName,
+    bugId: data.bugId,
+    bugTitle: data.bugTitle,
+    bugDescription: data.bugDescription,
+    severity: data.severity,
+    severityClass: severityClass,
+    priority: data.priority,
+    priorityClass: priorityClass,
+    category: data.category,
+    platform: data.platform,
+    environment: data.environment,
+    baseUrl: data.baseUrl || 'http://localhost:3000',
+    currentYear: new Date().getFullYear()
+  }
+
+  return replacePlaceholders(template, templateData)
+}
+
+/**
+ * Bug Creation Email Template
+ *
+ * Sends confirmation email to bug reporter when a new bug is created.
+ *
+ * @param data - Bug creation details
+ * @returns HTML email template with bug creation confirmation
+ */
+export function getBugCreationHtmlTemplate(data: {
+  reporterName: string
+  bugId: string
+  bugTitle: string
+  bugDescription: string
+  status: string
+  severity: string
+  priority: string
+  category: string
+  platform: string
+  environment: string
+  baseUrl?: string
+}) {
+  const template = readTemplate('BUG_CREATION')
+
+  // Determine severity class for styling
+  const severityClass = data.severity.toLowerCase()
+
+  // Determine priority class for styling
+  const priorityClass = data.priority.toLowerCase()
+
+  const templateData = {
+    reporterName: data.reporterName,
+    bugId: data.bugId,
+    bugTitle: data.bugTitle,
+    bugDescription: data.bugDescription,
+    status: data.status,
+    severity: data.severity,
+    severityClass: severityClass,
+    priority: data.priority,
+    priorityClass: priorityClass,
+    category: data.category,
+    platform: data.platform,
+    environment: data.environment,
+    baseUrl: data.baseUrl || 'http://localhost:3000',
+    currentYear: new Date().getFullYear()
+  }
+
   return replacePlaceholders(template, templateData)
 }

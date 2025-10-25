@@ -8,7 +8,10 @@ import { EMAIL_CONFIG, EmailType, EmailPriority } from './config'
 import {
   getUserCredentialsHtmlTemplate,
   getTaskCreationHtmlTemplate,
-  getLeaveStatusHtmlTemplate
+  getLeaveStatusHtmlTemplate,
+  getSupportAssignmentHtmlTemplate,
+  getBugAssignmentHtmlTemplate,
+  getBugCreationHtmlTemplate
 } from './htmlTemplates'
 
 // Email service class
@@ -266,6 +269,223 @@ export class EmailService {
       priority: 'normal',
       type: data.status === 'approved' ? 'wfh_approved' : 'wfh_rejected',
     })
+  }
+
+  /**
+   * Send Support Assignment Email
+   *
+   * Sends email to support team member when they are assigned to help with a task.
+   * This notifies them of their support task and provides details about the main task.
+   *
+   * @param data - Support assignment details including member info, task details, and IDs
+   * @returns Promise with email sending result
+   *
+   * @example
+   * await emailService.sendSupportAssignedEmail({
+   *   supportMemberEmail: 'developer@example.com',
+   *   supportMemberName: 'John Doe',
+   *   mainTaskId: 'JSR-123',
+   *   mainTaskDescription: 'Implement new feature',
+   *   priority: 'U&I',
+   *   dueDate: '2025-12-31',
+   *   assignedBy: 'Jane Manager',
+   *   supportTaskId: 'JSR-124'
+   * })
+   */
+  async sendSupportAssignedEmail(data: {
+    supportMemberEmail: string
+    supportMemberName: string
+    mainTaskId: string
+    mainTaskDescription: string
+    priority: string
+    dueDate: string
+    assignedBy: string
+    supportTaskId: string
+  }) {
+    try {
+      console.log('📧 Ensuring email service is initialized...')
+      await this.ensureInitialized()
+
+      console.log('📧 Generating support assignment email template...')
+      const html = getSupportAssignmentHtmlTemplate({
+        supportMemberName: data.supportMemberName,
+        mainTaskId: data.mainTaskId,
+        mainTaskDescription: data.mainTaskDescription,
+        priority: data.priority,
+        dueDate: data.dueDate,
+        assignedBy: data.assignedBy,
+        supportTaskId: data.supportTaskId,
+        baseUrl: EMAIL_CONFIG.templates.baseUrl,
+      })
+
+      console.log('📧 Sending support assignment email...')
+      return await this.sendEmail({
+        to: data.supportMemberEmail,
+        subject: `🤝 You've been assigned as support for task ${data.mainTaskId}`,
+        html,
+        priority: 'normal',
+        type: 'task_created', // Reusing task_created type for now
+      })
+    } catch (error) {
+      console.error('❌ Failed to send support assignment email:', error)
+      return { success: false, message: `Failed to send support assignment email: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
+  }
+
+  /**
+   * Send Bug Assignment Email
+   *
+   * Sends email to developer when a bug is assigned to them.
+   * Includes bug details, severity, priority, and link to bug page.
+   *
+   * @param data - Bug assignment details including assignee, bug info, and metadata
+   * @returns Promise with email sending result
+   *
+   * @example
+   * await emailService.sendBugAssignedEmail({
+   *   assigneeEmail: 'developer@example.com',
+   *   assigneeName: 'John Doe',
+   *   assignedByEmail: 'manager@example.com',
+   *   assignedByName: 'Jane Manager',
+   *   bugId: 'BUG-123',
+   *   bugTitle: 'Login button not working',
+   *   bugDescription: 'Button does not respond to clicks',
+   *   severity: 'Critical',
+   *   priority: 'High',
+   *   category: 'UI',
+   *   platform: 'Web',
+   *   environment: 'Production'
+   * })
+   */
+  async sendBugAssignedEmail(data: {
+    assigneeEmail: string
+    assigneeName: string
+    assignedByEmail?: string
+    assignedByName: string
+    bugId: string
+    bugTitle: string
+    bugDescription: string
+    severity: string
+    priority: string
+    category: string
+    platform: string
+    environment: string
+  }) {
+    try {
+      console.log('📧 Ensuring email service is initialized...')
+      await this.ensureInitialized()
+
+      console.log('📧 Generating bug assignment email template...')
+      const html = getBugAssignmentHtmlTemplate({
+        assigneeName: data.assigneeName,
+        assignedByName: data.assignedByName,
+        bugId: data.bugId,
+        bugTitle: data.bugTitle,
+        bugDescription: data.bugDescription,
+        severity: data.severity,
+        priority: data.priority,
+        category: data.category,
+        platform: data.platform,
+        environment: data.environment,
+        baseUrl: EMAIL_CONFIG.templates.baseUrl,
+      })
+
+      console.log('📧 Sending bug assignment email...')
+
+      // Prepare CC list (include person who assigned the bug)
+      const ccEmails = []
+      if (data.assignedByEmail) ccEmails.push(data.assignedByEmail)
+
+      return await this.sendEmail({
+        to: data.assigneeEmail,
+        cc: ccEmails.length > 0 ? ccEmails : undefined,
+        subject: `🐛 Bug Assigned: ${data.bugTitle} (${data.bugId})`,
+        html,
+        priority: 'high', // Bug assignments are high priority
+        type: 'task_created', // Reusing task_created type for now
+      })
+    } catch (error) {
+      console.error('❌ Failed to send bug assignment email:', error)
+      return { success: false, message: `Failed to send bug assignment email: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
+  }
+
+  /**
+   * Send Bug Creation Email
+   *
+   * Sends confirmation email to bug reporter when a new bug is created.
+   * Also notifies the assigned developer if bug is assigned during creation.
+   *
+   * @param data - Bug creation details including reporter, bug info, and optional assignee
+   * @returns Promise with email sending result
+   *
+   * @example
+   * await emailService.sendBugCreatedEmail({
+   *   reporterEmail: 'reporter@example.com',
+   *   reporterName: 'John Doe',
+   *   assigneeEmail: 'developer@example.com',
+   *   bugId: 'BUG-123',
+   *   bugTitle: 'Login button not working',
+   *   bugDescription: 'Button does not respond to clicks',
+   *   status: 'New',
+   *   severity: 'Critical',
+   *   priority: 'High',
+   *   category: 'UI',
+   *   platform: 'Web',
+   *   environment: 'Production'
+   * })
+   */
+  async sendBugCreatedEmail(data: {
+    reporterEmail: string
+    reporterName: string
+    assigneeEmail?: string
+    bugId: string
+    bugTitle: string
+    bugDescription: string
+    status: string
+    severity: string
+    priority: string
+    category: string
+    platform: string
+    environment: string
+  }) {
+    try {
+      console.log('📧 Ensuring email service is initialized...')
+      await this.ensureInitialized()
+
+      console.log('📧 Generating bug creation email template...')
+      const html = getBugCreationHtmlTemplate({
+        reporterName: data.reporterName,
+        bugId: data.bugId,
+        bugTitle: data.bugTitle,
+        bugDescription: data.bugDescription,
+        status: data.status,
+        severity: data.severity,
+        priority: data.priority,
+        category: data.category,
+        platform: data.platform,
+        environment: data.environment,
+        baseUrl: EMAIL_CONFIG.templates.baseUrl,
+      })
+
+      console.log('📧 Sending bug creation email...')
+
+      // Prepare CC list (include assignee if bug is assigned during creation)
+      const ccEmails = []
+      if (data.assigneeEmail) ccEmails.push(data.assigneeEmail)
+
+      return await this.sendEmail({
+        to: data.reporterEmail,
+        cc: ccEmails.length > 0 ? ccEmails : undefined,
+        subject: `📋 Bug Report Created: ${data.bugTitle} (${data.bugId})`,
+        html,
+        priority: 'normal',
+        type: 'task_created', // Reusing task_created type for now
+      })
+    } catch (error) {
+      console.error('❌ Failed to send bug creation email:', error)
+      return { success: false, message: `Failed to send bug creation email: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
   }
 
   // Check if email service is available

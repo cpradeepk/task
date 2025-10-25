@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllBugs, getBugsAssignedTo, getBugsReportedBy, getBugsByStatus, createBug } from '@/lib/db/bugs'
 import { Bug } from '@/lib/types'
 import { generateBugId } from '@/lib/data'
+import { emailService } from '@/lib/email/service'
+import { getUserByEmployeeId } from '@/lib/db/users'
 
 export async function GET(request: NextRequest) {
   try {
@@ -102,6 +104,44 @@ export async function POST(request: NextRequest) {
 
     // Add bug to MySQL
     const bug = await createBug(bugToCreate)
+
+    // Send email notification for bug creation
+    // Don't fail bug creation if email fails
+    try {
+      if (emailService.isAvailable()) {
+        // Get reporter details
+        const reporter = await getUserByEmployeeId(bug.reportedBy)
+
+        // Get assignee details (if bug is assigned during creation)
+        let assigneeEmail = undefined
+        if (bug.assignedTo) {
+          const assignee = await getUserByEmployeeId(bug.assignedTo)
+          assigneeEmail = assignee?.email
+        }
+
+        if (reporter) {
+          await emailService.sendBugCreatedEmail({
+            reporterEmail: reporter.email,
+            reporterName: reporter.name,
+            assigneeEmail: assigneeEmail,
+            bugId: bug.bugId,
+            bugTitle: bug.title,
+            bugDescription: bug.description,
+            status: bug.status,
+            severity: bug.severity,
+            priority: bug.priority,
+            category: bug.category,
+            platform: bug.platform,
+            environment: bug.environment,
+          })
+
+          console.log(`✅ Bug creation email sent to ${reporter.email}`)
+        }
+      }
+    } catch (emailError) {
+      console.error('⚠️ Failed to send bug creation email:', emailError)
+      // Continue - don't fail bug creation if email fails
+    }
 
     return NextResponse.json({
       success: true,
