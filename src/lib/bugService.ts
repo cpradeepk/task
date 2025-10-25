@@ -115,9 +115,33 @@ export async function getBugById(bugId: string): Promise<Bug | null> {
 
 /**
  * Create new bug
+ *
+ * This function sends bug data to the API endpoint which will:
+ * 1. Generate a unique bug ID automatically
+ * 2. Validate required fields (title, description, reportedBy)
+ * 3. Set default values (status='New', reopenedCount=0)
+ * 4. Insert the bug into MySQL database
+ *
+ * @param {BugFormData} bugData - The bug form data (without bugId - it's auto-generated)
+ * @returns {Promise<string | null>} The created bug object or null if failed
+ *
+ * @example
+ * const bugData = {
+ *   title: "Login button not working",
+ *   description: "When I click login, nothing happens",
+ *   severity: "Critical",
+ *   priority: "High",
+ *   category: "UI",
+ *   platform: "Web",
+ *   reportedBy: "AM-0001",
+ *   environment: "Production"
+ * }
+ * const bug = await createBug(bugData)
  */
 export async function createBug(bugData: BugFormData): Promise<string | null> {
   try {
+    // Send POST request to /api/bugs endpoint
+    // The API will automatically generate a unique bug ID
     const response = await fetch('/api/bugs', {
       method: 'POST',
       headers: {
@@ -126,10 +150,12 @@ export async function createBug(bugData: BugFormData): Promise<string | null> {
       body: JSON.stringify(bugData)
     })
 
+    // Check if the request was successful
     if (!response.ok) {
       throw new Error('Failed to create bug')
     }
 
+    // Parse the response and return the created bug data
     const result = await response.json()
     return result.data
   } catch (error) {

@@ -27,6 +27,35 @@ export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
 }
 
+/**
+ * Generate unique Bug ID with format: BUG-{timestamp}{counter}{random}
+ * Ensures uniqueness even when called multiple times in the same millisecond
+ *
+ * @returns {string} Unique bug ID (e.g., "BUG-1735123456789001234")
+ *
+ * @example
+ * const bugId = generateBugId() // "BUG-1735123456789001234"
+ */
+let lastBugTimestamp = 0
+let bugCounter = 0
+
+export function generateBugId(): string {
+  const timestamp = Date.now()
+
+  // If same millisecond, increment counter to ensure uniqueness
+  if (timestamp === lastBugTimestamp) {
+    bugCounter++
+  } else {
+    lastBugTimestamp = timestamp
+    bugCounter = 0
+  }
+
+  // Use timestamp + counter + random for guaranteed uniqueness
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+  const uniqueCounter = bugCounter.toString().padStart(3, '0')
+  return `BUG-${timestamp}${uniqueCounter}${random}`
+}
+
 // Task utility functions
 export function isTaskOwner(task: any, employeeId: string): boolean {
   return task.assignedTo === employeeId

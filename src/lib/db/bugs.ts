@@ -1,50 +1,86 @@
-// MySQL Bugs Service
-// Server-side only - do not use 'use client'
+/**
+ * MySQL Bugs Service
+ *
+ * This file handles all database operations for the bug tracking system.
+ * It provides CRUD operations for bugs and bug comments.
+ *
+ * IMPORTANT: Server-side only - do not use 'use client' directive
+ * This file uses MySQL2 library which only works on the server.
+ *
+ * Key Features:
+ * - Automatic retry logic for failed database operations
+ * - Type-safe database queries using TypeScript
+ * - Conversion between database rows (snake_case) and TypeScript objects (camelCase)
+ * - Support for bug comments and relationships
+ */
 
 import { query, queryOne, withRetry } from './config'
 import { Bug, BugComment } from '../types'
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
 
+/**
+ * BugRow Interface
+ *
+ * Represents a bug record as it comes from the MySQL database.
+ * Database columns use snake_case naming (e.g., bug_id, assigned_to).
+ *
+ * This interface extends RowDataPacket from mysql2 library to ensure
+ * type safety when querying the database.
+ */
 interface BugRow extends RowDataPacket {
-  id: number
-  bug_id: string
-  title: string
-  description: string
-  severity: string
-  priority: string
-  status: string
-  category: string
-  platform: string
-  assigned_to: string | null
-  assigned_by: string | null
-  reported_by: string
-  environment: string
-  browser_info: string | null
-  device_info: string | null
-  steps_to_reproduce: string | null
-  expected_behavior: string | null
-  actual_behavior: string | null
-  attachments: string | null
-  estimated_hours: number | null
-  actual_hours: number | null
-  resolved_date: string | null
-  closed_date: string | null
-  reopened_count: number
-  tags: string | null
-  related_bugs: string | null
-  created_at: string
-  updated_at: string
+  id: number                          // Auto-increment primary key
+  bug_id: string                      // Unique bug identifier (e.g., "BUG-1735123456789001234")
+  title: string                       // Bug title/summary
+  description: string                 // Detailed bug description
+  severity: string                    // 'Critical' | 'Major' | 'Minor'
+  priority: string                    // 'High' | 'Medium' | 'Low'
+  status: string                      // 'New' | 'In Progress' | 'Resolved' | 'Closed' | 'Reopened'
+  category: string                    // 'UI' | 'API' | 'Backend' | 'Performance' | etc.
+  platform: string                    // 'iOS' | 'Android' | 'Web' | 'All'
+  assigned_to: string | null          // Employee ID of assignee (optional)
+  assigned_by: string | null          // Employee ID of assigner (optional)
+  reported_by: string                 // Employee ID of reporter (required)
+  environment: string                 // 'Development' | 'Staging' | 'Production'
+  browser_info: string | null         // Browser details (optional)
+  device_info: string | null          // Device details (optional)
+  steps_to_reproduce: string | null   // Steps to reproduce the bug (optional)
+  expected_behavior: string | null    // What should happen (optional)
+  actual_behavior: string | null      // What actually happens (optional)
+  attachments: string | null          // File URLs or paths (optional)
+  estimated_hours: number | null      // Estimated time to fix (optional)
+  actual_hours: number | null         // Actual time spent (optional)
+  resolved_date: string | null        // When bug was resolved (optional)
+  closed_date: string | null          // When bug was closed (optional)
+  reopened_count: number              // Number of times bug was reopened
+  tags: string | null                 // Comma-separated tags (optional)
+  related_bugs: string | null         // Comma-separated bug IDs (optional)
+  created_at: string                  // Timestamp when bug was created
+  updated_at: string                  // Timestamp when bug was last updated
 }
 
+/**
+ * BugCommentRow Interface
+ *
+ * Represents a bug comment record from the MySQL database.
+ * Comments are stored in a separate table linked by bug_id.
+ */
 interface BugCommentRow extends RowDataPacket {
-  id: number
-  bug_id: string
-  commented_by: string
-  comment_text: string
-  timestamp: string
+  id: number              // Auto-increment primary key
+  bug_id: string          // Foreign key to bugs table
+  commented_by: string    // Employee ID of commenter
+  comment_text: string    // The comment content
+  timestamp: string       // When comment was created
 }
 
-// Convert database row to Bug object
+/**
+ * Convert database row to Bug object
+ *
+ * This function transforms a database row (snake_case) into a TypeScript Bug object (camelCase).
+ * It also handles type conversions and optional fields.
+ *
+ * @param {BugRow} row - The database row from MySQL
+ * @returns {Bug} The Bug object with proper TypeScript types
+ */
 function rowToBug(row: BugRow): Bug {
   return {
     bugId: row.bug_id,
@@ -141,9 +177,40 @@ export async function getBugsReportedBy(employeeId: string): Promise<Bug[]> {
   })
 }
 
-// Create bug
+/**
+ * Create a new bug in the database
+ *
+ * This function:
+ * 1. Inserts a new bug record into the MySQL bugs table
+ * 2. Uses parameterized queries to prevent SQL injection
+ * 3. Automatically retries on failure (up to 3 times)
+ * 4. Retrieves and returns the created bug with timestamps
+ *
+ * Note: The bugId must be provided (generated by the API route using generateBugId())
+ * The createdAt and updatedAt timestamps are automatically set by MySQL
+ *
+ * @param {Omit<Bug, 'createdAt' | 'updatedAt'>} bug - Bug data without timestamps
+ * @returns {Promise<Bug>} The created bug with all fields including timestamps
+ * @throws {Error} If bug creation fails or created bug cannot be retrieved
+ *
+ * @example
+ * const newBug = await createBug({
+ *   bugId: "BUG-1735123456789001234",
+ *   title: "Login button not working",
+ *   description: "Button doesn't respond to clicks",
+ *   severity: "Critical",
+ *   priority: "High",
+ *   status: "New",
+ *   category: "UI",
+ *   platform: "Web",
+ *   reportedBy: "AM-0001",
+ *   environment: "Production",
+ *   reopenedCount: 0
+ * })
+ */
 export async function createBug(bug: Omit<Bug, 'createdAt' | 'updatedAt'>): Promise<Bug> {
   return withRetry(async () => {
+    // Insert bug into database using parameterized query (prevents SQL injection)
     await query<ResultSetHeader>(
       `INSERT INTO bugs (
         bug_id, title, description, severity, priority, status, category,
@@ -153,34 +220,35 @@ export async function createBug(bug: Omit<Bug, 'createdAt' | 'updatedAt'>): Prom
         resolved_date, closed_date, reopened_count, tags, related_bugs
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        bug.bugId,
-        bug.title,
-        bug.description,
-        bug.severity,
-        bug.priority,
-        bug.status,
-        bug.category,
-        bug.platform,
-        bug.assignedTo || null,
-        bug.assignedBy || null,
-        bug.reportedBy,
-        bug.environment,
-        bug.browserInfo || null,
-        bug.deviceInfo || null,
-        bug.stepsToReproduce || null,
-        bug.expectedBehavior || null,
-        bug.actualBehavior || null,
-        bug.attachments || null,
-        bug.estimatedHours || null,
-        bug.actualHours || null,
-        bug.resolvedDate || null,
-        bug.closedDate || null,
-        bug.reopenedCount,
-        bug.tags || null,
-        bug.relatedBugs || null
+        bug.bugId,                          // Unique bug ID (generated by API)
+        bug.title,                          // Bug title
+        bug.description,                    // Bug description
+        bug.severity,                       // Critical/Major/Minor
+        bug.priority,                       // High/Medium/Low
+        bug.status,                         // New/In Progress/Resolved/etc.
+        bug.category,                       // UI/API/Backend/etc.
+        bug.platform,                       // iOS/Android/Web/All
+        bug.assignedTo || null,             // Optional: Employee ID of assignee
+        bug.assignedBy || null,             // Optional: Employee ID of assigner
+        bug.reportedBy,                     // Required: Employee ID of reporter
+        bug.environment,                    // Development/Staging/Production
+        bug.browserInfo || null,            // Optional: Browser details
+        bug.deviceInfo || null,             // Optional: Device details
+        bug.stepsToReproduce || null,       // Optional: Reproduction steps
+        bug.expectedBehavior || null,       // Optional: Expected behavior
+        bug.actualBehavior || null,         // Optional: Actual behavior
+        bug.attachments || null,            // Optional: File URLs
+        bug.estimatedHours || null,         // Optional: Estimated fix time
+        bug.actualHours || null,            // Optional: Actual time spent
+        bug.resolvedDate || null,           // Optional: Resolution date
+        bug.closedDate || null,             // Optional: Closure date
+        bug.reopenedCount,                  // Number of times reopened (default: 0)
+        bug.tags || null,                   // Optional: Comma-separated tags
+        bug.relatedBugs || null             // Optional: Related bug IDs
       ]
     )
 
+    // Retrieve the created bug (includes auto-generated timestamps)
     const createdBug = await getBugById(bug.bugId)
     if (!createdBug) {
       throw new Error('Failed to retrieve created bug')
