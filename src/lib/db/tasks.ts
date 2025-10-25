@@ -37,14 +37,31 @@ interface TaskRow extends RowDataPacket {
 // Convert database row to Task object
 function rowToTask(row: TaskRow): Task {
   // Safely parse support field
+  // MySQL2 auto-parses JSON fields, so row.support might be:
+  // - Already an array (MySQL2 auto-parsed)
+  // - A JSON string (needs parsing)
+  // - null/undefined (needs default)
   let support: string[] = []
+
   try {
-    const supportValue = row.support || '[]'
-    // Handle empty string or whitespace
-    if (supportValue.trim() === '') {
+    if (!row.support) {
+      // null or undefined
       support = []
+    } else if (Array.isArray(row.support)) {
+      // Already parsed by MySQL2
+      support = row.support
+    } else if (typeof row.support === 'string') {
+      // String that needs parsing
+      const trimmed = row.support.trim()
+      if (trimmed === '' || trimmed === 'null') {
+        support = []
+      } else {
+        support = JSON.parse(trimmed)
+      }
     } else {
-      support = JSON.parse(supportValue)
+      // Unknown type, log and default to empty
+      console.warn('Unexpected support field type for task:', row.task_id, 'Type:', typeof row.support, 'Value:', row.support)
+      support = []
     }
   } catch (error) {
     console.error('Failed to parse support field for task:', row.task_id, 'Value:', row.support, 'Error:', error)
