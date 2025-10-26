@@ -9,6 +9,7 @@ import { getCurrentUser, getAllUsers } from '@/lib/auth'
 import { Bug, AlertCircle, Save, X, FileText, Settings, CheckSquare, Paperclip, Clock, Tag } from 'lucide-react'
 import LoadingButton from '@/components/ui/LoadingButton'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import ProjectSelector from '@/components/ProjectSelector'
 
 export default function CreateBugPage() {
   const [formData, setFormData] = useState<BugFormData>({
@@ -27,7 +28,10 @@ export default function CreateBugPage() {
     attachments: '',
     estimatedHours: undefined,
     tags: '',
-    relatedBugs: ''
+    relatedBugs: '',
+    projectId: undefined,
+    feature: '',
+    type: undefined
   })
   
   const [users, setUsers] = useState<User[]>([])
@@ -293,27 +297,77 @@ export default function CreateBugPage() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Assign To (Optional)
+                      Bug Type (Optional)
                     </label>
-                    {!usersLoaded ? (
-                      <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center min-h-[48px]">
-                        {isLoadingUsers ? (
-                          <LoadingSpinner size="sm" message="Loading users..." />
-                        ) : (
-                          <div className="animate-pulse">
-                            <div className="h-4 bg-gray-200 rounded w-24"></div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <select
-                        name="assignedTo"
-                        value={formData.assignedTo || ''}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                      >
-                        <option value="">👤 Select assignee...</option>
-                        {users.map(user => (
+                    <select
+                      name="type"
+                      value={formData.type || ''}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                    >
+                      <option value="">Select type...</option>
+                      <option value="testcase">🧪 Test Case</option>
+                      <option value="feature">✨ Feature</option>
+                      <option value="other">📋 Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Project and Feature */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <ProjectSelector
+                      value={formData.projectId || null}
+                      onChange={(projectId) => setFormData({ ...formData, projectId: projectId || undefined })}
+                      disabled={isLoading}
+                      required={false}
+                      includeNone={true}
+                      label="Project (Optional)"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Feature (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="feature"
+                      value={formData.feature || ''}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="e.g., User Authentication, Payment Gateway"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Specify which feature this bug is related to
+                    </p>
+                  </div>
+                </div>
+
+                {/* Assign To */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Assign To (Optional)
+                  </label>
+                  {!usersLoaded ? (
+                    <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center min-h-[48px]">
+                      {isLoadingUsers ? (
+                        <LoadingSpinner size="sm" message="Loading users..." />
+                      ) : (
+                        <div className="animate-pulse">
+                          <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <select
+                      name="assignedTo"
+                      value={formData.assignedTo || ''}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                    >
+                      <option value="">👤 Select assignee...</option>
+                      {users.map(user => (
                           <option key={user.employeeId} value={user.employeeId}>
                             {user.name} ({user.employeeId})
                           </option>
