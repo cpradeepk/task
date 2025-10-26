@@ -9,6 +9,7 @@ import { Task, User } from '@/lib/types'
 import StatsCard from '@/components/dashboard/StatsCard'
 import TaskList from '@/components/dashboard/TaskListNew'
 import TaskWarningAlert from '@/components/TaskWarningAlert'
+import UnifiedWorkItems from '@/components/dashboard/UnifiedWorkItems'
 
 import {
   CheckCircle,
@@ -597,6 +598,12 @@ export default function Dashboard() {
             allowEdit={true}
             onTaskUpdate={loadData}
           />
+
+          {/* Unified Work Items (Tasks + Bugs) */}
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-black mb-4">All Work Items</h2>
+            <UnifiedWorkItems employeeId={currentUser.employeeId} />
+          </div>
 
           {/* Quick Actions */}
           <div className="card">
