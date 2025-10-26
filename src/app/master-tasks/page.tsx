@@ -28,15 +28,15 @@ export default function MasterTasksPage() {
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [initialized, setInitialized] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
   const [projectFilter, setProjectFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('all')
-  
+
   const router = useRouter()
-  const currentUser = getCurrentUser()
 
   useEffect(() => {
     setIsHydrated(true)
@@ -44,7 +44,10 @@ export default function MasterTasksPage() {
 
   useEffect(() => {
     if (!isHydrated) return
-    
+    if (initialized) return // Prevent multiple executions
+
+    const currentUser = getCurrentUser()
+
     if (!currentUser) {
       router.push('/')
       return
@@ -57,7 +60,8 @@ export default function MasterTasksPage() {
     }
 
     loadData()
-  }, [currentUser, router, isHydrated])
+    setInitialized(true)
+  }, [isHydrated, initialized, router])
 
   const loadData = async () => {
     try {
@@ -182,6 +186,8 @@ export default function MasterTasksPage() {
       default: return 'bg-gray-100 text-gray-800'
     }
   }
+
+  const currentUser = getCurrentUser()
 
   if (!isHydrated || !currentUser) {
     return null

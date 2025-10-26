@@ -28,15 +28,15 @@ export default function MasterBugsPage() {
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [initialized, setInitialized] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [severityFilter, setSeverityFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
   const [reporterFilter, setReporterFilter] = useState('all')
-  
+
   const router = useRouter()
-  const currentUser = getCurrentUser()
 
   useEffect(() => {
     setIsHydrated(true)
@@ -44,7 +44,10 @@ export default function MasterBugsPage() {
 
   useEffect(() => {
     if (!isHydrated) return
-    
+    if (initialized) return // Prevent multiple executions
+
+    const currentUser = getCurrentUser()
+
     if (!currentUser) {
       router.push('/')
       return
@@ -57,7 +60,8 @@ export default function MasterBugsPage() {
     }
 
     loadData()
-  }, [currentUser, router, isHydrated])
+    setInitialized(true)
+  }, [isHydrated, initialized, router])
 
   const loadData = async () => {
     try {
@@ -165,6 +169,8 @@ export default function MasterBugsPage() {
       default: return 'bg-gray-100 text-gray-800'
     }
   }
+
+  const currentUser = getCurrentUser()
 
   if (!isHydrated || !currentUser) {
     return null
