@@ -91,6 +91,7 @@ export interface Task {
   remarks?: string          // Optional: Additional notes/comments
   difficulties?: string     // Optional: Challenges faced during task execution
   subTask?: string          // Optional: Sub-task details or breakdown
+  projectId?: string | null // Optional: Project ID this task belongs to (e.g., "PRJ-001")
   createdAt: string         // Timestamp when task was created
   updatedAt: string         // Timestamp when task was last updated
 }
@@ -224,6 +225,9 @@ export interface Bug {
   reopenedCount: number     // Number of times bug was reopened (default: 0)
   tags?: string             // Optional: Comma-separated tags (e.g., "login,authentication")
   relatedBugs?: string      // Optional: Comma-separated related bug IDs
+  projectId?: string | null // Optional: Project ID this bug belongs to (e.g., "PRJ-001")
+  feature?: string | null   // Optional: Feature name this bug is related to
+  type?: 'testcase' | 'feature' | 'other' | null  // Optional: Bug type categorization
   createdAt: string         // Timestamp when bug was created
   updatedAt: string         // Timestamp when bug was last updated
 }
@@ -254,4 +258,65 @@ export interface BugFormData {
   estimatedHours?: number
   tags?: string
   relatedBugs?: string
+  projectId?: string | null
+  feature?: string | null
+  type?: 'testcase' | 'feature' | 'other' | null
+}
+
+// ============================================================================
+// PROJECT MANAGEMENT TYPES
+// ============================================================================
+
+/**
+ * Project Interface
+ *
+ * Represents a project or sub-project in the system.
+ * Projects can have a 2-level hierarchy: Main Project → Sub-Project
+ *
+ * Project Status:
+ * - Active: Currently active project
+ * - Inactive: Temporarily inactive project
+ * - Deleted: Soft-deleted project (visible only to admin)
+ *
+ * Hierarchy Rules:
+ * - Main projects have parent_project_id = NULL
+ * - Sub-projects have parent_project_id = parent's project_id
+ * - Sub-projects CANNOT have sub-projects (2-level max)
+ */
+export interface Project {
+  projectId: string         // Unique project ID (e.g., "PRJ-001", "PRJ-002")
+  projectName: string       // Project name (displayed in UI, e.g., "JSR Task Management System")
+  parentProjectId?: string | null  // Parent project ID for sub-projects (NULL for main projects)
+  description?: string | null      // Project description
+  status: 'Active' | 'Inactive' | 'Deleted'  // Project status
+  createdBy: string         // Employee ID of creator
+  createdAt: string         // Timestamp when project was created
+  updatedAt: string         // Timestamp when project was last updated
+  deletedAt?: string | null // Timestamp when project was soft-deleted
+  deletedBy?: string | null // Employee ID of who deleted the project
+}
+
+// ============================================================================
+// UNIFIED WORK ITEMS (for Dashboard)
+// ============================================================================
+
+/**
+ * WorkItem Interface
+ *
+ * Unified interface for displaying both tasks and bugs in the dashboard.
+ * This allows the dashboard to show a mixed list of work items with
+ * consistent structure and easy filtering.
+ */
+export interface WorkItem {
+  id: string                // bugId or taskId
+  type: 'task' | 'bug'      // Type of work item
+  title: string             // description for tasks, title for bugs
+  status: string            // Task status or Bug status
+  priority: string          // Task priority or Bug priority
+  assignedTo: string        // Employee ID of assignee
+  dueDate: string           // endDate for tasks, createdAt for bugs
+  projectId?: string | null // Project ID if assigned
+  projectName?: string | null  // Project name for display
+  severity?: string         // Only for bugs
+  createdAt: string         // Creation timestamp
 }
