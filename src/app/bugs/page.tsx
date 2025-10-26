@@ -102,17 +102,11 @@ export default function BugsPage() {
         // top_management and admin can see all bugs (no filtering)
       }
 
-      // TEMPORARY FIX: Swap bugId and title fields due to data mapping issue
-      const fixedBugsData = bugsData.map(bug => ({
-        ...bug,
-        bugId: bug.title, // The actual bug ID is in the title field
-        title: bug.bugId  // The actual title is in the bugId field
-      }))
-
-      setBugs(fixedBugsData)
+      // Set bugs data directly without any field swapping
+      setBugs(bugsData)
 
       // Calculate statistics from filtered bugs (user's visible bugs)
-      const stats = calculateStatistics(fixedBugsData)
+      const stats = calculateStatistics(bugsData)
       setStatistics(stats)
 
       setError(null) // Clear any previous errors
