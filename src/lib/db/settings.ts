@@ -124,33 +124,6 @@ export async function getSettingsByType(): Promise<Record<SettingType, string[]>
 }
 
 /**
- * Get a single setting by ID
- */
-export async function getSettingById(id: number): Promise<Setting | null> {
-  try {
-    const sql = `
-      SELECT 
-        id,
-        setting_type as settingType,
-        setting_value as settingValue,
-        display_order as displayOrder,
-        is_active as isActive,
-        created_by as createdBy,
-        created_at as createdAt,
-        updated_at as updatedAt
-      FROM settings
-      WHERE id = ?
-    `
-    
-    const results = await query(sql, [id])
-    return results.length > 0 ? (results[0] as Setting) : null
-  } catch (error) {
-    console.error('Error fetching setting by ID:', error)
-    throw new Error('Failed to fetch setting')
-  }
-}
-
-/**
  * Create a new setting
  */
 export async function createSetting(data: CreateSettingData): Promise<Setting> {
