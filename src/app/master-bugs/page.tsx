@@ -20,8 +20,45 @@ import {
   AlertCircle,
   RefreshCw,
   Eye,
-  AlertTriangle
+  AlertTriangle,
+  FileText,
+  Tag
 } from 'lucide-react'
+
+// Component to handle async user name fetching
+function UserName({ employeeId }: { employeeId: string }) {
+  const [name, setName] = useState<string>(employeeId)
+
+  useEffect(() => {
+    getAllUsers().then(users => {
+      const user = users.find(u => u.employeeId === employeeId)
+      if (user) setName(user.name)
+    })
+  }, [employeeId])
+
+  return <span>{name}</span>
+}
+
+// Helper functions for styling
+const getSeverityColor = (severity: string) => {
+  switch (severity) {
+    case 'Critical': return 'bg-red-100 text-red-800 border-red-200'
+    case 'Major': return 'bg-orange-100 text-orange-800 border-orange-200'
+    case 'Minor': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    default: return 'bg-gray-100 text-gray-800 border-gray-200'
+  }
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'New': return 'bg-yellow-100 text-yellow-800'
+    case 'In Progress': return 'bg-blue-100 text-blue-800'
+    case 'Resolved': return 'bg-green-100 text-green-800'
+    case 'Closed': return 'bg-gray-100 text-gray-800'
+    case 'Reopened': return 'bg-purple-100 text-purple-800'
+    default: return 'bg-gray-100 text-gray-800'
+  }
+}
 
 export default function MasterBugsPage() {
   const [bugs, setBugs] = useState<Bug[]>([])
@@ -149,26 +186,6 @@ export default function MasterBugsPage() {
       minor: bugs.filter(b => b.severity === 'Minor').length
     }
   }, [bugs])
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'New': return 'bg-yellow-100 text-yellow-800'
-      case 'In Progress': return 'bg-blue-100 text-blue-800'
-      case 'Resolved': return 'bg-green-100 text-green-800'
-      case 'Closed': return 'bg-gray-100 text-gray-800'
-      case 'Reopened': return 'bg-orange-100 text-orange-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'Critical': return 'bg-red-100 text-red-800'
-      case 'Major': return 'bg-orange-100 text-orange-800'
-      case 'Minor': return 'bg-yellow-100 text-yellow-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
 
   const currentUser = getCurrentUser()
 
@@ -396,7 +413,7 @@ export default function MasterBugsPage() {
               </div>
             </div>
 
-            {/* Bugs List */}
+            {/* Bugs List - Card Based Layout */}
             {filteredBugs.length === 0 ? (
               <div className="bg-white rounded-lg p-12 text-center border border-gray-200">
                 <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -406,109 +423,97 @@ export default function MasterBugsPage() {
                 </p>
               </div>
             ) : (
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Bug ID
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Title
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Severity
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Category
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Assignee
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Reporter
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Created
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredBugs.map((bug) => {
-                        const assignee = users.find(u => u.employeeId === bug.assignedTo)
-                        const reporter = users.find(u => u.employeeId === bug.reportedBy)
+              <div className="space-y-4">
+                {filteredBugs.map((bug) => {
+                  const assignee = users.find(u => u.employeeId === bug.assignedTo)
+                  const reporter = users.find(u => u.employeeId === bug.reportedBy)
 
-                        return (
-                          <tr key={bug.bugId} className="hover:bg-gray-50">
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                                {bug.bugId}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4">
-                              <div className="text-sm text-gray-900 max-w-md truncate" title={bug.title}>
-                                {bug.title}
+                  return (
+                    <div
+                      key={bug.bugId}
+                      className={`card border rounded-lg p-4 hover:shadow-md transition-shadow bg-white ${getSeverityColor(bug.severity)}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="font-mono text-sm text-primary font-medium">
+                              {bug.bugId}
+                            </span>
+
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(bug.severity)}`}>
+                              {bug.severity === 'Critical' && '🔴 '}
+                              {bug.severity === 'Major' && '🟠 '}
+                              {bug.severity === 'Minor' && '🟡 '}
+                              {bug.severity}
+                            </span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bug.status)}`}>
+                              {bug.status === 'New' && '🆕 '}
+                              {bug.status === 'In Progress' && '⏳ '}
+                              {bug.status === 'Resolved' && '✅ '}
+                              {bug.status === 'Closed' && '🔒 '}
+                              {bug.status === 'Reopened' && '🔄 '}
+                              {bug.status}
+                            </span>
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              {bug.priority}
+                            </span>
+                          </div>
+
+                          <h4 className="font-medium text-black mb-1">
+                            {bug.title}
+                          </h4>
+
+                          {bug.description && (
+                            <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                              {bug.description}
+                            </p>
+                          )}
+
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center space-x-1">
+                              <Tag className="h-4 w-4" />
+                              <span>Category: {bug.category}</span>
+                            </div>
+
+                            {bug.assignedTo && (
+                              <div className="flex items-center space-x-1">
+                                <UserIcon className="h-4 w-4" />
+                                <span>Assigned to: {assignee?.name || bug.assignedTo}</span>
                               </div>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(bug.severity)}`}>
-                                {bug.severity}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bug.status)}`}>
-                                {bug.status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <span className="text-sm text-gray-900">{bug.category}</span>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <div className="flex items-center space-x-2">
-                                <UserIcon className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm text-gray-900">
-                                  {assignee?.name || bug.assignedTo}
-                                </span>
+                            )}
+
+                            <div className="flex items-center space-x-1">
+                              <UserIcon className="h-4 w-4 text-blue-500" />
+                              <span>Reported by: {reporter?.name || bug.reportedBy}</span>
+                            </div>
+
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-4 w-4" />
+                              <span>Created: {new Date(bug.createdAt).toLocaleDateString()}</span>
+                            </div>
+
+                            {bug.platform && (
+                              <div className="flex items-center space-x-1">
+                                <FileText className="h-4 w-4" />
+                                <span>Platform: {bug.platform}</span>
                               </div>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <div className="flex items-center space-x-2">
-                                <UserIcon className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm text-gray-900">
-                                  {reporter?.name || bug.reportedBy}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <div className="flex items-center space-x-2">
-                                <Calendar className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm text-gray-900">
-                                  {new Date(bug.createdAt).toLocaleDateString()}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <button
-                                onClick={() => router.push(`/bugs/${bug.bugId}`)}
-                                className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
-                              >
-                                <Eye className="h-4 w-4" />
-                                <span className="text-sm">View</span>
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="ml-4">
+                          <button
+                            onClick={() => router.push(`/bugs/${bug.bugId}`)}
+                            className="btn-secondary flex items-center space-x-1"
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="text-sm">View</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </>

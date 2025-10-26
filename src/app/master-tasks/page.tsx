@@ -20,8 +20,43 @@ import {
   BarChart3,
   Download,
   RefreshCw,
-  Eye
+  Eye,
+  Clock,
+  Users,
+  Crown,
+  Heart
 } from 'lucide-react'
+import { formatDate, getStatusColor, getPriorityColor } from '@/lib/data'
+
+// Helper function to check if task is overdue
+function isTaskOverdue(task: Task): boolean {
+  const today = new Date()
+  const endDate = new Date(task.endDate)
+  return today > endDate && !['Done', 'Cancel', 'Stop'].includes(task.status)
+}
+
+// Component to handle async user name fetching
+function UserName({ employeeId }: { employeeId: string }) {
+  const [name, setName] = useState<string>(employeeId)
+
+  useEffect(() => {
+    getUserNameByEmployeeId(employeeId).then(setName)
+  }, [employeeId])
+
+  return <span>{name}</span>
+}
+
+// Component to handle async support team names
+function SupportTeam({ supportIds }: { supportIds: string[] }) {
+  const [names, setNames] = useState<string[]>(supportIds)
+
+  useEffect(() => {
+    Promise.all(supportIds.map(id => getUserNameByEmployeeId(id)))
+      .then(setNames)
+  }, [supportIds])
+
+  return <span>{names.join(', ')}</span>
+}
 
 export default function MasterTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -166,26 +201,6 @@ export default function MasterTasksPage() {
       pending: tasks.filter(t => t.status === 'Yet to Start').length
     }
   }, [tasks])
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Done': return 'bg-green-100 text-green-800'
-      case 'In Progress': return 'bg-blue-100 text-blue-800'
-      case 'Delayed': return 'bg-red-100 text-red-800'
-      case 'Yet to Start': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'U&I': return 'bg-red-100 text-red-800'
-      case 'NU&I': return 'bg-orange-100 text-orange-800'
-      case 'U&NI': return 'bg-yellow-100 text-yellow-800'
-      case 'NU&NI': return 'bg-green-100 text-green-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
 
   const currentUser = getCurrentUser()
 
@@ -391,7 +406,7 @@ export default function MasterTasksPage() {
               </div>
             </div>
 
-            {/* Tasks List */}
+            {/* Tasks List - Card Based Layout */}
             {filteredTasks.length === 0 ? (
               <div className="bg-white rounded-lg p-12 text-center border border-gray-200">
                 <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -401,92 +416,106 @@ export default function MasterTasksPage() {
                 </p>
               </div>
             ) : (
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Task ID
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Description
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Assignee
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Priority
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Due Date
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredTasks.map((task) => {
-                        const assignee = users.find(u => u.employeeId === task.assignedTo)
-                        const isOverdue = new Date(task.endDate) < new Date() && task.status !== 'Done'
+              <div className="space-y-4">
+                {filteredTasks.map((task) => {
+                  const assignee = users.find(u => u.employeeId === task.assignedTo)
+                  const assignedBy = users.find(u => u.employeeId === task.assignedBy)
+                  const isOverdue = isTaskOverdue(task)
 
-                        return (
-                          <tr key={task.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                                {task.taskId}
+                  return (
+                    <div
+                      key={task.id}
+                      className="card border rounded-lg p-4 hover:shadow-md transition-shadow bg-white border-gray-200"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="font-mono text-sm text-primary font-medium">
+                              {task.taskId}
+                            </span>
+
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                              {task.status}
+                            </span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                              {task.priority}
+                            </span>
+                            {isOverdue && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-200 text-red-800">
+                                <AlertCircle className="h-3 w-3 mr-1" />
+                                Overdue
                               </span>
-                            </td>
-                            <td className="px-4 py-4">
-                              <div className="text-sm text-gray-900 max-w-md truncate" title={task.description}>
-                                {task.description}
+                            )}
+                          </div>
+
+                          <h4 className="font-medium text-black mb-2">
+                            {task.description}
+                          </h4>
+
+                          {task.subTask && (
+                            <div className="mb-2 p-2 bg-blue-50 rounded text-sm">
+                              <span className="font-medium text-blue-800">SubTask:</span>
+                              <span className="text-blue-700 ml-1">{task.subTask}</span>
+                            </div>
+                          )}
+
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center space-x-1">
+                              <UserIcon className="h-4 w-4" />
+                              <span>Assigned to: {assignee?.name || task.assignedTo}</span>
+                            </div>
+
+                            {task.assignedBy && task.assignedBy !== task.assignedTo && (
+                              <div className="flex items-center space-x-1">
+                                <UserIcon className="h-4 w-4 text-blue-500" />
+                                <span>Assigned by: {assignedBy?.name || task.assignedBy}</span>
                               </div>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <div className="flex items-center space-x-2">
-                                <UserIcon className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm text-gray-900">
-                                  {assignee?.name || task.assignedTo}
-                                </span>
+                            )}
+
+                            {task.support && task.support.length > 0 && (
+                              <div className="flex items-center space-x-1">
+                                <Users className="h-4 w-4" />
+                                <span>Support: <SupportTeam supportIds={task.support} /></span>
                               </div>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                                {task.status}
+                            )}
+
+                            <div className="flex items-center space-x-1">
+                              <Calendar className={`h-4 w-4 ${isOverdue ? 'text-red-500' : ''}`} />
+                              <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
+                                {formatDate(task.startDate)} - {formatDate(task.endDate)}
+                                {isOverdue && ' (Overdue)'}
                               </span>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                                {task.priority}
+                            </div>
+
+                            <div className="flex items-center space-x-1">
+                              <Clock className="h-4 w-4" />
+                              <span>
+                                {task.actualHours || 0}h / {task.estimatedHours}h
                               </span>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <div className="flex items-center space-x-2">
-                                <Calendar className="h-4 w-4 text-gray-400" />
-                                <span className={`text-sm ${isOverdue ? 'text-red-600 font-medium' : 'text-gray-900'}`}>
-                                  {new Date(task.endDate).toLocaleDateString()}
-                                </span>
+                            </div>
+
+                            {task.projectId && (
+                              <div className="flex items-center space-x-1">
+                                <CheckSquare className="h-4 w-4" />
+                                <span>Project: {task.projectId}</span>
                               </div>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <button
-                                onClick={() => router.push(`/tasks/${task.taskId}`)}
-                                className="text-blue-600 hover:text-blue-800 flex items-center space-x-1"
-                              >
-                                <Eye className="h-4 w-4" />
-                                <span className="text-sm">View</span>
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="ml-4">
+                          <button
+                            onClick={() => router.push(`/tasks/${task.taskId}`)}
+                            className="btn-secondary flex items-center space-x-1"
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="text-sm">View</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </>
