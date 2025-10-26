@@ -95,15 +95,9 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         return
       }
 
-      // TEMPORARY FIX: Swap bugId and title fields due to data mapping issue
-      const fixedBugData = {
-        ...bugData,
-        bugId: bugData.title, // The actual bug ID is in the title field
-        title: bugData.bugId  // The actual title is in the bugId field
-      }
-
-      setBug(fixedBugData)
-      setEditData(fixedBugData)
+      // Set bug data directly without any field swapping
+      setBug(bugData)
+      setEditData(bugData)
       setIsLoading(false) // Set loading false immediately after bug data loads
 
       // Load comments separately to avoid blocking bug display
