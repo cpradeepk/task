@@ -285,7 +285,6 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center p-4 z-50 overflow-y-auto"
-      style={{ margin: 0, padding: '1rem', minHeight: '100vh', width: '100vw' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose()
@@ -293,7 +292,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
       }}
     >
       <div
-        className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl my-8 relative modal-content transform transition-all duration-200 scale-100"
+        className="bg-white rounded-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-xl my-auto relative modal-content transform transition-all duration-200 scale-100"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
