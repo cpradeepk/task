@@ -129,18 +129,18 @@ export default function Navbar() {
           {/* Logo and Title */}
           <div className="flex items-center">
             <Link href="/dashboard" className="flex items-center space-x-3">
-              <div className="h-10 w-10 flex items-center justify-center">
+              <div className="h-10 flex items-center justify-center">
                 <Image
-                  src="/images/logos/amtariksha_icon.png"
+                  src="/images/logos/amtariksha_logo.png"
                   alt="Amtariksha Logo"
-                  width={40}
+                  width={160}
                   height={40}
                   className="object-contain"
+                  priority
                 />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-black">Amtariksha</h1>
-                <p className="text-xs text-gray-600">{getRoleDisplayName(currentUser.role)}</p>
+              <div className="border-l border-gray-300 pl-3 ml-1">
+                <p className="text-xs text-gray-600 font-medium">{getRoleDisplayName(currentUser.role)}</p>
               </div>
             </Link>
           </div>
