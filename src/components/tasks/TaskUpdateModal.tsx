@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Task } from '@/lib/types'
-import { getTaskUpdateOptions } from '@/lib/data'
 
 import { optimizedDataService } from '@/lib/optimizedDataService'
 import { getUserNameByEmployeeId } from '@/lib/auth'
@@ -58,7 +57,33 @@ export default function TaskUpdateModal({ task, isOpen, onClose, onUpdate }: Tas
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const { statuses } = getTaskUpdateOptions()
+  // Settings state
+  const [taskStatusOptions, setTaskStatusOptions] = useState<string[]>([])
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true)
+
+  // Load task statuses from database
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setIsLoadingSettings(true)
+        const response = await fetch('/api/settings?grouped=true&activeOnly=true')
+        const data = await response.json()
+
+        if (data.success) {
+          const grouped = data.data
+          setTaskStatusOptions(grouped.task_status || [])
+        } else {
+          console.error('Failed to load settings:', data.error)
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error)
+      } finally {
+        setIsLoadingSettings(false)
+      }
+    }
+
+    loadSettings()
+  }, [])
 
   useEffect(() => {
     if (task) {
@@ -242,9 +267,10 @@ export default function TaskUpdateModal({ task, isOpen, onClose, onUpdate }: Tas
               value={formData.status}
               onChange={handleInputChange}
               required
+              disabled={isLoadingSettings}
               className="input-field"
             >
-              {statuses.map(status => (
+              {taskStatusOptions.map(status => (
                 <option key={status} value={status}>
                   {status}
                 </option>

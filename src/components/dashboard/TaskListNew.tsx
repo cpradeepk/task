@@ -59,11 +59,37 @@ export default function TaskList({
   const [filter, setFilter] = useState<string>('all')
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  
+  const [taskStatusOptions, setTaskStatusOptions] = useState<string[]>([])
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true)
+
   const currentUser = getCurrentUser()
   if (!currentUser) {
     return <div>Loading...</div>
   }
+
+  // Load task statuses from database
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setIsLoadingSettings(true)
+        const response = await fetch('/api/settings?grouped=true&activeOnly=true')
+        const data = await response.json()
+
+        if (data.success) {
+          const grouped = data.data
+          setTaskStatusOptions(grouped.task_status || [])
+        } else {
+          console.error('Failed to load settings:', data.error)
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error)
+      } finally {
+        setIsLoadingSettings(false)
+      }
+    }
+
+    loadSettings()
+  }, [])
 
   console.log('TaskList Debug:', {
     allowEdit,
@@ -78,11 +104,10 @@ export default function TaskList({
 
   const statusOptions = [
     { value: 'all', label: 'All Tasks' },
-    { value: 'Yet to Start', label: 'Yet to Start' },
-    { value: 'In Progress', label: 'In Progress' },
-    { value: 'Done', label: 'Completed' },
-    { value: 'Delayed', label: 'Delayed' },
-    { value: 'Hold', label: 'On Hold' }
+    ...taskStatusOptions.map(status => ({
+      value: status,
+      label: status === 'Done' ? 'Completed' : status === 'Hold' ? 'On Hold' : status
+    }))
   ]
 
   return (

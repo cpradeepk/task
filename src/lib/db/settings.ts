@@ -5,7 +5,7 @@
 
 import { query } from './index'
 
-export type SettingType = 'department' | 'severity' | 'priority' | 'category' | 'platform' | 'task_priority'
+export type SettingType = 'department' | 'severity' | 'priority' | 'category' | 'platform' | 'task_priority' | 'task_status' | 'bug_status' | 'bug_type'
 
 export interface Setting {
   id: number

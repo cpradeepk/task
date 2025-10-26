@@ -65,27 +65,7 @@ export function isTaskSupporter(task: any, employeeId: string): boolean {
   return task.support && task.support.includes(employeeId) && task.assignedTo !== employeeId
 }
 
-// Task Update Modal Component Data
-export function getTaskUpdateOptions() {
-  return {
-    statuses: [
-      'Yet to Start',
-      'In Progress',
-      'Delayed',
-      'Done',
-      'Cancel',
-      'Hold',
-      'ReOpened',
-      'Stop'
-    ],
-    priorities: [
-      { value: 'U&I', label: 'Urgent & Important' },
-      { value: 'NU&I', label: 'Not Urgent but Important' },
-      { value: 'U&NI', label: 'Urgent but Not Important' },
-      { value: 'NU&NI', label: 'Not Urgent & Not Important' }
-    ]
-  }
-}
+
 
 // Date formatting utilities
 export function formatDate(dateString: string): string {

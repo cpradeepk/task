@@ -41,6 +41,11 @@ export default function CreateTask() {
   const [usersLoaded, setUsersLoaded] = useState(false)
   const [error, setError] = useState('')
   const [isHydrated, setIsHydrated] = useState(false)
+
+  // Settings state
+  const [taskPriorityOptions, setTaskPriorityOptions] = useState<Array<{value: string, label: string}>>([])
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true)
+
   const router = useRouter()
   const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
@@ -56,6 +61,38 @@ export default function CreateTask() {
       router.push('/')
     }
   }, [currentUser, router])
+
+  // Load settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!isHydrated) return
+
+      try {
+        setIsLoadingSettings(true)
+        const response = await fetch('/api/settings?grouped=true&activeOnly=true')
+        const data = await response.json()
+
+        if (data.success) {
+          const grouped = data.data
+          const priorities = (grouped.task_priority || []).map((value: string) => ({
+            value,
+            label: value
+          }))
+          setTaskPriorityOptions(priorities)
+        } else {
+          console.error('Failed to load settings:', data.error)
+          setError('Failed to load dropdown options. Please refresh the page.')
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error)
+        setError('Failed to load dropdown options. Please refresh the page.')
+      } finally {
+        setIsLoadingSettings(false)
+      }
+    }
+
+    loadSettings()
+  }, [isHydrated])
 
   // Initialize form data and users
   useEffect(() => {
@@ -615,13 +652,15 @@ export default function CreateTask() {
                 value={formData.priority}
                 onChange={handleInputChange}
                 required
+                disabled={isLoadingSettings}
                 className="input-field"
               >
                 <option value="">Choose priority...</option>
-                <option value="U&I">Urgent & Important</option>
-                <option value="NU&I">Not Urgent but Important</option>
-                <option value="U&NI">Urgent but Not Important</option>
-                <option value="NU&NI">Not Urgent & Not Important</option>
+                {taskPriorityOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

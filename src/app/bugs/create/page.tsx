@@ -47,6 +47,7 @@ export default function CreateBugPage() {
   const [priorityOptions, setPriorityOptions] = useState<string[]>([])
   const [categoryOptions, setCategoryOptions] = useState<string[]>([])
   const [platformOptions, setPlatformOptions] = useState<string[]>([])
+  const [bugTypeOptions, setBugTypeOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
 
   // File upload state
@@ -90,21 +91,14 @@ export default function CreateBugPage() {
         setPriorityOptions(grouped.priority || [])
         setCategoryOptions(grouped.category || [])
         setPlatformOptions(grouped.platform || [])
+        setBugTypeOptions(grouped.bug_type || [])
       } else {
         console.error('Failed to load settings:', data.error)
-        // Fallback to hardcoded values
-        setSeverityOptions(['Critical', 'Major', 'Minor'])
-        setPriorityOptions(['High', 'Medium', 'Low'])
-        setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
-        setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
+        throw new Error('Failed to load settings from database')
       }
     } catch (error) {
       console.error('Failed to load settings:', error)
-      // Fallback to hardcoded values
-      setSeverityOptions(['Critical', 'Major', 'Minor'])
-      setPriorityOptions(['High', 'Medium', 'Low'])
-      setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
-      setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
+      setError('Failed to load dropdown options. Please refresh the page.')
     } finally {
       setIsLoadingSettings(false)
     }
@@ -420,11 +414,17 @@ export default function CreateBugPage() {
                       value={formData.type || ''}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      disabled={isLoadingSettings}
                     >
                       <option value="">Select type...</option>
-                      <option value="testcase">🧪 Test Case</option>
-                      <option value="feature">✨ Feature</option>
-                      <option value="other">📋 Other</option>
+                      {bugTypeOptions.map(type => (
+                        <option key={type} value={type}>
+                          {type === 'testcase' && '🧪 '}
+                          {type === 'feature' && '✨ '}
+                          {type === 'other' && '📋 '}
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

@@ -5,7 +5,6 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, updateUser, getRoleDisplayName } from '@/lib/auth'
 import { User, Task } from '@/lib/types'
-import { DEPARTMENTS } from '@/lib/constants/departments'
 import {
   User as UserIcon,
   Mail,
@@ -45,8 +44,37 @@ export default function Profile() {
     totalLeaves: 0,
     totalWFH: 0
   })
+
+  // Settings state
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>([])
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true)
+
   const router = useRouter()
   const currentUser = getCurrentUser()
+
+  // Load departments from database
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setIsLoadingSettings(true)
+        const response = await fetch('/api/settings?grouped=true&activeOnly=true')
+        const data = await response.json()
+
+        if (data.success) {
+          const grouped = data.data
+          setDepartmentOptions(grouped.department || [])
+        } else {
+          console.error('Failed to load settings:', data.error)
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error)
+      } finally {
+        setIsLoadingSettings(false)
+      }
+    }
+
+    loadSettings()
+  }, [])
 
   useEffect(() => {
     if (!currentUser) {
@@ -415,11 +443,11 @@ export default function Profile() {
                   name="department"
                   value={formData.department}
                   onChange={handleInputChange}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isLoadingSettings}
                   required
                   className={`input-field pl-10 ${!isEditing ? 'bg-gray-50' : ''}`}
                 >
-                  {DEPARTMENTS.map(dept => (
+                  {departmentOptions.map(dept => (
                     <option key={dept} value={dept}>
                       {dept}
                     </option>

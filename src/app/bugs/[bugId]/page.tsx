@@ -77,6 +77,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [editData, setEditData] = useState<Partial<Bug>>({})
   const [editMode, setEditMode] = useState(false)
 
+  // Settings state
+  const [bugStatusOptions, setBugStatusOptions] = useState<string[]>([])
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true)
+
   // Lightbox state
   const [showLightbox, setShowLightbox] = useState(false)
   const [lightboxImages, setLightboxImages] = useState<string[]>([])
@@ -93,6 +97,32 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   useEffect(() => {
     setIsHydrated(true)
   }, [])
+
+  // Load settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!isHydrated) return
+
+      try {
+        setIsLoadingSettings(true)
+        const response = await fetch('/api/settings?grouped=true&activeOnly=true')
+        const data = await response.json()
+
+        if (data.success) {
+          const grouped = data.data
+          setBugStatusOptions(grouped.bug_status || [])
+        } else {
+          console.error('Failed to load settings:', data.error)
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error)
+      } finally {
+        setIsLoadingSettings(false)
+      }
+    }
+
+    loadSettings()
+  }, [isHydrated])
 
   const loadBugData = useCallback(async () => {
     try {
@@ -971,13 +1001,19 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value as Bug['status'])}
+                    disabled={isLoadingSettings}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="New">🆕 New</option>
-                    <option value="In Progress">⏳ In Progress</option>
-                    <option value="Resolved">✅ Resolved</option>
-                    <option value="Closed">🔒 Closed</option>
-                    <option value="Reopened">🔄 Reopened</option>
+                    {bugStatusOptions.map(status => (
+                      <option key={status} value={status}>
+                        {status === 'New' && '🆕 '}
+                        {status === 'In Progress' && '⏳ '}
+                        {status === 'Resolved' && '✅ '}
+                        {status === 'Closed' && '🔒 '}
+                        {status === 'Reopened' && '🔄 '}
+                        {status}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
