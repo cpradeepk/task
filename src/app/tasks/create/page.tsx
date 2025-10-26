@@ -15,6 +15,7 @@ import Navbar from '@/components/layout/Navbar'
 import LoadingButton from '@/components/ui/LoadingButton'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { useLoading } from '@/contexts/LoadingContext'
+import ProjectSelector from '@/components/ProjectSelector'
 
 export default function CreateTask() {
   const [formData, setFormData] = useState({
@@ -27,7 +28,10 @@ export default function CreateTask() {
     priority: '',
     estimatedHours: '',
     hoursWorked: '',
-    subTask: ''
+    subTask: '',
+    projectId: null as string | null,
+    assignToSomeoneElse: false,
+    assignedTo: ''
   })
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -132,18 +136,24 @@ export default function CreateTask() {
 
 
       // Create task
+      // Determine who the task is assigned to
+      const assignedToUser = formData.assignToSomeoneElse && formData.assignedTo
+        ? formData.assignedTo
+        : currentUser.employeeId
+
       const taskData = {
         taskId: generateTaskId(),
         selectType: formData.selectType as 'Normal' | 'Recursive',
         recursiveType: formData.recursiveType as 'Daily' | 'Weekly' | 'Monthly' | 'Annually' | undefined,
         description: formData.description,
-        assignedTo: currentUser.employeeId, // Automatically assign to logged-in user
+        assignedTo: assignedToUser,
         assignedBy: currentUser.employeeId,
         support: formData.support, // Array of support employee IDs
         startDate: formData.startDate,
         endDate: formData.endDate,
         priority: formData.priority as 'U&I' | 'NU&I' | 'U&NI' | 'NU&NI',
         estimatedHours: estimatedHours,
+        projectId: formData.projectId,
         hoursWorked: hoursWorked,
         status: 'Yet to Start' as const,
         subTask: formData.subTask || undefined
@@ -201,7 +211,10 @@ export default function CreateTask() {
       priority: '',
       estimatedHours: '',
       hoursWorked: '',
-      subTask: ''
+      subTask: '',
+      projectId: null,
+      assignToSomeoneElse: false,
+      assignedTo: ''
     })
     setError('')
   }
@@ -299,15 +312,70 @@ export default function CreateTask() {
             />
           </div>
 
-          {/* Task Assignment Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-              <span className="text-sm font-medium text-blue-800">Task Assignment</span>
+          {/* Project Selection */}
+          <ProjectSelector
+            value={formData.projectId}
+            onChange={(projectId) => setFormData({ ...formData, projectId })}
+            disabled={isLoading}
+            required={false}
+            includeNone={true}
+            label="Project (Optional)"
+          />
+
+          {/* Task Assignment */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-secondary-700">
+                Task Assignment
+              </label>
+              {(currentUser.role === 'admin' || currentUser.role === 'top_management') && (
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.assignToSomeoneElse}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      assignToSomeoneElse: e.target.checked,
+                      assignedTo: e.target.checked ? formData.assignedTo : ''
+                    })}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Assign to someone else</span>
+                </label>
+              )}
             </div>
-            <p className="text-sm text-blue-700">
-              This task will be automatically assigned to you ({currentUser.name} - {currentUser.employeeId})
-            </p>
+
+            {formData.assignToSomeoneElse ? (
+              <div>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Assign To *
+                </label>
+                <select
+                  value={formData.assignedTo}
+                  onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                  required
+                  className="input-field"
+                  disabled={isLoading || isLoadingUsers}
+                >
+                  <option value="">Select user...</option>
+                  {users.map(user => (
+                    <option key={user.employeeId} value={user.employeeId}>
+                      {user.name} ({user.employeeId}) - {user.role}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-blue-800">Auto-Assignment</span>
+                </div>
+                <p className="text-sm text-blue-700">
+                  This task will be automatically assigned to you ({currentUser.name} - {currentUser.employeeId})
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Support Team */}
