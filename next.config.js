@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // App Router is enabled by default in Next.js 15
+  // App Router is enabled by default in Next.js 16
 
   // Vercel deployment optimizations
   output: 'standalone',
@@ -10,6 +10,11 @@ const nextConfig = {
     domains: [],
     unoptimized: false,
   },
+
+  // Turbopack configuration for Next.js 16
+  // Turbopack handles Node.js polyfills automatically
+  // Empty config acknowledges we want to use Turbopack (default in Next.js 16)
+  turbopack: {},
 
   // Performance optimizations
   experimental: {
