@@ -74,32 +74,33 @@ export async function POST(request: NextRequest) {
     const bugId = generateBugId()
 
     // Prepare bug object with all required fields
+    // Convert undefined to null for MySQL compatibility
     const bugToCreate = {
       bugId,
       title: bugData.title,
       description: bugData.description,
-      severity: bugData.severity,
-      priority: bugData.priority,
+      severity: bugData.severity || null,
+      priority: bugData.priority || null,
       status: bugData.status || 'New', // Default to 'New' if not provided
-      category: bugData.category,
-      platform: bugData.platform,
-      assignedTo: bugData.assignedTo,
-      assignedBy: bugData.assignedBy,
+      category: bugData.category || null,
+      platform: bugData.platform || null,
+      assignedTo: bugData.assignedTo || null,
+      assignedBy: bugData.assignedBy || null,
       reportedBy: bugData.reportedBy,
-      environment: bugData.environment,
-      browserInfo: bugData.browserInfo,
-      deviceInfo: bugData.deviceInfo,
-      stepsToReproduce: bugData.stepsToReproduce,
-      expectedBehavior: bugData.expectedBehavior,
-      actualBehavior: bugData.actualBehavior,
-      attachments: bugData.attachments,
-      estimatedHours: bugData.estimatedHours,
-      actualHours: bugData.actualHours,
-      resolvedDate: bugData.resolvedDate,
-      closedDate: bugData.closedDate,
+      environment: bugData.environment || null,
+      browserInfo: bugData.browserInfo || null,
+      deviceInfo: bugData.deviceInfo || null,
+      stepsToReproduce: bugData.stepsToReproduce || null,
+      expectedBehavior: bugData.expectedBehavior || null,
+      actualBehavior: bugData.actualBehavior || null,
+      attachments: bugData.attachments || null,
+      estimatedHours: bugData.estimatedHours || null,
+      actualHours: bugData.actualHours || null,
+      resolvedDate: bugData.resolvedDate || null,
+      closedDate: bugData.closedDate || null,
       reopenedCount: bugData.reopenedCount || 0, // Default to 0 if not provided
-      tags: bugData.tags,
-      relatedBugs: bugData.relatedBugs
+      tags: bugData.tags || null,
+      relatedBugs: bugData.relatedBugs || null
     }
 
     // Add bug to MySQL
