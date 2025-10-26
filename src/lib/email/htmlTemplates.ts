@@ -89,9 +89,10 @@ export function getTaskCreationHtmlTemplate(data: {
   taskId?: string
   createdBy?: string
   baseUrl?: string
+  projectName?: string
 }) {
   const template = readTemplate('TASK_CREATION')
-  
+
   const templateData = {
     userName: data.userName,
     taskTitle: data.taskTitle,
@@ -102,6 +103,7 @@ export function getTaskCreationHtmlTemplate(data: {
     taskId: data.taskId || 'N/A',
     createdBy: data.createdBy || 'System',
     baseUrl: data.baseUrl || 'http://localhost:3000',
+    projectName: data.projectName || 'No project assigned',
     currentYear: new Date().getFullYear()
   }
   
@@ -204,6 +206,9 @@ export function getBugAssignmentHtmlTemplate(data: {
   platform: string
   environment: string
   baseUrl?: string
+  projectName?: string
+  feature?: string
+  type?: string
 }) {
   const template = readTemplate('BUG_ASSIGNMENT')
 
@@ -226,6 +231,9 @@ export function getBugAssignmentHtmlTemplate(data: {
     category: data.category,
     platform: data.platform,
     environment: data.environment,
+    projectName: data.projectName || 'No project assigned',
+    feature: data.feature || 'Not specified',
+    type: data.type || 'Not specified',
     baseUrl: data.baseUrl || 'http://localhost:3000',
     currentYear: new Date().getFullYear()
   }
@@ -253,6 +261,9 @@ export function getBugCreationHtmlTemplate(data: {
   platform: string
   environment: string
   baseUrl?: string
+  projectName?: string
+  feature?: string
+  type?: string
 }) {
   const template = readTemplate('BUG_CREATION')
 
@@ -275,6 +286,9 @@ export function getBugCreationHtmlTemplate(data: {
     category: data.category,
     platform: data.platform,
     environment: data.environment,
+    projectName: data.projectName || 'No project assigned',
+    feature: data.feature || 'Not specified',
+    type: data.type || 'Not specified',
     baseUrl: data.baseUrl || 'http://localhost:3000',
     currentYear: new Date().getFullYear()
   }
