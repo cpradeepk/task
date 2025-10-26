@@ -26,6 +26,13 @@ export default function ProjectDetailsPage() {
   const [userRole, setUserRole] = useState<string>('')
   const [employeeId, setEmployeeId] = useState<string>('')
   const [deleting, setDeleting] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editData, setEditData] = useState({
+    projectName: '',
+    description: '',
+    status: 'Active' as 'Active' | 'Inactive' | 'Deleted'
+  })
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     // Get user info from localStorage
@@ -53,11 +60,68 @@ export default function ProjectDetailsPage() {
       
       const data = await response.json()
       setProject(data)
+      setEditData({
+        projectName: data.projectName,
+        description: data.description || '',
+        status: data.status
+      })
     } catch (err) {
       console.error('Error fetching project:', err)
       setError(err instanceof Error ? err.message : 'Failed to load project')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleEdit = () => {
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    if (project) {
+      setEditData({
+        projectName: project.projectName,
+        description: project.description || '',
+        status: project.status
+      })
+    }
+    setIsEditing(false)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editData.projectName.trim()) {
+      alert('Project name is required')
+      return
+    }
+
+    try {
+      setSaving(true)
+
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...editData,
+          updatedBy: employeeId
+        })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update project')
+      }
+
+      // Refresh project data
+      await fetchProject()
+      setIsEditing(false)
+      alert('Project updated successfully')
+    } catch (err) {
+      console.error('Error updating project:', err)
+      alert(err instanceof Error ? err.message : 'Failed to update project')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -151,41 +215,125 @@ export default function ProjectDetailsPage() {
 
         {/* Project Info Card */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{project.projectName}</h1>
-                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-                  project.status === 'Active' 
-                    ? 'bg-green-100 text-green-800'
-                    : project.status === 'Inactive'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {project.status}
-                </span>
+          {isEditing ? (
+            /* Edit Mode */
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Project</h2>
+
+              <div className="space-y-4">
+                {/* Project Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Project Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={editData.projectName}
+                    onChange={(e) => setEditData({ ...editData, projectName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter project name"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editData.description}
+                    onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter project description"
+                  />
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={editData.status}
+                    onChange={(e) => setEditData({ ...editData, status: e.target.value as 'Active' | 'Inactive' | 'Deleted' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Deleted">Deleted</option>
+                  </select>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3 pt-4">
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={saving}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={saving}
+                    className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-              
-              <p className="text-gray-600 text-sm">Project ID: {project.projectId}</p>
             </div>
+          ) : (
+            /* View Mode */
+            <>
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-3xl font-bold text-gray-900">{project.projectName}</h1>
+                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                      project.status === 'Active'
+                        ? 'bg-green-100 text-green-800'
+                        : project.status === 'Inactive'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {project.status}
+                    </span>
+                  </div>
 
-            {canDelete && (
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {deleting ? 'Deleting...' : 'Delete Project'}
-              </button>
-            )}
-          </div>
+                  <p className="text-gray-600 text-sm">Project ID: {project.projectId}</p>
+                </div>
 
-          {/* Description */}
-          {project.description && (
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-1">Description</h3>
-              <p className="text-gray-600">{project.description}</p>
-            </div>
+                <div className="flex items-center gap-3">
+                  {canManageProjects && (
+                    <button
+                      onClick={handleEdit}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Edit Project
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      {deleting ? 'Deleting...' : 'Delete Project'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {project.description && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium text-gray-700 mb-1">Description</h3>
+                  <p className="text-gray-600">{project.description}</p>
+                </div>
+              )}
+            </>
           )}
 
           {/* Metadata */}
