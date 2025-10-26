@@ -101,6 +101,7 @@ export default function Navbar() {
           ...baseItems,
           { href: '/tasks/create', label: 'Tasks', icon: Plus },
           { href: '/bugs', label: 'Bugs', icon: Bug },
+          { href: '/projects', label: 'Projects', icon: Briefcase },
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
           { href: '/master-bugs', label: 'Master Bugs', icon: Bug },
           { href: '/reports', label: 'Reports', icon: BarChart3 },
@@ -112,6 +113,7 @@ export default function Navbar() {
         return [
           ...baseItems,
           { href: '/bugs', label: 'Bugs', icon: Bug },
+          { href: '/projects', label: 'Projects', icon: Briefcase },
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
           { href: '/master-bugs', label: 'Master Bugs', icon: Bug },
           { href: '/users', label: 'User Management', icon: Users },
