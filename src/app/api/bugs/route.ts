@@ -100,7 +100,10 @@ export async function POST(request: NextRequest) {
       closedDate: bugData.closedDate || null,
       reopenedCount: bugData.reopenedCount || 0, // Default to 0 if not provided
       tags: bugData.tags || null,
-      relatedBugs: bugData.relatedBugs || null
+      relatedBugs: bugData.relatedBugs || null,
+      projectId: bugData.projectId || null,
+      feature: bugData.feature || null,
+      type: bugData.type || null
     }
 
     // Add bug to MySQL
