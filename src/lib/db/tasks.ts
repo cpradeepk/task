@@ -25,6 +25,7 @@ interface TaskRow extends RowDataPacket {
   remarks: string | null
   difficulties: string | null
   sub_task: string | null
+  related_tasks: string | null
   project_id: string | null
   timer_state: string | null
   timer_start_time: string | null
@@ -88,6 +89,7 @@ function rowToTask(row: TaskRow): Task {
     remarks: row.remarks || undefined,
     difficulties: row.difficulties || undefined,
     subTask: row.sub_task || undefined,
+    relatedTasks: row.related_tasks || undefined,
     projectId: row.project_id || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at

@@ -91,6 +91,7 @@ export interface Task {
   remarks?: string          // Optional: Additional notes/comments
   difficulties?: string     // Optional: Challenges faced during task execution
   subTask?: string          // Optional: Sub-task details or breakdown
+  relatedTasks?: string | null // Optional: Comma-separated task IDs for multi-user assignments
   projectId?: string | null // Optional: Project ID this task belongs to (e.g., "PRJ-001")
   createdAt: string         // Timestamp when task was created
   updatedAt: string         // Timestamp when task was last updated

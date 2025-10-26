@@ -31,7 +31,9 @@ export default function CreateTask() {
     subTask: '',
     projectId: null as string | null,
     assignToSomeoneElse: false,
-    assignedTo: ''
+    assignedTo: '',
+    multiUserAssignment: false, // Enable multi-user assignment
+    assignees: [] as string[] // Array of employee IDs for multi-user assignment
   })
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -123,6 +125,10 @@ export default function CreateTask() {
         throw new Error('Please select recursive type')
       }
 
+      if (formData.multiUserAssignment && formData.assignees.length === 0) {
+        throw new Error('Please select at least one user for multi-user assignment')
+      }
+
       const estimatedHours = parseFloat(formData.estimatedHours)
       if (isNaN(estimatedHours) || estimatedHours <= 0) {
         throw new Error('Please enter a valid estimated hours value')
@@ -135,52 +141,117 @@ export default function CreateTask() {
       }
 
 
-      // Create task
-      // Determine who the task is assigned to
-      const assignedToUser = formData.assignToSomeoneElse && formData.assignedTo
-        ? formData.assignedTo
-        : currentUser.employeeId
+      // Create task(s)
+      let mainTaskData: any = null // Store main task data for support task creation
 
-      const taskData = {
-        taskId: generateTaskId(),
-        selectType: formData.selectType as 'Normal' | 'Recursive',
-        recursiveType: formData.recursiveType as 'Daily' | 'Weekly' | 'Monthly' | 'Annually' | undefined,
-        description: formData.description,
-        assignedTo: assignedToUser,
-        assignedBy: currentUser.employeeId,
-        support: formData.support, // Array of support employee IDs
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        priority: formData.priority as 'U&I' | 'NU&I' | 'U&NI' | 'NU&NI',
-        estimatedHours: estimatedHours,
-        projectId: formData.projectId,
-        hoursWorked: hoursWorked,
-        status: 'Yet to Start' as const,
-        subTask: formData.subTask || undefined
+      // Check if multi-user assignment is enabled
+      if (formData.multiUserAssignment && formData.assignees.length > 0) {
+        // Multi-user assignment: Create separate task for each assignee
+        const createdTaskIds: string[] = []
+
+        for (const assigneeId of formData.assignees) {
+          const taskId = generateTaskId()
+          const taskData = {
+            taskId,
+            selectType: formData.selectType as 'Normal' | 'Recursive',
+            recursiveType: formData.recursiveType as 'Daily' | 'Weekly' | 'Monthly' | 'Annually' | undefined,
+            description: formData.description,
+            assignedTo: assigneeId,
+            assignedBy: currentUser.employeeId,
+            support: formData.support,
+            startDate: formData.startDate,
+            endDate: formData.endDate,
+            priority: formData.priority as 'U&I' | 'NU&I' | 'U&NI' | 'NU&NI',
+            estimatedHours: estimatedHours,
+            projectId: formData.projectId,
+            hoursWorked: hoursWorked,
+            status: 'Yet to Start' as const,
+            subTask: formData.subTask || undefined,
+            relatedTasks: createdTaskIds.length > 0 ? createdTaskIds.join(',') : undefined
+          }
+
+          // Store first task as main task for support task creation
+          if (!mainTaskData) {
+            mainTaskData = taskData
+          }
+
+          const response = await fetch('/api/tasks', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(taskData)
+          })
+
+          if (!response.ok) {
+            throw new Error(`Failed to create task for ${assigneeId}`)
+          }
+
+          createdTaskIds.push(taskId)
+        }
+
+        // Update all created tasks with complete related_tasks list
+        if (createdTaskIds.length > 1) {
+          const relatedTasksStr = createdTaskIds.join(',')
+          for (const taskId of createdTaskIds) {
+            await fetch(`/api/tasks/${taskId}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ relatedTasks: relatedTasksStr })
+            })
+          }
+        }
+      } else {
+        // Single user assignment (original behavior)
+        const assignedToUser = formData.assignToSomeoneElse && formData.assignedTo
+          ? formData.assignedTo
+          : currentUser.employeeId
+
+        const taskData = {
+          taskId: generateTaskId(),
+          selectType: formData.selectType as 'Normal' | 'Recursive',
+          recursiveType: formData.recursiveType as 'Daily' | 'Weekly' | 'Monthly' | 'Annually' | undefined,
+          description: formData.description,
+          assignedTo: assignedToUser,
+          assignedBy: currentUser.employeeId,
+          support: formData.support, // Array of support employee IDs
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          priority: formData.priority as 'U&I' | 'NU&I' | 'U&NI' | 'NU&NI',
+          estimatedHours: estimatedHours,
+          projectId: formData.projectId,
+          hoursWorked: hoursWorked,
+          status: 'Yet to Start' as const,
+          subTask: formData.subTask || undefined
+        }
+
+        mainTaskData = taskData
+
+        // Create the main task via API
+        const response = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(taskData)
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to create task')
+        }
       }
 
-      // Create the main task via API
-      const response = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(taskData)
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create task')
-      }
-
-      // Create support tasks for each support team member
-      if (formData.support.length > 0) {
+      // Create support tasks for each support team member (only for single assignment mode)
+      if (formData.support.length > 0 && mainTaskData && !formData.multiUserAssignment) {
         try {
           const supportTaskIds = await SupportTaskService.createSupportTasks(
-            taskData,
+            mainTaskData,
             formData.support,
             users
           )
-          console.log(`Created ${supportTaskIds.length} support tasks for main task ${taskData.taskId}`)
+          console.log(`Created ${supportTaskIds.length} support tasks for main task ${mainTaskData.taskId}`)
         } catch (supportError) {
           console.error('Failed to create support tasks:', supportError)
           // Don't fail the main task creation if support tasks fail
@@ -214,7 +285,9 @@ export default function CreateTask() {
       subTask: '',
       projectId: null,
       assignToSomeoneElse: false,
-      assignedTo: ''
+      assignedTo: '',
+      multiUserAssignment: false,
+      assignees: []
     })
     setError('')
   }
@@ -329,23 +402,87 @@ export default function CreateTask() {
                 Task Assignment
               </label>
               {(currentUser.role === 'admin' || currentUser.role === 'top_management') && (
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.assignToSomeoneElse}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      assignToSomeoneElse: e.target.checked,
-                      assignedTo: e.target.checked ? formData.assignedTo : ''
-                    })}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Assign to someone else</span>
-                </label>
+                <>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.assignToSomeoneElse}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        assignToSomeoneElse: e.target.checked,
+                        assignedTo: e.target.checked ? formData.assignedTo : '',
+                        multiUserAssignment: false,
+                        assignees: []
+                      })}
+                      disabled={formData.multiUserAssignment}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                    />
+                    <span className="text-sm text-gray-700">Assign to someone else</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.multiUserAssignment}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        multiUserAssignment: e.target.checked,
+                        assignees: e.target.checked ? formData.assignees : [],
+                        assignToSomeoneElse: false,
+                        assignedTo: ''
+                      })}
+                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    />
+                    <span className="text-sm text-gray-700">Assign to multiple users</span>
+                  </label>
+                </>
               )}
             </div>
 
-            {formData.assignToSomeoneElse ? (
+            {formData.multiUserAssignment ? (
+              <div>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Assign To Multiple Users *
+                </label>
+                <p className="text-sm text-gray-600 mb-3">
+                  Select users who will each receive their own copy of this task. All tasks will be linked together.
+                </p>
+                {isLoadingUsers ? (
+                  <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
+                    <LoadingSpinner size="sm" message="Loading users..." center />
+                  </div>
+                ) : !usersLoaded ? (
+                  <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
+                    <p className="text-gray-500">No users available</p>
+                  </div>
+                ) : (
+                  <div className="border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto space-y-2">
+                    {users.map(user => (
+                      <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.assignees.includes(user.employeeId)}
+                          onChange={(e) => {
+                            const newAssignees = e.target.checked
+                              ? [...formData.assignees, user.employeeId]
+                              : formData.assignees.filter(id => id !== user.employeeId)
+                            setFormData({ ...formData, assignees: newAssignees })
+                          }}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {user.name} ({user.employeeId}) - {user.role}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {formData.assignees.length > 0 && (
+                  <p className="text-sm text-purple-600 mt-2">
+                    {formData.assignees.length} user(s) selected - {formData.assignees.length} task(s) will be created
+                  </p>
+                )}
+              </div>
+            ) : formData.assignToSomeoneElse ? (
               <div>
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
                   Assign To *
