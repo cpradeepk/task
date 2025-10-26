@@ -10,6 +10,7 @@ import { Bug, AlertCircle, Save, X, FileText, Settings, CheckSquare, Paperclip, 
 import LoadingButton from '@/components/ui/LoadingButton'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ProjectSelector from '@/components/ProjectSelector'
+import FileUpload from '@/components/bugs/FileUpload'
 
 export default function CreateBugPage() {
   const [formData, setFormData] = useState<BugFormData>({
@@ -47,6 +48,10 @@ export default function CreateBugPage() {
   const [categoryOptions, setCategoryOptions] = useState<string[]>([])
   const [platformOptions, setPlatformOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
+
+  // File upload state
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [isUploading, setIsUploading] = useState(false)
 
   const router = useRouter()
   const currentUser = getCurrentUser()
@@ -129,15 +134,15 @@ export default function CreateBugPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!currentUser) return
-    
+
     // Validate required fields
     if (!formData.title.trim()) {
       setError('Title is required')
       return
     }
-    
+
     if (!formData.description.trim()) {
       setError('Description is required')
       return
@@ -147,13 +152,41 @@ export default function CreateBugPage() {
     setError('')
 
     try {
+      let attachmentUrls: string[] = []
+
+      // Upload files if any
+      if (uploadedFiles.length > 0) {
+        setIsUploading(true)
+
+        const uploadFormData = new FormData()
+        uploadedFiles.forEach(file => {
+          uploadFormData.append('files', file)
+        })
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData
+        })
+
+        const uploadResult = await uploadResponse.json()
+
+        if (uploadResult.success) {
+          attachmentUrls = uploadResult.files
+        } else {
+          throw new Error(uploadResult.error || 'Failed to upload files')
+        }
+
+        setIsUploading(false)
+      }
+
       const bugData = {
         ...formData,
+        attachments: attachmentUrls.join(', '),
         reportedBy: currentUser.employeeId
       }
 
       const bugId = await createBug(bugData)
-      
+
       if (bugId) {
         router.push(`/bugs/${bugId}`)
       } else {
@@ -161,6 +194,7 @@ export default function CreateBugPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
+      setIsUploading(false)
     } finally {
       setIsLoading(false)
     }
@@ -594,22 +628,26 @@ export default function CreateBugPage() {
                 <p className="text-sm text-gray-600 mt-1">Optional details to help with resolution</p>
               </div>
 
+              {/* File Upload Section */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
+                  <Paperclip className="h-4 w-4" />
+                  <span>Attachments (Images)</span>
+                </label>
+                <FileUpload
+                  onFilesChange={setUploadedFiles}
+                  maxFiles={5}
+                  maxSizeMB={10}
+                />
+                {isUploading && (
+                  <div className="mt-2 text-sm text-blue-600 flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span>Uploading files...</span>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
-                    <Paperclip className="h-4 w-4" />
-                    <span>Attachments (URLs)</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="attachments"
-                    value={formData.attachments}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="https://example.com/screenshot1.png, https://example.com/video.mp4"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Separate multiple URLs with commas</p>
-                </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">

@@ -14,6 +14,7 @@ import { Bug, BugComment, User } from '@/lib/types'
 import { getBugById, updateBug, getBugComments, addBugComment, canEditBug, canCommentOnBug } from '@/lib/bugService'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
+import ImageLightbox from '@/components/bugs/ImageLightbox'
 import {
   Bug as BugIcon,
   MessageSquare,
@@ -30,7 +31,8 @@ import {
   ExternalLink,
   Timer,
   Settings,
-  CheckSquare
+  CheckSquare,
+  Image as ImageIcon
 } from 'lucide-react'
 
 // Component to handle async user name fetching
@@ -74,6 +76,11 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [workDescription, setWorkDescription] = useState('')
   const [editData, setEditData] = useState<Partial<Bug>>({})
   const [editMode, setEditMode] = useState(false)
+
+  // Lightbox state
+  const [showLightbox, setShowLightbox] = useState(false)
+  const [lightboxImages, setLightboxImages] = useState<string[]>([])
+  const [lightboxIndex, setLightboxIndex] = useState(0)
 
   const hasLoadedData = useRef(false)
   const router = useRouter()
@@ -490,6 +497,44 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   <div>
                     <h3 className="font-medium text-gray-900 mb-2">Actual Behavior</h3>
                     <p className="text-gray-700 whitespace-pre-wrap">{bug.actualBehavior}</p>
+                  </div>
+                )}
+
+                {/* Attachments */}
+                {bug.attachments && bug.attachments.trim() && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
+                      <ImageIcon className="h-5 w-5" />
+                      <span>Attachments</span>
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {bug.attachments.split(',').map((url, index) => {
+                        const trimmedUrl = url.trim()
+                        if (!trimmedUrl) return null
+
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              const allImages = bug.attachments!.split(',').map(u => u.trim()).filter(u => u)
+                              setLightboxImages(allImages)
+                              setLightboxIndex(index)
+                              setShowLightbox(true)
+                            }}
+                            className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-500 transition-all hover:shadow-lg"
+                          >
+                            <img
+                              src={trimmedUrl}
+                              alt={`Attachment ${index + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
+                              <ExternalLink className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1050,6 +1095,16 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </div>
             </div>
           </div>
+        )}
+
+        {/* Image Lightbox */}
+        {showLightbox && (
+          <ImageLightbox
+            images={lightboxImages}
+            currentIndex={lightboxIndex}
+            onClose={() => setShowLightbox(false)}
+            onNavigate={setLightboxIndex}
+          />
         )}
       </div>
     </div>
