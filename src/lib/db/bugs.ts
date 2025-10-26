@@ -183,6 +183,17 @@ export async function getBugsReportedBy(employeeId: string): Promise<Bug[]> {
   })
 }
 
+// Get all bugs for an employee (assigned to or reported by)
+export async function getBugsByEmployeeId(employeeId: string): Promise<Bug[]> {
+  return withRetry(async () => {
+    const rows = await query<BugRow[]>(
+      'SELECT * FROM bugs WHERE assigned_to = ? OR reported_by = ? ORDER BY created_at DESC',
+      [employeeId, employeeId]
+    )
+    return rows.map(rowToBug)
+  })
+}
+
 // Get bugs by project ID
 export async function getBugsByProject(projectId: string): Promise<Bug[]> {
   return withRetry(async () => {

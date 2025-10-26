@@ -18,10 +18,10 @@ import { getProjectById, restoreProject } from '@/lib/db/projects'
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
-    const projectId = params.projectId
+    const { projectId } = await params
 
     // TODO: Add permission check here (admin only)
     // For now, we'll trust the frontend to only allow admin

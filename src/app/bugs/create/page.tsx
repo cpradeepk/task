@@ -368,13 +368,12 @@ export default function CreateBugPage() {
                     >
                       <option value="">👤 Select assignee...</option>
                       {users.map(user => (
-                          <option key={user.employeeId} value={user.employeeId}>
-                            {user.name} ({user.employeeId})
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
+                        <option key={user.employeeId} value={user.employeeId}>
+                          {user.name} ({user.employeeId})
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
             </div>

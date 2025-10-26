@@ -25,10 +25,10 @@ import { WorkItem } from '@/lib/types'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { employeeId: string } }
+  { params }: { params: Promise<{ employeeId: string }> }
 ) {
   try {
-    const employeeId = params.employeeId
+    const { employeeId } = await params
     const searchParams = request.nextUrl.searchParams
     const type = searchParams.get('type') || 'all'
     const projectId = searchParams.get('projectId')
