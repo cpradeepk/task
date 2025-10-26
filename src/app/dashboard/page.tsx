@@ -5,11 +5,10 @@ import { useRouter } from 'next/navigation'
 import { getCurrentUser, getAllUsers, getRoleDisplayName } from '@/lib/auth'
 
 import { optimizedDataService } from '@/lib/optimizedDataService'
-import { Task, User } from '@/lib/types'
+import { Task, User, Bug } from '@/lib/types'
 import StatsCard from '@/components/dashboard/StatsCard'
-import TaskList from '@/components/dashboard/TaskListNew'
+import UnifiedWorkItemsList from '@/components/dashboard/UnifiedWorkItemsList'
 import TaskWarningAlert from '@/components/TaskWarningAlert'
-import UnifiedWorkItems from '@/components/dashboard/UnifiedWorkItems'
 
 import {
   CheckCircle,
@@ -35,6 +34,7 @@ import { DashboardCardSkeleton, TaskCardSkeleton, UserListSkeleton } from '@/com
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([])
+  const [bugs, setBugs] = useState<Bug[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentDate, setCurrentDate] = useState('')
@@ -89,7 +89,7 @@ export default function Dashboard() {
             setUsers([currentUser])
           }
         } else {
-          // For other roles, load tasks
+          // For other roles, load tasks and bugs
           try {
             let userTasks: Task[] = []
             // All non-admin roles should only see their own tasks
@@ -99,6 +99,18 @@ export default function Dashboard() {
             console.warn('Failed to load tasks, using empty array:', taskError)
             // Fallback: show empty tasks array
             setTasks([])
+          }
+
+          // Load bugs for the user
+          try {
+            const bugsResponse = await fetch(`/api/bugs?employeeId=${currentUser.employeeId}`)
+            if (bugsResponse.ok) {
+              const bugsData = await bugsResponse.json()
+              setBugs(bugsData.data || [])
+            }
+          } catch (bugError) {
+            console.warn('Failed to load bugs, using empty array:', bugError)
+            setBugs([])
           }
         }
       } catch (error) {
@@ -128,7 +140,7 @@ export default function Dashboard() {
           // Keep existing users if reload fails
         }
       } else {
-        // For other roles, reload tasks with force refresh
+        // For other roles, reload tasks and bugs with force refresh
         try {
           let userTasks: Task[] = []
           // All non-admin roles should only see their own tasks
@@ -138,6 +150,18 @@ export default function Dashboard() {
         } catch (taskError) {
           console.warn('Failed to reload tasks:', taskError)
           // Keep existing tasks if reload fails
+        }
+
+        // Reload bugs
+        try {
+          const bugsResponse = await fetch(`/api/bugs?employeeId=${currentUser.employeeId}`)
+          if (bugsResponse.ok) {
+            const bugsData = await bugsResponse.json()
+            setBugs(bugsData.data || [])
+          }
+        } catch (bugError) {
+          console.warn('Failed to reload bugs:', bugError)
+          // Keep existing bugs if reload fails
         }
       }
     } catch (error) {
@@ -583,27 +607,15 @@ export default function Dashboard() {
 
 
 
-          {/* Filtered Tasks */}
-          <TaskList
+          {/* Unified Work Items (Tasks + Bugs) */}
+          <UnifiedWorkItemsList
             tasks={displayTasks}
-            title={
-              activeFilter === 'all' ? "Recent Tasks (Owned & Supporting)" :
-              activeFilter === 'completed' ? "Completed Tasks" :
-              activeFilter === 'in-progress' ? "In Progress Tasks" :
-              activeFilter === 'delayed' ? "Delayed Tasks" :
-              activeFilter === 'pending' ? "Pending Tasks" :
-              "Tasks"
-            }
+            bugs={bugs}
+            title="Recent Work Items (Tasks & Bugs)"
             showAssignee={false}
             allowEdit={true}
             onTaskUpdate={loadData}
           />
-
-          {/* Unified Work Items (Tasks + Bugs) */}
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold text-black mb-4">All Work Items</h2>
-            <UnifiedWorkItems employeeId={currentUser.employeeId} />
-          </div>
 
           {/* Quick Actions */}
           <div className="card">
