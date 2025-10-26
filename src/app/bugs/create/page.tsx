@@ -41,6 +41,13 @@ export default function CreateBugPage() {
   const [error, setError] = useState('')
   const [isHydrated, setIsHydrated] = useState(false)
 
+  // Settings state
+  const [severityOptions, setSeverityOptions] = useState<string[]>([])
+  const [priorityOptions, setPriorityOptions] = useState<string[]>([])
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([])
+  const [platformOptions, setPlatformOptions] = useState<string[]>([])
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true)
+
   const router = useRouter()
   const currentUser = getCurrentUser()
 
@@ -64,6 +71,40 @@ export default function CreateBugPage() {
     }
   }, [usersLoaded])
 
+  const loadSettings = useCallback(async () => {
+    try {
+      setIsLoadingSettings(true)
+
+      // Fetch all settings grouped by type
+      const response = await fetch('/api/settings?grouped=true&activeOnly=true')
+      const data = await response.json()
+
+      if (data.success) {
+        const grouped = data.data
+        setSeverityOptions(grouped.severity || [])
+        setPriorityOptions(grouped.priority || [])
+        setCategoryOptions(grouped.category || [])
+        setPlatformOptions(grouped.platform || [])
+      } else {
+        console.error('Failed to load settings:', data.error)
+        // Fallback to hardcoded values
+        setSeverityOptions(['Critical', 'Major', 'Minor'])
+        setPriorityOptions(['High', 'Medium', 'Low'])
+        setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
+        setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error)
+      // Fallback to hardcoded values
+      setSeverityOptions(['Critical', 'Major', 'Minor'])
+      setPriorityOptions(['High', 'Medium', 'Low'])
+      setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
+      setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
+    } finally {
+      setIsLoadingSettings(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (!isHydrated) return
 
@@ -75,7 +116,8 @@ export default function CreateBugPage() {
     // Admin users have full access to bug tracking
 
     loadUsers()
-  }, [currentUser, router, isHydrated, loadUsers])
+    loadSettings()
+  }, [currentUser, router, isHydrated, loadUsers, loadSettings])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -212,10 +254,20 @@ export default function CreateBugPage() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                       required
+                      disabled={isLoadingSettings}
                     >
-                      <option value="Critical">🔴 Critical</option>
-                      <option value="Major">🟠 Major</option>
-                      <option value="Minor">🟡 Minor</option>
+                      {isLoadingSettings ? (
+                        <option>Loading...</option>
+                      ) : (
+                        severityOptions.map(option => (
+                          <option key={option} value={option}>
+                            {option === 'Critical' && '🔴 '}
+                            {option === 'Major' && '🟠 '}
+                            {option === 'Minor' && '🟡 '}
+                            {option}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
 
@@ -229,10 +281,20 @@ export default function CreateBugPage() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                       required
+                      disabled={isLoadingSettings}
                     >
-                      <option value="High">⬆️ High</option>
-                      <option value="Medium">➡️ Medium</option>
-                      <option value="Low">⬇️ Low</option>
+                      {isLoadingSettings ? (
+                        <option>Loading...</option>
+                      ) : (
+                        priorityOptions.map(option => (
+                          <option key={option} value={option}>
+                            {option === 'High' && '⬆️ '}
+                            {option === 'Medium' && '➡️ '}
+                            {option === 'Low' && '⬇️ '}
+                            {option}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
 
@@ -246,15 +308,25 @@ export default function CreateBugPage() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                       required
+                      disabled={isLoadingSettings}
                     >
-                      <option value="UI">🎨 UI</option>
-                      <option value="API">🔌 API</option>
-                      <option value="Backend">⚙️ Backend</option>
-                      <option value="Performance">⚡ Performance</option>
-                      <option value="Security">🔒 Security</option>
-                      <option value="Database">🗄️ Database</option>
-                      <option value="Integration">🔗 Integration</option>
-                      <option value="Other">📋 Other</option>
+                      {isLoadingSettings ? (
+                        <option>Loading...</option>
+                      ) : (
+                        categoryOptions.map(option => (
+                          <option key={option} value={option}>
+                            {option === 'UI' && '🎨 '}
+                            {option === 'API' && '🔌 '}
+                            {option === 'Backend' && '⚙️ '}
+                            {option === 'Performance' && '⚡ '}
+                            {option === 'Security' && '🔒 '}
+                            {option === 'Database' && '🗄️ '}
+                            {option === 'Integration' && '🔗 '}
+                            {option === 'Other' && '📋 '}
+                            {option}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
 
@@ -268,11 +340,21 @@ export default function CreateBugPage() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                       required
+                      disabled={isLoadingSettings}
                     >
-                      <option value="Web">🌐 Web</option>
-                      <option value="iOS">📱 iOS</option>
-                      <option value="Android">🤖 Android</option>
-                      <option value="All">🔄 All Platforms</option>
+                      {isLoadingSettings ? (
+                        <option>Loading...</option>
+                      ) : (
+                        platformOptions.map(option => (
+                          <option key={option} value={option}>
+                            {option === 'Web' && '🌐 '}
+                            {option === 'iOS' && '📱 '}
+                            {option === 'Android' && '🤖 '}
+                            {option === 'All' && '🔄 '}
+                            {option}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
                 </div>

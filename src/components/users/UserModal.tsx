@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { User } from '@/lib/types'
-import { DEPARTMENTS } from '@/lib/constants/departments'
 import { generateTemporaryPassword } from '@/lib/utils/password'
 import { X, Save, User as UserIcon, Mail, Phone, Building, Shield, AlertCircle } from 'lucide-react'
 import LoadingButton from '@/components/ui/LoadingButton'
@@ -38,6 +37,10 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
   const [isLookingUpManager, setIsLookingUpManager] = useState(false)
   const [managerInfo, setManagerInfo] = useState<{ name: string; id: string } | null>(null)
 
+  // Department options from settings
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>([])
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(true)
+
   // Function to generate next Employee ID using existing users data
   const generateNextEmployeeId = (): string => {
     try {
@@ -69,6 +72,49 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
       setIsGeneratingId(false)
     }
   }
+
+  // Load department options from settings
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        setIsLoadingDepartments(true)
+        const response = await fetch('/api/settings?type=department&activeOnly=true')
+        const data = await response.json()
+
+        if (data.success) {
+          setDepartmentOptions(data.data.map((s: any) => s.settingValue))
+        } else {
+          console.error('Failed to load departments:', data.error)
+          // Fallback to hardcoded values
+          setDepartmentOptions([
+            'Frontend - iOS', 'Frontend - Android', 'Frontend - Webapp',
+            'Traditional Marketing', 'Admin panel', 'Backend - Node js',
+            'Server config', 'Frontend - SP Webapp', 'Digital Marketing',
+            'Creatives', 'Technology', 'Mar-Tech', 'Frontend - Flutter',
+            'Frontend - UBAR', 'Backend - UBAR', 'Management', 'Design',
+            'Brand Partnerships', 'Finance', 'Customer grievances', 'CRM',
+            'Operations', 'Finances', 'CEO', 'Team Leader', 'HR'
+          ])
+        }
+      } catch (error) {
+        console.error('Failed to load departments:', error)
+        // Fallback to hardcoded values
+        setDepartmentOptions([
+          'Frontend - iOS', 'Frontend - Android', 'Frontend - Webapp',
+          'Traditional Marketing', 'Admin panel', 'Backend - Node js',
+          'Server config', 'Frontend - SP Webapp', 'Digital Marketing',
+          'Creatives', 'Technology', 'Mar-Tech', 'Frontend - Flutter',
+          'Frontend - UBAR', 'Backend - UBAR', 'Management', 'Design',
+          'Brand Partnerships', 'Finance', 'Customer grievances', 'CRM',
+          'Operations', 'Finances', 'CEO', 'Team Leader', 'HR'
+        ])
+      } finally {
+        setIsLoadingDepartments(false)
+      }
+    }
+
+    loadDepartments()
+  }, [])
 
   const lookupManagerByEmail = async (email: string) => {
     if (!email.trim()) {
@@ -411,9 +457,12 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                     onChange={handleInputChange}
                     required
                     className="input-field-with-icon"
+                    disabled={isLoadingDepartments}
                   >
-                    <option value="">Select department...</option>
-                    {DEPARTMENTS.map(dept => (
+                    <option value="">
+                      {isLoadingDepartments ? 'Loading departments...' : 'Select department...'}
+                    </option>
+                    {departmentOptions.map(dept => (
                       <option key={dept} value={dept}>
                         {dept}
                       </option>
