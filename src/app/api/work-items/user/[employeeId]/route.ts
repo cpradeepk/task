@@ -84,9 +84,9 @@ export async function GET(
           projectName = project?.projectName
         }
 
-        workItems.push({
+        const workItem = {
           id: bug.bugId,
-          type: 'bug',
+          type: 'bug' as const,
           title: bug.title,
           status: bug.status,
           priority: bug.priority,
@@ -96,7 +96,9 @@ export async function GET(
           projectName: projectName,
           severity: bug.severity,
           createdAt: bug.createdAt
-        })
+        }
+        console.log('Work Items API - Adding bug:', { bugId: bug.bugId, title: bug.title, workItemId: workItem.id })
+        workItems.push(workItem)
       }
     }
 

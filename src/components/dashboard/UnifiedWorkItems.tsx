@@ -83,9 +83,11 @@ export default function UnifiedWorkItems({ employeeId }: UnifiedWorkItemsProps) 
   }
 
   const handleItemClick = (item: WorkItem) => {
+    console.log('UnifiedWorkItems - Clicking item:', { id: item.id, type: item.type, title: item.title })
     if (item.type === 'task') {
       router.push(`/tasks/${item.id}`)
     } else {
+      console.log('UnifiedWorkItems - Navigating to bug:', `/bugs/${item.id}`)
       router.push(`/bugs/${item.id}`)
     }
   }
