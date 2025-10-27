@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { login, initializeUsers } from '@/lib/auth'
 import { useLoading } from '@/contexts/LoadingContext'
-import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion'
+import { motion, useMotionValue, useSpring, useTransform, useReducedMotion, type MotionValue } from 'framer-motion'
 
 /**
  * Amtariksha — Space/Infinity vibe
@@ -129,7 +129,7 @@ function WarpField({ warp = 0.25, origin = { x: 0, y: 0 } }: { warp?: number; or
 }
 
 // --- Gooey Gradient (SVG metaballs following the cursor) ---
-function GooeyGradient({ mouse }: { mouse: { x: any; y: any } }) {
+function GooeyGradient({ mouse }: { mouse: { x: MotionValue<number>; y: MotionValue<number> } }) {
   const prefersReducedMotion = useReducedMotion()
 
   // Apply spring physics to mouse position
