@@ -24,9 +24,10 @@
 **Problem**: Vercel couldn't find `.next/routes-manifest.json` in monorepo
 **Solution**:
 - Created `vercel.json` with explicit build configuration:
-  - `buildCommand`: `npm run build:web`
-  - `outputDirectory`: `apps/web/.next`
+  - `buildCommand`: `npm run build:web && cp -r apps/web/.next .next && cp -r apps/web/public ./public`
+  - `outputDirectory`: `.next` (root directory)
   - `framework`: `nextjs`
+  - Copies build artifacts from `apps/web` to root for Vercel to find them
   - Proper environment variable configuration
 
 ### 4. Turbo Cache Issues
