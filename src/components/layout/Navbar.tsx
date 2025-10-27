@@ -21,7 +21,8 @@ import {
   Clock,
   FileText,
   CheckSquare,
-  Bug
+  Bug,
+  Trash2
 } from 'lucide-react'
 
 export default function Navbar() {
@@ -99,6 +100,7 @@ export default function Navbar() {
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
           { href: '/master-bugs', label: 'Master Bugs', icon: Bug },
           { href: '/users', label: 'User Management', icon: Users },
+          { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 },
           { href: '/settings', label: 'Settings', icon: Settings },
           { href: '/reports', label: 'Reports', icon: BarChart3 },
           { href: '/approvals', label: 'Approvals', icon: Calendar },
@@ -113,6 +115,7 @@ export default function Navbar() {
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
           { href: '/master-bugs', label: 'Master Bugs', icon: Bug },
           { href: '/users', label: 'User Management', icon: Users },
+          { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 },
           { href: '/settings', label: 'Settings', icon: Settings }
         ]
 
