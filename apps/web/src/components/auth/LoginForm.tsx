@@ -131,28 +131,38 @@ function WarpField({ warp = 0.25, origin = { x: 0, y: 0 } }: { warp?: number; or
 // --- Gooey Gradient (SVG metaballs following the cursor) ---
 function GooeyGradient({ mouse }: { mouse: { x: any; y: any } }) {
   const prefersReducedMotion = useReducedMotion()
-  const x = useSpring(mouse.x, { stiffness: 80, damping: 20, mass: 0.4 })
-  const y = useSpring(mouse.y, { stiffness: 80, damping: 20, mass: 0.4 })
 
-  // Transform to percentage strings
-  const px = useTransform(x, (v: number) => {
-    const width = typeof window !== 'undefined' ? window.innerWidth : 1
-    return `${(v / width) * 100}%`
-  })
-  const py = useTransform(y, (v: number) => {
-    const height = typeof window !== 'undefined' ? window.innerHeight : 1
-    return `${(v / height) * 100}%`
-  })
+  // Apply spring physics to mouse position
+  const springX = useSpring(mouse.x, { stiffness: 80, damping: 20, mass: 0.4 })
+  const springY = useSpring(mouse.y, { stiffness: 80, damping: 20, mass: 0.4 })
 
-  // Second ball transforms
-  const px2 = useTransform(x, (v: number) => {
-    const width = typeof window !== 'undefined' ? window.innerWidth : 1
-    return `${(Math.min(v + 160, width) / width) * 100}%`
-  })
-  const py2 = useTransform(y, (v: number) => {
-    const height = typeof window !== 'undefined' ? window.innerHeight : 1
-    return `${(Math.max(v - 140, 0) / height) * 100}%`
-  })
+  // Transform to percentage strings for first ball
+  const px = useTransform(
+    springX,
+    [0, typeof window !== 'undefined' ? window.innerWidth : 1920],
+    ['0%', '100%']
+  )
+  const py = useTransform(
+    springY,
+    [0, typeof window !== 'undefined' ? window.innerHeight : 1080],
+    ['0%', '100%']
+  )
+
+  // Transform for second ball (offset position)
+  const px2 = useTransform(
+    springX,
+    (v: number) => {
+      const width = typeof window !== 'undefined' ? window.innerWidth : 1920
+      return `${(Math.min(v + 160, width) / width) * 100}%`
+    }
+  )
+  const py2 = useTransform(
+    springY,
+    (v: number) => {
+      const height = typeof window !== 'undefined' ? window.innerHeight : 1080
+      return `${(Math.max(v - 140, 0) / height) * 100}%`
+    }
+  )
 
   if (prefersReducedMotion) return null
   return (
