@@ -23,28 +23,37 @@
 ### 3. Vercel Deployment Configuration
 **Problem**: Vercel couldn't find `.next/routes-manifest.json` in monorepo
 **Solution**:
+- Created `build.sh` script to handle the build and artifact copying
 - Created `vercel.json` with explicit build configuration:
-  - `buildCommand`: `npm run build:web && cp -r apps/web/.next .next && cp -r apps/web/public ./public`
+  - `buildCommand`: `bash build.sh`
   - `outputDirectory`: `.next` (root directory)
   - `framework`: `nextjs`
-  - Copies build artifacts from `apps/web` to root for Vercel to find them
-  - Proper environment variable configuration
+  - The build script:
+    1. Runs `npm run build:web` to build the web app
+    2. Copies `.next` directory from `apps/web/.next` to root `.next`
+    3. Copies `public` directory from `apps/web/public` to root `public`
+  - Vercel then finds the artifacts in the root directory
 
-### 4. Turbo Cache Issues
-**Problem**: Turbo cache was interfering with Vercel builds
+### 4. Turbo Cache and Environment Variables
+**Problem**:
+- Turbo cache was interfering with Vercel builds
+- JWT_SECRET environment variable was not declared in turbo.json
 **Solution**:
 - Updated `turbo.json` to exclude `.next/cache` from outputs
+- Added `globalEnv` to `turbo.json` to declare `JWT_SECRET` and `jwt_secret`
 - Added `.turbo/` to `.gitignore` to prevent cache commits
 - Ensured proper output configuration for monorepo
 
 ## Files Modified
 
-1. `.npmrc` - Created
-2. `vercel.json` - Created
-3. `apps/mobile/package.json` - Updated dependencies
-4. `apps/web/next.config.js` - Cleaned up configuration
-5. `turbo.json` - Updated output configuration
-6. `.gitignore` - Added .turbo/
+1. `.npmrc` - Created (legacy-peer-deps=true)
+2. `vercel.json` - Created (uses build.sh script)
+3. `build.sh` - Created (handles build and artifact copying)
+4. `apps/mobile/package.json` - Updated dependencies
+5. `apps/web/next.config.js` - Cleaned up configuration
+6. `turbo.json` - Updated output configuration and added globalEnv
+7. `.gitignore` - Added .turbo/
+8. `package-lock.json` - Updated with fresh dependencies
 
 ## Build Status
 
