@@ -4,6 +4,10 @@
     "**/.env.local",
     "**/.env"
   ],
+  "globalEnv": [
+    "JWT_SECRET",
+    "jwt_secret"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
