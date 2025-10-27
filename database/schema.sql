@@ -7,6 +7,7 @@
 -- ============================================================================
 
 -- Drop existing tables if they exist (in reverse order of dependencies)
+DROP TABLE IF EXISTS user_notification_preferences;
 DROP TABLE IF EXISTS user_permissions;
 DROP TABLE IF EXISTS role_permissions;
 DROP TABLE IF EXISTS bug_comments;
@@ -315,4 +316,69 @@ CREATE TABLE user_permissions (
     FOREIGN KEY (employee_id) REFERENCES users(employee_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='User-specific permission overrides (NULL means use role permission)';
+
+-- ============================================================================
+-- Table: user_notification_preferences
+-- Description: User notification preferences for all notification types
+-- ============================================================================
+CREATE TABLE user_notification_preferences (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id VARCHAR(50) NOT NULL,
+
+    -- Notification Channels
+    email_enabled BOOLEAN DEFAULT TRUE,
+    telegram_enabled BOOLEAN DEFAULT FALSE,
+    in_app_enabled BOOLEAN DEFAULT TRUE,
+
+    -- Task Notifications
+    task_assigned BOOLEAN DEFAULT TRUE,
+    task_updated BOOLEAN DEFAULT TRUE,
+    task_commented BOOLEAN DEFAULT TRUE,
+    task_due_soon BOOLEAN DEFAULT TRUE,
+    task_overdue BOOLEAN DEFAULT TRUE,
+    task_completed BOOLEAN DEFAULT TRUE,
+    task_support_assigned BOOLEAN DEFAULT TRUE,
+
+    -- Bug Notifications
+    bug_assigned BOOLEAN DEFAULT TRUE,
+    bug_updated BOOLEAN DEFAULT TRUE,
+    bug_commented BOOLEAN DEFAULT TRUE,
+    bug_status_changed BOOLEAN DEFAULT TRUE,
+    bug_severity_changed BOOLEAN DEFAULT TRUE,
+
+    -- Leave & WFH Notifications
+    leave_approved BOOLEAN DEFAULT TRUE,
+    leave_rejected BOOLEAN DEFAULT TRUE,
+    leave_pending_approval BOOLEAN DEFAULT TRUE,
+    wfh_approved BOOLEAN DEFAULT TRUE,
+    wfh_rejected BOOLEAN DEFAULT TRUE,
+    wfh_pending_approval BOOLEAN DEFAULT TRUE,
+
+    -- Project Notifications
+    project_assigned BOOLEAN DEFAULT TRUE,
+    project_updated BOOLEAN DEFAULT TRUE,
+
+    -- Team Notifications
+    team_member_added BOOLEAN DEFAULT TRUE,
+    team_task_created BOOLEAN DEFAULT TRUE,
+
+    -- System Notifications
+    system_announcements BOOLEAN DEFAULT TRUE,
+    daily_summary BOOLEAN DEFAULT FALSE,
+    weekly_summary BOOLEAN DEFAULT FALSE,
+
+    -- Quiet Hours
+    quiet_hours_enabled BOOLEAN DEFAULT FALSE,
+    quiet_hours_start TIME DEFAULT '22:00:00',
+    quiet_hours_end TIME DEFAULT '08:00:00',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY unique_employee (employee_id),
+    INDEX idx_employee_id (employee_id),
+
+    FOREIGN KEY (employee_id) REFERENCES users(employee_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='User notification preferences for all notification types';
 

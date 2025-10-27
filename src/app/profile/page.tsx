@@ -17,7 +17,8 @@ import {
   Save,
   Edit,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Bell
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import IDCard from '@/components/profile/IDCard'
@@ -279,15 +280,24 @@ export default function Profile() {
           <h1 className="text-2xl font-bold text-black">My Profile</h1>
           <p className="text-gray-600 mt-1">Manage your personal information and account settings</p>
         </div>
-        {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="btn-primary flex items-center space-x-2 mt-4 sm:mt-0"
+        <div className="flex items-center space-x-3 mt-4 sm:mt-0">
+          <a
+            href="/profile/notifications"
+            className="btn-secondary flex items-center space-x-2"
           >
-            <Edit className="h-4 w-4" />
-            <span>Edit Profile</span>
-          </button>
-        )}
+            <Bell className="h-4 w-4" />
+            <span>Notification Settings</span>
+          </a>
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="btn-primary flex items-center space-x-2"
+            >
+              <Edit className="h-4 w-4" />
+              <span>Edit Profile</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Profile Overview */}
