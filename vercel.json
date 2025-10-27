@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:web && cp -r apps/web/.next .next && cp -r apps/web/public ./public",
+  "buildCommand": "bash build.sh",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm install",
