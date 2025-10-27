@@ -2,7 +2,8 @@
   "buildCommand": "bash build.sh",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "npm install",
+  "installCommand": "npm install --legacy-peer-deps",
+  "nodeVersion": "18.x",
   "git": {
     "deploymentEnabled": {
       "main": true

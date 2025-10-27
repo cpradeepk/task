@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+echo "Verifying dependencies..."
+if [ ! -d "node_modules" ]; then
+  echo "node_modules not found, installing dependencies..."
+  npm install
+fi
+
 echo "Building web app..."
 npm run build:web
 
