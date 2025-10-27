@@ -21,22 +21,31 @@ export async function GET(request: NextRequest) {
     const employeeId = searchParams.get('employeeId')
 
     if (!employeeId) {
+      console.warn('Missing employeeId parameter in notification preferences request')
       return NextResponse.json(
         { success: false, error: 'Missing employeeId parameter' },
         { status: 400 }
       )
     }
 
+    console.log(`Fetching notification preferences for employee: ${employeeId}`)
+
     const preferences = await getNotificationPreferences(employeeId)
+
+    console.log(`Successfully fetched notification preferences for ${employeeId}`)
 
     return NextResponse.json({
       success: true,
       data: preferences
     })
   } catch (error) {
-    console.error('Error fetching notification preferences:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Error fetching notification preferences:', {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch notification preferences' },
+      { success: false, error: errorMessage || 'Failed to fetch notification preferences' },
       { status: 500 }
     )
   }

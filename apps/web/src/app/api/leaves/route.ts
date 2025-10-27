@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     const requiredFields = ['employeeId', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'reason']
     for (const field of requiredFields) {
       if (!body[field]) {
+        console.warn(`Missing required field: ${field}`)
         return NextResponse.json({
           success: false,
           error: `${field} is required`
@@ -42,7 +43,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Ensure id field is set (application_id)
+    if (!body.id) {
+      body.id = `LEAVE-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    }
+
+    // Ensure status is set
+    if (!body.status) {
+      body.status = 'Pending'
+    }
+
+    console.log('Creating leave application:', {
+      id: body.id,
+      employeeId: body.employeeId,
+      leaveType: body.leaveType,
+      fromDate: body.fromDate,
+      toDate: body.toDate
+    })
+
     const leave = await createLeave(body)
+
+    console.log('Leave application created successfully:', leave.id)
 
     return NextResponse.json({
       success: true,
@@ -50,10 +71,14 @@ export async function POST(request: NextRequest) {
       message: 'Leave application created successfully'
     }, { status: 201 })
   } catch (error) {
-    console.error('Failed to create leave application:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Failed to create leave application:', {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json({
       success: false,
-      error: 'Failed to create leave application'
+      error: errorMessage || 'Failed to create leave application'
     }, { status: 500 })
   }
 }

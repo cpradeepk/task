@@ -85,20 +85,35 @@ export default function CreateBugPage() {
       const response = await fetch('/api/settings?grouped=true&activeOnly=true')
       const data = await response.json()
 
-      if (data.success) {
+      if (data.success && data.data) {
         const grouped = data.data
-        setSeverityOptions(grouped.severity || [])
-        setPriorityOptions(grouped.priority || [])
-        setCategoryOptions(grouped.category || [])
-        setPlatformOptions(grouped.platform || [])
-        setBugTypeOptions(grouped.bug_type || [])
+
+        // Set options from database, with fallback to defaults if empty
+        setSeverityOptions(grouped.severity && grouped.severity.length > 0 ? grouped.severity : ['Critical', 'Major', 'Minor'])
+        setPriorityOptions(grouped.priority && grouped.priority.length > 0 ? grouped.priority : ['High', 'Medium', 'Low'])
+        setCategoryOptions(grouped.category && grouped.category.length > 0 ? grouped.category : ['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
+        setPlatformOptions(grouped.platform && grouped.platform.length > 0 ? grouped.platform : ['Web', 'iOS', 'Android', 'All'])
+        setBugTypeOptions(grouped.bug_type && grouped.bug_type.length > 0 ? grouped.bug_type : ['Bug', 'Feature Request', 'Enhancement'])
+
+        console.log('Settings loaded successfully:', grouped)
       } else {
-        console.error('Failed to load settings:', data.error)
-        throw new Error('Failed to load settings from database')
+        console.warn('Settings API returned empty data, using defaults:', data)
+        // Use default options if API returns empty
+        setSeverityOptions(['Critical', 'Major', 'Minor'])
+        setPriorityOptions(['High', 'Medium', 'Low'])
+        setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
+        setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
+        setBugTypeOptions(['Bug', 'Feature Request', 'Enhancement'])
       }
     } catch (error) {
       console.error('Failed to load settings:', error)
-      setError('Failed to load dropdown options. Please refresh the page.')
+      // Use default options on error
+      setSeverityOptions(['Critical', 'Major', 'Minor'])
+      setPriorityOptions(['High', 'Medium', 'Low'])
+      setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
+      setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
+      setBugTypeOptions(['Bug', 'Feature Request', 'Enhancement'])
+      setError('Using default dropdown options. Database settings may be unavailable.')
     } finally {
       setIsLoadingSettings(false)
     }
