@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm run build:web",
-  "outputDirectory": "apps/web/.next",
+  "buildCommand": "npm run build:web && cp -r apps/web/.next .next && cp -r apps/web/public ./public",
+  "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm install",
   "env": {
