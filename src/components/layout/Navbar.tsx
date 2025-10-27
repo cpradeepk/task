@@ -76,10 +76,7 @@ export default function Navbar() {
           ...baseItems,
           { href: '/tasks/create', label: 'Tasks', icon: Plus },
           { href: '/bugs', label: 'Bugs', icon: Bug },
-          { href: '/leave/apply', label: 'Leave', icon: Calendar },
-          { href: '/wfh/apply', label: 'WFH', icon: Briefcase },
           { href: '/my-applications', label: 'Applications', icon: FileText },
-          { href: '/approvals', label: 'Approvals', icon: CheckSquare },
           { href: '/profile', label: 'Profile', icon: User }
         ]
 
@@ -88,10 +85,7 @@ export default function Navbar() {
           ...baseItems,
           { href: '/tasks/create', label: 'Tasks', icon: Plus },
           { href: '/bugs', label: 'Bugs', icon: Bug },
-          { href: '/leave/apply', label: 'Leave', icon: Calendar },
-          { href: '/wfh/apply', label: 'WFH', icon: Briefcase },
           { href: '/my-applications', label: 'Applications', icon: FileText },
-          { href: '/approvals', label: 'Approvals', icon: CheckSquare },
           { href: '/reports', label: 'Reports', icon: BarChart3 },
           { href: '/profile', label: 'Profile', icon: User }
         ]

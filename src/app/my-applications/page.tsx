@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, Fragment } from 'react'
+import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { User, LeaveApplication, WFHApplication } from '@/lib/types'
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, FileText, Briefcase, RefreshCw, AlertTriangle, Loader2 } from 'lucide-react'
+import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, FileText, Briefcase, RefreshCw, AlertTriangle, Loader2, Plus } from 'lucide-react'
 
 import Navbar from '@/components/layout/Navbar'
 
@@ -65,6 +66,7 @@ const applicationsCache = new Map<string, { data: Application[], timestamp: numb
 const CACHE_DURATION = 2 * 60 * 1000 // 2 minutes
 
 export default function MyApplications() {
+  const router = useRouter()
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [applications, setApplications] = useState<Application[]>([])
   const [filter, setFilter] = useState<string>('all')
@@ -265,7 +267,7 @@ export default function MyApplications() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-black">My Applications</h1>
               <p className="text-gray-600 mt-1">
@@ -275,12 +277,39 @@ export default function MyApplications() {
             <button
               onClick={() => loadApplications(currentUser.employeeId, true)}
               disabled={isLoading || isRefreshing}
-              className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw className={`h-4 w-4 mr-2 transition-transform duration-200 ${(isLoading || isRefreshing) ? 'animate-spin' : ''}`} />
               {isLoading ? 'Loading...' : isRefreshing ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
+        </div>
+
+        {/* Apply Buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <button
+            onClick={() => router.push('/leave/apply')}
+            className="flex items-center justify-center gap-3 p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+          >
+            <Calendar className="h-6 w-6" />
+            <div className="text-left">
+              <div className="font-semibold text-lg">Apply for Leave</div>
+              <div className="text-sm text-blue-100">Submit a new leave application</div>
+            </div>
+            <Plus className="h-5 w-5 ml-auto" />
+          </button>
+
+          <button
+            onClick={() => router.push('/wfh/apply')}
+            className="flex items-center justify-center gap-3 p-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+          >
+            <Briefcase className="h-6 w-6" />
+            <div className="text-left">
+              <div className="font-semibold text-lg">Apply for WFH</div>
+              <div className="text-sm text-green-100">Submit a work from home request</div>
+            </div>
+            <Plus className="h-5 w-5 ml-auto" />
+          </button>
         </div>
 
         {/* Error Message */}

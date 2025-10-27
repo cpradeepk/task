@@ -38,6 +38,13 @@ export default function Approvals() {
       return
     }
 
+    // Check if user has permission to access approvals page
+    if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
+      // Redirect to dashboard with access denied
+      router.push('/dashboard')
+      return
+    }
+
     checkManagerStatus()
   }, [currentUser, router])
 
@@ -329,7 +336,34 @@ export default function Approvals() {
 
   if (!currentUser) return null
 
-  // Show access denied if user is not a manager
+  // Show access denied if user doesn't have permission
+  if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
+    return (
+      <div>
+        <Navbar />
+        <div className="max-w-6xl mx-auto p-6">
+          <div className="card text-center py-12">
+            <div className="text-6xl mb-4">🔒</div>
+            <h2 className="text-xl font-semibold text-black mb-2">Access Denied</h2>
+            <p className="text-gray-600 mb-4">
+              This page is only accessible to Administrators and Top Management.
+            </p>
+            <p className="text-sm text-gray-500">
+              You don't have permission to access the approvals section.
+            </p>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show access denied if user is not a manager (has no team)
   if (!isManager) {
     return (
       <div>
