@@ -40,10 +40,27 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorCode = (error as any)?.code
+
     console.error('Error fetching notification preferences:', {
       error: errorMessage,
+      code: errorCode,
       stack: error instanceof Error ? error.stack : undefined
     })
+
+    // Check if table doesn't exist
+    if (errorCode === 'ER_NO_SUCH_TABLE') {
+      console.error('⚠️ user_notification_preferences table does not exist. Please run migration 009.')
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Notification preferences feature not available. Database migration required.',
+          code: 'TABLE_NOT_FOUND'
+        },
+        { status: 503 }
+      )
+    }
+
     return NextResponse.json(
       { success: false, error: errorMessage || 'Failed to fetch notification preferences' },
       { status: 500 }

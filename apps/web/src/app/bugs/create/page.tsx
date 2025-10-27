@@ -38,6 +38,7 @@ export default function CreateBugPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [usersLoaded, setUsersLoaded] = useState(false)
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
   const [error, setError] = useState('')
   const [isHydrated, setIsHydrated] = useState(false)
 
@@ -77,6 +78,8 @@ export default function CreateBugPage() {
   }, [usersLoaded])
 
   const loadSettings = useCallback(async () => {
+    if (settingsLoaded) return
+
     try {
       setIsLoadingSettings(true)
 
@@ -104,6 +107,8 @@ export default function CreateBugPage() {
         setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
         setBugTypeOptions(['Bug', 'Feature Request', 'Enhancement'])
       }
+
+      setSettingsLoaded(true)
     } catch (error) {
       console.error('Failed to load settings:', error)
       // Use default options on error
@@ -113,10 +118,11 @@ export default function CreateBugPage() {
       setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
       setBugTypeOptions(['Bug', 'Feature Request', 'Enhancement'])
       setError('Using default dropdown options. Database settings may be unavailable.')
+      setSettingsLoaded(true)
     } finally {
       setIsLoadingSettings(false)
     }
-  }, [])
+  }, [settingsLoaded])
 
   useEffect(() => {
     if (!isHydrated) return

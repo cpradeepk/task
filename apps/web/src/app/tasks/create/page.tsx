@@ -19,7 +19,7 @@ import ProjectSelector from '@/components/ProjectSelector'
 
 export default function CreateTask() {
   const [formData, setFormData] = useState({
-    selectType: '',
+    selectType: 'Normal task',
     recursiveType: '',
     description: '',
     support: [] as string[], // Array of employee IDs for support
