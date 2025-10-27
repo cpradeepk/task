@@ -99,7 +99,8 @@ export default function UserManagement() {
         return
       }
 
-      if (currentUser.role !== 'admin') {
+      // Only Admin and Top Management can access User Management
+      if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
         router.push('/dashboard')
         return
       }

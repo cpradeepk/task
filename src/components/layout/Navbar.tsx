@@ -104,6 +104,8 @@ export default function Navbar() {
           { href: '/projects', label: 'Projects', icon: Briefcase },
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
           { href: '/master-bugs', label: 'Master Bugs', icon: Bug },
+          { href: '/users', label: 'User Management', icon: Users },
+          { href: '/settings', label: 'Settings', icon: Settings },
           { href: '/reports', label: 'Reports', icon: BarChart3 },
           { href: '/approvals', label: 'Approvals', icon: Calendar },
           { href: '/profile', label: 'Profile', icon: User }

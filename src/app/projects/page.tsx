@@ -10,6 +10,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Project } from '@/lib/types'
+import Navbar from '@/components/layout/Navbar'
+import { Edit, Trash2, Plus } from 'lucide-react'
+import ProjectModal from '@/components/projects/ProjectModal'
 
 interface ProjectNode extends Project {
   children?: ProjectNode[]
@@ -21,12 +24,18 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string>('')
+  const [employeeId, setEmployeeId] = useState<string>('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
-    // Get user role from localStorage
+    // Get user info from localStorage
     const role = localStorage.getItem('userRole') || ''
+    const empId = localStorage.getItem('employeeId') || ''
     setUserRole(role)
-    
+    setEmployeeId(empId)
+
     fetchProjects()
   }, [])
 
@@ -51,14 +60,60 @@ export default function ProjectsPage() {
   }
 
   const handleCreateProject = () => {
-    router.push('/projects/create')
+    setSelectedProject(null)
+    setIsModalOpen(true)
+  }
+
+  const handleEditProject = (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSelectedProject(project)
+    setIsModalOpen(true)
+  }
+
+  const handleDeleteProject = async (projectId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete project')
+      }
+
+      // Refresh projects list
+      await fetchProjects()
+    } catch (err) {
+      console.error('Error deleting project:', err)
+      alert('Failed to delete project. Please try again.')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const handleViewProject = (projectId: string) => {
     router.push(`/projects/${projectId}`)
   }
 
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setSelectedProject(null)
+  }
+
+  const handleModalSuccess = () => {
+    setIsModalOpen(false)
+    setSelectedProject(null)
+    fetchProjects()
+  }
+
   const canManageProjects = userRole === 'admin' || userRole === 'top_management'
+  const canDelete = userRole === 'admin'
 
   // Render project tree recursively
   const renderProjectTree = (nodes: ProjectNode[], level = 0) => {
@@ -107,12 +162,35 @@ export default function ProjectsPage() {
               </div>
             </div>
             
-            <button
-              onClick={() => handleViewProject(node.projectId)}
-              className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              View Details
-            </button>
+            <div className="flex items-center gap-2">
+              {canManageProjects && (
+                <button
+                  onClick={(e) => handleEditProject(node, e)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  title="Edit project"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+              )}
+
+              {canDelete && (
+                <button
+                  onClick={(e) => handleDeleteProject(node.projectId, e)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  title="Delete project"
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+
+              <button
+                onClick={() => handleViewProject(node.projectId)}
+                className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                View Details
+              </button>
+            </div>
           </div>
         </div>
         
@@ -128,11 +206,14 @@ export default function ProjectsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading projects...</p>
+      <div>
+        <Navbar />
+        <div className="min-h-screen bg-gray-50 p-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading projects...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -140,8 +221,10 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div>
+      <Navbar />
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -155,9 +238,10 @@ export default function ProjectsPage() {
             {canManageProjects && (
               <button
                 onClick={handleCreateProject}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
-                + Create Project
+                <Plus className="h-5 w-5 mr-2" />
+                Add Project
               </button>
             )}
           </div>
@@ -213,7 +297,18 @@ export default function ProjectsPage() {
             <li>• Projects can be marked as Active, Inactive, or Deleted</li>
           </ul>
         </div>
+        </div>
       </div>
+
+      {/* Project Modal */}
+      {isModalOpen && (
+        <ProjectModal
+          project={selectedProject}
+          employeeId={employeeId}
+          onClose={handleModalClose}
+          onSuccess={handleModalSuccess}
+        />
+      )}
     </div>
   )
 }

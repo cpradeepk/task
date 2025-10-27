@@ -39,7 +39,8 @@ export default function Settings() {
       return
     }
 
-    if (currentUser.role !== 'admin') {
+    // Only Admin and Top Management can access Settings
+    if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
       router.push('/dashboard')
       return
     }

@@ -76,10 +76,10 @@ export default function Dashboard() {
         setTodayString(now.toISOString().split('T')[0])
 
         // Load data based on user role with error handling
-        if (currentUser.role === 'admin') {
-          // For admin, load all users
+        if (currentUser.role === 'admin' || currentUser.role === 'top_management') {
+          // For admin and top management, load all users
           try {
-            console.log('Initial load: Admin dashboard loading users...')
+            console.log('Initial load: Admin/Top Management dashboard loading users...')
             const allUsers = await getAllUsers()
             console.log('Initial load: Loaded users:', allUsers.length, allUsers)
             setUsers(allUsers)
@@ -128,12 +128,12 @@ export default function Dashboard() {
     if (!currentUser) return
 
     try {
-      if (currentUser.role === 'admin') {
-        // For admin, reload all users
+      if (currentUser.role === 'admin' || currentUser.role === 'top_management') {
+        // For admin and top management, reload all users
         try {
-          console.log('Admin dashboard: Loading all users...')
+          console.log('Admin/Top Management dashboard: Loading all users...')
           const allUsers = await getAllUsers()
-          console.log('Admin dashboard: Loaded users:', allUsers.length, allUsers)
+          console.log('Admin/Top Management dashboard: Loaded users:', allUsers.length, allUsers)
           setUsers(allUsers)
         } catch (userError) {
           console.warn('Failed to reload users:', userError)

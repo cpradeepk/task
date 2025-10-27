@@ -255,15 +255,15 @@ export async function getMyReportedBugs(employeeId: string): Promise<Bug[]> {
 /**
  * Check if user can edit bug
  */
-export function canEditBug(bug: Bug, currentUserId: string, isAdmin: boolean): boolean {
-  return isAdmin || bug.reportedBy === currentUserId || bug.assignedTo === currentUserId
+export function canEditBug(bug: Bug, currentUserId: string, isAdminOrTopManagement: boolean): boolean {
+  return isAdminOrTopManagement || bug.reportedBy === currentUserId || bug.assignedTo === currentUserId
 }
 
 /**
  * Check if user can comment on bug
  */
-export function canCommentOnBug(bug: Bug, currentUserId: string, isAdmin: boolean): boolean {
-  return isAdmin || bug.reportedBy === currentUserId || bug.assignedTo === currentUserId
+export function canCommentOnBug(bug: Bug, currentUserId: string, isAdminOrTopManagement: boolean): boolean {
+  return isAdminOrTopManagement || bug.reportedBy === currentUserId || bug.assignedTo === currentUserId
 }
 
 /**

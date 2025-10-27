@@ -145,12 +145,6 @@ export default function UnifiedWorkItemsList({
   // Get all unique statuses from both tasks and bugs
   const allStatuses = Array.from(new Set([...taskStatusOptions, ...bugStatusOptions]))
 
-  const typeOptions = [
-    { value: 'all', label: `All Items (${workItems.length})` },
-    { value: 'tasks', label: `Tasks (${tasks.length})` },
-    { value: 'bugs', label: `Bugs (${bugs.length})` }
-  ]
-
   const statusOptions = [
     { value: 'all', label: 'All Statuses' },
     ...allStatuses.map(status => ({
@@ -161,33 +155,53 @@ export default function UnifiedWorkItemsList({
 
   return (
     <div className="card">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h3 className="text-lg font-semibold text-black mb-4 sm:mb-0">
-          {title} ({filteredItems.length})
-        </h3>
+      <div className="flex flex-col space-y-4 mb-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-black">
+            {title} ({filteredItems.length})
+          </h3>
+        </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-          {/* Type Filter */}
-          <div className="flex items-center space-x-2">
-            <label htmlFor="type-filter" className="text-sm font-medium text-black">
-              Type:
-            </label>
-            <select
-              id="type-filter"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="input-field w-auto"
-            >
-              {typeOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          {/* Type Filter - Button Group */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <span className="text-sm font-medium text-black">Type:</span>
+            <div className="inline-flex rounded-lg border border-gray-300 bg-white p-1">
+              <button
+                onClick={() => setTypeFilter('all')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  typeFilter === 'all'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                All Items ({workItems.length})
+              </button>
+              <button
+                onClick={() => setTypeFilter('tasks')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  typeFilter === 'tasks'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Tasks ({tasks.length})
+              </button>
+              <button
+                onClick={() => setTypeFilter('bugs')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  typeFilter === 'bugs'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Bugs ({bugs.length})
+              </button>
+            </div>
           </div>
 
-          {/* Status Filter */}
-          <div className="flex items-center space-x-2">
+          {/* Status Filter - Dropdown */}
+          <div className="flex items-center gap-2">
             <label htmlFor="status-filter" className="text-sm font-medium text-black">
               Status:
             </label>
@@ -195,7 +209,7 @@ export default function UnifiedWorkItemsList({
               id="status-filter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="input-field w-auto"
+              className="input-field w-auto min-w-[150px]"
               disabled={isLoadingSettings}
             >
               {statusOptions.map(option => (

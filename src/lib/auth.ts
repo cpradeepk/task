@@ -265,9 +265,9 @@ export async function canApproveFor(approverId: string, employeeId: string): Pro
     const employee = await getUserByEmployeeId(employeeId)
     if (!employee) return false
 
-    // Admin can approve for anyone
+    // Admin and Top Management can approve for anyone
     const approver = await getUserByEmployeeId(approverId)
-    if (approver?.role === 'admin') return true
+    if (approver?.role === 'admin' || approver?.role === 'top_management') return true
 
     // Manager can approve for their direct reports
     return employee.managerId === approverId
