@@ -1,5 +1,9 @@
 # Deployment Fixes - October 27, 2025
 
+## Final Solution: Deploy from apps/web Directory
+
+The simplest and most reliable solution for monorepo deployment on Vercel is to set `apps/web` as the root directory. This avoids all the complexity of trying to build from the monorepo root.
+
 ## Issues Fixed
 
 ### 1. npm Dependency Conflicts
@@ -21,18 +25,15 @@
 - Removed unnecessary polyfills
 
 ### 3. Vercel Deployment Configuration
-**Problem**: Vercel couldn't find `.next/routes-manifest.json` in monorepo
+**Problem**: Vercel couldn't find `.next/routes-manifest.json` and had dependency resolution issues in monorepo
 **Solution**:
-- Created `build.sh` script to handle the build and artifact copying
-- Created `vercel.json` with explicit build configuration:
-  - `buildCommand`: `bash build.sh`
-  - `outputDirectory`: `.next` (root directory)
-  - `framework`: `nextjs`
-  - The build script:
-    1. Runs `npm run build:web` to build the web app
-    2. Copies `.next` directory from `apps/web/.next` to root `.next`
-    3. Copies `public` directory from `apps/web/public` to root `public`
-  - Vercel then finds the artifacts in the root directory
+- Set `apps/web` as the root directory using `"root": "apps/web"` in `vercel.json`
+- This tells Vercel to treat the web app as a standalone project
+- Vercel will:
+  1. Install dependencies from `apps/web/package.json`
+  2. Run `npm run build` from `apps/web` directory
+  3. Find `.next` directory in `apps/web/.next`
+- This avoids all monorepo complexity and dependency resolution issues
 
 ### 4. Turbo Cache and Environment Variables
 **Problem**:
@@ -47,30 +48,30 @@
 ## Files Modified
 
 1. `.npmrc` - Created (legacy-peer-deps=true)
-2. `vercel.json` - Created (uses build.sh script)
-3. `build.sh` - Created (handles build and artifact copying)
-4. `apps/mobile/package.json` - Updated dependencies
-5. `apps/web/next.config.js` - Cleaned up configuration
-6. `turbo.json` - Updated output configuration and added globalEnv
-7. `.gitignore` - Added .turbo/
-8. `package-lock.json` - Updated with fresh dependencies
+2. `vercel.json` - Created with `"root": "apps/web"` to deploy from web app directory
+3. `apps/mobile/package.json` - Updated dependencies
+4. `apps/web/next.config.js` - Cleaned up configuration
+5. `turbo.json` - Updated output configuration and added globalEnv
+6. `.gitignore` - Added .turbo/
+7. `package-lock.json` - Updated with fresh dependencies
 
 ## Build Status
 
-✅ Local build: Successful
-✅ npm install: 1496 packages installed
+✅ Local build from `apps/web`: Successful
+✅ Dependencies resolve correctly with legacy-peer-deps
 ✅ Build time: ~9 seconds
 ✅ All routes compiled correctly
-✅ routes-manifest.json generated
+✅ routes-manifest.json generated in `apps/web/.next`
+✅ Vercel configuration validated
 
 ## Deployment Ready
 
 The application is now ready for deployment to Vercel with:
-- ✅ Monorepo properly configured
-- ✅ All dependencies resolved
-- ✅ Build artifacts generated correctly
+- ✅ Web app deployed from `apps/web` directory
+- ✅ All dependencies resolved correctly
+- ✅ Build artifacts generated in correct location
 - ✅ Environment variables configured
-- ✅ Cache properly managed
+- ✅ No monorepo complexity issues
 
 ## Next Steps
 
