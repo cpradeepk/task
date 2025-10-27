@@ -58,10 +58,31 @@ export async function POST(request: NextRequest) {
         // Get creator details
         const creator = await getUserByEmployeeId(taskData.createdBy || taskData.assignedBy)
 
-        // Get assigned user details for display
+        // Get assigned user details
         const assignedUser = await getUserByEmployeeId(taskData.assignedTo)
 
-        if (creator) {
+        // Determine if this is a support task (description starts with [SUPPORT])
+        const isSupportTask = taskData.description?.startsWith('[SUPPORT]')
+
+        if (isSupportTask && assignedUser) {
+          // For support tasks, send email to the support team member
+          // Extract main task ID from subTask field (format: "Support for: JSR-XXX")
+          const mainTaskId = taskData.subTask?.replace('Support for: ', '') || 'Unknown'
+
+          await emailService.sendSupportAssignedEmail({
+            supportMemberEmail: assignedUser.email,
+            supportMemberName: assignedUser.name,
+            mainTaskId: mainTaskId,
+            mainTaskDescription: taskData.description.replace('[SUPPORT] ', ''),
+            priority: taskData.priority || 'Medium',
+            dueDate: taskData.endDate || 'Not specified',
+            assignedBy: creator?.name || taskData.assignedBy,
+            supportTaskId: task.taskId,
+          })
+
+          console.log(`✅ Support assignment email sent to ${assignedUser.email}`)
+        } else if (creator && assignedUser) {
+          // For regular tasks, send email to creator
           await emailService.sendTaskCreatedEmail({
             creatorName: creator.name,
             creatorEmail: creator.email,
@@ -70,11 +91,27 @@ export async function POST(request: NextRequest) {
             taskDescription: taskData.description || 'No description provided',
             priority: taskData.priority || 'Medium',
             dueDate: taskData.endDate || 'Not specified',
-            assignedTo: assignedUser?.name || taskData.assignedTo,
+            assignedTo: assignedUser.name || taskData.assignedTo,
             taskId: task.taskId,
           })
 
-          console.log('✅ Task creation email sent successfully')
+          console.log('✅ Task creation email sent to creator')
+
+          // If assignee is different from creator, also send email to assignee
+          if (taskData.assignedTo !== taskData.assignedBy && taskData.assignedTo !== creator.employeeId) {
+            await emailService.sendTaskAssignedEmail({
+              assigneeName: assignedUser.name,
+              assigneeEmail: assignedUser.email,
+              taskTitle: taskData.description || 'New Task',
+              taskDescription: taskData.description || 'No description provided',
+              priority: taskData.priority || 'Medium',
+              dueDate: taskData.endDate || 'Not specified',
+              assignedBy: creator.name,
+              taskId: task.taskId,
+            })
+
+            console.log(`✅ Task assignment email sent to assignee ${assignedUser.email}`)
+          }
         }
       }
     } catch (emailError) {

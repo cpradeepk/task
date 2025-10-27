@@ -166,6 +166,48 @@ export class EmailService {
     })
   }
 
+  // Send task assignment notification (when someone assigns a task to another person)
+  async sendTaskAssignedEmail(data: {
+    assigneeName: string
+    assigneeEmail: string
+    taskTitle: string
+    taskDescription: string
+    priority: string
+    dueDate: string
+    assignedBy: string
+    taskId: string
+  }) {
+    try {
+      console.log('📧 Ensuring email service is initialized...')
+      await this.ensureInitialized()
+
+      console.log('📧 Generating task assignment email template...')
+      const html = getTaskCreationHtmlTemplate({
+        userName: data.assigneeName,
+        taskTitle: data.taskTitle,
+        taskDescription: data.taskDescription,
+        priority: data.priority,
+        dueDate: data.dueDate,
+        assignedTo: data.assigneeName,
+        taskId: data.taskId,
+        createdBy: data.assignedBy,
+        baseUrl: EMAIL_CONFIG.templates.baseUrl,
+      })
+
+      console.log('📧 Sending task assignment email...')
+      return await this.sendEmail({
+        to: data.assigneeEmail,
+        subject: `📋 New Task Assigned: ${data.taskTitle}`,
+        html,
+        priority: data.priority.toLowerCase().includes('u&i') ? 'high' : 'normal',
+        type: 'task_created',
+      })
+    } catch (error) {
+      console.error('❌ Failed to send task assignment email:', error)
+      return { success: false, message: `Failed to send task assignment email: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
+  }
+
   // Send leave approval/rejection notification
   async sendLeaveStatusEmail(data: {
     userEmail: string
