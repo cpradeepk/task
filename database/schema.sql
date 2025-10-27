@@ -7,11 +7,15 @@
 -- ============================================================================
 
 -- Drop existing tables if they exist (in reverse order of dependencies)
+DROP TABLE IF EXISTS user_permissions;
+DROP TABLE IF EXISTS role_permissions;
 DROP TABLE IF EXISTS bug_comments;
 DROP TABLE IF EXISTS bugs;
 DROP TABLE IF EXISTS wfh_applications;
 DROP TABLE IF EXISTS leave_applications;
+DROP TABLE IF EXISTS subtasks;
 DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS users;
 
 -- ============================================================================
@@ -264,4 +268,51 @@ CREATE TABLE bug_comments (
     
     FOREIGN KEY (commented_by) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Table: role_permissions
+-- Description: Role-based permissions for features and pages
+-- ============================================================================
+CREATE TABLE role_permissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    role ENUM('admin', 'top_management', 'management', 'employee') NOT NULL,
+    feature_key VARCHAR(100) NOT NULL COMMENT 'Unique identifier for the feature/page',
+    feature_name VARCHAR(200) NOT NULL COMMENT 'Human-readable feature name',
+    can_view BOOLEAN DEFAULT FALSE COMMENT 'Can view/access the feature',
+    can_create BOOLEAN DEFAULT FALSE COMMENT 'Can create new items',
+    can_edit BOOLEAN DEFAULT FALSE COMMENT 'Can edit items',
+    can_delete BOOLEAN DEFAULT FALSE COMMENT 'Can delete items',
+    can_approve BOOLEAN DEFAULT FALSE COMMENT 'Can approve items (for approval workflows)',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY unique_role_feature (role, feature_key),
+    INDEX idx_role (role),
+    INDEX idx_feature_key (feature_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Role-based permissions for features and pages';
+
+-- ============================================================================
+-- Table: user_permissions
+-- Description: User-specific permission overrides (NULL means use role permission)
+-- ============================================================================
+CREATE TABLE user_permissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id VARCHAR(50) NOT NULL,
+    feature_key VARCHAR(100) NOT NULL COMMENT 'Unique identifier for the feature/page',
+    can_view BOOLEAN DEFAULT NULL COMMENT 'Override role permission for view access',
+    can_create BOOLEAN DEFAULT NULL COMMENT 'Override role permission for create access',
+    can_edit BOOLEAN DEFAULT NULL COMMENT 'Override role permission for edit access',
+    can_delete BOOLEAN DEFAULT NULL COMMENT 'Override role permission for delete access',
+    can_approve BOOLEAN DEFAULT NULL COMMENT 'Override role permission for approve access',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY unique_user_feature (employee_id, feature_key),
+    INDEX idx_employee_id (employee_id),
+    INDEX idx_feature_key (feature_key),
+
+    FOREIGN KEY (employee_id) REFERENCES users(employee_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='User-specific permission overrides (NULL means use role permission)';
 

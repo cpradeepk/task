@@ -286,6 +286,41 @@ export default function Settings() {
         </div>
       </div>
 
+      {/* Quick Access Links */}
+      {(currentUser.role === 'admin' || currentUser.employeeId === 'AM-0001') && (
+        <div className="card">
+          <h3 className="text-lg font-semibold text-secondary-900 mb-4 flex items-center space-x-2">
+            <SettingsIcon className="h-5 w-5" />
+            <span>Quick Access</span>
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a
+              href="/settings/dropdowns"
+              className="p-4 border border-secondary-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <h4 className="font-medium text-secondary-900 mb-1">Dropdown Settings</h4>
+              <p className="text-sm text-secondary-600">
+                Manage dropdown options for tasks, bugs, and other features
+              </p>
+            </a>
+
+            <a
+              href="/settings/permissions"
+              className="p-4 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors"
+            >
+              <div className="flex items-center space-x-2 mb-1">
+                <Shield className="h-5 w-5 text-primary-600" />
+                <h4 className="font-medium text-secondary-900">Permissions Management</h4>
+              </div>
+              <p className="text-sm text-secondary-600">
+                Configure role-based and user-specific permissions
+              </p>
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* User Import */}
       <UserImport />
 
