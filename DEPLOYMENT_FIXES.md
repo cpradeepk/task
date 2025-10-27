@@ -27,13 +27,15 @@ The simplest and most reliable solution for monorepo deployment on Vercel is to 
 ### 3. Vercel Deployment Configuration
 **Problem**: Vercel couldn't find `.next/routes-manifest.json` and had dependency resolution issues in monorepo
 **Solution**:
-- Set `apps/web` as the root directory using `"root": "apps/web"` in `vercel.json`
-- This tells Vercel to treat the web app as a standalone project
-- Vercel will:
-  1. Install dependencies from `apps/web/package.json`
-  2. Run `npm run build` from `apps/web` directory
+- Created `vercel.json` with commands that navigate to `apps/web` directory:
+  - `buildCommand`: `cd apps/web && npm run build`
+  - `outputDirectory`: `apps/web/.next`
+  - `installCommand`: `npm install --legacy-peer-deps`
+- This tells Vercel to:
+  1. Install dependencies from root (which installs all workspaces)
+  2. Change to `apps/web` directory and run build
   3. Find `.next` directory in `apps/web/.next`
-- This avoids all monorepo complexity and dependency resolution issues
+- This avoids monorepo complexity while keeping all dependencies available
 
 ### 4. Turbo Cache and Environment Variables
 **Problem**:
