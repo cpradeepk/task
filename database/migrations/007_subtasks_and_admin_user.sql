@@ -66,7 +66,24 @@ DEALLOCATE PREPARE alterIfExists;
 -- ============================================================================
 
 -- Add is_system_admin flag to users table (for protection)
-ALTER TABLE users ADD COLUMN IF NOT EXISTS is_system_admin BOOLEAN DEFAULT FALSE;
+-- Using safe approach: check if column exists before adding
+SET @dbname = DATABASE();
+SET @tablename = 'users';
+SET @columnname = 'is_system_admin';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT 1;',
+  'ALTER TABLE users ADD COLUMN is_system_admin BOOLEAN DEFAULT FALSE;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Insert admin-001 user if it doesn't exist
 INSERT INTO users (
@@ -107,19 +124,104 @@ INSERT INTO users (
 -- ============================================================================
 
 -- Add soft delete to projects table
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL;
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS deleted_by VARCHAR(50) NULL DEFAULT NULL;
-ALTER TABLE projects ADD INDEX IF NOT EXISTS idx_deleted_at (deleted_at);
+SET @dbname = DATABASE();
+SET @tablename = 'projects';
+SET @columnname = 'deleted_at';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = @tablename AND table_schema = @dbname AND column_name = @columnname) > 0,
+  'SELECT 1;',
+  'ALTER TABLE projects ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'deleted_by';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = @tablename AND table_schema = @dbname AND column_name = @columnname) > 0,
+  'SELECT 1;',
+  'ALTER TABLE projects ADD COLUMN deleted_by VARCHAR(50) NULL DEFAULT NULL;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add index for projects.deleted_at
+SET @indexname = 'idx_deleted_at';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_name = @tablename AND table_schema = @dbname AND index_name = @indexname) > 0,
+  'SELECT 1;',
+  'ALTER TABLE projects ADD INDEX idx_deleted_at (deleted_at);'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Add soft delete to tasks table
-ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL;
-ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deleted_by VARCHAR(50) NULL DEFAULT NULL;
-ALTER TABLE tasks ADD INDEX IF NOT EXISTS idx_deleted_at (deleted_at);
+SET @tablename = 'tasks';
+SET @columnname = 'deleted_at';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = @tablename AND table_schema = @dbname AND column_name = @columnname) > 0,
+  'SELECT 1;',
+  'ALTER TABLE tasks ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'deleted_by';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = @tablename AND table_schema = @dbname AND column_name = @columnname) > 0,
+  'SELECT 1;',
+  'ALTER TABLE tasks ADD COLUMN deleted_by VARCHAR(50) NULL DEFAULT NULL;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add index for tasks.deleted_at
+SET @indexname = 'idx_deleted_at';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_name = @tablename AND table_schema = @dbname AND index_name = @indexname) > 0,
+  'SELECT 1;',
+  'ALTER TABLE tasks ADD INDEX idx_deleted_at (deleted_at);'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Add soft delete to bugs table
-ALTER TABLE bugs ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL;
-ALTER TABLE bugs ADD COLUMN IF NOT EXISTS deleted_by VARCHAR(50) NULL DEFAULT NULL;
-ALTER TABLE bugs ADD INDEX IF NOT EXISTS idx_deleted_at (deleted_at);
+SET @tablename = 'bugs';
+SET @columnname = 'deleted_at';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = @tablename AND table_schema = @dbname AND column_name = @columnname) > 0,
+  'SELECT 1;',
+  'ALTER TABLE bugs ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = 'deleted_by';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = @tablename AND table_schema = @dbname AND column_name = @columnname) > 0,
+  'SELECT 1;',
+  'ALTER TABLE bugs ADD COLUMN deleted_by VARCHAR(50) NULL DEFAULT NULL;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Add index for bugs.deleted_at
+SET @indexname = 'idx_deleted_at';
+SET @preparedStatement = (SELECT IF(
+  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE table_name = @tablename AND table_schema = @dbname AND index_name = @indexname) > 0,
+  'SELECT 1;',
+  'ALTER TABLE bugs ADD INDEX idx_deleted_at (deleted_at);'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- ============================================================================
 -- VERIFICATION QUERIES (for testing)
