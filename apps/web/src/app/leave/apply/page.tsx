@@ -20,6 +20,8 @@ export default function ApplyLeave() {
   const [error, setError] = useState('')
   const [initialized, setInitialized] = useState(false)
   const [minDate, setMinDate] = useState('')
+  const [savedContacts, setSavedContacts] = useState<string[]>([])
+  const [showContactSuggestions, setShowContactSuggestions] = useState(false)
   const router = useRouter()
   const currentUser = getCurrentUser()
 
@@ -40,6 +42,22 @@ export default function ApplyLeave() {
       toDate: today
     }))
 
+    // Load saved emergency contacts from user profile
+    const loadSavedContacts = async () => {
+      try {
+        const response = await fetch(`/api/users/${currentUser.employeeId}`)
+        if (response.ok) {
+          const userData = await response.json()
+          if (userData.data?.emergencyContacts) {
+            setSavedContacts(userData.data.emergencyContacts)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load saved contacts:', error)
+      }
+    }
+
+    loadSavedContacts()
     setInitialized(true)
   }, [currentUser, router, initialized])
 
@@ -135,6 +153,24 @@ export default function ApplyLeave() {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to submit leave application')
       }
+
+      // Save emergency contact to user profile if provided and not already saved
+      if (formData.emergencyContact && !savedContacts.includes(formData.emergencyContact)) {
+        try {
+          const newContacts = [...savedContacts, formData.emergencyContact]
+          await fetch(`/api/users/${currentUser.employeeId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ emergencyContacts: newContacts })
+          })
+        } catch (error) {
+          console.error('Failed to save emergency contact:', error)
+          // Don't fail the leave application if contact save fails
+        }
+      }
+
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -289,11 +325,42 @@ export default function ApplyLeave() {
                 type="tel"
                 name="emergencyContact"
                 value={formData.emergencyContact}
-                onChange={handleInputChange}
+                onChange={(e) => {
+                  handleInputChange(e)
+                  setShowContactSuggestions(true)
+                }}
+                onFocus={() => setShowContactSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowContactSuggestions(false), 200)}
                 className="input-field pl-10"
                 placeholder="Contact number during leave"
+                autoComplete="off"
               />
+
+              {/* Contact Suggestions Dropdown */}
+              {showContactSuggestions && savedContacts.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                  {savedContacts.map((contact, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, emergencyContact: contact }))
+                        setShowContactSuggestions(false)
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 flex items-center space-x-2"
+                    >
+                      <Phone className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-700">{contact}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+            {savedContacts.length > 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                💡 Tip: Click on the field to see your saved emergency contacts
+              </p>
+            )}
           </div>
 
           {/* Submit Buttons */}
