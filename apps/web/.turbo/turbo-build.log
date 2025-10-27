@@ -14,7 +14,7 @@
 
  ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
    Creating an optimized production build ...
- ✓ Compiled successfully in 4.0s
+ ✓ Compiled successfully in 3.5s
    Running TypeScript ...
    Collecting page data ...
 🔄 Initializing email service...
@@ -25,87 +25,81 @@
 ⚠️ Email credentials not configured. Email service will run in test mode.
 🔄 Initializing email service...
 ⚠️ Email credentials not configured. Email service will run in test mode.
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
 🔄 Initializing email service...
 ⚠️ Email credentials not configured. Email service will run in test mode.
 🔄 Initializing email service...
 ⚠️ Email credentials not configured. Email service will run in test mode.
 🔄 Initializing email service...
 ⚠️ Email credentials not configured. Email service will run in test mode.
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-⚠️ Email credentials not configured. Email service will run in test mode.
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-🔄 Initializing email service...
 🔄 Initializing email service...
 ⚠️ Email credentials not configured. Email service will run in test mode.
    Generating static pages (0/58) ...
 🔄 Initializing email service...
 ⚠️ Email credentials not configured. Email service will run in test mode.
- ⚠ Unsupported metadata viewport is configured in metadata export in /master-tasks. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
+ ⚠ Unsupported metadata viewport is configured in metadata export in /master-tasks. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+   Generating static pages (14/58) 
  ⚠ Unsupported metadata viewport is configured in metadata export in /my-applications. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /profile/notifications. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
  ⚠ Unsupported metadata viewport is configured in metadata export in /profile. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /approvals. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-   Generating static pages (14/58) 
- ⚠ Unsupported metadata viewport is configured in metadata export in /projects/create. Please move it to viewport export instead.
+ ⚠ Unsupported metadata viewport is configured in metadata export in /analytics. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /projects. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /projects/create. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /_not-found. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /refresh-data. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /bugs/analytics. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /analytics. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /bugs/create. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /bugs. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /_not-found. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+   Generating static pages (28/58) 
  ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /reports. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-   Generating static pages (28/58) 
  ⚠ Unsupported metadata viewport is configured in metadata export in /settings. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /switch-user. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /settings/permissions. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /settings/dropdowns. Please move it to viewport export instead.
+ ⚠ Unsupported metadata viewport is configured in metadata export in /switch-user. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
    Generating static pages (43/58) 
+ ⚠ Unsupported metadata viewport is configured in metadata export in /team-tasks. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /tasks/create. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /deleted-items. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /team-tasks. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /master-bugs. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /settings/dropdowns. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /users. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /leave/apply. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /wfh/apply. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
  ⚠ Unsupported metadata viewport is configured in metadata export in /your-work. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ✓ Generating static pages (58/58) in 829.0ms
+ ⚠ Unsupported metadata viewport is configured in metadata export in /wfh/apply. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ✓ Generating static pages (58/58) in 711.6ms
    Finalizing page optimization ...
 
 Route (app)
