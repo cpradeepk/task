@@ -361,46 +361,71 @@ export default function CreateTask() {
             </div>
           )}
 
-          {/* Task Type */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Task Type *
-              </label>
-              <select
-                name="selectType"
-                value={formData.selectType}
-                onChange={handleInputChange}
-                required
-                className="input-field"
+          {/* Task Type - Button Selection */}
+          <div>
+            <label className="block text-sm font-medium text-secondary-700 mb-3">
+              Task Type *
+            </label>
+            <div className="flex gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, selectType: 'Normal', recursiveType: '' }))
+                }}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 border-2 ${
+                  formData.selectType === 'Normal'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                }`}
               >
-                <option value="">Choose task type...</option>
-                <option value="Normal">Normal</option>
-                <option value="Recursive">Recursive</option>
-              </select>
+                📋 Normal Task
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, selectType: 'Recursive' }))
+                }}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 border-2 ${
+                  formData.selectType === 'Recursive'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                }`}
+              >
+                🔄 Recurring Task
+              </button>
             </div>
-
-            {formData.selectType === 'Recursive' && (
-              <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Recursive Type *
-                </label>
-                <select
-                  name="recursiveType"
-                  value={formData.recursiveType}
-                  onChange={handleInputChange}
-                  required={formData.selectType === 'Recursive'}
-                  className="input-field"
-                >
-                  <option value="">Choose frequency...</option>
-                  <option value="Daily">Daily</option>
-                  <option value="Weekly">Weekly</option>
-                  <option value="Monthly">Monthly</option>
-                  <option value="Annually">Annually</option>
-                </select>
-              </div>
-            )}
           </div>
+
+          {/* Recursive Type - Button Selection */}
+          {formData.selectType === 'Recursive' && (
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-3">
+                Frequency *
+              </label>
+              <div className="flex gap-3 flex-wrap">
+                {['Daily', 'Weekly', 'Monthly', 'Annually'].map(type => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, recursiveType: type }))
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm ${
+                      formData.recursiveType === type
+                        ? 'bg-green-600 text-white border-green-600 shadow-lg'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50'
+                    }`}
+                  >
+                    {type === 'Daily' && '📅 '}
+                    {type === 'Weekly' && '📆 '}
+                    {type === 'Monthly' && '📊 '}
+                    {type === 'Annually' && '📈 '}
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Description */}
           <div>
