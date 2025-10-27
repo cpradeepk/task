@@ -184,15 +184,13 @@ function GooeyGradient({ mouse }: { mouse: { x: MotionValue<number>; y: MotionVa
       </defs>
       <rect width="100%" height="100%" fill="#0b1220" />
       <g filter="url(#goo)">
-        <motion.circle r="16%" fill="url(#ballA)" style={{ cx: px, cy: py, opacity: 0.5 }} />
+        <motion.circle r="16%" fill="url(#ballA)" cx={px} cy={py} style={{ opacity: 0.5 }} />
         <motion.circle
           r="14%"
           fill="url(#ballB)"
-          style={{
-            cx: px2,
-            cy: py2,
-            opacity: 0.45,
-          }}
+          cx={px2}
+          cy={py2}
+          style={{ opacity: 0.45 }}
         />
       </g>
       <radialGradient id="vignette" cx="50%" cy="50%">
