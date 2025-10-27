@@ -117,7 +117,7 @@ export default function Settings() {
           error.message.includes('API request failed: 500') ||
           error.message.includes('Failed to get leave applications')
         )) {
-          console.warn('Google Sheets API quota issue for leave applications')
+          console.warn('Failed to load leave applications')
         }
         leavesCount = 0
       }
@@ -154,7 +154,7 @@ export default function Settings() {
       })
 
     } catch (error: any) {
-      console.error('Failed to load stats from Google Sheets:', error)
+      console.error('Failed to load stats:', error)
       // Set stats to 0 if everything fails
       setStats({
         users: 0,
@@ -210,7 +210,7 @@ export default function Settings() {
 
       setMessage({ type: 'success', text: 'Backup created and downloaded successfully!' })
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to create backup from Google Sheets. Please try again.' })
+      setMessage({ type: 'error', text: 'Failed to create backup. Please try again.' })
     } finally {
       setIsLoading(false)
     }
@@ -353,26 +353,12 @@ export default function Settings() {
             </button>
           </div>
 
-          {/* Google Sheets Management */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-blue-200 rounded-lg bg-blue-50">
-            <div>
-              <h4 className="font-medium text-blue-900">Google Sheets Management</h4>
-              <p className="text-sm text-blue-600 mt-1">
-                Use Google Sheets interface to directly manage, import, or export data
-              </p>
-            </div>
-            <div className="flex items-center space-x-2 mt-3 sm:mt-0">
-              <Shield className="h-5 w-5 text-blue-600" />
-              <span className="text-blue-700 font-medium">Cloud-based</span>
-            </div>
-          </div>
-
-          {/* Google Sheets Info */}
+          {/* Database Info */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-green-200 rounded-lg bg-green-50">
             <div>
-              <h4 className="font-medium text-green-900">Google Sheets Database</h4>
+              <h4 className="font-medium text-green-900">MySQL Database</h4>
               <p className="text-sm text-green-600 mt-1">
-                All data is stored in Google Sheets. Use Google Sheets interface to manage data directly.
+                All data is stored in MySQL database for reliable and scalable data management.
               </p>
             </div>
             <div className="flex items-center space-x-2 mt-3 sm:mt-0">
@@ -383,11 +369,11 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Google Sheets Integration Status */}
+      {/* Database Status */}
       <div className="card">
         <h3 className="text-lg font-semibold text-secondary-900 mb-4 flex items-center space-x-2">
           <Shield className="h-5 w-5" />
-          <span>Google Sheets Integration</span>
+          <span>Database Status</span>
         </h3>
 
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -396,13 +382,13 @@ export default function Settings() {
             <div>
               <h4 className="font-medium text-green-900">Active & Operational</h4>
               <p className="text-sm text-green-700 mt-1">
-                Google Sheets integration is fully operational. Current features:
+                MySQL database is fully operational. Current features:
               </p>
               <ul className="text-sm text-green-700 mt-2 space-y-1 list-disc list-inside">
-                <li>Real-time data sync with Google Sheets</li>
-                <li>Dynamic user authentication from sheets</li>
-                <li>Automatic data backup to Google Drive</li>
-                <li>Admin-only hardcoded access for system management</li>
+                <li>Real-time data sync with MySQL</li>
+                <li>Dynamic user authentication from database</li>
+                <li>Automatic data backup and recovery</li>
+                <li>Role-based access control</li>
               </ul>
             </div>
           </div>
@@ -420,15 +406,15 @@ export default function Settings() {
           </div>
           <div>
             <span className="font-medium text-secondary-700">Storage:</span>
-            <span className="ml-2 text-secondary-600">Google Sheets</span>
+            <span className="ml-2 text-secondary-600">MySQL Database</span>
           </div>
           <div>
             <span className="font-medium text-secondary-700">Last Backup:</span>
-            <span className="ml-2 text-secondary-600">Real-time (Google Drive)</span>
+            <span className="ml-2 text-secondary-600">Real-time (Automated)</span>
           </div>
           <div>
             <span className="font-medium text-secondary-700">Data Format:</span>
-            <span className="ml-2 text-secondary-600">Google Sheets</span>
+            <span className="ml-2 text-secondary-600">Relational Database</span>
           </div>
         </div>
       </div>

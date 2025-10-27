@@ -1,5 +1,5 @@
 // Utility functions for Amtariksha Task Management System
-// All data operations use Google Sheets via the dataService
+// All data operations use MySQL database via API routes
 
 // Task ID generation with guaranteed uniqueness
 let lastTimestamp = 0
@@ -118,16 +118,27 @@ export function getPriorityColor(priority: string): string {
   return priorityColors[priority as keyof typeof priorityColors] || 'bg-gray-100 text-black border border-gray-300'
 }
 
-// All data operations now use Google Sheets via dataService from @/lib/sheets
-import { dataService } from '@/lib/sheets'
+// All data operations now use MySQL database via API routes
 import type { LeaveApplication, WFHApplication } from '@/lib/types'
 
 // Leave application functions
 export async function addLeaveApplication(application: Omit<LeaveApplication, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-  return dataService.addLeaveApplication(application)
+  const response = await fetch('/api/leaves', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(application)
+  })
+  const data = await response.json()
+  return data.id || ''
 }
 
 // WFH application functions
 export async function addWFHApplication(application: Omit<WFHApplication, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-  return dataService.addWFHApplication(application)
+  const response = await fetch('/api/wfh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(application)
+  })
+  const data = await response.json()
+  return data.id || ''
 }

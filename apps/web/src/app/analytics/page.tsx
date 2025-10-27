@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
-import { dataService } from '@/lib/sheets'
 import {
   BarChart3,
   TrendingUp,
@@ -66,17 +65,24 @@ export default function Analytics() {
 
     try {
       const users = await getAllUsers()
-      const tasks = await dataService.getAllTasks()
-      const leaveApplications = await dataService.getAllLeaveApplications()
-      const wfhApplications = await dataService.getAllWFHApplications()
 
-      const completedTasks = tasks.filter(task => task.status === 'Done')
-      const pendingTasks = tasks.filter(task => task.status === 'Yet to Start' || task.status === 'In Progress')
-      const delayedTasks = tasks.filter(task => task.status === 'Delayed')
+      // Fetch data from API
+      const tasksRes = await fetch('/api/tasks')
+      const tasks = await tasksRes.json()
+
+      const leavesRes = await fetch('/api/leaves')
+      const leaveApplications = await leavesRes.json()
+
+      const wfhRes = await fetch('/api/wfh')
+      const wfhApplications = await wfhRes.json()
+
+      const completedTasks = tasks.filter((task: any) => task.status === 'Done')
+      const pendingTasks = tasks.filter((task: any) => task.status === 'Yet to Start' || task.status === 'In Progress')
+      const delayedTasks = tasks.filter((task: any) => task.status === 'Delayed')
 
       // Calculate top performers
       const performanceMap = new Map()
-      tasks.forEach(task => {
+      tasks.forEach((task: any) => {
         if (task.status === 'Done') {
           const current = performanceMap.get(task.assignedTo) || 0
           performanceMap.set(task.assignedTo, current + 1)
@@ -97,18 +103,18 @@ export default function Analytics() {
 
       // Calculate department stats
       const departmentMap = new Map()
-      users.forEach(user => {
+      users.forEach((user: any) => {
         if (user.status === 'active') {
           const dept = user.department
           const current = departmentMap.get(dept) || { employees: 0, completedTasks: 0 }
           current.employees += 1
-          
+
           // Count completed tasks for this user
-          const userCompletedTasks = tasks.filter(task =>
+          const userCompletedTasks = tasks.filter((task: any) =>
             task.assignedTo === user.name && task.status === 'Done'
           ).length
           current.completedTasks += userCompletedTasks
-          
+
           departmentMap.set(dept, current)
         }
       })
