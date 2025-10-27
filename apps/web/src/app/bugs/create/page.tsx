@@ -27,7 +27,6 @@ export default function CreateBugPage() {
     expectedBehavior: '',
     actualBehavior: '',
     attachments: '',
-    estimatedHours: undefined,
     tags: '',
     relatedBugs: '',
     projectId: undefined,
@@ -137,7 +136,7 @@ export default function CreateBugPage() {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'estimatedHours' ? (value ? parseFloat(value) : undefined) : value
+      [name]: value
     }))
   }
 
@@ -663,24 +662,6 @@ export default function CreateBugPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
-                    <Clock className="h-4 w-4" />
-                    <span>Estimated Hours</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="estimatedHours"
-                    value={formData.estimatedHours || ''}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="0.5"
-                    min="0"
-                    step="0.5"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Estimated time to fix this bug</p>
-                </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">

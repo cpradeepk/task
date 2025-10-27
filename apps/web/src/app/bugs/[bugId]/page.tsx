@@ -71,9 +71,11 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [selectedAssignee, setSelectedAssignee] = useState('')
   const [showStatusModal, setShowStatusModal] = useState(false)
   const [showHoursModal, setShowHoursModal] = useState(false)
+  const [showEstimatedHoursModal, setShowEstimatedHoursModal] = useState(false)
   const [newStatus, setNewStatus] = useState<Bug['status']>('New')
   const [hoursWorked, setHoursWorked] = useState('')
   const [workDescription, setWorkDescription] = useState('')
+  const [estimatedHours, setEstimatedHours] = useState('')
   const [editData, setEditData] = useState<Partial<Bug>>({})
   const [editMode, setEditMode] = useState(false)
 
@@ -325,6 +327,43 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     }
   }
 
+  const handleUpdateEstimatedHours = async () => {
+    if (!bug || !currentUser || !estimatedHours.trim()) return
+
+    setIsUpdating(true)
+    try {
+      const hours = parseFloat(estimatedHours)
+      if (isNaN(hours) || hours <= 0) {
+        alert('Please enter a valid number of hours')
+        return
+      }
+
+      const updates: Partial<Bug> = {
+        estimatedHours: hours,
+        updatedAt: new Date().toISOString()
+      }
+
+      const success = await updateBug(bug.bugId, updates)
+      if (success) {
+        setBug({ ...bug, ...updates })
+        setShowEstimatedHoursModal(false)
+        setEstimatedHours('')
+
+        // Add a comment about the estimated hours
+        const commentText = `Updated estimated hours to ${hours} hours`
+        await addBugComment(bug.bugId, currentUser.employeeId, commentText)
+
+        // Refresh comments
+        const updatedComments = await getBugComments(bug.bugId)
+        setComments(updatedComments)
+      }
+    } catch (error) {
+      console.error('Failed to update estimated hours:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
   const handleAddComment = async () => {
     if (!bug || !currentUser || !newComment.trim()) return
 
@@ -466,6 +505,19 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               >
                 <Timer className="h-4 w-4 mr-2" />
                 <span>Log Hours</span>
+              </button>
+            )}
+
+            {canEdit && (
+              <button
+                onClick={() => {
+                  setEstimatedHours(bug.estimatedHours?.toString() || '')
+                  setShowEstimatedHoursModal(true)
+                }}
+                className="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium rounded-lg shadow-sm hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                <Clock className="h-4 w-4 mr-2" />
+                <span>Set Estimated Hours</span>
               </button>
             )}
 
@@ -1123,6 +1175,80 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                       setShowHoursModal(false)
                       setHoursWorked('')
                       setWorkDescription('')
+                    }}
+                    className="btn-secondary flex-1"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Estimated Hours Modal */}
+        {showEstimatedHoursModal && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center z-50 p-4"
+            onClick={() => setShowEstimatedHoursModal(false)}
+          >
+            <div
+              className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl transform transition-all duration-200 scale-100 modal-content"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Set Estimated Hours</h3>
+                <button
+                  onClick={() => setShowEstimatedHoursModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Estimated Hours to Fix:
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    max="168"
+                    value={estimatedHours}
+                    onChange={(e) => setEstimatedHours(e.target.value)}
+                    placeholder="e.g., 4.5"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Estimate how many hours it will take to fix this bug
+                  </p>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="text-sm text-blue-700">
+                    <p><strong>Current Estimated:</strong> {bug?.estimatedHours || 'Not set'} hours</p>
+                    {estimatedHours && (
+                      <p><strong>New Estimated:</strong> {estimatedHours} hours</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex space-x-3">
+                  <LoadingButton
+                    onClick={handleUpdateEstimatedHours}
+                    isLoading={isUpdating}
+                    disabled={!estimatedHours || parseFloat(estimatedHours) <= 0}
+                    className="btn-primary flex-1"
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Update Estimate
+                  </LoadingButton>
+                  <button
+                    onClick={() => {
+                      setShowEstimatedHoursModal(false)
+                      setEstimatedHours('')
                     }}
                     className="btn-secondary flex-1"
                   >
