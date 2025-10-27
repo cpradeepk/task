@@ -15,7 +15,7 @@ export const DB_CONFIG = {
   },
   // Connection pool settings
   waitForConnections: true,
-  connectionLimit: 20, // Increased from 10 to handle more concurrent requests
+  connectionLimit: 50, // Increased to handle more concurrent requests (Vercel serverless)
   queueLimit: 0, // Unlimited queue
 
   // Timeout settings to prevent hanging (mysql2 valid options)

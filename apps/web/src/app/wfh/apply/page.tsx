@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { Calendar, Clock, Phone, MapPin, FileText, Save, X, AlertCircle } from 'lucide-react'
+import { optimizedDataService } from '@/lib/optimizedDataService'
 import Navbar from '@/components/layout/Navbar'
 
 export default function ApplyWFH() {
@@ -47,10 +48,17 @@ export default function ApplyWFH() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: value
+      }
+      // Auto-sync toDate when fromDate is changed
+      if (name === 'fromDate' && value) {
+        updated.toDate = value
+      }
+      return updated
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,7 +146,12 @@ export default function ApplyWFH() {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to submit WFH application')
       }
-      router.push('/dashboard')
+
+      // Clear application cache to ensure fresh data is loaded
+      optimizedDataService.clearApplicationCache()
+
+      // Redirect to my-applications page to show the created WFH application
+      router.push('/my-applications')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

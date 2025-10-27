@@ -125,10 +125,17 @@ export default function CreateTask() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: value
+      }
+      // Auto-sync endDate when startDate is changed
+      if (name === 'startDate' && value) {
+        updated.endDate = value
+      }
+      return updated
+    })
   }
 
   const handleSupportChange = (employeeId: string) => {

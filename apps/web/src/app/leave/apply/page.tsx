@@ -5,6 +5,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { Calendar, Clock, Phone, FileText, Save, X, AlertCircle } from 'lucide-react'
+import { optimizedDataService } from '@/lib/optimizedDataService'
 import Navbar from '@/components/layout/Navbar'
 
 export default function ApplyLeave() {
@@ -63,7 +64,7 @@ export default function ApplyLeave() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
-    
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked
       setFormData(prev => ({
@@ -71,10 +72,17 @@ export default function ApplyLeave() {
         [name]: checked
       }))
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }))
+      setFormData(prev => {
+        const updated = {
+          ...prev,
+          [name]: value
+        }
+        // Auto-sync toDate when fromDate is changed
+        if (name === 'fromDate' && value) {
+          updated.toDate = value
+        }
+        return updated
+      })
     }
   }
 
@@ -154,6 +162,9 @@ export default function ApplyLeave() {
         throw new Error(errorData.error || 'Failed to submit leave application')
       }
 
+      const responseData = await response.json()
+      const leaveId = responseData.data?.id
+
       // Save emergency contact to user profile if provided and not already saved
       if (formData.emergencyContact && !savedContacts.includes(formData.emergencyContact)) {
         try {
@@ -171,7 +182,11 @@ export default function ApplyLeave() {
         }
       }
 
-      router.push('/dashboard')
+      // Clear application cache to ensure fresh data is loaded
+      optimizedDataService.clearApplicationCache()
+
+      // Redirect to my-applications page to show the created leave
+      router.push('/my-applications')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

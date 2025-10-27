@@ -5,6 +5,7 @@ import {
   getSubTaskCount,
   getAllDeletedSubTasks
 } from '@/lib/db/subtasks'
+import { withTimeout } from '@/lib/db/config'
 
 /**
  * GET /api/subtasks
@@ -40,8 +41,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const subtasks = await getSubTasksByParentTaskId(parentTaskId)
-    const counts = await getSubTaskCount(parentTaskId)
+    // Fetch subtasks and stats in parallel with timeout to prevent hanging
+    const [subtasks, counts] = await Promise.all([
+      withTimeout(
+        getSubTasksByParentTaskId(parentTaskId),
+        10000,
+        'Failed to fetch subtasks - database timeout'
+      ),
+      withTimeout(
+        getSubTaskCount(parentTaskId),
+        10000,
+        'Failed to fetch subtask counts - database timeout'
+      )
+    ])
 
     return NextResponse.json({
       success: true,
