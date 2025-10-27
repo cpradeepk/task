@@ -133,8 +133,27 @@ function GooeyGradient({ mouse }: { mouse: { x: any; y: any } }) {
   const prefersReducedMotion = useReducedMotion()
   const x = useSpring(mouse.x, { stiffness: 80, damping: 20, mass: 0.4 })
   const y = useSpring(mouse.y, { stiffness: 80, damping: 20, mass: 0.4 })
-  const px = useTransform(x, (v: number) => `${(v / (typeof window !== 'undefined' ? window.innerWidth : 1)) * 100}%`)
-  const py = useTransform(y, (v: number) => `${(v / (typeof window !== 'undefined' ? window.innerHeight : 1)) * 100}%`)
+
+  // Transform to percentage strings
+  const px = useTransform(x, (v) => {
+    const width = typeof window !== 'undefined' ? window.innerWidth : 1
+    return `${(v / width) * 100}%`
+  })
+  const py = useTransform(y, (v) => {
+    const height = typeof window !== 'undefined' ? window.innerHeight : 1
+    return `${(v / height) * 100}%`
+  })
+
+  // Second ball transforms
+  const px2 = useTransform(x, (v) => {
+    const width = typeof window !== 'undefined' ? window.innerWidth : 1
+    return `${(Math.min(v + 160, width) / width) * 100}%`
+  })
+  const py2 = useTransform(y, (v) => {
+    const height = typeof window !== 'undefined' ? window.innerHeight : 1
+    return `${(Math.max(v - 140, 0) / height) * 100}%`
+  })
+
   if (prefersReducedMotion) return null
   return (
     <svg className="absolute inset-0 w-full h-full" aria-hidden>
@@ -160,8 +179,8 @@ function GooeyGradient({ mouse }: { mouse: { x: any; y: any } }) {
           r="14%"
           fill="url(#ballB)"
           style={{
-            cx: useTransform(x, (v: number) => `${(Math.min(v + 160, typeof window !== 'undefined' ? window.innerWidth : 0) / (typeof window !== 'undefined' ? window.innerWidth : 1)) * 100}%`),
-            cy: useTransform(y, (v: number) => `${(Math.max(v - 140, 0) / (typeof window !== 'undefined' ? window.innerHeight : 1)) * 100}%`),
+            cx: px2,
+            cy: py2,
             opacity: 0.45,
           }}
         />
