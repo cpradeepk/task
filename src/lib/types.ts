@@ -90,11 +90,41 @@ export interface Task {
   status: 'Yet to Start' | 'In Progress' | 'Delayed' | 'Done' | 'Cancel' | 'Hold' | 'ReOpened' | 'Stop'
   remarks?: string          // Optional: Additional notes/comments
   difficulties?: string     // Optional: Challenges faced during task execution
-  subTask?: string          // Optional: Sub-task details or breakdown
   relatedTasks?: string | null // Optional: Comma-separated task IDs for multi-user assignments
   projectId?: string | null // Optional: Project ID this task belongs to (e.g., "PRJ-001")
+  deletedAt?: string | null // Optional: Soft delete timestamp
+  deletedBy?: string | null // Optional: Employee ID who deleted the task
   createdAt: string         // Timestamp when task was created
   updatedAt: string         // Timestamp when task was last updated
+}
+
+/**
+ * SubTask Interface
+ *
+ * Represents a subtask within a parent task.
+ * Subtasks are smaller, actionable items that make up a larger task.
+ * Each subtask can be assigned to different users and tracked independently.
+ *
+ * Features:
+ * - Checkbox-based completion tracking
+ * - Individual assignment (can differ from parent task)
+ * - Drag-and-drop reordering via display_order
+ * - Soft delete support
+ * - Independent status tracking
+ */
+export interface SubTask {
+  id: number                // Database ID (auto-increment)
+  parentTaskId: string      // Parent task ID (e.g., "JSR-001")
+  description: string       // Subtask description
+  assignedTo: string        // Employee ID of subtask owner
+  status: 'Not Started' | 'In Progress' | 'Completed'  // Subtask status
+  isCompleted: boolean      // Checkbox state (true = checked)
+  displayOrder: number      // Order for display (0, 1, 2, ...) - allows drag-and-drop
+  createdAt: string         // Timestamp when subtask was created
+  updatedAt: string         // Timestamp when subtask was last updated
+  createdBy: string         // Employee ID who created the subtask
+  deletedAt?: string | null // Optional: Soft delete timestamp
+  deletedBy?: string | null // Optional: Employee ID who deleted the subtask
 }
 
 
@@ -229,6 +259,8 @@ export interface Bug {
   projectId?: string | null // Optional: Project ID this bug belongs to (e.g., "PRJ-001")
   feature?: string | null   // Optional: Feature name this bug is related to
   type?: 'testcase' | 'feature' | 'other' | null  // Optional: Bug type categorization
+  deletedAt?: string | null // Optional: Soft delete timestamp
+  deletedBy?: string | null // Optional: Employee ID who deleted the bug
   createdAt: string         // Timestamp when bug was created
   updatedAt: string         // Timestamp when bug was last updated
 }

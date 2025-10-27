@@ -70,7 +70,6 @@ export function taskToSheetRow(task: Task): any {
     Status: task.status,
     Remarks: task.remarks || '',
     Difficulties: task.difficulties || '',
-    Sub_Task: task.subTask || '',
     Created_At: task.createdAt,
     Updated_At: task.updatedAt
   }
@@ -102,7 +101,6 @@ export function sheetRowToTask(row: any): Task {
     status: row.Status || 'Yet to Start',
     remarks: row.Remarks || undefined,
     difficulties: row.Difficulties || undefined,
-    subTask: row.Sub_Task || undefined,
 
     createdAt: row.Created_At || new Date().toISOString(),
     updatedAt: row.Updated_At || new Date().toISOString()

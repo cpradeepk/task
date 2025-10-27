@@ -41,7 +41,6 @@ export class SupportTaskService {
           actualHours: 0,
           status: 'Yet to Start',
           remarks: `Support task for main task: ${mainTask.taskId}`,
-          subTask: `Support for: ${mainTask.taskId}`,
           dailyHours: '{}'
         }
 
@@ -90,8 +89,10 @@ export class SupportTaskService {
       const result = await response.json()
       const allTasks = result.data || []
 
+      // Support tasks have [SUPPORT] prefix and remarks containing the main task ID
       return allTasks.filter((task: Task) =>
-        task.subTask && task.subTask.includes(mainTaskId)
+        task.description?.startsWith('[SUPPORT]') &&
+        task.remarks?.includes(mainTaskId)
       )
     } catch (error) {
       console.error('Failed to get support tasks:', error)
@@ -105,11 +106,18 @@ export class SupportTaskService {
    */
   static async getMainTaskForSupportTask(supportTask: Task): Promise<Task | null> {
     try {
-      if (!supportTask.subTask || !supportTask.subTask.includes('Support for:')) {
+      // Check if this is a support task
+      if (!supportTask.description?.startsWith('[SUPPORT]') || !supportTask.remarks) {
         return null
       }
 
-      const mainTaskId = supportTask.subTask.replace('Support for: ', '')
+      // Extract main task ID from remarks (format: "Support task for main task: JSR-XXX")
+      const match = supportTask.remarks.match(/Support task for main task: (.+)/)
+      if (!match) {
+        return null
+      }
+
+      const mainTaskId = match[1]
 
       const response = await fetch('/api/tasks')
       if (!response.ok) {
@@ -131,7 +139,7 @@ export class SupportTaskService {
    */
   static isSupportTask(task: Task): boolean {
     return task.description.startsWith('[SUPPORT]') ||
-           Boolean(task.subTask && task.subTask.includes('Support for:'))
+           Boolean(task.remarks && task.remarks.includes('Support task for main task:'))
   }
 
   /**

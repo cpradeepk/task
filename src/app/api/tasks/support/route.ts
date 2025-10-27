@@ -11,9 +11,11 @@ export async function GET(request: NextRequest) {
 
     if (mainTaskId) {
       // Get all support tasks for a main task
+      // Support tasks have [SUPPORT] prefix and remarks containing the main task ID
       const allTasks = await getAllTasks()
       const supportTasks = allTasks.filter(task =>
-        task.subTask && task.subTask.includes(mainTaskId)
+        task.description?.startsWith('[SUPPORT]') &&
+        task.remarks?.includes(mainTaskId)
       )
 
       return NextResponse.json({
@@ -27,14 +29,23 @@ export async function GET(request: NextRequest) {
       // Get main task for a support task
       const supportTask = await getTaskById(supportTaskId)
 
-      if (!supportTask || !supportTask.subTask || !supportTask.subTask.includes('Support for:')) {
+      if (!supportTask || !supportTask.description?.startsWith('[SUPPORT]') || !supportTask.remarks) {
         return NextResponse.json({
           success: false,
           error: 'Support task not found or invalid'
         }, { status: 404 })
       }
 
-      const mainTaskId = supportTask.subTask.replace('Support for: ', '')
+      // Extract main task ID from remarks (format: "Support task for main task: JSR-XXX")
+      const match = supportTask.remarks.match(/Support task for main task: (.+)/)
+      if (!match) {
+        return NextResponse.json({
+          success: false,
+          error: 'Could not extract main task ID from support task'
+        }, { status: 400 })
+      }
+
+      const mainTaskId = match[1]
       const mainTask = await getTaskById(mainTaskId)
 
       return NextResponse.json({
@@ -116,7 +127,6 @@ export async function POST(request: NextRequest) {
         actualHours: 0,
         status: 'Yet to Start' as const,
         remarks: `Support task for main task: ${mainTask.taskId}`,
-        subTask: `Support for: ${mainTask.taskId}`,
         dailyHours: '{}'
       }
 

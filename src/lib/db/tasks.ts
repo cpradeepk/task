@@ -24,9 +24,10 @@ interface TaskRow extends RowDataPacket {
   status: string
   remarks: string | null
   difficulties: string | null
-  sub_task: string | null
   related_tasks: string | null
   project_id: string | null
+  deleted_at: string | null
+  deleted_by: string | null
   timer_state: string | null
   timer_start_time: string | null
   timer_paused_time: number | null
@@ -88,9 +89,10 @@ function rowToTask(row: TaskRow): Task {
     status: row.status as Task['status'],
     remarks: row.remarks || undefined,
     difficulties: row.difficulties || undefined,
-    subTask: row.sub_task || undefined,
     relatedTasks: row.related_tasks || undefined,
     projectId: row.project_id || undefined,
+    deletedAt: row.deleted_at || undefined,
+    deletedBy: row.deleted_by || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }
@@ -191,8 +193,8 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         internal_id, task_id, select_type, recursive_type, description,
         assigned_to, assigned_by, support, start_date, end_date, priority,
         estimated_hours, actual_hours, daily_hours, status, remarks,
-        difficulties, sub_task, project_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        difficulties, project_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         task.taskId, // internal_id is same as task_id
         task.taskId,
@@ -211,7 +213,6 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         task.status,
         task.remarks || null,
         task.difficulties || null,
-        task.subTask || null,
         task.projectId || null
       ]
     )
@@ -261,10 +262,6 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     if (updates.difficulties !== undefined) {
       fields.push('difficulties = ?')
       values.push(updates.difficulties || null)
-    }
-    if (updates.subTask !== undefined) {
-      fields.push('sub_task = ?')
-      values.push(updates.subTask || null)
     }
     if (updates.support !== undefined) {
       fields.push('support = ?')

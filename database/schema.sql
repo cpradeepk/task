@@ -33,17 +33,18 @@ CREATE TABLE users (
     role ENUM('employee', 'management', 'top_management', 'admin') DEFAULT 'employee',
     password VARCHAR(255) NOT NULL,
     status ENUM('active', 'inactive') DEFAULT 'active',
+    is_system_admin BOOLEAN DEFAULT FALSE,
     hours_log TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     INDEX idx_employee_id (employee_id),
     INDEX idx_email (email),
     INDEX idx_manager_id (manager_id),
     INDEX idx_department (department),
     INDEX idx_status (status),
     INDEX idx_role (role),
-    
+
     FOREIGN KEY (manager_id) REFERENCES users(employee_id) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -70,12 +71,13 @@ CREATE TABLE tasks (
     status ENUM('Yet to Start', 'In Progress', 'Delayed', 'Done', 'Cancel', 'Hold', 'ReOpened', 'Stop') DEFAULT 'Yet to Start',
     remarks TEXT,
     difficulties TEXT,
-    sub_task TEXT,
     timer_state VARCHAR(50),
     timer_start_time TIMESTAMP NULL,
     timer_paused_time BIGINT,
     timer_total_time BIGINT,
     timer_sessions JSON,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    deleted_by VARCHAR(50) NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -86,10 +88,41 @@ CREATE TABLE tasks (
     INDEX idx_priority (priority),
     INDEX idx_start_date (start_date),
     INDEX idx_end_date (end_date),
+    INDEX idx_deleted_at (deleted_at),
     INDEX idx_created_at (created_at),
-    
+
     FOREIGN KEY (assigned_to) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (assigned_by) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Table: subtasks
+-- Description: Subtasks for tasks with drag-and-drop ordering and soft delete
+-- ============================================================================
+CREATE TABLE subtasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    parent_task_id VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    assigned_to VARCHAR(50) NOT NULL,
+    status ENUM('Not Started', 'In Progress', 'Completed') DEFAULT 'Not Started',
+    is_completed BOOLEAN DEFAULT FALSE,
+    display_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(50) NOT NULL,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    deleted_by VARCHAR(50) NULL DEFAULT NULL,
+
+    INDEX idx_parent_task_id (parent_task_id),
+    INDEX idx_assigned_to (assigned_to),
+    INDEX idx_status (status),
+    INDEX idx_is_completed (is_completed),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_display_order (display_order),
+
+    FOREIGN KEY (parent_task_id) REFERENCES tasks(task_id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_to) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
@@ -195,15 +228,18 @@ CREATE TABLE bugs (
     reopened_count INT DEFAULT 0,
     tags VARCHAR(500),
     related_bugs VARCHAR(500),
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    deleted_by VARCHAR(50) NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     INDEX idx_bug_id (bug_id),
     INDEX idx_status (status),
     INDEX idx_severity (severity),
     INDEX idx_priority (priority),
     INDEX idx_assigned_to (assigned_to),
     INDEX idx_reported_by (reported_by),
+    INDEX idx_deleted_at (deleted_at),
     INDEX idx_created_at (created_at),
     
     FOREIGN KEY (assigned_to) REFERENCES users(employee_id) ON DELETE SET NULL ON UPDATE CASCADE,

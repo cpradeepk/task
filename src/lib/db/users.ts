@@ -140,6 +140,18 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
 // Update user
 export async function updateUser(employeeId: string, updates: Partial<User>): Promise<User> {
   return withRetry(async () => {
+    // Check if user is system admin
+    const user = await getUserByEmployeeId(employeeId)
+    if (user && user.employeeId === 'admin-001') {
+      // System admin can only update certain fields (not role or status)
+      if (updates.role !== undefined && updates.role !== 'admin') {
+        throw new Error('Cannot change system admin role')
+      }
+      if (updates.status !== undefined && updates.status !== 'active') {
+        throw new Error('Cannot deactivate system admin')
+      }
+    }
+
     const fields: string[] = []
     const values: any[] = []
 
@@ -219,6 +231,11 @@ export async function updateUser(employeeId: string, updates: Partial<User>): Pr
 // Delete user (soft delete by setting status to inactive)
 export async function deleteUser(employeeId: string): Promise<boolean> {
   return withRetry(async () => {
+    // Prevent deletion of system admin
+    if (employeeId === 'admin-001') {
+      throw new Error('Cannot delete system admin user')
+    }
+
     const result = await query<ResultSetHeader>(
       'UPDATE users SET status = ? WHERE employee_id = ?',
       ['inactive', employeeId]

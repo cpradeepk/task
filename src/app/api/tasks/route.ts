@@ -66,8 +66,9 @@ export async function POST(request: NextRequest) {
 
         if (isSupportTask && assignedUser) {
           // For support tasks, send email to the support team member
-          // Extract main task ID from subTask field (format: "Support for: JSR-XXX")
-          const mainTaskId = taskData.subTask?.replace('Support for: ', '') || 'Unknown'
+          // Extract main task ID from remarks field (format: "Support task for main task: JSR-XXX")
+          const match = taskData.remarks?.match(/Support task for main task: (.+)/)
+          const mainTaskId = match ? match[1] : 'Unknown'
 
           await emailService.sendSupportAssignedEmail({
             supportMemberEmail: assignedUser.email,

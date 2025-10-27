@@ -452,13 +452,6 @@ export default function MasterTasksPage() {
                             {task.description}
                           </h4>
 
-                          {task.subTask && (
-                            <div className="mb-2 p-2 bg-blue-50 rounded text-sm">
-                              <span className="font-medium text-blue-800">SubTask:</span>
-                              <span className="text-blue-700 ml-1">{task.subTask}</span>
-                            </div>
-                          )}
-
                           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                             <div className="flex items-center space-x-1">
                               <UserIcon className="h-4 w-4" />

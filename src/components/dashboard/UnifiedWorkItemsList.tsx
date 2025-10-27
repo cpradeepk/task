@@ -267,13 +267,6 @@ export default function UnifiedWorkItemsList({
                         {task.description}
                       </h4>
 
-                      {task.subTask && (
-                        <div className="mb-2 p-2 bg-blue-50 rounded text-xs sm:text-sm break-words">
-                          <span className="font-medium text-blue-800">SubTask:</span>
-                          <span className="text-blue-700 ml-1">{task.subTask}</span>
-                        </div>
-                      )}
-
                       <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
                         {showAssignee && (
                           <div className="flex items-center space-x-1">

@@ -304,9 +304,6 @@ export default function YourWork() {
                           Description
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          SubTask
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Hours Worked
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -359,9 +356,6 @@ export default function YourWork() {
                               <div className="truncate" title={task.description}>
                                 {task.description}
                               </div>
-                            </td>
-                            <td className="px-4 py-4 text-sm text-gray-900">
-                              {task.subTask || 'No SubTask'}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                               {hoursWorked.toFixed(1)}

@@ -28,7 +28,6 @@ export default function CreateTask() {
     priority: '',
     estimatedHours: '',
     hoursWorked: '',
-    subTask: '',
     projectId: null as string | null,
     assignToSomeoneElse: false,
     assignedTo: '',
@@ -203,7 +202,6 @@ export default function CreateTask() {
             projectId: formData.projectId,
             hoursWorked: hoursWorked,
             status: 'Yet to Start' as const,
-            subTask: formData.subTask || undefined,
             relatedTasks: createdTaskIds.length > 0 ? createdTaskIds.join(',') : undefined
           }
 
@@ -260,8 +258,7 @@ export default function CreateTask() {
           estimatedHours: estimatedHours,
           projectId: formData.projectId,
           hoursWorked: hoursWorked,
-          status: 'Yet to Start' as const,
-          subTask: formData.subTask || undefined
+          status: 'Yet to Start' as const
         }
 
         mainTaskData = taskData
@@ -319,7 +316,6 @@ export default function CreateTask() {
       priority: '',
       estimatedHours: '',
       hoursWorked: '',
-      subTask: '',
       projectId: null,
       assignToSomeoneElse: false,
       assignedTo: '',
@@ -712,19 +708,6 @@ export default function CreateTask() {
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Sub Task (Optional)
-              </label>
-              <input
-                type="text"
-                name="subTask"
-                value={formData.subTask}
-                onChange={handleInputChange}
-                className="input-field"
-                placeholder="Sub task details..."
-              />
-            </div>
           </div>
 
           {/* Submit Buttons */}
