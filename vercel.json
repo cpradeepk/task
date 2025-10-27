@@ -3,9 +3,6 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm install",
-  "env": {
-    "JWT_SECRET": "@jwt_secret"
-  },
   "git": {
     "deploymentEnabled": {
       "main": true
