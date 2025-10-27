@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { Task, Bug } from '@/lib/types'
 import { formatDate, getStatusColor, getPriorityColor, isTaskOwner, isTaskSupporter } from '@/lib/data'
 import { getUserNameByEmployeeId, getCurrentUser } from '@/lib/auth'
-import { 
-  Clock, Calendar, User, AlertCircle, Edit, Users, Crown, Heart, 
-  Bug as BugIcon, CheckSquare, Tag, FileText, AlertTriangle 
+import { useSettings } from '@/contexts/SettingsContext'
+import {
+  Clock, Calendar, User, AlertCircle, Edit, Users, Crown, Heart,
+  Bug as BugIcon, CheckSquare, Tag, FileText, AlertTriangle
 } from 'lucide-react'
 import TaskUpdateModal from '@/components/tasks/TaskUpdateModal'
 import SupportTaskBadge from '@/components/tasks/SupportTaskBadge'
@@ -83,39 +84,17 @@ export default function UnifiedWorkItemsList({
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [taskStatusOptions, setTaskStatusOptions] = useState<string[]>([])
-  const [bugStatusOptions, setBugStatusOptions] = useState<string[]>([])
-  const [isLoadingSettings, setIsLoadingSettings] = useState(true)
 
   const currentUser = getCurrentUser()
+  const { settings, isLoading: isLoadingSettings } = useSettings()
+
   if (!currentUser) {
     return <div>Loading...</div>
   }
 
-  // Load statuses from database
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        setIsLoadingSettings(true)
-        const response = await fetch('/api/settings?grouped=true&activeOnly=true')
-        const data = await response.json()
-
-        if (data.success) {
-          const grouped = data.data
-          setTaskStatusOptions(grouped.task_status || [])
-          setBugStatusOptions(grouped.bug_status || [])
-        } else {
-          console.error('Failed to load settings:', data.error)
-        }
-      } catch (error) {
-        console.error('Failed to load settings:', error)
-      } finally {
-        setIsLoadingSettings(false)
-      }
-    }
-
-    loadSettings()
-  }, [])
+  // Get status options from settings context
+  const taskStatusOptions = settings?.task_status || []
+  const bugStatusOptions = settings?.bug_status || []
 
   // Combine tasks and bugs into unified list
   const workItems = [

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { LoadingProvider } from '@/contexts/LoadingContext'
+import { SettingsProvider } from '@/contexts/SettingsContext'
 import PageTransition from '@/components/layout/PageTransition'
 import ChunkErrorBoundary from '@/components/error/ChunkErrorBoundary'
 
@@ -44,9 +45,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <ChunkErrorBoundary>
           <LoadingProvider>
-            <PageTransition>
-              {children}
-            </PageTransition>
+            <SettingsProvider>
+              <PageTransition>
+                {children}
+              </PageTransition>
+            </SettingsProvider>
           </LoadingProvider>
         </ChunkErrorBoundary>
       </body>
