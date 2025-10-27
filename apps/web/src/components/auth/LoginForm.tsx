@@ -135,21 +135,21 @@ function GooeyGradient({ mouse }: { mouse: { x: any; y: any } }) {
   const y = useSpring(mouse.y, { stiffness: 80, damping: 20, mass: 0.4 })
 
   // Transform to percentage strings
-  const px = useTransform(x, (v) => {
+  const px = useTransform(x, (v: number) => {
     const width = typeof window !== 'undefined' ? window.innerWidth : 1
     return `${(v / width) * 100}%`
   })
-  const py = useTransform(y, (v) => {
+  const py = useTransform(y, (v: number) => {
     const height = typeof window !== 'undefined' ? window.innerHeight : 1
     return `${(v / height) * 100}%`
   })
 
   // Second ball transforms
-  const px2 = useTransform(x, (v) => {
+  const px2 = useTransform(x, (v: number) => {
     const width = typeof window !== 'undefined' ? window.innerWidth : 1
     return `${(Math.min(v + 160, width) / width) * 100}%`
   })
-  const py2 = useTransform(y, (v) => {
+  const py2 = useTransform(y, (v: number) => {
     const height = typeof window !== 'undefined' ? window.innerHeight : 1
     return `${(Math.max(v - 140, 0) / height) * 100}%`
   })
