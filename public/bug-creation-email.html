@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Report Created</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f4f4f4;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+            border: 4px solid #FFFFFF;
+        }
+        
+        .email-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .email-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .email-body {
+            padding: 30px 20px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .highlight-box {
+            background-color: #FFFBEB;
+            border-left: 4px solid #F59E0B;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-item {
+            display: flex;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 140px;
+        }
+        
+        .info-value {
+            color: #212529;
+            flex: 1;
+        }
+        
+        .severity-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .severity-critical {
+            background-color: #FEE2E2;
+            color: #DC2626;
+        }
+        
+        .severity-major {
+            background-color: #FEF3C7;
+            color: #D97706;
+        }
+        
+        .severity-minor {
+            background-color: #DBEAFE;
+            color: #2563EB;
+        }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .priority-high {
+            background-color: #FEE2E2;
+            color: #DC2626;
+        }
+        
+        .priority-medium {
+            background-color: #FEF3C7;
+            color: #D97706;
+        }
+        
+        .priority-low {
+            background-color: #DBEAFE;
+            color: #2563EB;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background-color: #E0E7FF;
+            color: #4F46E5;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+        }
+        
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 25px 0;
+        }
+        
+        .description-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        .success-message {
+            background-color: #F0FDF4;
+            border-left: 4px solid #10B981;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <div class="logo">
+                <img src="{{baseUrl}}/images/logos/amtariksha_icon.png" alt="Amtariksha Logo">
+            </div>
+            <h1>📋 Bug Report Created</h1>
+            <p>Your bug report has been successfully submitted</p>
+        </div>
+        
+        <div class="email-body">
+            <div class="greeting">
+                Hello <strong>{{reporterName}}</strong>,
+            </div>
+            
+            <div class="success-message">
+                <p style="color: #059669; margin: 0;">
+                    ✅ <strong>Thank you for reporting this bug!</strong> Your report has been created and logged in our system. Our team will review it and take appropriate action.
+                </p>
+            </div>
+            
+            <div class="highlight-box">
+                <h3 style="color: #F59E0B; margin-bottom: 15px;">🐛 Bug Report Details</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Bug ID:</span>
+                        <span class="info-value"><strong>{{bugId}}</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Title:</span>
+                        <span class="info-value"><strong>{{bugTitle}}</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value">
+                            <span class="status-badge">{{status}}</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Severity:</span>
+                        <span class="info-value">
+                            <span class="severity-badge severity-{{severityClass}}">{{severity}}</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Priority:</span>
+                        <span class="info-value">
+                            <span class="priority-badge priority-{{priorityClass}}">{{priority}}</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Category:</span>
+                        <span class="info-value">{{category}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Platform:</span>
+                        <span class="info-value">{{platform}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Environment:</span>
+                        <span class="info-value">{{environment}}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <h4 style="color: #495057; margin-bottom: 10px;">📝 Description</h4>
+            <div class="description-box">
+                {{bugDescription}}
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{{baseUrl}}/bugs/{{bugId}}" class="cta-button">
+                    View Bug Report →
+                </a>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <p style="font-size: 14px; color: #6c757d; margin-top: 20px;">
+                💡 <strong>What's Next:</strong> You can track the progress of this bug report by visiting the bug details page. You'll receive updates when the bug status changes or when it's assigned to a developer.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Amtariksha Task Management System</strong></p>
+            <p>This is an automated notification. Please do not reply to this email.</p>
+            <p style="margin-top: 10px;">© {{currentYear}} Amtariksha. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+

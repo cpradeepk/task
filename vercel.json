@@ -1,5 +1,5 @@
 {
-  "buildCommand": "bash build.sh",
+  "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm install --legacy-peer-deps",
@@ -7,6 +7,7 @@
     "deploymentEnabled": {
       "main": true
     }
-  }
+  },
+  "root": "apps/web"
 }
 
