@@ -225,22 +225,22 @@ export default function MasterTasksPage() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <Navbar />
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <CheckSquare className="h-6 w-6 text-blue-600" />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="p-2 sm:p-3 bg-blue-100 rounded-lg flex-shrink-0">
+              <CheckSquare className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Master Tasks View</h1>
-              <p className="text-gray-600 mt-1">All tasks across the organization</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Master Tasks View</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">All tasks across the organization</p>
             </div>
           </div>
-          <div className="flex items-center space-x-3 mt-6 sm:mt-0">
+          <div className="flex items-center space-x-3">
             <button
               onClick={loadData}
-              className="btn-secondary flex items-center space-x-2"
+              className="btn-secondary flex items-center space-x-2 text-sm sm:text-base"
             >
               <RefreshCw className="h-4 w-4" />
               <span>Refresh</span>

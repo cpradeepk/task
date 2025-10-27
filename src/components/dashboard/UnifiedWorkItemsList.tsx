@@ -238,15 +238,15 @@ export default function UnifiedWorkItemsList({
               return (
                 <div
                   key={`task-${task.id}`}
-                  className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                  className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow ${
                     isOwner ? 'border-primary-300 bg-primary-50' :
                     isSupporter ? 'border-blue-300 bg-blue-50' :
                     'border-gray-200'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <CheckSquare className="h-4 w-4 text-primary" />
                         <span className="font-mono text-sm text-primary font-medium">
                           {task.taskId}
@@ -284,18 +284,18 @@ export default function UnifiedWorkItemsList({
                         />
                       </div>
 
-                      <h4 className="font-medium text-black mb-2">
+                      <h4 className="font-medium text-black mb-2 text-sm sm:text-base break-words">
                         {task.description}
                       </h4>
 
                       {task.subTask && (
-                        <div className="mb-2 p-2 bg-blue-50 rounded text-sm">
+                        <div className="mb-2 p-2 bg-blue-50 rounded text-xs sm:text-sm break-words">
                           <span className="font-medium text-blue-800">SubTask:</span>
                           <span className="text-blue-700 ml-1">{task.subTask}</span>
                         </div>
                       )}
 
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
                         {showAssignee && (
                           <div className="flex items-center space-x-1">
                             <User className="h-4 w-4" />
@@ -340,7 +340,7 @@ export default function UnifiedWorkItemsList({
                           setSelectedTask(task)
                           setIsModalOpen(true)
                         }}
-                        className="ml-4 p-2 text-primary hover:bg-primary-50 rounded-lg transition-colors"
+                        className="sm:ml-4 p-2 text-primary hover:bg-primary-50 rounded-lg transition-colors flex-shrink-0"
                         title="Update task"
                       >
                         <Edit className="h-4 w-4" />
@@ -356,11 +356,11 @@ export default function UnifiedWorkItemsList({
               return (
                 <div
                   key={`bug-${bug.bugId}`}
-                  className={`border rounded-lg p-4 hover:shadow-md transition-shadow bg-white ${getBugSeverityColor(bug.severity)}`}
+                  className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow bg-white ${getBugSeverityColor(bug.severity)}`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <BugIcon className="h-4 w-4 text-red-600" />
                         <span className="font-mono text-sm text-primary font-medium">
                           {bug.bugId}
@@ -385,17 +385,17 @@ export default function UnifiedWorkItemsList({
                         </span>
                       </div>
 
-                      <h4 className="font-medium text-black mb-1">
+                      <h4 className="font-medium text-black mb-1 text-sm sm:text-base break-words">
                         {bug.title}
                       </h4>
 
                       {bug.description && (
-                        <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2 break-words">
                           {bug.description}
                         </p>
                       )}
 
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
                         <div className="flex items-center space-x-1">
                           <Tag className="h-4 w-4" />
                           <span>Category: {bug.category}</span>

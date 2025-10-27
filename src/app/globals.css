@@ -207,12 +207,18 @@
 
 html {
   scroll-behavior: smooth;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
 }
 
 body {
   color: #000000;
   background: #ffffff;
   font-family: "Signika", sans-serif;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
 }
 
 @layer base {
@@ -352,6 +358,51 @@ body {
 
   .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Mobile Responsive Utilities */
+  .mobile-container {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .mobile-card {
+    @apply p-4 sm:p-6;
+  }
+
+  .mobile-text {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-heading {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+
+  /* Prevent overflow on mobile */
+  .mobile-safe {
+    @apply max-w-full overflow-x-hidden;
+  }
+
+  /* Mobile-friendly tables */
+  .mobile-table-wrapper {
+    @apply overflow-x-auto -mx-4 sm:mx-0;
+  }
+
+  .mobile-table {
+    @apply min-w-full;
+  }
+
+  /* Mobile-friendly buttons */
+  .mobile-btn {
+    @apply text-sm sm:text-base px-3 py-2 sm:px-4 sm:py-2;
+  }
+
+  /* Mobile-friendly forms */
+  .mobile-form-group {
+    @apply space-y-3 sm:space-y-4;
+  }
+
+  .mobile-input {
+    @apply text-base; /* Prevent zoom on iOS */
   }
 }
 
