@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import TaskUpdateModal from '@/components/tasks/TaskUpdateModal'
 import SupportTaskBadge from '@/components/tasks/SupportTaskBadge'
+import SubTaskManager from '@/components/subtasks/SubTaskManager'
 
 // Helper function to check if task is overdue
 function isTaskOverdue(task: Task): boolean {
@@ -303,6 +304,18 @@ export default function UnifiedWorkItemsList({
                             {task.actualHours || 0}h / {task.estimatedHours}h
                           </span>
                         </div>
+                      </div>
+
+                      {/* Subtasks Section */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <SubTaskManager
+                          parentTaskId={task.taskId}
+                          createdBy={currentUser.employeeId}
+                          editable={allowEdit && isOwner}
+                          showAssignee={true}
+                          defaultExpanded={false}
+                          compact={true}
+                        />
                       </div>
                     </div>
 

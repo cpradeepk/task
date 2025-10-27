@@ -27,6 +27,7 @@ import {
   Heart
 } from 'lucide-react'
 import { formatDate, getStatusColor, getPriorityColor } from '@/lib/data'
+import SubTaskManager from '@/components/subtasks/SubTaskManager'
 
 // Helper function to check if task is overdue
 function isTaskOverdue(task: Task): boolean {
@@ -493,6 +494,18 @@ export default function MasterTasksPage() {
                                 <span>Project: {task.projectId}</span>
                               </div>
                             )}
+                          </div>
+
+                          {/* Subtasks Section */}
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <SubTaskManager
+                              parentTaskId={task.taskId}
+                              createdBy={currentUser?.employeeId || ''}
+                              editable={false}
+                              showAssignee={true}
+                              defaultExpanded={false}
+                              compact={true}
+                            />
                           </div>
                         </div>
 
