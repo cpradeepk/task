@@ -1,0 +1,384 @@
+-- ============================================================================
+-- JSR Task Management System - MySQL Database Schema
+-- ============================================================================
+-- Database: task
+-- Created: 2025-10-24
+-- Description: Complete schema migration from Google Sheets to MySQL
+-- ============================================================================
+
+-- Drop existing tables if they exist (in reverse order of dependencies)
+DROP TABLE IF EXISTS user_notification_preferences;
+DROP TABLE IF EXISTS user_permissions;
+DROP TABLE IF EXISTS role_permissions;
+DROP TABLE IF EXISTS bug_comments;
+DROP TABLE IF EXISTS bugs;
+DROP TABLE IF EXISTS wfh_applications;
+DROP TABLE IF EXISTS leave_applications;
+DROP TABLE IF EXISTS subtasks;
+DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS users;
+
+-- ============================================================================
+-- Table: users
+-- Description: Employee/User information and authentication
+-- ============================================================================
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone VARCHAR(20),
+    telegram_token VARCHAR(255),
+    department VARCHAR(100) NOT NULL,
+    manager_email VARCHAR(255),
+    manager_id VARCHAR(50),
+    is_today_task BOOLEAN DEFAULT FALSE,
+    warning_count INT DEFAULT 0,
+    role ENUM('employee', 'management', 'top_management', 'admin') DEFAULT 'employee',
+    password VARCHAR(255) NOT NULL,
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    is_system_admin BOOLEAN DEFAULT FALSE,
+    hours_log TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_employee_id (employee_id),
+    INDEX idx_email (email),
+    INDEX idx_manager_id (manager_id),
+    INDEX idx_department (department),
+    INDEX idx_status (status),
+    INDEX idx_role (role),
+
+    FOREIGN KEY (manager_id) REFERENCES users(employee_id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Table: tasks
+-- Description: Task management and tracking
+-- ============================================================================
+CREATE TABLE tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    task_id VARCHAR(100) NOT NULL UNIQUE,
+    internal_id VARCHAR(100) NOT NULL UNIQUE,
+    select_type ENUM('Normal', 'Recursive') DEFAULT 'Normal',
+    recursive_type ENUM('Daily', 'Weekly', 'Monthly', 'Annually'),
+    description TEXT NOT NULL,
+    assigned_to VARCHAR(50) NOT NULL,
+    assigned_by VARCHAR(50) NOT NULL,
+    support JSON,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    priority ENUM('U&I', 'NU&I', 'U&NI', 'NU&NI') DEFAULT 'NU&NI',
+    estimated_hours DECIMAL(10, 2) DEFAULT 0,
+    actual_hours DECIMAL(10, 2) DEFAULT 0,
+    daily_hours JSON,
+    status ENUM('Yet to Start', 'In Progress', 'Delayed', 'Done', 'Cancel', 'Hold', 'ReOpened', 'Stop') DEFAULT 'Yet to Start',
+    remarks TEXT,
+    difficulties TEXT,
+    timer_state VARCHAR(50),
+    timer_start_time TIMESTAMP NULL,
+    timer_paused_time BIGINT,
+    timer_total_time BIGINT,
+    timer_sessions JSON,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    deleted_by VARCHAR(50) NULL DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_task_id (task_id),
+    INDEX idx_assigned_to (assigned_to),
+    INDEX idx_assigned_by (assigned_by),
+    INDEX idx_status (status),
+    INDEX idx_priority (priority),
+    INDEX idx_start_date (start_date),
+    INDEX idx_end_date (end_date),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_at (created_at),
+
+    FOREIGN KEY (assigned_to) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (assigned_by) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Table: subtasks
+-- Description: Subtasks for tasks with drag-and-drop ordering and soft delete
+-- ============================================================================
+CREATE TABLE subtasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    parent_task_id VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    assigned_to VARCHAR(50) NOT NULL,
+    status ENUM('Not Started', 'In Progress', 'Completed') DEFAULT 'Not Started',
+    is_completed BOOLEAN DEFAULT FALSE,
+    display_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by VARCHAR(50) NOT NULL,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    deleted_by VARCHAR(50) NULL DEFAULT NULL,
+
+    INDEX idx_parent_task_id (parent_task_id),
+    INDEX idx_assigned_to (assigned_to),
+    INDEX idx_status (status),
+    INDEX idx_is_completed (is_completed),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_display_order (display_order),
+
+    FOREIGN KEY (parent_task_id) REFERENCES tasks(task_id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_to) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Table: leave_applications
+-- Description: Employee leave requests and approvals
+-- ============================================================================
+CREATE TABLE leave_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id VARCHAR(100) NOT NULL UNIQUE,
+    employee_id VARCHAR(50) NOT NULL,
+    employee_name VARCHAR(255) NOT NULL,
+    leave_type ENUM('Sick Leave', 'Casual Leave', 'Annual Leave', 'Emergency Leave', 'Maternity Leave', 'Paternity Leave') NOT NULL,
+    reason TEXT NOT NULL,
+    from_date DATE NOT NULL,
+    to_date DATE NOT NULL,
+    is_half_day BOOLEAN DEFAULT FALSE,
+    emergency_contact VARCHAR(20),
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    manager_id VARCHAR(50),
+    approved_by VARCHAR(50),
+    approval_date TIMESTAMP NULL,
+    approval_remarks TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_employee_id (employee_id),
+    INDEX idx_status (status),
+    INDEX idx_from_date (from_date),
+    INDEX idx_to_date (to_date),
+    INDEX idx_manager_id (manager_id),
+    INDEX idx_created_at (created_at),
+    
+    FOREIGN KEY (employee_id) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (manager_id) REFERENCES users(employee_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (approved_by) REFERENCES users(employee_id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Table: wfh_applications
+-- Description: Work From Home requests and approvals
+-- ============================================================================
+CREATE TABLE wfh_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id VARCHAR(100) NOT NULL UNIQUE,
+    employee_id VARCHAR(50) NOT NULL,
+    employee_name VARCHAR(255) NOT NULL,
+    wfh_type ENUM('Full Day', 'Half Day', 'Flexible Hours') NOT NULL,
+    reason TEXT NOT NULL,
+    from_date DATE NOT NULL,
+    to_date DATE NOT NULL,
+    work_location VARCHAR(255) NOT NULL,
+    available_from TIME,
+    available_to TIME,
+    contact_number VARCHAR(20) NOT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    manager_id VARCHAR(50),
+    approved_by VARCHAR(50),
+    approval_date TIMESTAMP NULL,
+    approval_remarks TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_employee_id (employee_id),
+    INDEX idx_status (status),
+    INDEX idx_from_date (from_date),
+    INDEX idx_to_date (to_date),
+    INDEX idx_manager_id (manager_id),
+    INDEX idx_created_at (created_at),
+    
+    FOREIGN KEY (employee_id) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (manager_id) REFERENCES users(employee_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (approved_by) REFERENCES users(employee_id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Table: bugs
+-- Description: Bug tracking and management
+-- ============================================================================
+CREATE TABLE bugs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bug_id VARCHAR(100) NOT NULL UNIQUE,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    severity ENUM('Critical', 'Major', 'Minor') DEFAULT 'Minor',
+    priority ENUM('High', 'Medium', 'Low') DEFAULT 'Low',
+    status ENUM('New', 'In Progress', 'Resolved', 'Closed', 'Reopened') DEFAULT 'New',
+    category ENUM('UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other') DEFAULT 'Other',
+    platform ENUM('iOS', 'Android', 'Web', 'All') DEFAULT 'Web',
+    assigned_to VARCHAR(50),
+    assigned_by VARCHAR(50),
+    reported_by VARCHAR(50) NOT NULL,
+    environment ENUM('Development', 'Staging', 'Production') DEFAULT 'Production',
+    browser_info VARCHAR(255),
+    device_info VARCHAR(255),
+    steps_to_reproduce TEXT,
+    expected_behavior TEXT,
+    actual_behavior TEXT,
+    attachments TEXT,
+    estimated_hours DECIMAL(10, 2),
+    actual_hours DECIMAL(10, 2),
+    resolved_date TIMESTAMP NULL,
+    closed_date TIMESTAMP NULL,
+    reopened_count INT DEFAULT 0,
+    tags VARCHAR(500),
+    related_bugs VARCHAR(500),
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    deleted_by VARCHAR(50) NULL DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_bug_id (bug_id),
+    INDEX idx_status (status),
+    INDEX idx_severity (severity),
+    INDEX idx_priority (priority),
+    INDEX idx_assigned_to (assigned_to),
+    INDEX idx_reported_by (reported_by),
+    INDEX idx_deleted_at (deleted_at),
+    INDEX idx_created_at (created_at),
+    
+    FOREIGN KEY (assigned_to) REFERENCES users(employee_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (assigned_by) REFERENCES users(employee_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (reported_by) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Table: bug_comments
+-- Description: Comments and discussions on bugs
+-- ============================================================================
+CREATE TABLE bug_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bug_id VARCHAR(100) NOT NULL,
+    commented_by VARCHAR(50) NOT NULL,
+    comment_text TEXT NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX idx_bug_id (bug_id),
+    INDEX idx_commented_by (commented_by),
+    INDEX idx_timestamp (timestamp),
+    
+    FOREIGN KEY (commented_by) REFERENCES users(employee_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Table: role_permissions
+-- Description: Role-based permissions for features and pages
+-- ============================================================================
+CREATE TABLE role_permissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    role ENUM('admin', 'top_management', 'management', 'employee') NOT NULL,
+    feature_key VARCHAR(100) NOT NULL COMMENT 'Unique identifier for the feature/page',
+    feature_name VARCHAR(200) NOT NULL COMMENT 'Human-readable feature name',
+    can_view BOOLEAN DEFAULT FALSE COMMENT 'Can view/access the feature',
+    can_create BOOLEAN DEFAULT FALSE COMMENT 'Can create new items',
+    can_edit BOOLEAN DEFAULT FALSE COMMENT 'Can edit items',
+    can_delete BOOLEAN DEFAULT FALSE COMMENT 'Can delete items',
+    can_approve BOOLEAN DEFAULT FALSE COMMENT 'Can approve items (for approval workflows)',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY unique_role_feature (role, feature_key),
+    INDEX idx_role (role),
+    INDEX idx_feature_key (feature_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Role-based permissions for features and pages';
+
+-- ============================================================================
+-- Table: user_permissions
+-- Description: User-specific permission overrides (NULL means use role permission)
+-- ============================================================================
+CREATE TABLE user_permissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id VARCHAR(50) NOT NULL,
+    feature_key VARCHAR(100) NOT NULL COMMENT 'Unique identifier for the feature/page',
+    can_view BOOLEAN DEFAULT NULL COMMENT 'Override role permission for view access',
+    can_create BOOLEAN DEFAULT NULL COMMENT 'Override role permission for create access',
+    can_edit BOOLEAN DEFAULT NULL COMMENT 'Override role permission for edit access',
+    can_delete BOOLEAN DEFAULT NULL COMMENT 'Override role permission for delete access',
+    can_approve BOOLEAN DEFAULT NULL COMMENT 'Override role permission for approve access',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY unique_user_feature (employee_id, feature_key),
+    INDEX idx_employee_id (employee_id),
+    INDEX idx_feature_key (feature_key),
+
+    FOREIGN KEY (employee_id) REFERENCES users(employee_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='User-specific permission overrides (NULL means use role permission)';
+
+-- ============================================================================
+-- Table: user_notification_preferences
+-- Description: User notification preferences for all notification types
+-- ============================================================================
+CREATE TABLE user_notification_preferences (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id VARCHAR(50) NOT NULL,
+
+    -- Notification Channels
+    email_enabled BOOLEAN DEFAULT TRUE,
+    telegram_enabled BOOLEAN DEFAULT FALSE,
+    in_app_enabled BOOLEAN DEFAULT TRUE,
+
+    -- Task Notifications
+    task_assigned BOOLEAN DEFAULT TRUE,
+    task_updated BOOLEAN DEFAULT TRUE,
+    task_commented BOOLEAN DEFAULT TRUE,
+    task_due_soon BOOLEAN DEFAULT TRUE,
+    task_overdue BOOLEAN DEFAULT TRUE,
+    task_completed BOOLEAN DEFAULT TRUE,
+    task_support_assigned BOOLEAN DEFAULT TRUE,
+
+    -- Bug Notifications
+    bug_assigned BOOLEAN DEFAULT TRUE,
+    bug_updated BOOLEAN DEFAULT TRUE,
+    bug_commented BOOLEAN DEFAULT TRUE,
+    bug_status_changed BOOLEAN DEFAULT TRUE,
+    bug_severity_changed BOOLEAN DEFAULT TRUE,
+
+    -- Leave & WFH Notifications
+    leave_approved BOOLEAN DEFAULT TRUE,
+    leave_rejected BOOLEAN DEFAULT TRUE,
+    leave_pending_approval BOOLEAN DEFAULT TRUE,
+    wfh_approved BOOLEAN DEFAULT TRUE,
+    wfh_rejected BOOLEAN DEFAULT TRUE,
+    wfh_pending_approval BOOLEAN DEFAULT TRUE,
+
+    -- Project Notifications
+    project_assigned BOOLEAN DEFAULT TRUE,
+    project_updated BOOLEAN DEFAULT TRUE,
+
+    -- Team Notifications
+    team_member_added BOOLEAN DEFAULT TRUE,
+    team_task_created BOOLEAN DEFAULT TRUE,
+
+    -- System Notifications
+    system_announcements BOOLEAN DEFAULT TRUE,
+    daily_summary BOOLEAN DEFAULT FALSE,
+    weekly_summary BOOLEAN DEFAULT FALSE,
+
+    -- Quiet Hours
+    quiet_hours_enabled BOOLEAN DEFAULT FALSE,
+    quiet_hours_start TIME DEFAULT '22:00:00',
+    quiet_hours_end TIME DEFAULT '08:00:00',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY unique_employee (employee_id),
+    INDEX idx_employee_id (employee_id),
+
+    FOREIGN KEY (employee_id) REFERENCES users(employee_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='User notification preferences for all notification types';
+

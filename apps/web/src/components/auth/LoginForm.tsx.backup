@@ -1,0 +1,386 @@
+'use client'
+
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import { login, initializeUsers } from '@/lib/auth'
+import LoadingButton from '@/components/ui/LoadingButton'
+import { useLoading } from '@/contexts/LoadingContext'
+import { Eye, EyeOff, User, Lock } from 'lucide-react'
+import { motion, useReducedMotion } from 'framer-motion'
+
+// --- Advanced Particle Field (Canvas-based for performance) ---
+function ParticleField({ enabled = true }: { enabled?: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const prefersReducedMotion = useReducedMotion()
+  const mouse = useRef({ x: 0, y: 0, active: false })
+  const rafRef = useRef<number | null>(null)
+  const settings = useMemo(
+    () => ({
+      maxParticles: 180, // background floaters
+      spawnRate: 6, // burst per frame while moving
+      size: [1.2, 3.2] as [number, number],
+      decay: 0.985,
+      attraction: 0.06,
+      friction: 0.98,
+      trailOpacity: 0.14,
+    }),
+    []
+  )
+
+  useEffect(() => {
+    if (!enabled || prefersReducedMotion) return // Respect reduced motion
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const dpr = Math.max(1, window.devicePixelRatio || 1)
+
+    const resize = () => {
+      const { width, height } = canvas.getBoundingClientRect()
+      canvas.width = Math.floor(width * dpr)
+      canvas.height = Math.floor(height * dpr)
+      ctx.scale(dpr, dpr)
+    }
+
+    interface Particle {
+      x: number
+      y: number
+      vx: number
+      vy: number
+      life: number
+      size: number
+      hue: number
+    }
+
+    let particles: Particle[] = []
+
+    // Seed some background floaters
+    const seed = () => {
+      const rect = canvas.getBoundingClientRect()
+      for (let i = 0; i < settings.maxParticles; i++) {
+        particles.push({
+          x: Math.random() * rect.width,
+          y: Math.random() * rect.height,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.6,
+          life: 1,
+          size: settings.size[0] + Math.random() * (settings.size[1] - settings.size[0]),
+          hue: 260 + Math.random() * 80, // indigo→pink
+        })
+      }
+    }
+
+    const onMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect()
+      mouse.current.x = e.clientX - rect.left
+      mouse.current.y = e.clientY - rect.top
+      mouse.current.active = true
+
+      // spawn burst
+      for (let i = 0; i < settings.spawnRate; i++) {
+        const angle = Math.random() * Math.PI * 2
+        const speed = 1 + Math.random() * 1.8
+        particles.push({
+          x: mouse.current.x,
+          y: mouse.current.y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          size: settings.size[0] + Math.random() * (settings.size[1] - settings.size[0]),
+          hue: 260 + Math.random() * 80,
+        })
+      }
+      if (particles.length > settings.maxParticles * 2.5) {
+        particles.splice(0, particles.length - settings.maxParticles * 2.5)
+      }
+    }
+
+    const onLeave = () => (mouse.current.active = false)
+
+    const step = () => {
+      const { width, height } = canvas.getBoundingClientRect()
+
+      // motion blur trail
+      ctx.fillStyle = `rgba(17, 24, 39, ${settings.trailOpacity})` // gray-900 with alpha
+      ctx.fillRect(0, 0, width, height)
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i]
+
+        // gentle attraction to cursor
+        if (mouse.current.active) {
+          const dx = mouse.current.x - p.x
+          const dy = mouse.current.y - p.y
+          p.vx += dx * settings.attraction * 0.002
+          p.vy += dy * settings.attraction * 0.002
+        }
+
+        p.vx *= settings.friction
+        p.vy *= settings.friction
+        p.x += p.vx
+        p.y += p.vy
+        p.life *= settings.decay
+
+        // wrap edges
+        if (p.x < -10) p.x = width + 10
+        if (p.x > width + 10) p.x = -10
+        if (p.y < -10) p.y = height + 10
+        if (p.y > height + 10) p.y = -10
+
+        // draw
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 8)
+        grd.addColorStop(0, `hsla(${p.hue}, 90%, 70%, ${0.9 * p.life})`)
+        grd.addColorStop(1, `hsla(${p.hue + 30}, 90%, 60%, 0)`)
+        ctx.fillStyle = grd
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2)
+        ctx.fill()
+
+        if (p.life < 0.05) particles.splice(i, 1)
+      }
+
+      rafRef.current = requestAnimationFrame(step)
+    }
+
+    resize()
+    seed()
+    const ro = new ResizeObserver(resize)
+    ro.observe(canvas)
+    window.addEventListener('mousemove', onMove, { passive: true })
+    window.addEventListener('mouseleave', onLeave, { passive: true })
+
+    // start with soft dark fill
+    const { width, height } = canvas.getBoundingClientRect()
+    ctx.fillStyle = '#111827' // gray-900
+    ctx.fillRect(0, 0, width, height)
+
+    rafRef.current = requestAnimationFrame(step)
+
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      ro.disconnect()
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseleave', onLeave)
+      particles = []
+    }
+  }, [enabled, prefersReducedMotion, settings])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      aria-hidden="true"
+    />
+  )
+}
+
+export default function LoginForm() {
+  const [employeeId, setEmployeeId] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [mouse, setMouse] = useState({ x: 0, y: 0 })
+  const router = useRouter()
+  const { showGlobalLoading, hideGlobalLoading } = useLoading()
+  const prefersReducedMotion = useReducedMotion()
+
+  // Initialize users on component mount
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await initializeUsers()
+      } catch (error) {
+        console.error('Failed to initialize users:', error)
+      }
+    }
+    init()
+  }, [])
+
+  // Mouse tracking for animated glow effect (lightweight)
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMouse({ x: e.clientX, y: e.clientY })
+    }
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+    showGlobalLoading('Signing in...')
+
+    try {
+      const success = await login(employeeId, password)
+
+      if (success) {
+        router.push('/dashboard')
+      } else {
+        setError('Invalid Employee ID or Password')
+      }
+    } catch {
+      setError('An error occurred during login')
+    } finally {
+      setIsLoading(false)
+      hideGlobalLoading()
+    }
+  }
+
+  // Calculate glow position for mouse tracking
+  const glowX = typeof window !== 'undefined' ? (mouse.x / window.innerWidth - 0.5) * 100 : 0
+  const glowY = typeof window !== 'undefined' ? (mouse.y / window.innerHeight - 0.5) * 100 : 0
+
+  return (
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gray-900 px-4">
+      {/* Advanced Particle Field - Canvas-based for performance */}
+      <ParticleField enabled />
+
+      {/* Mouse-tracking glow (respect reduced motion) - FIXED */}
+      {!prefersReducedMotion && (
+        <motion.div
+          className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-40 blur-3xl pointer-events-none"
+          animate={{ x: glowX, y: glowY }}
+          transition={{ type: 'spring', stiffness: 50, damping: 30 }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Animated Login Card with Glow Border */}
+      <motion.div
+        initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative z-10 w-full max-w-md"
+      >
+        {/* Subtle border glow effect */}
+        <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-indigo-500/30 via-purple-500/30 to-pink-500/30 blur" aria-hidden="true" />
+
+        {/* Main card content */}
+        <div className="relative rounded-2xl bg-gray-800/80 backdrop-blur-xl shadow-2xl p-8">
+          {/* Logo and Header */}
+          <motion.div
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-center mb-8"
+          >
+            <motion.div
+              className="mx-auto h-20 w-20 mb-4"
+              whileHover={prefersReducedMotion ? {} : { scale: 1.1, rotate: 5 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <Image
+                src="/images/logos/amtariksha_icon.png"
+                alt="Amtariksha Logo"
+                width={90}
+                height={90}
+                className="object-contain drop-shadow-2xl"
+              />
+            </motion.div>
+            <h2 className="text-3xl font-bold text-white mb-2">
+              Welcome Back 👋
+            </h2>
+            <p className="text-gray-300 text-sm">
+              Job Status Report Management System
+            </p>
+          </motion.div>
+
+          {/* Login Form */}
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm"
+              >
+                ⚠️ {error}
+              </motion.div>
+            )}
+
+            {/* Employee ID Field */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <User className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                id="employeeId"
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+                required
+                className="peer w-full px-3 pl-10 pt-6 pb-2 text-white placeholder-transparent bg-transparent border-b-2 border-gray-600 focus:border-indigo-500 focus:outline-none transition-colors"
+                placeholder="Employee ID"
+              />
+              <label
+                htmlFor="employeeId"
+                className="absolute left-10 text-gray-400 transition-all duration-300
+                  peer-placeholder-shown:top-4 peer-placeholder-shown:text-base
+                  peer-focus:top-1 peer-focus:text-xs peer-focus:text-indigo-400
+                  top-1 text-xs"
+              >
+                Employee ID
+              </label>
+            </div>
+
+            {/* Password Field */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <Lock className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="peer w-full px-3 pl-10 pr-10 pt-6 pb-2 text-white placeholder-transparent bg-transparent border-b-2 border-gray-600 focus:border-indigo-500 focus:outline-none transition-colors"
+                placeholder="Password"
+              />
+              <label
+                htmlFor="password"
+                className="absolute left-10 text-gray-400 transition-all duration-300
+                  peer-placeholder-shown:top-4 peer-placeholder-shown:text-base
+                  peer-focus:top-1 peer-focus:text-xs peer-focus:text-indigo-400
+                  top-1 text-xs"
+              >
+                Password
+              </label>
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center z-10"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                )}
+              </button>
+            </div>
+
+            {/* Login Button */}
+            <motion.button
+              type="submit"
+              disabled={isLoading}
+              whileHover={prefersReducedMotion ? {} : { scale: isLoading ? 1 : 1.03 }}
+              whileTap={prefersReducedMotion ? {} : { scale: isLoading ? 1 : 0.98 }}
+              className="w-full py-3 text-lg font-semibold text-white rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+            >
+              {isLoading ? 'Signing in…' : 'Sign In'}
+            </motion.button>
+
+            {/* Helper Text */}
+            <p className="text-center text-sm text-gray-400 mt-4">
+              Use your Employee ID (e.g., AM-0001) to login
+            </p>
+          </form>
+        </div>
+      </motion.div>
+    </div>
+  )
+}

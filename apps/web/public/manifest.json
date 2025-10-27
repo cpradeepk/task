@@ -1,0 +1,19 @@
+{
+  "name": "Amtariksha Task Management System",
+  "short_name": "Amtariksha",
+  "description": "Amtariksha Task Management System for efficient workflow management",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/logos/amtariksha_icon.png",
+      "sizes": "2844x2788",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

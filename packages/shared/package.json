@@ -1,0 +1,27 @@
+{
+  "name": "@jsr/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared code between web and mobile apps",
+  "main": "index.ts",
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./types": "./types/index.ts",
+    "./api": "./api/index.ts",
+    "./utils": "./utils/index.ts",
+    "./constants": "./constants/index.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^19",
+    "typescript": "^5"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}

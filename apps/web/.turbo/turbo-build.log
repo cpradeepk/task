@@ -1,0 +1,333 @@
+
+> @jsr/web@0.1.0 build
+> next build
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /media/pradeep/Work/projects/jsr_web_app-jsr_tool/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/package-lock.json
+
+   ▲ Next.js 16.0.0 (Turbopack)
+   - Environments: .env.local
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 8.2s
+   Running TypeScript ...
+   Collecting page data ...
+🔒 PRODUCTION SAFETY CHECK: PASSED
+📋 Using Google Sheet: https://docs.google.com/spreadsheets/d/1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98/edit
+🔑 Sheet ID: 1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98
+🚨 PRODUCTION SAFETY CHECK FAILED: Error: 🚨 PRODUCTION ERROR: Missing required environment variables: GOOGLE_PROJECT_ID, GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL
+    at module evaluation (.next/server/chunks/[root-of-the-server]__8cda8d8e._.js:5:564)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__8cda8d8e._.js:5:849)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__8cda8d8e._.js:5:4515)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔒 PRODUCTION SAFETY CHECK: PASSED
+📋 Using Google Sheet: https://docs.google.com/spreadsheets/d/1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98/edit
+🔑 Sheet ID: 1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🚨 PRODUCTION SAFETY CHECK FAILED: Error: 🚨 PRODUCTION ERROR: Missing required environment variables: GOOGLE_PROJECT_ID, GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL
+    at module evaluation (.next/server/chunks/[root-of-the-server]__c512a39f._.js:5:564)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__c512a39f._.js:5:1109)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at instantiateRuntimeModule (.next/server/chunks/[turbopack]_runtime.js:743:12)
+    at getOrInstantiateRuntimeModule (.next/server/chunks/[turbopack]_runtime.js:756:12)
+    at Object.m (.next/server/chunks/[turbopack]_runtime.js:765:18)
+    at Object.<anonymous> (.next/server/app/api/vercel-diagnostics/route.js:6:3)
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+🔒 PRODUCTION SAFETY CHECK: PASSED
+📋 Using Google Sheet: https://docs.google.com/spreadsheets/d/1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98/edit
+🔑 Sheet ID: 1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98
+🔒 PRODUCTION SAFETY CHECK: PASSED
+📋 Using Google Sheet: https://docs.google.com/spreadsheets/d/1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98/edit
+🔑 Sheet ID: 1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98
+🔒 PRODUCTION SAFETY CHECK: PASSED
+📋 Using Google Sheet: https://docs.google.com/spreadsheets/d/1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98/edit
+🔑 Sheet ID: 1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98
+🚨 PRODUCTION SAFETY CHECK FAILED: Error: 🚨 PRODUCTION ERROR: Missing required environment variables: GOOGLE_PROJECT_ID, GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL
+    at module evaluation (.next/server/chunks/[root-of-the-server]__0e356879._.js:5:564)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__0e356879._.js:5:849)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__586989e1._.js:20:10647538)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+🚨 PRODUCTION SAFETY CHECK FAILED: Error: 🚨 PRODUCTION ERROR: Missing required environment variables: GOOGLE_PROJECT_ID, GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL
+    at module evaluation (.next/server/chunks/[root-of-the-server]__bbc3d493._.js:5:564)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__bbc3d493._.js:5:849)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__586989e1._.js:20:10647538)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+🚨 PRODUCTION SAFETY CHECK FAILED: Error: 🚨 PRODUCTION ERROR: Missing required environment variables: GOOGLE_PROJECT_ID, GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL
+    at module evaluation (.next/server/chunks/[root-of-the-server]__20b5eee0._.js:5:564)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__20b5eee0._.js:5:849)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__586989e1._.js:20:10647538)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+🔒 PRODUCTION SAFETY CHECK: PASSED
+📋 Using Google Sheet: https://docs.google.com/spreadsheets/d/1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98/edit
+🔑 Sheet ID: 1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98
+🚨 PRODUCTION SAFETY CHECK FAILED: Error: 🚨 PRODUCTION ERROR: Missing required environment variables: GOOGLE_PROJECT_ID, GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL
+    at module evaluation (.next/server/chunks/[root-of-the-server]__740254c3._.js:5:564)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__740254c3._.js:5:849)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__586989e1._.js:20:10647538)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+   Generating static pages (0/74) ...
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+ ⚠ Unsupported metadata viewport is configured in metadata export in /deleted-items. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /leave/apply. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /master-bugs. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /master-tasks. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /my-applications. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /profile/notifications. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /profile. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /projects/create. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /projects. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /reports. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /refresh-data. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /settings. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /settings/permissions. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /settings/dropdowns. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+   Generating static pages (18/74) 
+ ⚠ Unsupported metadata viewport is configured in metadata export in /tasks/create. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /setup-wizard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /switch-user. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /team-tasks. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /test-sheets. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /users. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /wfh/apply. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /your-work. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+🔒 PRODUCTION SAFETY CHECK: PASSED
+📋 Using Google Sheet: https://docs.google.com/spreadsheets/d/1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98/edit
+🔑 Sheet ID: 1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98
+🚨 PRODUCTION SAFETY CHECK FAILED: Error: 🚨 PRODUCTION ERROR: Missing required environment variables: GOOGLE_PROJECT_ID, GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL
+    at module evaluation (.next/server/chunks/[root-of-the-server]__0e356879._.js:5:564)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__0e356879._.js:5:849)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__586989e1._.js:20:10647538)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+🔒 PRODUCTION SAFETY CHECK: PASSED
+📋 Using Google Sheet: https://docs.google.com/spreadsheets/d/1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98/edit
+🔑 Sheet ID: 1EqjZQRGBIvZPwAoHWpPlE9K83wlpuSuyEvU1WNw3M98
+🚨 PRODUCTION SAFETY CHECK FAILED: Error: 🚨 PRODUCTION ERROR: Missing required environment variables: GOOGLE_PROJECT_ID, GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL
+    at module evaluation (.next/server/chunks/[root-of-the-server]__20b5eee0._.js:5:564)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__20b5eee0._.js:5:849)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (.next/server/chunks/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (.next/server/chunks/[turbopack]_runtime.js:228:20)
+    at module evaluation (.next/server/chunks/[root-of-the-server]__586989e1._.js:20:10647538)
+    at instantiateModule (.next/server/chunks/[turbopack]_runtime.js:715:9)
+   Generating static pages (36/74) 
+🔄 Initializing email service...
+⚠️ Email credentials not configured. Email service will run in test mode.
+ ⚠ Unsupported metadata viewport is configured in metadata export in /_not-found. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /approvals. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /analytics. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /bugs/analytics. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /bugs/create. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /bugs. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+   Generating static pages (55/74) 
+ ⚠ Unsupported metadata viewport is configured in metadata export in /connection-status. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /debug-sheets. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ✓ Generating static pages (74/74) in 1165.8ms
+   Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /analytics
+├ ƒ /api/admin/fix-sheets
+├ ƒ /api/auth/login
+├ ƒ /api/bugs
+├ ƒ /api/bugs/[bugId]
+├ ƒ /api/bugs/[bugId]/comments
+├ ƒ /api/debug-email
+├ ƒ /api/debug/auth
+├ ƒ /api/debug/sheets
+├ ƒ /api/deleted-items
+├ ƒ /api/deleted-items/permanent-delete
+├ ƒ /api/deleted-items/restore
+├ ƒ /api/half-day
+├ ƒ /api/health
+├ ƒ /api/leaves
+├ ƒ /api/leaves/[id]
+├ ƒ /api/leaves/[id]/approve
+├ ƒ /api/leaves/[id]/reject
+├ ƒ /api/leaves/user/[employeeId]
+├ ƒ /api/notification-preferences
+├ ƒ /api/permissions
+├ ƒ /api/production-check
+├ ƒ /api/projects
+├ ƒ /api/projects/[projectId]
+├ ƒ /api/projects/[projectId]/restore
+├ ƒ /api/projects/hierarchy
+├ ƒ /api/settings
+├ ƒ /api/settings/[id]
+├ ƒ /api/sheets/create-tabs
+├ ƒ /api/simple-test
+├ ƒ /api/subtasks
+├ ƒ /api/subtasks/[id]
+├ ƒ /api/subtasks/reorder
+├ ƒ /api/tasks
+├ ƒ /api/tasks/[taskId]
+├ ƒ /api/tasks/support
+├ ƒ /api/tasks/update-delayed
+├ ƒ /api/tasks/user/[employeeId]
+├ ƒ /api/test
+├ ƒ /api/test-auth
+├ ƒ /api/test-email
+├ ƒ /api/test-env
+├ ƒ /api/upload
+├ ƒ /api/users
+├ ƒ /api/users/[employeeId]
+├ ƒ /api/users/[employeeId]/send-credentials
+├ ƒ /api/users/[employeeId]/warning/increment
+├ ƒ /api/users/[employeeId]/warning/reset
+├ ƒ /api/users/team/[managerId]
+├ ƒ /api/vercel-diagnostics
+├ ƒ /api/vercel-env-check
+├ ƒ /api/vercel-env-test
+├ ƒ /api/verify-email
+├ ƒ /api/verify-integration
+├ ƒ /api/verify-sheet
+├ ƒ /api/wfh
+├ ƒ /api/wfh/[id]
+├ ƒ /api/wfh/[id]/approve
+├ ƒ /api/wfh/[id]/reject
+├ ƒ /api/wfh/user/[employeeId]
+├ ƒ /api/work-hours
+├ ƒ /api/work-items/user/[employeeId]
+├ ○ /apple-icon.png
+├ ○ /approvals
+├ ○ /bugs
+├ ƒ /bugs/[bugId]
+├ ○ /bugs/analytics
+├ ○ /bugs/create
+├ ○ /connection-status
+├ ○ /dashboard
+├ ○ /debug-sheets
+├ ○ /deleted-items
+├ ○ /icon.png
+├ ○ /leave/apply
+├ ○ /master-bugs
+├ ○ /master-tasks
+├ ○ /my-applications
+├ ○ /profile
+├ ○ /profile/notifications
+├ ○ /projects
+├ ƒ /projects/[projectId]
+├ ○ /projects/create
+├ ○ /refresh-data
+├ ○ /reports
+├ ○ /settings
+├ ○ /settings/dropdowns
+├ ○ /settings/permissions
+├ ○ /setup-wizard
+├ ○ /switch-user
+├ ○ /tasks/create
+├ ○ /team-tasks
+├ ○ /test-sheets
+├ ○ /users
+├ ○ /wfh/apply
+└ ○ /your-work
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
