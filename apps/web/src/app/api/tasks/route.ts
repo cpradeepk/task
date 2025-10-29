@@ -3,6 +3,7 @@ import { getAllTasks, createTask } from '@/lib/db/tasks'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
 import { withTimeout } from '@/lib/db/config'
+import { createActivityLog } from '@/lib/db/activityLog'
 
 export async function GET() {
   try {
@@ -51,6 +52,21 @@ export async function POST(request: NextRequest) {
 
     // Add task to MySQL
     const task = await createTask(taskData)
+
+    // Log task creation activity
+    try {
+      await createActivityLog({
+        entityType: 'task',
+        entityId: task.taskId,
+        userId: taskData.assignedBy || 'system',
+        actionType: 'created',
+        description: `Task created by ${taskData.assignedBy || 'system'}`,
+        isComment: false
+      })
+    } catch (activityError) {
+      console.error('⚠️ Failed to log task creation activity:', activityError)
+      // Don't fail task creation if activity logging fails
+    }
 
     // Send email notification for task creation
     try {

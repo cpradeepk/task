@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { updateTask, deleteTask } from '@/lib/db/tasks'
+import { updateTask, deleteTask, getTaskById } from '@/lib/db/tasks'
 import { calculateTotalHours } from '@/lib/dailyHours'
+import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
+import { verifyToken } from '@/lib/auth'
 
 export async function PUT(
   request: NextRequest,
@@ -9,6 +11,11 @@ export async function PUT(
   try {
     const { taskId } = await params
     const updates = await request.json()
+
+    // Get current user for activity logging
+    const token = request.cookies.get('token')?.value
+    const user = token ? verifyToken(token) : null
+    const userId = user?.employeeId || 'system'
 
     // Basic validation for positive numbers
     if (updates.estimatedHours && updates.estimatedHours < 0) {
@@ -26,8 +33,33 @@ export async function PUT(
       }, { status: 400 })
     }
 
+    // Get current task state before updating (for activity logging)
+    const currentTask = await getTaskById(taskId)
+
     // Update task in MySQL
     const task = await updateTask(taskId, updates)
+
+    // Log all changes to activity log
+    if (currentTask) {
+      try {
+        await logEntityChanges('task', taskId, userId, currentTask, updates, {
+          status: 'Status',
+          assignedTo: 'Assigned To',
+          priority: 'Priority',
+          estimatedHours: 'Estimated Hours',
+          actualHours: 'Actual Hours',
+          description: 'Description',
+          startDate: 'Start Date',
+          endDate: 'End Date',
+          selectType: 'Task Type',
+          recursiveType: 'Recursive Type'
+        })
+      } catch (activityError) {
+        console.error('⚠️ Failed to log activity:', activityError)
+        // Don't fail the update if activity logging fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: task,
@@ -48,6 +80,26 @@ export async function DELETE(
 ) {
   try {
     const { taskId } = await params
+
+    // Get current user for activity logging
+    const token = request.cookies.get('token')?.value
+    const user = token ? verifyToken(token) : null
+    const userId = user?.employeeId || 'system'
+
+    // Log deletion activity before deleting
+    try {
+      await createActivityLog({
+        entityType: 'task',
+        entityId: taskId,
+        userId,
+        actionType: 'deleted',
+        description: 'Task deleted',
+        isComment: false
+      })
+    } catch (activityError) {
+      console.error('⚠️ Failed to log deletion activity:', activityError)
+      // Continue with deletion even if logging fails
+    }
 
     // Delete task from MySQL
     await deleteTask(taskId)

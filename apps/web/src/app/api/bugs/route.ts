@@ -4,6 +4,7 @@ import { Bug } from '@/lib/types'
 import { generateBugId } from '@/lib/data'
 import { emailService } from '@/lib/email/service'
 import { getUserByEmployeeId } from '@/lib/db/users'
+import { createActivityLog } from '@/lib/db/activityLog'
 
 export async function GET(request: NextRequest) {
   try {
@@ -108,6 +109,21 @@ export async function POST(request: NextRequest) {
 
     // Add bug to MySQL
     const bug = await createBug(bugToCreate)
+
+    // Log bug creation activity
+    try {
+      await createActivityLog({
+        entityType: 'bug',
+        entityId: bug.bugId,
+        userId: bug.reportedBy,
+        actionType: 'created',
+        description: `Bug created by ${bug.reportedBy}`,
+        isComment: false
+      })
+    } catch (activityError) {
+      console.error('⚠️ Failed to log bug creation activity:', activityError)
+      // Don't fail bug creation if activity logging fails
+    }
 
     // Send email notification for bug creation
     // Don't fail bug creation if email fails

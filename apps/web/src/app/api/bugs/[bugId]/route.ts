@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getBugById, updateBug, deleteBug } from '@/lib/db/bugs'
 import { emailService } from '@/lib/email/service'
 import { getUserByEmployeeId } from '@/lib/db/users'
+import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
+import { verifyToken } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
@@ -54,6 +56,11 @@ export async function PUT(
       }, { status: 400 })
     }
 
+    // Get current user for activity logging
+    const token = request.cookies.get('token')?.value
+    const user = token ? verifyToken(token) : null
+    const userId = user?.employeeId || updates.assignedBy || 'system'
+
     // Get the current bug state before updating
     const currentBug = await getBugById(bugId)
 
@@ -62,6 +69,28 @@ export async function PUT(
 
     // Update the bug
     const bug = await updateBug(bugId, updates)
+
+    // Log all changes to activity log
+    if (currentBug) {
+      try {
+        await logEntityChanges('bug', bugId, userId, currentBug, updates, {
+          status: 'Status',
+          assignedTo: 'Assigned To',
+          priority: 'Priority',
+          severity: 'Severity',
+          estimatedHours: 'Estimated Hours',
+          actualHours: 'Actual Hours',
+          title: 'Title',
+          description: 'Description',
+          category: 'Category',
+          platform: 'Platform',
+          environment: 'Environment'
+        })
+      } catch (activityError) {
+        console.error('⚠️ Failed to log activity:', activityError)
+        // Don't fail the update if activity logging fails
+      }
+    }
 
     // Send email notification if bug is being assigned to someone
     if (isAssignmentChange) {
@@ -129,6 +158,26 @@ export async function DELETE(
         success: false,
         error: 'Bug ID is required'
       }, { status: 400 })
+    }
+
+    // Get current user for activity logging
+    const token = request.cookies.get('token')?.value
+    const user = token ? verifyToken(token) : null
+    const userId = user?.employeeId || 'system'
+
+    // Log deletion activity before deleting
+    try {
+      await createActivityLog({
+        entityType: 'bug',
+        entityId: bugId,
+        userId,
+        actionType: 'deleted',
+        description: 'Bug deleted',
+        isComment: false
+      })
+    } catch (activityError) {
+      console.error('⚠️ Failed to log deletion activity:', activityError)
+      // Continue with deletion even if logging fails
     }
 
     await deleteBug(bugId)

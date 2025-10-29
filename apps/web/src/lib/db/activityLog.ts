@@ -319,7 +319,7 @@ export async function deleteActivityLog(id: number, userId: string): Promise<boo
 /**
  * Helper function to log a field change
  * Automatically creates a formatted description
- * 
+ *
  * @param entityType - Type of entity
  * @param entityId - ID of the entity
  * @param userId - User who made the change
@@ -353,5 +353,90 @@ export async function logFieldChange(
     description,
     isComment: false
   })
+}
+
+/**
+ * Helper function to automatically log all changes between old and new entity states
+ * Compares two objects and logs all field changes
+ *
+ * @param entityType - Type of entity
+ * @param entityId - ID of the entity
+ * @param userId - User who made the changes
+ * @param oldEntity - Previous state of the entity
+ * @param newEntity - New state of the entity (updates object)
+ * @param fieldLabels - Optional mapping of field names to human-readable labels
+ *
+ * @example
+ * await logEntityChanges('task', 'JSR-001', 'AM-0001', currentTask, updates, {
+ *   status: 'Status',
+ *   assignedTo: 'Assigned To',
+ *   priority: 'Priority'
+ * })
+ */
+export async function logEntityChanges(
+  entityType: 'task' | 'bug' | 'leave' | 'wfh',
+  entityId: string,
+  userId: string,
+  oldEntity: Record<string, any>,
+  newEntity: Record<string, any>,
+  fieldLabels?: Record<string, string>
+): Promise<ActivityLog[]> {
+  const changes: ActivityLog[] = []
+
+  // Fields to ignore (internal/system fields)
+  const ignoreFields = ['id', 'createdAt', 'updatedAt', 'created_at', 'updated_at']
+
+  // Iterate through new entity fields
+  for (const [key, newValue] of Object.entries(newEntity)) {
+    // Skip ignored fields
+    if (ignoreFields.includes(key)) continue
+
+    // Skip if value hasn't changed
+    const oldValue = oldEntity[key]
+    if (oldValue === newValue) continue
+
+    // Skip if both are null/undefined
+    if ((oldValue === null || oldValue === undefined) && (newValue === null || newValue === undefined)) continue
+
+    // Get human-readable label
+    const label = fieldLabels?.[key] || key
+
+    // Determine action type
+    let actionType = 'field_update'
+    if (key === 'status') actionType = 'status_change'
+    else if (key === 'assignedTo' || key === 'assigned_to') actionType = 'assignment_change'
+    else if (key === 'priority') actionType = 'priority_change'
+    else if (key === 'estimatedHours' || key === 'estimated_hours') actionType = 'estimated_hours_change'
+    else if (key === 'actualHours' || key === 'actual_hours') actionType = 'time_logged'
+
+    // Format values for display
+    const oldValueStr = oldValue !== null && oldValue !== undefined ? String(oldValue) : null
+    const newValueStr = newValue !== null && newValue !== undefined ? String(newValue) : null
+
+    // Create description
+    const description = oldValueStr
+      ? `${label} changed from "${oldValueStr}" to "${newValueStr}"`
+      : `${label} set to "${newValueStr}"`
+
+    try {
+      const activity = await createActivityLog({
+        entityType,
+        entityId,
+        userId,
+        actionType,
+        fieldName: key,
+        oldValue: oldValueStr || undefined,
+        newValue: newValueStr || undefined,
+        description,
+        isComment: false
+      })
+      changes.push(activity)
+    } catch (error) {
+      console.error(`Failed to log change for field ${key}:`, error)
+      // Continue logging other changes even if one fails
+    }
+  }
+
+  return changes
 }
 
