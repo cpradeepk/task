@@ -86,6 +86,8 @@ export default function UnifiedWorkItemsList({
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingStatusId, setEditingStatusId] = useState<string | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   const currentUser = getCurrentUser()
   const { settings, isLoading: isLoadingSettings } = useSettings()
@@ -97,6 +99,86 @@ export default function UnifiedWorkItemsList({
   // Get status options from settings context
   const taskStatusOptions = settings?.task_status || []
   const bugStatusOptions = settings?.bug_status || []
+
+  // Handler for task status change
+  const handleTaskStatusChange = async (taskId: string, newStatus: string) => {
+    setIsUpdating(true)
+    try {
+      const updates: Partial<Task> = {
+        status: newStatus as Task['status'],
+        updatedAt: new Date().toISOString()
+      }
+
+      // Update backend via API - activity log will automatically track the status change
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update task status')
+      }
+
+      // Trigger refresh if callback provided
+      if (onTaskUpdate) {
+        onTaskUpdate()
+      }
+
+      setEditingStatusId(null)
+    } catch (error) {
+      console.error('Failed to update task status:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  // Handler for bug status change
+  const handleBugStatusChange = async (bugId: string, newStatus: Bug['status']) => {
+    setIsUpdating(true)
+    try {
+      const updates: Partial<Bug> = {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      }
+
+      // If marking as resolved, set resolved date
+      if (newStatus === 'Resolved') {
+        updates.resolvedDate = new Date().toISOString()
+      }
+
+      // If marking as closed, set closed date
+      if (newStatus === 'Closed') {
+        updates.closedDate = new Date().toISOString()
+      }
+
+      // Update backend via API - activity log will automatically track the status change
+      const response = await fetch(`/api/bugs/${bugId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update bug status')
+      }
+
+      // Trigger refresh if callback provided
+      if (onTaskUpdate) {
+        onTaskUpdate()
+      }
+
+      setEditingStatusId(null)
+    } catch (error) {
+      console.error('Failed to update bug status:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   // Combine tasks and bugs into unified list
   const workItems = [
@@ -246,9 +328,39 @@ export default function UnifiedWorkItemsList({
                           </span>
                         )}
 
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                          {task.status}
-                        </span>
+                        {/* Task Status - Inline Dropdown */}
+                        {allowEdit && (isOwner || isSupporter) ? (
+                          <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+                            {editingStatusId === `task-${task.taskId}` ? (
+                              <select
+                                value={task.status}
+                                onChange={(e) => handleTaskStatusChange(task.taskId, e.target.value)}
+                                onBlur={() => setEditingStatusId(null)}
+                                autoFocus
+                                disabled={isUpdating}
+                                className={`px-2 py-1 rounded-full text-xs font-medium border-2 border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(task.status)}`}
+                              >
+                                {taskStatusOptions.map((status) => (
+                                  <option key={status} value={status}>
+                                    {status}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <button
+                                onClick={() => setEditingStatusId(`task-${task.taskId}`)}
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)} hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer`}
+                              >
+                                {task.status}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                            {task.status}
+                          </span>
+                        )}
+
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
                           {task.priority}
                         </span>
@@ -368,14 +480,55 @@ export default function UnifiedWorkItemsList({
                           {bug.severity === 'Minor' && '🟡 '}
                           {bug.severity}
                         </span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBugStatusColor(bug.status)}`}>
-                          {bug.status === 'New' && '🆕 '}
-                          {bug.status === 'In Progress' && '⏳ '}
-                          {bug.status === 'Resolved' && '✅ '}
-                          {bug.status === 'Closed' && '🔒 '}
-                          {bug.status === 'Reopened' && '🔄 '}
-                          {bug.status}
-                        </span>
+
+                        {/* Bug Status - Inline Dropdown */}
+                        {allowEdit ? (
+                          <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+                            {editingStatusId === `bug-${bug.bugId}` ? (
+                              <select
+                                value={bug.status}
+                                onChange={(e) => handleBugStatusChange(bug.bugId, e.target.value as Bug['status'])}
+                                onBlur={() => setEditingStatusId(null)}
+                                autoFocus
+                                disabled={isUpdating}
+                                className={`px-2 py-1 rounded-full text-xs font-medium border-2 border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${getBugStatusColor(bug.status)}`}
+                              >
+                                {bugStatusOptions.map((status) => (
+                                  <option key={status} value={status}>
+                                    {status === 'New' && '🆕 '}
+                                    {status === 'In Progress' && '⏳ '}
+                                    {status === 'Resolved' && '✅ '}
+                                    {status === 'Closed' && '🔒 '}
+                                    {status === 'Reopened' && '🔄 '}
+                                    {status}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <button
+                                onClick={() => setEditingStatusId(`bug-${bug.bugId}`)}
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${getBugStatusColor(bug.status)} hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer`}
+                              >
+                                {bug.status === 'New' && '🆕 '}
+                                {bug.status === 'In Progress' && '⏳ '}
+                                {bug.status === 'Resolved' && '✅ '}
+                                {bug.status === 'Closed' && '🔒 '}
+                                {bug.status === 'Reopened' && '🔄 '}
+                                {bug.status}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBugStatusColor(bug.status)}`}>
+                            {bug.status === 'New' && '🆕 '}
+                            {bug.status === 'In Progress' && '⏳ '}
+                            {bug.status === 'Resolved' && '✅ '}
+                            {bug.status === 'Closed' && '🔒 '}
+                            {bug.status === 'Reopened' && '🔄 '}
+                            {bug.status}
+                          </span>
+                        )}
+
                         <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                           {bug.priority}
                         </span>
