@@ -43,7 +43,8 @@ export default function UnifiedTimeline({
     try {
       setError(null)
       const response = await fetch(
-        `/api/activity-log?entityType=${entityType}&entityId=${entityId}&sortOrder=${sortOrder}`
+        `/api/activity-log?entityType=${entityType}&entityId=${entityId}&sortOrder=${sortOrder}`,
+        { credentials: 'include' }
       )
       const data = await response.json()
 
@@ -79,7 +80,7 @@ export default function UnifiedTimeline({
   // Submit comment
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!commentText.trim()) return
 
     setIsSubmitting(true)
@@ -87,6 +88,7 @@ export default function UnifiedTimeline({
       const response = await fetch('/api/activity-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           entityType,
           entityId,

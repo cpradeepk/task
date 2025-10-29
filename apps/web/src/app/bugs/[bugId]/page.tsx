@@ -13,6 +13,7 @@ import { getCurrentUser, getAllUsers } from '@/lib/auth'
 import { Bug, User } from '@/lib/types'
 import { getBugById, updateBug, canEditBug, canCommentOnBug } from '@/lib/bugService'
 import UnifiedTimeline from '@/components/UnifiedTimeline'
+import BugEditModal from '@/components/bugs/BugEditModal'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import ImageLightbox from '@/components/bugs/ImageLightbox'
@@ -84,6 +85,9 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [showLightbox, setShowLightbox] = useState(false)
   const [lightboxImages, setLightboxImages] = useState<string[]>([])
   const [lightboxIndex, setLightboxIndex] = useState(0)
+
+  // Edit modal state
+  const [bugEditModalOpen, setBugEditModalOpen] = useState(false)
 
   const hasLoadedData = useRef(false)
   const router = useRouter()
@@ -439,9 +443,12 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             {/* Bug Details */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-3 mb-4">
-                <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                <button
+                  onClick={() => setBugEditModalOpen(true)}
+                  className="font-mono text-sm bg-gray-100 px-2 py-1 rounded hover:bg-primary hover:text-white transition-colors cursor-pointer"
+                >
                   {bug.bugId}
-                </span>
+                </button>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(bug.severity)}`}>
                   {bug.severity}
                 </span>
@@ -482,7 +489,12 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 )}
               </div>
 
-              <h2 className="text-xl font-semibold text-black mb-4">{bug.title}</h2>
+              <button
+                onClick={() => setBugEditModalOpen(true)}
+                className="text-xl font-semibold text-black mb-4 hover:text-primary transition-colors cursor-pointer text-left w-full"
+              >
+                {bug.title}
+              </button>
 
               <div className="space-y-4">
                 <div>
@@ -976,6 +988,18 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             onNavigate={setLightboxIndex}
           />
         )}
+
+        {/* Bug Edit Modal */}
+        <BugEditModal
+          bug={bug}
+          isOpen={bugEditModalOpen}
+          onClose={() => setBugEditModalOpen(false)}
+          onUpdate={() => {
+            setBugEditModalOpen(false)
+            // Reload bug data
+            loadBugData()
+          }}
+        />
       </div>
     </div>
   )

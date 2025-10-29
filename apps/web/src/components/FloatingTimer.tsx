@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Play, Pause, Square, X, Minimize2, Maximize2, Clock } from 'lucide-react'
+import { Play, Pause, Square } from 'lucide-react'
 
 interface TimerSession {
   startTime: number
@@ -27,10 +27,6 @@ interface FloatingTimerProps {
 export default function FloatingTimer({ onClose }: FloatingTimerProps) {
   const [timerData, setTimerData] = useState<TimerData | null>(null)
   const [currentTime, setCurrentTime] = useState(0)
-  const [isMinimized, setIsMinimized] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [position, setPosition] = useState({ x: 20, y: 20 })
-  const dragRef = useRef({ startX: 0, startY: 0 })
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const tickIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -103,6 +99,7 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
       const response = await fetch('/api/time-tracking/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           entityType: timerData.entityType,
           entityId: timerData.entityId,
@@ -183,6 +180,7 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
       await fetch('/api/activity-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           entityType: timerData.entityType,
           entityId: timerData.entityId,
@@ -210,139 +208,51 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
     const minutes = Math.floor((totalSeconds % 3600) / 60)
     const seconds = totalSeconds % 60
 
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${seconds}s`
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s`
-    } else {
-      return `${seconds}s`
-    }
+    // Always show HH:MM:SS format
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
   }
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true)
-    dragRef.current = {
-      startX: e.clientX - position.x,
-      startY: e.clientY - position.y
-    }
-  }
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      setPosition({
-        x: e.clientX - dragRef.current.startX,
-        y: e.clientY - dragRef.current.startY
-      })
-    }
-  }
-
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
-
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('mouseup', handleMouseUp)
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove)
-        window.removeEventListener('mouseup', handleMouseUp)
-      }
-    }
-  }, [isDragging])
 
   if (!timerData) return null
 
   return (
     <div
-      className="fixed z-50 bg-white rounded-lg shadow-2xl border-2 border-blue-500"
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        width: isMinimized ? '200px' : '320px',
-        cursor: isDragging ? 'grabbing' : 'default'
-      }}
+      className="fixed bottom-4 right-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-3 py-2"
+      style={{ minWidth: '140px' }}
     >
-      {/* Header */}
-      <div
-        className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-t-lg cursor-grab active:cursor-grabbing flex items-center justify-between"
-        onMouseDown={handleMouseDown}
-      >
-        <div className="flex items-center space-x-2">
-          <Clock className="h-4 w-4" />
-          <span className="font-semibold text-sm">Timer</span>
+      {/* Timer Display */}
+      <div className="flex items-center justify-between space-x-2">
+        <div className="text-sm font-mono font-semibold text-gray-900">
+          {formatTime(currentTime)}
         </div>
+
+        {/* Control Buttons */}
         <div className="flex items-center space-x-1">
-          <button
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="hover:bg-blue-700 rounded p-1 transition-colors"
-          >
-            {isMinimized ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
-          </button>
+          {timerData.state === 'running' ? (
+            <button
+              onClick={handlePause}
+              className="w-7 h-7 flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-white rounded-full transition-colors"
+              title="Pause"
+            >
+              <Pause className="h-3.5 w-3.5" />
+            </button>
+          ) : (
+            <button
+              onClick={handleStart}
+              className="w-7 h-7 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors"
+              title="Start"
+            >
+              <Play className="h-3.5 w-3.5" />
+            </button>
+          )}
           <button
             onClick={handleStop}
-            className="hover:bg-blue-700 rounded p-1 transition-colors"
+            className="w-7 h-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
+            title="Stop"
           >
-            <X className="h-3 w-3" />
+            <Square className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
-
-      {/* Content */}
-      {!isMinimized && (
-        <div className="p-4">
-          <div className="mb-3">
-            <div className="text-xs text-gray-500 mb-1">
-              {timerData.entityType === 'task' ? 'Task' : 'Bug'}
-            </div>
-            <div className="font-medium text-sm text-gray-900 truncate">
-              {timerData.entityTitle}
-            </div>
-          </div>
-
-          <div className="text-center mb-4">
-            <div className="text-3xl font-mono font-bold text-gray-900">
-              {formatTime(currentTime)}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center space-x-2">
-            {timerData.state === 'running' ? (
-              <button
-                onClick={handlePause}
-                className="flex items-center space-x-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
-              >
-                <Pause className="h-4 w-4" />
-                <span>Pause</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleStart}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
-              >
-                <Play className="h-4 w-4" />
-                <span>Start</span>
-              </button>
-            )}
-            <button
-              onClick={handleStop}
-              className="flex items-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-            >
-              <Square className="h-4 w-4" />
-              <span>Stop</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Minimized view */}
-      {isMinimized && (
-        <div className="p-2 text-center">
-          <div className="text-lg font-mono font-bold text-gray-900">
-            {formatTime(currentTime)}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

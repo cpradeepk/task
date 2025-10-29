@@ -10,6 +10,8 @@ import {
   Bug as BugIcon, CheckSquare, Tag, FileText, AlertTriangle
 } from 'lucide-react'
 import TaskUpdateModal from '@/components/tasks/TaskUpdateModal'
+import TaskEditModal from '@/components/tasks/TaskEditModal'
+import BugEditModal from '@/components/bugs/BugEditModal'
 import SupportTaskBadge from '@/components/tasks/SupportTaskBadge'
 import SubTaskManager from '@/components/subtasks/SubTaskManager'
 import TimerButton from '@/components/TimerButton'
@@ -88,6 +90,10 @@ export default function UnifiedWorkItemsList({
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [taskEditModalOpen, setTaskEditModalOpen] = useState(false)
+  const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<Task | null>(null)
+  const [bugEditModalOpen, setBugEditModalOpen] = useState(false)
+  const [selectedBugForEdit, setSelectedBugForEdit] = useState<Bug | null>(null)
 
   const currentUser = getCurrentUser()
   const { settings, isLoading: isLoadingSettings } = useSettings()
@@ -115,6 +121,7 @@ export default function UnifiedWorkItemsList({
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updates),
       })
 
@@ -160,6 +167,7 @@ export default function UnifiedWorkItemsList({
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updates),
       })
 
@@ -311,9 +319,15 @@ export default function UnifiedWorkItemsList({
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <CheckSquare className="h-4 w-4 text-primary" />
-                        <span className="font-mono text-sm text-primary font-medium">
+                        <button
+                          onClick={() => {
+                            setSelectedTaskForEdit(task)
+                            setTaskEditModalOpen(true)
+                          }}
+                          className="font-mono text-sm text-primary font-medium hover:underline cursor-pointer"
+                        >
                           {task.taskId}
-                        </span>
+                        </button>
 
                         {isOwner && (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-200 text-primary-800">
@@ -334,11 +348,14 @@ export default function UnifiedWorkItemsList({
                             {editingStatusId === `task-${task.taskId}` ? (
                               <select
                                 value={task.status}
-                                onChange={(e) => handleTaskStatusChange(task.taskId, e.target.value)}
+                                onChange={(e) => {
+                                  handleTaskStatusChange(task.taskId, e.target.value)
+                                  setEditingStatusId(null)
+                                }}
                                 onBlur={() => setEditingStatusId(null)}
                                 autoFocus
                                 disabled={isUpdating}
-                                className={`px-2 py-1 rounded-full text-xs font-medium border-2 border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(task.status)}`}
+                                className={`px-2 py-1 rounded-lg text-xs font-medium border-2 border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(task.status)}`}
                               >
                                 {taskStatusOptions.map((status) => (
                                   <option key={status} value={status}>
@@ -349,14 +366,14 @@ export default function UnifiedWorkItemsList({
                             ) : (
                               <button
                                 onClick={() => setEditingStatusId(`task-${task.taskId}`)}
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)} hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer`}
+                                className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(task.status)} hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer`}
                               >
                                 {task.status}
                               </button>
                             )}
                           </div>
                         ) : (
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(task.status)}`}>
                             {task.status}
                           </span>
                         )}
@@ -377,9 +394,15 @@ export default function UnifiedWorkItemsList({
                         />
                       </div>
 
-                      <h4 className="font-medium text-black mb-2 text-sm sm:text-base break-words">
+                      <button
+                        onClick={() => {
+                          setSelectedTaskForEdit(task)
+                          setTaskEditModalOpen(true)
+                        }}
+                        className="font-medium text-black mb-2 text-sm sm:text-base break-words hover:text-primary transition-colors text-left w-full"
+                      >
                         {task.description}
-                      </h4>
+                      </button>
 
                       <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
                         {showAssignee && (
@@ -440,19 +463,6 @@ export default function UnifiedWorkItemsList({
                         entityTitle={task.description}
                         size="md"
                       />
-
-                      {allowEdit && (
-                        <button
-                          onClick={() => {
-                            setSelectedTask(task)
-                            setIsModalOpen(true)
-                          }}
-                          className="p-2 text-primary hover:bg-primary-50 rounded-lg transition-colors flex-shrink-0"
-                          title="Update task"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -470,9 +480,15 @@ export default function UnifiedWorkItemsList({
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <BugIcon className="h-4 w-4 text-red-600" />
-                        <span className="font-mono text-sm text-primary font-medium">
+                        <button
+                          onClick={() => {
+                            setSelectedBugForEdit(bug)
+                            setBugEditModalOpen(true)
+                          }}
+                          className="font-mono text-sm text-primary font-medium hover:underline cursor-pointer"
+                        >
                           {bug.bugId}
-                        </span>
+                        </button>
 
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBugSeverityColor(bug.severity)}`}>
                           {bug.severity === 'Critical' && '🔴 '}
@@ -487,11 +503,14 @@ export default function UnifiedWorkItemsList({
                             {editingStatusId === `bug-${bug.bugId}` ? (
                               <select
                                 value={bug.status}
-                                onChange={(e) => handleBugStatusChange(bug.bugId, e.target.value as Bug['status'])}
+                                onChange={(e) => {
+                                  handleBugStatusChange(bug.bugId, e.target.value as Bug['status'])
+                                  setEditingStatusId(null)
+                                }}
                                 onBlur={() => setEditingStatusId(null)}
                                 autoFocus
                                 disabled={isUpdating}
-                                className={`px-2 py-1 rounded-full text-xs font-medium border-2 border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${getBugStatusColor(bug.status)}`}
+                                className={`px-2 py-1 rounded-lg text-xs font-medium border-2 border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${getBugStatusColor(bug.status)}`}
                               >
                                 {bugStatusOptions.map((status) => (
                                   <option key={status} value={status}>
@@ -507,7 +526,7 @@ export default function UnifiedWorkItemsList({
                             ) : (
                               <button
                                 onClick={() => setEditingStatusId(`bug-${bug.bugId}`)}
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${getBugStatusColor(bug.status)} hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer`}
+                                className={`px-2 py-1 rounded-lg text-xs font-medium ${getBugStatusColor(bug.status)} hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer`}
                               >
                                 {bug.status === 'New' && '🆕 '}
                                 {bug.status === 'In Progress' && '⏳ '}
@@ -519,7 +538,7 @@ export default function UnifiedWorkItemsList({
                             )}
                           </div>
                         ) : (
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBugStatusColor(bug.status)}`}>
+                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getBugStatusColor(bug.status)}`}>
                             {bug.status === 'New' && '🆕 '}
                             {bug.status === 'In Progress' && '⏳ '}
                             {bug.status === 'Resolved' && '✅ '}
@@ -534,9 +553,15 @@ export default function UnifiedWorkItemsList({
                         </span>
                       </div>
 
-                      <h4 className="font-medium text-black mb-1 text-sm sm:text-base break-words">
+                      <button
+                        onClick={() => {
+                          setSelectedBugForEdit(bug)
+                          setBugEditModalOpen(true)
+                        }}
+                        className="font-medium text-black mb-1 text-sm sm:text-base break-words hover:text-primary transition-colors text-left w-full"
+                      >
                         {bug.title}
-                      </h4>
+                      </button>
 
                       {bug.description && (
                         <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2 break-words">
@@ -611,6 +636,40 @@ export default function UnifiedWorkItemsList({
           }}
         />
       )}
+
+      {/* Task Edit Modal */}
+      <TaskEditModal
+        task={selectedTaskForEdit}
+        isOpen={taskEditModalOpen}
+        onClose={() => {
+          setTaskEditModalOpen(false)
+          setSelectedTaskForEdit(null)
+        }}
+        onUpdate={() => {
+          setTaskEditModalOpen(false)
+          setSelectedTaskForEdit(null)
+          if (onTaskUpdate) {
+            onTaskUpdate()
+          }
+        }}
+      />
+
+      {/* Bug Edit Modal */}
+      <BugEditModal
+        bug={selectedBugForEdit}
+        isOpen={bugEditModalOpen}
+        onClose={() => {
+          setBugEditModalOpen(false)
+          setSelectedBugForEdit(null)
+        }}
+        onUpdate={() => {
+          setBugEditModalOpen(false)
+          setSelectedBugForEdit(null)
+          if (onTaskUpdate) {
+            onTaskUpdate()
+          }
+        }}
+      />
     </div>
   )
 }

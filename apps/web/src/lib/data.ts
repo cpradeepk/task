@@ -94,7 +94,7 @@ export function getStatusColor(status: string): string {
     'Yet to Start': 'bg-gray-100 text-black border border-gray-300',
     'In Progress': 'bg-primary-100 text-black border border-primary-300',
     'Delayed': 'bg-red-100 text-red-800 border border-red-300',
-    'Done': 'bg-primary text-black border border-primary-600',
+    'Done': 'bg-green-100 text-green-800 border border-green-300',
     'Cancel': 'bg-gray-100 text-black border border-gray-300',
     'Hold': 'bg-gray-200 text-black border border-gray-400',
     'ReOpened': 'bg-primary-200 text-black border border-primary-400',
