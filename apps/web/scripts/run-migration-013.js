@@ -15,11 +15,13 @@ const fs = require('fs')
 const path = require('path')
 
 // Database configuration from environment variables
+// Support both DB_* and MYSQL_* prefixes
 const DB_CONFIG = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'jsr_db',
+  host: process.env.DB_HOST || process.env.MYSQL_HOST || 'localhost',
+  port: process.env.DB_PORT || process.env.MYSQL_PORT || 3306,
+  user: process.env.DB_USER || process.env.MYSQL_USER || 'root',
+  password: process.env.DB_PASSWORD || process.env.MYSQL_PASSWORD || '',
+  database: process.env.DB_NAME || process.env.MYSQL_DATABASE || 'jsr_db',
   multipleStatements: true
 }
 
