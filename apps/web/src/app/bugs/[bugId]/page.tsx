@@ -10,8 +10,9 @@ import React, { useState, useEffect, use, useCallback, useMemo, useRef } from 'r
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
-import { Bug, BugComment, User } from '@/lib/types'
-import { getBugById, updateBug, getBugComments, addBugComment, canEditBug, canCommentOnBug } from '@/lib/bugService'
+import { Bug, User } from '@/lib/types'
+import { getBugById, updateBug, canEditBug, canCommentOnBug } from '@/lib/bugService'
+import UnifiedTimeline from '@/components/UnifiedTimeline'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import ImageLightbox from '@/components/bugs/ImageLightbox'
@@ -59,13 +60,9 @@ function UserName({ employeeId }: { employeeId: string }) {
 
 export default function BugDetailPage({ params }: { params: Promise<{ bugId: string }> }) {
   const [bug, setBug] = useState<Bug | null>(null)
-  const [comments, setComments] = useState<BugComment[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingComments, setIsLoadingComments] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
-  const [isAddingComment, setIsAddingComment] = useState(false)
-  const [newComment, setNewComment] = useState('')
   const [isHydrated, setIsHydrated] = useState(false)
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [selectedAssignee, setSelectedAssignee] = useState('')
@@ -138,16 +135,9 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
       setBug(bugData)
       setEditData(bugData)
       setIsLoading(false) // Set loading false immediately after bug data loads
-
-      // Load comments separately to avoid blocking bug display
-      setIsLoadingComments(true)
-      const commentsData = await getBugComments(bugId)
-      setComments(commentsData)
     } catch (error) {
       console.error('Failed to load bug data:', error)
       setIsLoading(false)
-    } finally {
-      setIsLoadingComments(false)
     }
   }, [bugId, router])
 
@@ -258,21 +248,11 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
       setBug({ ...bug, ...updates })
       setShowStatusModal(false)
 
-      // Try to update backend and add comment, but don't fail if it doesn't work
+      // Try to update backend, but don't fail if it doesn't work
+      // Activity log will automatically track the status change
       try {
         await updateBug(bug.bugId, updates)
         console.log('Bug status updated successfully')
-
-        // Add a comment about the status change
-        await addBugComment(
-          bug.bugId,
-          currentUser.employeeId,
-          `Status changed from "${bug.status}" to "${newStatus}"`
-        )
-
-        // Refresh comments
-        const updatedComments = await getBugComments(bug.bugId)
-        setComments(updatedComments)
       } catch (error) {
         console.warn('Backend update failed, but UI updated:', error)
       }
@@ -307,18 +287,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         setBug({ ...bug, ...updates })
         setShowHoursModal(false)
         setHoursWorked('')
-
-        // Add a comment about the hours worked
-        const commentText = workDescription.trim()
-          ? `Worked ${hours} hours: ${workDescription.trim()}`
-          : `Worked ${hours} hours on this bug`
-
-        await addBugComment(bug.bugId, currentUser.employeeId, commentText)
-
-        // Refresh comments
-        const updatedComments = await getBugComments(bug.bugId)
-        setComments(updatedComments)
         setWorkDescription('')
+        // Activity log will automatically track the hours change
       }
     } catch (error) {
       console.error('Failed to add hours:', error)
@@ -348,37 +318,12 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         setBug({ ...bug, ...updates })
         setShowEstimatedHoursModal(false)
         setEstimatedHours('')
-
-        // Add a comment about the estimated hours
-        const commentText = `Updated estimated hours to ${hours} hours`
-        await addBugComment(bug.bugId, currentUser.employeeId, commentText)
-
-        // Refresh comments
-        const updatedComments = await getBugComments(bug.bugId)
-        setComments(updatedComments)
+        // Activity log will automatically track the estimated hours change
       }
     } catch (error) {
       console.error('Failed to update estimated hours:', error)
     } finally {
       setIsUpdating(false)
-    }
-  }
-
-  const handleAddComment = async () => {
-    if (!bug || !currentUser || !newComment.trim()) return
-
-    setIsAddingComment(true)
-    try {
-      const success = await addBugComment(bug.bugId, currentUser.employeeId, newComment.trim())
-      if (success) {
-        const updatedComments = await getBugComments(bug.bugId)
-        setComments(updatedComments)
-        setNewComment('')
-      }
-    } catch (error) {
-      console.error('Failed to add comment:', error)
-    } finally {
-      setIsAddingComment(false)
     }
   }
 
@@ -623,78 +568,20 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </div>
             </div>
 
-            {/* Comments */}
+            {/* Activity Timeline (includes comments and system activities) */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-2 mb-4">
                 <MessageSquare className="h-5 w-5" />
-                <h3 className="text-lg font-semibold">Comments ({comments.length})</h3>
-                {isLoadingComments && <LoadingSpinner size="sm" />}
+                <h3 className="text-lg font-semibold">Activity & Comments</h3>
               </div>
 
-              <div className="space-y-4">
-                {isLoadingComments ? (
-                  <div className="space-y-3">
-                    {[1, 2].map(i => (
-                      <div key={i} className="border-l-4 border-gray-200 pl-4 animate-pulse">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <div className="h-4 w-4 bg-gray-200 rounded"></div>
-                          <div className="h-4 w-24 bg-gray-200 rounded"></div>
-                          <div className="h-4 w-32 bg-gray-200 rounded"></div>
-                        </div>
-                        <div className="h-4 w-full bg-gray-200 rounded mb-2"></div>
-                        <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <>
-                    {comments.map((comment, index) => (
-                      <div key={index} className="border-l-4 border-gray-200 pl-4">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <UserIcon className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium text-gray-900">
-                            <UserName employeeId={comment.commentedBy} />
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            {new Date(comment.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="text-gray-700 whitespace-pre-wrap">{comment.commentText}</p>
-                      </div>
-                    ))}
-
-                    {comments.length === 0 && !isLoadingComments && (
-                      <p className="text-gray-500 text-center py-4">No comments yet</p>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* Add Comment */}
-              {canComment && (
-                <div className="mt-6 pt-4 border-t">
-                  <div className="space-y-3">
-                    <textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Add a comment..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <div className="flex justify-end">
-                      <LoadingButton
-                        onClick={handleAddComment}
-                        isLoading={isAddingComment}
-                        disabled={!newComment.trim()}
-                        className="btn-primary flex items-center space-x-2"
-                      >
-                        <Send className="h-4 w-4" />
-                        <span>Add Comment</span>
-                      </LoadingButton>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <UnifiedTimeline
+                entityType="bug"
+                entityId={bugId}
+                showCommentInput={canComment}
+                sortOrder="desc"
+                autoRefresh={false}
+              />
             </div>
           </div>
 
