@@ -270,12 +270,12 @@ export async function resetWarningCount(employeeId: string): Promise<User> {
   })
 }
 
-// Authenticate user
-export async function authenticateUser(email: string, password: string): Promise<User | null> {
+// Authenticate user by employee ID
+export async function authenticateUser(employeeId: string, password: string): Promise<User | null> {
   return withRetry(async () => {
     const row = await queryOne<UserRow>(
-      'SELECT * FROM users WHERE email = ? AND password = ? AND status = ?',
-      [email, password, 'active']
+      'SELECT * FROM users WHERE employee_id = ? AND password = ? AND status = ?',
+      [employeeId, password, 'active']
     )
     return row ? rowToUser(row) : null
   })
