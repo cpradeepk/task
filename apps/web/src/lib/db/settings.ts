@@ -1,13 +1,70 @@
 /**
  * Settings Database Service
- * Handles CRUD operations for configurable dropdown settings
+ * Handles CRUD operations for key-value JSON settings
+ *
+ * NEW STRUCTURE (Migration 015):
+ * - One row per setting key
+ * - JSON values for flexibility (arrays, objects, primitives)
+ * - No ENUM restrictions on keys
+ *
+ * Example:
+ * {
+ *   key: 'departments',
+ *   value: ["Frontend - iOS", "Frontend - Android", "Backend - Node js"],
+ *   description: 'Department options for user assignment'
+ * }
  */
 
 import { query } from './index'
+import { RowDataPacket } from 'mysql2'
+
+/**
+ * Setting interface for the new key-value JSON structure
+ */
+export interface Setting {
+  id: number
+  key: string
+  value: any // JSON value (can be array, object, string, number, boolean)
+  description: string | null
+  metadata: any | null // JSON metadata (validation rules, UI hints, etc.)
+  isActive: boolean
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * Data for creating a new setting
+ */
+export interface CreateSettingData {
+  key: string
+  value: any // Will be JSON stringified
+  description?: string
+  metadata?: any // Will be JSON stringified
+  createdBy: string
+}
+
+/**
+ * Data for updating an existing setting
+ */
+export interface UpdateSettingData {
+  value?: any // Will be JSON stringified
+  description?: string
+  metadata?: any // Will be JSON stringified
+  isActive?: boolean
+}
+
+// ============================================================================
+// LEGACY TYPES (for backward compatibility during migration)
+// ============================================================================
 
 export type SettingType = 'department' | 'severity' | 'priority' | 'category' | 'platform' | 'task_priority' | 'task_status' | 'bug_status' | 'bug_type'
 
-export interface Setting {
+/**
+ * Legacy setting interface (OLD structure)
+ * @deprecated Use Setting interface instead
+ */
+export interface LegacySetting {
   id: number
   settingType: SettingType
   settingValue: string
@@ -18,18 +75,9 @@ export interface Setting {
   updatedAt: string
 }
 
-export interface CreateSettingData {
-  settingType: SettingType
-  settingValue: string
-  displayOrder?: number
-  createdBy: string
-}
-
-export interface UpdateSettingData {
-  settingValue?: string
-  displayOrder?: number
-  isActive?: boolean
-}
+// ============================================================================
+// NEW API (Key-Value JSON Structure)
+// ============================================================================
 
 /**
  * Get a single setting by ID
@@ -39,9 +87,10 @@ export async function getSettingById(id: number): Promise<Setting | null> {
     const sql = `
       SELECT
         id,
-        setting_type as settingType,
-        setting_value as settingValue,
-        display_order as displayOrder,
+        \`key\`,
+        value,
+        description,
+        metadata,
         is_active as isActive,
         created_by as createdBy,
         created_at as createdAt,
@@ -50,8 +99,24 @@ export async function getSettingById(id: number): Promise<Setting | null> {
       WHERE id = ?
     `
 
-    const results = await query<Setting[]>(sql, [id])
-    return results.length > 0 ? results[0] : null
+    const results = await query<RowDataPacket[]>(sql, [id])
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const row = results[0]
+    return {
+      id: row.id,
+      key: row.key,
+      value: typeof row.value === 'string' ? JSON.parse(row.value) : row.value,
+      description: row.description,
+      metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null,
+      isActive: Boolean(row.isActive),
+      createdBy: row.createdBy,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
+    }
   } catch (error) {
     console.error('Error fetching setting by ID:', error)
     throw new Error('Failed to fetch setting')
@@ -59,19 +124,77 @@ export async function getSettingById(id: number): Promise<Setting | null> {
 }
 
 /**
- * Get all settings, optionally filtered by type and active status
+ * Get a single setting by key
  */
-export async function getSettings(
-  settingType?: SettingType,
-  activeOnly: boolean = true
-): Promise<Setting[]> {
+export async function getSettingByKey(key: string): Promise<Setting | null> {
+  try {
+    const sql = `
+      SELECT
+        id,
+        \`key\`,
+        value,
+        description,
+        metadata,
+        is_active as isActive,
+        created_by as createdBy,
+        created_at as createdAt,
+        updated_at as updatedAt
+      FROM settings
+      WHERE \`key\` = ? AND is_active = TRUE
+    `
+
+    const results = await query<RowDataPacket[]>(sql, [key])
+
+    if (results.length === 0) {
+      return null
+    }
+
+    const row = results[0]
+    return {
+      id: row.id,
+      key: row.key,
+      value: typeof row.value === 'string' ? JSON.parse(row.value) : row.value,
+      description: row.description,
+      metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null,
+      isActive: Boolean(row.isActive),
+      createdBy: row.createdBy,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
+    }
+  } catch (error) {
+    console.error('Error fetching setting by key:', error)
+    throw new Error('Failed to fetch setting')
+  }
+}
+
+/**
+ * Get setting value by key (returns just the value, not the full setting object)
+ */
+export async function getSettingValue<T = any>(key: string, defaultValue?: T): Promise<T> {
+  try {
+    const setting = await getSettingByKey(key)
+    return setting ? setting.value as T : (defaultValue as T)
+  } catch (error) {
+    console.error(`Error fetching setting value for key "${key}":`, error)
+    if (defaultValue !== undefined) {
+      return defaultValue
+    }
+    throw new Error(`Failed to fetch setting value for key "${key}"`)
+  }
+}
+
+/**
+ * Get all settings, optionally filtered by active status
+ */
+export async function getAllSettings(activeOnly: boolean = true): Promise<Setting[]> {
   try {
     let sql = `
       SELECT
         id,
-        setting_type as settingType,
-        setting_value as settingValue,
-        display_order as displayOrder,
+        \`key\`,
+        value,
+        description,
+        metadata,
         is_active as isActive,
         created_by as createdBy,
         created_at as createdAt,
@@ -81,19 +204,25 @@ export async function getSettings(
     `
     const params: any[] = []
 
-    if (settingType) {
-      sql += ' AND setting_type = ?'
-      params.push(settingType)
-    }
-
     if (activeOnly) {
       sql += ' AND is_active = TRUE'
     }
 
-    sql += ' ORDER BY setting_type, display_order, setting_value'
+    sql += ' ORDER BY \`key\`'
 
-    const results = await query(sql, params)
-    return results as Setting[]
+    const results = await query<RowDataPacket[]>(sql, params)
+
+    return results.map(row => ({
+      id: row.id,
+      key: row.key,
+      value: typeof row.value === 'string' ? JSON.parse(row.value) : row.value,
+      description: row.description,
+      metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null,
+      isActive: Boolean(row.isActive),
+      createdBy: row.createdBy,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
+    }))
   } catch (error) {
     console.error('Error fetching settings:', error)
     throw new Error('Failed to fetch settings')
@@ -101,25 +230,67 @@ export async function getSettings(
 }
 
 /**
- * Get settings grouped by type (for dropdown population)
+ * Get multiple settings by keys
  */
-export async function getSettingsByType(): Promise<Record<SettingType, string[]>> {
+export async function getSettingsByKeys(keys: string[]): Promise<Record<string, any>> {
   try {
-    const settings = await getSettings(undefined, true)
-    
-    const grouped: Record<string, string[]> = {}
-    
-    settings.forEach(setting => {
-      if (!grouped[setting.settingType]) {
-        grouped[setting.settingType] = []
-      }
-      grouped[setting.settingType].push(setting.settingValue)
+    if (keys.length === 0) {
+      return {}
+    }
+
+    const placeholders = keys.map(() => '?').join(',')
+    const sql = `
+      SELECT
+        \`key\`,
+        value
+      FROM settings
+      WHERE \`key\` IN (${placeholders}) AND is_active = TRUE
+    `
+
+    const results = await query<RowDataPacket[]>(sql, keys)
+
+    const settings: Record<string, any> = {}
+    results.forEach(row => {
+      settings[row.key] = typeof row.value === 'string' ? JSON.parse(row.value) : row.value
     })
-    
-    return grouped as Record<SettingType, string[]>
+
+    return settings
   } catch (error) {
-    console.error('Error fetching settings by type:', error)
-    throw new Error('Failed to fetch settings by type')
+    console.error('Error fetching settings by keys:', error)
+    throw new Error('Failed to fetch settings by keys')
+  }
+}
+
+/**
+ * Get settings for dropdowns (backward compatibility helper)
+ * Returns settings that are arrays (typically used for dropdowns)
+ */
+export async function getDropdownSettings(): Promise<Record<string, string[]>> {
+  try {
+    const sql = `
+      SELECT
+        \`key\`,
+        value
+      FROM settings
+      WHERE is_active = TRUE
+        AND JSON_TYPE(value) = 'ARRAY'
+      ORDER BY \`key\`
+    `
+
+    const results = await query<RowDataPacket[]>(sql)
+
+    const dropdowns: Record<string, string[]> = {}
+    results.forEach(row => {
+      const value = typeof row.value === 'string' ? JSON.parse(row.value) : row.value
+      if (Array.isArray(value)) {
+        dropdowns[row.key] = value
+      }
+    })
+
+    return dropdowns
+  } catch (error) {
+    console.error('Error fetching dropdown settings:', error)
+    throw new Error('Failed to fetch dropdown settings')
   }
 }
 
@@ -130,38 +301,41 @@ export async function createSetting(data: CreateSettingData): Promise<Setting> {
   try {
     const sql = `
       INSERT INTO settings (
-        setting_type,
-        setting_value,
-        display_order,
+        \`key\`,
+        value,
+        description,
+        metadata,
         created_by
-      ) VALUES (?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?)
     `
-    
-    const displayOrder = data.displayOrder ?? 0
-    
+
+    const valueJson = JSON.stringify(data.value)
+    const metadataJson = data.metadata ? JSON.stringify(data.metadata) : null
+
     const result = await query(sql, [
-      data.settingType,
-      data.settingValue,
-      displayOrder,
+      data.key,
+      valueJson,
+      data.description || null,
+      metadataJson,
       data.createdBy
     ])
-    
+
     const insertId = (result as any).insertId
     const newSetting = await getSettingById(insertId)
-    
+
     if (!newSetting) {
       throw new Error('Failed to retrieve created setting')
     }
-    
+
     return newSetting
   } catch (error: any) {
     console.error('Error creating setting:', error)
-    
+
     // Check for duplicate entry error
     if (error.code === 'ER_DUP_ENTRY') {
-      throw new Error('A setting with this type and value already exists')
+      throw new Error(`A setting with key "${data.key}" already exists`)
     }
-    
+
     throw new Error('Failed to create setting')
   }
 }
@@ -173,52 +347,72 @@ export async function updateSetting(id: number, data: UpdateSettingData): Promis
   try {
     const updates: string[] = []
     const params: any[] = []
-    
-    if (data.settingValue !== undefined) {
-      updates.push('setting_value = ?')
-      params.push(data.settingValue)
+
+    if (data.value !== undefined) {
+      updates.push('value = ?')
+      params.push(JSON.stringify(data.value))
     }
-    
-    if (data.displayOrder !== undefined) {
-      updates.push('display_order = ?')
-      params.push(data.displayOrder)
+
+    if (data.description !== undefined) {
+      updates.push('description = ?')
+      params.push(data.description)
     }
-    
+
+    if (data.metadata !== undefined) {
+      updates.push('metadata = ?')
+      params.push(data.metadata ? JSON.stringify(data.metadata) : null)
+    }
+
     if (data.isActive !== undefined) {
       updates.push('is_active = ?')
       params.push(data.isActive)
     }
-    
+
     if (updates.length === 0) {
       throw new Error('No fields to update')
     }
-    
+
     params.push(id)
-    
+
     const sql = `
       UPDATE settings
       SET ${updates.join(', ')}
       WHERE id = ?
     `
-    
+
     await query(sql, params)
-    
+
     const updatedSetting = await getSettingById(id)
-    
+
     if (!updatedSetting) {
       throw new Error('Failed to retrieve updated setting')
     }
-    
+
     return updatedSetting
   } catch (error: any) {
     console.error('Error updating setting:', error)
-    
-    // Check for duplicate entry error
-    if (error.code === 'ER_DUP_ENTRY') {
-      throw new Error('A setting with this type and value already exists')
-    }
-    
+
     throw new Error('Failed to update setting')
+  }
+}
+
+/**
+ * Update setting by key
+ */
+export async function updateSettingByKey(key: string, value: any): Promise<Setting | null> {
+  try {
+    const sql = `
+      UPDATE settings
+      SET value = ?
+      WHERE \`key\` = ?
+    `
+
+    await query(sql, [JSON.stringify(value), key])
+
+    return await getSettingByKey(key)
+  } catch (error) {
+    console.error(`Error updating setting with key "${key}":`, error)
+    throw new Error(`Failed to update setting with key "${key}"`)
   }
 }
 
@@ -232,12 +426,31 @@ export async function deleteSetting(id: number): Promise<boolean> {
       SET is_active = FALSE
       WHERE id = ?
     `
-    
+
     await query(sql, [id])
     return true
   } catch (error) {
     console.error('Error deleting setting:', error)
     throw new Error('Failed to delete setting')
+  }
+}
+
+/**
+ * Delete setting by key (soft delete)
+ */
+export async function deleteSettingByKey(key: string): Promise<boolean> {
+  try {
+    const sql = `
+      UPDATE settings
+      SET is_active = FALSE
+      WHERE \`key\` = ?
+    `
+
+    await query(sql, [key])
+    return true
+  } catch (error) {
+    console.error(`Error deleting setting with key "${key}":`, error)
+    throw new Error(`Failed to delete setting with key "${key}"`)
   }
 }
 
@@ -255,28 +468,64 @@ export async function permanentlyDeleteSetting(id: number): Promise<boolean> {
   }
 }
 
+// ============================================================================
+// LEGACY API (for backward compatibility)
+// ============================================================================
+
 /**
- * Reorder settings within a type
+ * Get settings grouped by type (LEGACY - for backward compatibility)
+ * Maps new structure to old structure
+ * @deprecated Use getDropdownSettings() instead
  */
-export async function reorderSettings(
-  settingType: SettingType,
-  orderedIds: number[]
-): Promise<boolean> {
+export async function getSettingsByType(): Promise<Record<SettingType, string[]>> {
   try {
-    // Update display_order for each setting
-    for (let i = 0; i < orderedIds.length; i++) {
-      const sql = `
-        UPDATE settings
-        SET display_order = ?
-        WHERE id = ? AND setting_type = ?
-      `
-      await query(sql, [i, orderedIds[i], settingType])
+    const dropdowns = await getDropdownSettings()
+
+    // Map new keys to old SettingType keys
+    const keyMapping: Record<string, SettingType> = {
+      'departments': 'department',
+      'severities': 'severity',
+      'priorities': 'priority',
+      'categories': 'category',
+      'platforms': 'platform',
+      'task_priorities': 'task_priority',
+      'task_statuses': 'task_status',
+      'bug_statuses': 'bug_status',
+      'bug_types': 'bug_type'
     }
-    
-    return true
+
+    const result: Record<string, string[]> = {}
+
+    Object.entries(dropdowns).forEach(([key, values]) => {
+      const legacyKey = keyMapping[key]
+      if (legacyKey) {
+        result[legacyKey] = values
+      }
+    })
+
+    return result as Record<SettingType, string[]>
   } catch (error) {
-    console.error('Error reordering settings:', error)
-    throw new Error('Failed to reorder settings')
+    console.error('Error fetching settings by type (legacy):', error)
+    throw new Error('Failed to fetch settings by type')
+  }
+}
+
+/**
+ * Get all settings (LEGACY - for backward compatibility)
+ * @deprecated Use getAllSettings() instead
+ */
+export async function getSettings(
+  settingType?: SettingType,
+  activeOnly: boolean = true
+): Promise<LegacySetting[]> {
+  try {
+    // This is a compatibility shim - the new structure doesn't support this query pattern
+    // Return empty array for now
+    console.warn('getSettings() is deprecated. Use getAllSettings() or getSettingsByKeys() instead.')
+    return []
+  } catch (error) {
+    console.error('Error fetching settings (legacy):', error)
+    throw new Error('Failed to fetch settings')
   }
 }
 

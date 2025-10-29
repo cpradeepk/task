@@ -65,7 +65,14 @@ export async function GET(
 /**
  * PATCH /api/settings/[id]
  * Update a specific setting
+ *
  * Body: UpdateSettingData
+ * {
+ *   value?: any,
+ *   description?: string,
+ *   metadata?: any,
+ *   isActive?: boolean
+ * }
  */
 export async function PATCH(
   request: NextRequest,
@@ -89,12 +96,16 @@ export async function PATCH(
 
     const updateData: UpdateSettingData = {}
 
-    if (body.settingValue !== undefined) {
-      updateData.settingValue = body.settingValue.trim()
+    if (body.value !== undefined) {
+      updateData.value = body.value
     }
 
-    if (body.displayOrder !== undefined) {
-      updateData.displayOrder = parseInt(body.displayOrder)
+    if (body.description !== undefined) {
+      updateData.description = body.description
+    }
+
+    if (body.metadata !== undefined) {
+      updateData.metadata = body.metadata
     }
 
     if (body.isActive !== undefined) {
@@ -120,16 +131,15 @@ export async function PATCH(
     })
   } catch (error) {
     console.error('Setting API PATCH error:', error)
-    
+
     const errorMessage = error instanceof Error ? error.message : 'Failed to update setting'
-    const statusCode = errorMessage.includes('already exists') ? 409 : 500
 
     return NextResponse.json(
       {
         success: false,
         error: errorMessage
       },
-      { status: statusCode }
+      { status: 500 }
     )
   }
 }
