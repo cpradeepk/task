@@ -15,14 +15,20 @@ import { withTimeout } from '@/lib/db/config'
  * - includeDeleted: boolean (optional, for admin)
  */
 export async function GET(request: NextRequest) {
+  console.log('🔵 [SUBTASKS-GET] API called')
+
   try {
     const searchParams = request.nextUrl.searchParams
     const parentTaskId = searchParams.get('parentTaskId')
     const includeDeleted = searchParams.get('includeDeleted') === 'true'
 
+    console.log('🔵 [SUBTASKS-GET] Params:', { parentTaskId, includeDeleted })
+
     // Get all deleted subtasks (for admin "Deleted Items" page)
     if (includeDeleted && !parentTaskId) {
+      console.log('🔵 [SUBTASKS-GET] Fetching deleted subtasks...')
       const deletedSubTasks = await getAllDeletedSubTasks()
+      console.log(`✅ [SUBTASKS-GET] Found ${deletedSubTasks.length} deleted subtasks`)
       return NextResponse.json({
         success: true,
         data: deletedSubTasks,
@@ -32,6 +38,7 @@ export async function GET(request: NextRequest) {
 
     // Get subtasks for a specific parent task
     if (!parentTaskId) {
+      console.log('❌ [SUBTASKS-GET] Missing parentTaskId')
       return NextResponse.json(
         {
           success: false,
@@ -42,6 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch subtasks and stats in parallel with timeout to prevent hanging
+    console.log('🔵 [SUBTASKS-GET] Fetching subtasks and counts...')
     const [subtasks, counts] = await Promise.all([
       withTimeout(
         getSubTasksByParentTaskId(parentTaskId),
@@ -55,6 +63,8 @@ export async function GET(request: NextRequest) {
       )
     ])
 
+    console.log(`✅ [SUBTASKS-GET] Found ${subtasks.length} subtasks for parent ${parentTaskId}`)
+
     return NextResponse.json({
       success: true,
       data: subtasks,
@@ -62,11 +72,20 @@ export async function GET(request: NextRequest) {
       stats: counts
     })
   } catch (error) {
-    console.error('SubTasks API GET error:', error)
+    console.error('❌ [SUBTASKS-GET] SubTasks API GET error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch subtasks'
+    const errorStack = error instanceof Error ? error.stack : undefined
+
+    console.error('❌ [SUBTASKS-GET] Error details:', {
+      errorMessage,
+      errorStack
+    })
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch subtasks'
+        error: errorMessage,
+        stack: errorStack
       },
       { status: 500 }
     )

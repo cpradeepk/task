@@ -6,13 +6,18 @@ import { withTimeout } from '@/lib/db/config'
 import { createActivityLog } from '@/lib/db/activityLog'
 
 export async function GET() {
+  console.log('🔵 [TASKS-GET] API called')
+
   try {
     // Get tasks from MySQL with timeout
+    console.log('🔵 [TASKS-GET] Fetching tasks from database...')
     const tasks = await withTimeout(
       getAllTasks(),
       10000,
       'Failed to fetch tasks - database timeout'
     )
+
+    console.log(`✅ [TASKS-GET] Successfully fetched ${tasks.length} tasks`)
 
     return NextResponse.json({
       success: true,
@@ -20,12 +25,19 @@ export async function GET() {
       source: 'mysql'
     })
   } catch (error) {
-    console.error('Failed to get tasks from MySQL:', error)
+    console.error('❌ [TASKS-GET] Failed to get tasks from MySQL:', error)
     const errorMessage = error instanceof Error ? error.message : 'Failed to get tasks - MySQL unavailable'
+    const errorStack = error instanceof Error ? error.stack : undefined
+
+    console.error('❌ [TASKS-GET] Error details:', {
+      errorMessage,
+      errorStack
+    })
 
     return NextResponse.json({
       success: false,
-      error: errorMessage
+      error: errorMessage,
+      stack: errorStack
     }, { status: 500 })
   }
 }
