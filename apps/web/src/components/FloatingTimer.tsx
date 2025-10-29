@@ -193,10 +193,14 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
       console.error('Failed to log time to activity log:', error)
     }
 
-    // Clear timer
+    // Clear timer from localStorage
+    localStorage.removeItem('activeTimer')
+
+    // Clear timer state
     setTimerData(null)
     setCurrentTime(0)
-    
+
+    // Close the floating timer widget
     if (onClose) {
       onClose()
     }

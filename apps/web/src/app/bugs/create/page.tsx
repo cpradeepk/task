@@ -42,6 +42,7 @@ export default function CreateBugPage() {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isLoadingSubprojects, setIsLoadingSubprojects] = useState(false)
   const [isLoadingBugs, setIsLoadingBugs] = useState(false)
+  const [projectsLoaded, setProjectsLoaded] = useState(false)
   
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -143,6 +144,8 @@ export default function CreateBugPage() {
 
   // Load projects
   const loadProjects = useCallback(async () => {
+    if (projectsLoaded) return
+
     try {
       setIsLoadingProjects(true)
       const response = await fetch('/api/projects')
@@ -155,13 +158,14 @@ export default function CreateBugPage() {
           return idA.localeCompare(idB)
         })
         setProjects(sorted)
+        setProjectsLoaded(true)
       }
     } catch (error) {
       console.error('Failed to load projects:', error)
     } finally {
       setIsLoadingProjects(false)
     }
-  }, [])
+  }, [projectsLoaded])
 
   // Load subprojects when project changes
   const loadSubprojects = useCallback(async (projectId: string) => {
@@ -223,7 +227,8 @@ export default function CreateBugPage() {
     loadUsers()
     loadSettings()
     loadProjects()
-  }, [currentUser, router, isHydrated, loadUsers, loadSettings, loadProjects])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, router, isHydrated])
 
   // Load subprojects and bugs when project changes
   useEffect(() => {
@@ -234,7 +239,8 @@ export default function CreateBugPage() {
       setSubprojects([])
       setFormData(prev => ({ ...prev, subprojectId: undefined }))
     }
-  }, [formData.projectId, loadSubprojects, loadBugs])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.projectId])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -262,6 +268,11 @@ export default function CreateBugPage() {
 
     if (!formData.projectId) {
       setError('Project is required')
+      return
+    }
+
+    if (!formData.subprojectId) {
+      setError('Subproject is required')
       return
     }
 
@@ -407,7 +418,7 @@ export default function CreateBugPage() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Subproject (Optional)
+                      Subproject <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="subprojectId"
@@ -415,6 +426,7 @@ export default function CreateBugPage() {
                       onChange={(e) => setFormData(prev => ({ ...prev, subprojectId: e.target.value || undefined }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                       disabled={!formData.projectId || isLoadingSubprojects}
+                      required
                     >
                       <option value="">Select subproject...</option>
                       {subprojects.map(subproject => (
