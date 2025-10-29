@@ -197,7 +197,9 @@ timer_sessions JSON,
 - No dedicated activity log table for tasks
 - No automatic logging of field changes
 
-### Recommended Approach
+### Recommended Approach: Unified Timeline
+
+**IMPORTANT REQUIREMENT**: Activity log and comments should be displayed together in a unified timeline on task/bug detail pages, sorted by timestamp (newest first or oldest first based on user preference).
 
 #### Create New Table: `activity_log`
 
@@ -212,13 +214,15 @@ CREATE TABLE activity_log (
     old_value TEXT,
     new_value TEXT,
     description TEXT,
+    is_comment BOOLEAN DEFAULT FALSE COMMENT 'True if this is a user comment, false if system-generated activity',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_entity (entity_type, entity_id),
     INDEX idx_user_id (user_id),
     INDEX idx_created_at (created_at),
     INDEX idx_action_type (action_type),
-    
+    INDEX idx_is_comment (is_comment),
+
     FOREIGN KEY (user_id) REFERENCES users(employee_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
@@ -228,15 +232,42 @@ CREATE TABLE activity_log (
 - `field_update`: Any field changed
 - `assignment_change`: Assignee changed
 - `time_logged`: Hours logged
-- `comment_added`: Comment added
+- `comment`: User comment (is_comment = TRUE)
 - `created`: Entity created
 - `deleted`: Entity deleted
+- `timer_started`: Timer started
+- `timer_stopped`: Timer stopped
+- `timer_paused`: Timer paused
+
+#### Unified Timeline Display
+
+**Format**: All activities and comments merged and sorted by `created_at` timestamp
+
+**Example Timeline**:
+```
+[2 hours ago] John Doe commented: "Working on the API integration"
+[3 hours ago] System: Status changed from 'Yet to Start' to 'In Progress'
+[4 hours ago] System: Timer started
+[5 hours ago] Jane Smith: Assigned to John Doe
+[1 day ago] System: Task created
+```
+
+**Implementation**:
+- Single API call: `GET /api/activity-log?entityType=task&entityId=JSR-001`
+- Returns all activities (system + comments) sorted by timestamp
+- Frontend displays with different styling for comments vs. system activities
+- Comments have user avatar, system activities have icon (🔄, ⏱️, 👤, etc.)
 
 #### Database Impact:
 - **Estimated writes**: 10-50 activity log entries per task/bug lifecycle
 - **Storage**: ~500 bytes per entry
 - **1000 tasks/month**: ~50,000 entries/month = ~25 MB/month
 - **Verdict**: ✅ Acceptable
+
+#### Migration Strategy for Existing Comments:
+- Migrate existing `bug_comments` to `activity_log` with `is_comment = TRUE`
+- Keep `bug_comments` table for backward compatibility (optional)
+- Or deprecate `bug_comments` and use only `activity_log`
 
 ---
 
@@ -254,25 +285,40 @@ CREATE TABLE activity_log (
 
 ### Implementation Plan
 
-#### Phase 1: Activity Log System (Day 1)
+#### Phase 1: Activity Log System with Unified Timeline (Day 1-2)
 1. Create `activity_log` table migration
-2. Create activity log API routes
-3. Add activity logging to all update operations
-4. Display activity log in task/bug detail views
+2. Migrate existing `bug_comments` to `activity_log` (optional)
+3. Create unified activity log API routes:
+   - `GET /api/activity-log?entityType=task&entityId=JSR-001` - Get all activities + comments
+   - `POST /api/activity-log` - Add new activity or comment
+4. Add automatic activity logging to all update operations:
+   - Status changes
+   - Field updates
+   - Assignment changes
+   - Timer events
+5. Create UnifiedTimeline component for task/bug detail views:
+   - Display activities and comments in single sorted list
+   - Different styling for comments vs. system activities
+   - User avatars for comments, icons for system activities
+   - Relative timestamps ("2 hours ago")
+   - Add comment input box at top or bottom
+6. Replace existing comment sections with UnifiedTimeline
 
-#### Phase 2: Timer System (Day 2-3)
+#### Phase 2: Timer System (Day 3-4)
 1. Create FloatingTimer component (client-side)
 2. Use localStorage for timer persistence
 3. Periodic sync to database (every 5 minutes)
 4. Write to database on timer stop
 5. Auto-switch timer logic
 6. Display timer on all pages
+7. Log timer events to activity_log (timer_started, timer_stopped, timer_paused)
 
-#### Phase 3: UI Enhancements (Day 4-5)
+#### Phase 3: UI Enhancements (Day 5-6)
 1. Inline status dropdowns
 2. Convert bug popups to inline dropdowns
-3. Enhanced edit screen
+3. Enhanced edit screen (modal or side panel)
 4. Polish UI/UX
+5. Add activity log entries for all inline updates
 
 ### Database Optimization
 
