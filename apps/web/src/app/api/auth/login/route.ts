@@ -35,12 +35,24 @@ export async function POST(request: NextRequest) {
         { expiresIn: '7d' }
       )
 
-      return NextResponse.json({
+      // Create response with token cookie for web app
+      const response = NextResponse.json({
         success: true,
         data: ADMIN_USER,
         token, // Include JWT token for mobile app
         source: 'hardcoded_admin'
       })
+
+      // Set HTTP-only cookie for web app authentication
+      response.cookies.set('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/'
+      })
+
+      return response
     }
 
     // Authenticate user from MySQL
@@ -58,12 +70,24 @@ export async function POST(request: NextRequest) {
         { expiresIn: '7d' }
       )
 
-      return NextResponse.json({
+      // Create response with token cookie for web app
+      const response = NextResponse.json({
         success: true,
         data: user,
         token, // Include JWT token for mobile app
         source: 'mysql'
       })
+
+      // Set HTTP-only cookie for web app authentication
+      response.cookies.set('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/'
+      })
+
+      return response
     } else {
       return NextResponse.json({
         success: false,

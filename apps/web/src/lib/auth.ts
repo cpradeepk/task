@@ -288,9 +288,20 @@ export interface TokenPayload {
 
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    // This is a placeholder - actual verification happens on server
-    // The server will use jsonwebtoken library to verify
-    return null
+    // Import jwt only on server-side
+    if (typeof window !== 'undefined') {
+      // Client-side - cannot verify JWT
+      return null
+    }
+
+    // Server-side JWT verification
+    const jwt = require('jsonwebtoken')
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'default-secret-key-change-in-production'
+    )
+
+    return decoded as TokenPayload
   } catch (error) {
     console.error('Failed to verify token:', error)
     return null

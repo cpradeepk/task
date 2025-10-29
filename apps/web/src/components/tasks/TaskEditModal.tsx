@@ -6,6 +6,13 @@ import { X, Save, Calendar, User, Users, Clock, FileText, AlertTriangle, Tag } f
 import { useSettings } from '@/contexts/SettingsContext'
 import { getUserNameByEmployeeId } from '@/lib/auth'
 
+// Helper function to format ISO date to yyyy-MM-dd for HTML5 date inputs
+function formatDateForInput(isoDate: string | null | undefined): string {
+  if (!isoDate) return ''
+  // Extract just the date part (yyyy-MM-dd) from ISO 8601 format
+  return isoDate.split('T')[0]
+}
+
 // Component to handle async user name fetching
 function UserName({ employeeId }: { employeeId: string }) {
   const [name, setName] = useState<string>(employeeId)
@@ -258,7 +265,7 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
               </label>
               <input
                 type="date"
-                value={formData.startDate || ''}
+                value={formatDateForInput(formData.startDate)}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -271,7 +278,7 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
               </label>
               <input
                 type="date"
-                value={formData.endDate || ''}
+                value={formatDateForInput(formData.endDate)}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
