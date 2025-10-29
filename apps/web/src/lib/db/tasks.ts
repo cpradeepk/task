@@ -185,6 +185,19 @@ export async function getTasksByProject(projectId: string): Promise<Task[]> {
   })
 }
 
+// Get the latest task ID for sequential ID generation
+export async function getLatestTaskId(): Promise<string | undefined> {
+  return withRetry(async () => {
+    const rows = await query<RowDataPacket[]>(
+      `SELECT task_id FROM tasks
+       WHERE deleted_at IS NULL
+       ORDER BY created_at DESC
+       LIMIT 1`
+    )
+    return rows.length > 0 ? rows[0].task_id : undefined
+  })
+}
+
 // Create a new task
 export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> {
   return withRetry(async () => {

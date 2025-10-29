@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllTasks, createTask } from '@/lib/db/tasks'
+import { getAllTasks, createTask, getLatestTaskId } from '@/lib/db/tasks'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
 import { withTimeout } from '@/lib/db/config'
 import { createActivityLog } from '@/lib/db/activityLog'
+import { generateSequentialTaskId } from '@/lib/data'
 
 export async function GET() {
   console.log('🔵 [TASKS-GET] API called')
@@ -61,6 +62,13 @@ export async function POST(request: NextRequest) {
         error: 'Actual hours must be a positive number'
       }, { status: 400 })
     }
+
+    // Generate sequential task ID on server side
+    const latestTaskId = await getLatestTaskId()
+    const newTaskId = generateSequentialTaskId(latestTaskId)
+
+    // Override any client-provided taskId with server-generated one
+    taskData.taskId = newTaskId
 
     // Add task to MySQL
     const task = await createTask(taskData)

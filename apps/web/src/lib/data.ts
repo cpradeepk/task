@@ -1,7 +1,50 @@
 // Utility functions for Amtariksha Task Management System
 // All data operations use MySQL database via API routes
 
-// Task ID generation with guaranteed uniqueness
+/**
+ * Generate sequential alphanumeric Task ID
+ * Format: JSR-0001, JSR-0002, ..., JSR-9999, JSR-A001, JSR-A002, etc.
+ *
+ * This function should be called from the API route which will fetch the
+ * latest task ID from the database to ensure uniqueness.
+ *
+ * @param lastTaskId - The last task ID from the database (e.g., "JSR-0001")
+ * @returns {string} Next sequential task ID (e.g., "JSR-0002")
+ */
+export function generateSequentialTaskId(lastTaskId?: string): string {
+  if (!lastTaskId) {
+    return 'JSR-0001'
+  }
+
+  // Extract the numeric/alphanumeric part after "JSR-"
+  const idPart = lastTaskId.replace('JSR-', '')
+
+  // Try to parse as number first (for IDs like JSR-0001)
+  const numericValue = parseInt(idPart, 10)
+
+  if (!isNaN(numericValue)) {
+    // Increment the number
+    const nextNumber = numericValue + 1
+    // Pad with zeros to 4 digits
+    return `JSR-${nextNumber.toString().padStart(4, '0')}`
+  }
+
+  // If it's alphanumeric (like JSR-A001), increment accordingly
+  // For simplicity, we'll just increment the numeric part
+  const match = idPart.match(/^([A-Z]+)(\d+)$/)
+  if (match) {
+    const prefix = match[1]
+    const number = parseInt(match[2], 10)
+    const nextNumber = number + 1
+    return `JSR-${prefix}${nextNumber.toString().padStart(3, '0')}`
+  }
+
+  // Fallback: just increment by 1
+  return `JSR-${(parseInt(idPart) + 1).toString().padStart(4, '0')}`
+}
+
+// Legacy function - kept for backward compatibility during migration
+// Will be removed after migration is complete
 let lastTimestamp = 0
 let counter = 0
 
@@ -27,6 +70,49 @@ export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
 }
 
+/**
+ * Generate sequential alphanumeric Bug ID
+ * Format: BUG-0001, BUG-0002, ..., BUG-9999, BUG-A001, BUG-A002, etc.
+ *
+ * This function should be called from the API route which will fetch the
+ * latest bug ID from the database to ensure uniqueness.
+ *
+ * @param lastBugId - The last bug ID from the database (e.g., "BUG-0001")
+ * @returns {string} Next sequential bug ID (e.g., "BUG-0002")
+ */
+export function generateSequentialBugId(lastBugId?: string): string {
+  if (!lastBugId) {
+    return 'BUG-0001'
+  }
+
+  // Extract the numeric/alphanumeric part after "BUG-"
+  const idPart = lastBugId.replace('BUG-', '')
+
+  // Try to parse as number first (for IDs like BUG-0001)
+  const numericValue = parseInt(idPart, 10)
+
+  if (!isNaN(numericValue)) {
+    // Increment the number
+    const nextNumber = numericValue + 1
+    // Pad with zeros to 4 digits
+    return `BUG-${nextNumber.toString().padStart(4, '0')}`
+  }
+
+  // If it's alphanumeric (like BUG-A001), increment accordingly
+  const match = idPart.match(/^([A-Z]+)(\d+)$/)
+  if (match) {
+    const prefix = match[1]
+    const number = parseInt(match[2], 10)
+    const nextNumber = number + 1
+    return `BUG-${prefix}${nextNumber.toString().padStart(3, '0')}`
+  }
+
+  // Fallback: just increment by 1
+  return `BUG-${(parseInt(idPart) + 1).toString().padStart(4, '0')}`
+}
+
+// Legacy function - kept for backward compatibility during migration
+// Will be removed after migration is complete
 /**
  * Generate unique Bug ID with format: BUG-{timestamp}{counter}{random}
  * Ensures uniqueness even when called multiple times in the same millisecond

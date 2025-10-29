@@ -236,6 +236,19 @@ export async function getBugsByProject(projectId: string): Promise<Bug[]> {
  *   reopenedCount: 0
  * })
  */
+// Get the latest bug ID for sequential ID generation
+export async function getLatestBugId(): Promise<string | undefined> {
+  return withRetry(async () => {
+    const rows = await query<RowDataPacket[]>(
+      `SELECT bug_id FROM bugs
+       WHERE deleted_at IS NULL
+       ORDER BY created_at DESC
+       LIMIT 1`
+    )
+    return rows.length > 0 ? rows[0].bug_id : undefined
+  })
+}
+
 export async function createBug(bug: Omit<Bug, 'createdAt' | 'updatedAt'>): Promise<Bug> {
   return withRetry(async () => {
     // Insert bug into database using parameterized query (prevents SQL injection)

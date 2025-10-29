@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllBugs, getBugsAssignedTo, getBugsReportedBy, getBugsByStatus, createBug } from '@/lib/db/bugs'
+import { getAllBugs, getBugsAssignedTo, getBugsReportedBy, getBugsByStatus, createBug, getLatestBugId } from '@/lib/db/bugs'
 import { Bug } from '@/lib/types'
-import { generateBugId } from '@/lib/data'
+import { generateSequentialBugId } from '@/lib/data'
 import { emailService } from '@/lib/email/service'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { createActivityLog } from '@/lib/db/activityLog'
@@ -71,8 +71,9 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Generate unique bug ID
-    const bugId = generateBugId()
+    // Generate sequential bug ID on server side
+    const latestBugId = await getLatestBugId()
+    const bugId = generateSequentialBugId(latestBugId)
 
     // Prepare bug object with all required fields
     // Convert undefined to null for MySQL compatibility
