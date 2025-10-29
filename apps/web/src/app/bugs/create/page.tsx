@@ -11,6 +11,7 @@ import LoadingButton from '@/components/ui/LoadingButton'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ProjectSelector from '@/components/ProjectSelector'
 import FileUpload from '@/components/bugs/FileUpload'
+import { getIconForSettingValueSync } from '@/lib/iconMappings'
 
 export default function CreateBugPage() {
   const [formData, setFormData] = useState<BugFormData>({
@@ -461,14 +462,14 @@ export default function CreateBugPage() {
                       {isLoadingSettings ? (
                         <option>Loading...</option>
                       ) : (
-                        severityOptions.map(option => (
-                          <option key={option} value={option}>
-                            {option === 'Critical' && '🔴 '}
-                            {option === 'Major' && '🟠 '}
-                            {option === 'Minor' && '🟡 '}
-                            {option}
-                          </option>
-                        ))
+                        severityOptions.map(option => {
+                          const icon = getIconForSettingValueSync('severities', option)
+                          return (
+                            <option key={option} value={option}>
+                              {icon && `${icon} `}{option}
+                            </option>
+                          )
+                        })
                       )}
                     </select>
                   </div>
@@ -488,19 +489,14 @@ export default function CreateBugPage() {
                       {isLoadingSettings ? (
                         <option>Loading...</option>
                       ) : (
-                        categoryOptions.map(option => (
-                          <option key={option} value={option}>
-                            {option === 'UI' && '🎨 '}
-                            {option === 'API' && '🔌 '}
-                            {option === 'Backend' && '⚙️ '}
-                            {option === 'Performance' && '⚡ '}
-                            {option === 'Security' && '🔒 '}
-                            {option === 'Database' && '🗄️ '}
-                            {option === 'Integration' && '🔗 '}
-                            {option === 'Other' && '📋 '}
-                            {option}
-                          </option>
-                        ))
+                        categoryOptions.map(option => {
+                          const icon = getIconForSettingValueSync('categories', option)
+                          return (
+                            <option key={option} value={option}>
+                              {icon && `${icon} `}{option}
+                            </option>
+                          )
+                        })
                       )}
                     </select>
                   </div>
@@ -520,15 +516,14 @@ export default function CreateBugPage() {
                       {isLoadingSettings ? (
                         <option>Loading...</option>
                       ) : (
-                        platformOptions.map(option => (
-                          <option key={option} value={option}>
-                            {option === 'Web' && '🌐 '}
-                            {option === 'iOS' && '📱 '}
-                            {option === 'Android' && '🤖 '}
-                            {option === 'All' && '🔄 '}
-                            {option}
-                          </option>
-                        ))
+                        platformOptions.map(option => {
+                          const icon = getIconForSettingValueSync('platforms', option)
+                          return (
+                            <option key={option} value={option}>
+                              {icon && `${icon} `}{option}
+                            </option>
+                          )
+                        })
                       )}
                     </select>
                   </div>
@@ -551,15 +546,14 @@ export default function CreateBugPage() {
                       {isLoadingSettings ? (
                         <option>Loading...</option>
                       ) : (
-                        environmentOptions.map(option => (
-                          <option key={option} value={option}>
-                            {option === 'Production' && '🚀 '}
-                            {option === 'Staging' && '🧪 '}
-                            {option === 'UAT' && '🔍 '}
-                            {option === 'Development' && '💻 '}
-                            {option}
-                          </option>
-                        ))
+                        environmentOptions.map(option => {
+                          const icon = getIconForSettingValueSync('environments', option)
+                          return (
+                            <option key={option} value={option}>
+                              {icon && `${icon} `}{option}
+                            </option>
+                          )
+                        })
                       )}
                     </select>
                   </div>
@@ -607,14 +601,14 @@ export default function CreateBugPage() {
                       disabled={isLoadingSettings}
                     >
                       <option value="">Select type...</option>
-                      {bugTypeOptions.map(type => (
-                        <option key={type} value={type}>
-                          {type === 'testcase' && '🧪 '}
-                          {type === 'feature' && '✨ '}
-                          {type === 'other' && '📋 '}
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </option>
-                      ))}
+                      {bugTypeOptions.map(type => {
+                        const icon = getIconForSettingValueSync('bug_types', type)
+                        return (
+                          <option key={type} value={type}>
+                            {icon && `${icon} `}{type.charAt(0).toUpperCase() + type.slice(1)}
+                          </option>
+                        )
+                      })}
                     </select>
                   </div>
 
