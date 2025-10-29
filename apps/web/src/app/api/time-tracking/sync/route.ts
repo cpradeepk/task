@@ -106,8 +106,23 @@ export async function POST(request: NextRequest) {
       })
     } catch (updateError) {
       console.error('❌ Error updating entity:', updateError)
+
+      // Provide detailed error message
+      const errorMessage = updateError instanceof Error ? updateError.message : 'Unknown error'
+      console.error('❌ Error details:', {
+        entityType,
+        entityId,
+        state,
+        totalTime,
+        errorMessage
+      })
+
       return NextResponse.json(
-        { success: false, error: 'Failed to update timer data' },
+        {
+          success: false,
+          error: 'Failed to update timer data',
+          details: errorMessage
+        },
         { status: 500 }
       )
     }

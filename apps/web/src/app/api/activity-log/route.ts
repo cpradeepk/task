@@ -146,6 +146,10 @@ export async function GET(request: NextRequest) {
  * }
  */
 export async function POST(request: NextRequest) {
+  let entityType: string | undefined
+  let entityId: string | undefined
+  let actionType: string | undefined
+
   try {
     // Verify authentication
     const token = request.cookies.get('token')?.value
@@ -167,9 +171,9 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json()
     const {
-      entityType,
-      entityId,
-      actionType,
+      entityType: bodyEntityType,
+      entityId: bodyEntityId,
+      actionType: bodyActionType,
       description,
       isComment,
       fieldName,
@@ -177,23 +181,28 @@ export async function POST(request: NextRequest) {
       newValue
     } = body
 
+    // Assign to outer scope for error logging
+    entityType = bodyEntityType
+    entityId = bodyEntityId
+    actionType = bodyActionType
+
     // Validate required fields
-    if (!entityType || !entityId || !actionType || !description) {
+    if (!bodyEntityType || !bodyEntityId || !bodyActionType || !description) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Missing required fields: entityType, entityId, actionType, description' 
+        {
+          success: false,
+          error: 'Missing required fields: entityType, entityId, actionType, description'
         },
         { status: 400 }
       )
     }
 
     // Validate entityType
-    if (!['task', 'bug', 'leave', 'wfh'].includes(entityType)) {
+    if (!['task', 'bug', 'leave', 'wfh'].includes(bodyEntityType)) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Invalid entityType. Must be one of: task, bug, leave, wfh' 
+        {
+          success: false,
+          error: 'Invalid entityType. Must be one of: task, bug, leave, wfh'
         },
         { status: 400 }
       )
@@ -201,10 +210,10 @@ export async function POST(request: NextRequest) {
 
     // Create activity log input
     const activityInput: CreateActivityLogInput = {
-      entityType,
-      entityId,
+      entityType: bodyEntityType,
+      entityId: bodyEntityId,
       userId: user.employeeId,
-      actionType,
+      actionType: bodyActionType,
       description,
       isComment: isComment || false,
       fieldName,
@@ -224,9 +233,22 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('❌ Error creating activity log:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+
+    // Log detailed error information
+    console.error('❌ Error details:', {
+      entityType,
+      entityId,
+      actionType,
+      userId: request.cookies.get('token') ? 'authenticated' : 'no token',
+      errorMessage
+    })
+
     return NextResponse.json(
-      { success: false, error: errorMessage },
+      {
+        success: false,
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
