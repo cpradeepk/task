@@ -89,6 +89,9 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [isEditingAssignee, setIsEditingAssignee] = useState(false)
   const [isEditingEstimatedHours, setIsEditingEstimatedHours] = useState(false)
   const [tempEstimatedHours, setTempEstimatedHours] = useState('')
+  const [isEditingCategory, setIsEditingCategory] = useState(false)
+  const [isEditingPlatform, setIsEditingPlatform] = useState(false)
+  const [isEditingEnvironment, setIsEditingEnvironment] = useState(false)
 
   // Log hours modal (keeping this one as it has multiple fields)
   const [showHoursModal, setShowHoursModal] = useState(false)
@@ -97,7 +100,14 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
   // Settings state
   const [bugStatusOptions, setBugStatusOptions] = useState<string[]>([])
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([])
+  const [platformOptions, setPlatformOptions] = useState<string[]>([])
+  const [environmentOptions, setEnvironmentOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
+
+  // Project/Subproject names
+  const [projectName, setProjectName] = useState<string>('')
+  const [subprojectName, setSubprojectName] = useState<string>('')
 
   // Lightbox state
   const [showLightbox, setShowLightbox] = useState(false)
@@ -132,11 +142,22 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         if (data.success) {
           const grouped = data.data
           setBugStatusOptions(grouped.bug_status || [])
+          setCategoryOptions(grouped.category || ['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
+          setPlatformOptions(grouped.platform || ['Web', 'iOS', 'Android', 'All'])
+          setEnvironmentOptions(grouped.environment || ['Development', 'Staging', 'UAT', 'Production'])
         } else {
           console.error('Failed to load settings:', data.error)
+          // Use defaults
+          setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
+          setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
+          setEnvironmentOptions(['Development', 'Staging', 'UAT', 'Production'])
         }
       } catch (error) {
         console.error('Failed to load settings:', error)
+        // Use defaults
+        setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
+        setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
+        setEnvironmentOptions(['Development', 'Staging', 'UAT', 'Production'])
       } finally {
         setIsLoadingSettings(false)
       }
@@ -171,6 +192,31 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     }
   }, [])
 
+  // Load project and subproject names
+  const loadProjectNames = useCallback(async () => {
+    if (!bug) return
+
+    try {
+      if (bug.projectId) {
+        const response = await fetch(`/api/projects/${bug.projectId}`)
+        const data = await response.json()
+        if (data.success && data.data) {
+          setProjectName(data.data.projectName || bug.projectId)
+        }
+      }
+
+      if (bug.subprojectId) {
+        const response = await fetch(`/api/projects/${bug.subprojectId}`)
+        const data = await response.json()
+        if (data.success && data.data) {
+          setSubprojectName(data.data.projectName || bug.subprojectId)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load project names:', error)
+    }
+  }, [bug])
+
   // Memoize user lookup for performance
   const userMap = useMemo(() => {
     const map = new Map()
@@ -197,6 +243,13 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
       hasLoadedData.current = false // Reset on error to allow retry
     })
   }, [currentUser, router, isHydrated, bugId])
+
+  // Load project names when bug data is available
+  useEffect(() => {
+    if (bug && (bug.projectId || bug.subprojectId)) {
+      loadProjectNames()
+    }
+  }, [bug, loadProjectNames])
 
   const handleAssigneeChange = async (newAssignee: string) => {
     if (!bug || !newAssignee || !currentUser) return
@@ -335,6 +388,87 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
       }
     } catch (error) {
       console.error('Failed to update estimated hours:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleCategoryChange = async (newCategory: string) => {
+    if (!bug || !newCategory || !currentUser) return
+
+    setIsUpdating(true)
+    try {
+      const updates: Partial<Bug> = {
+        category: newCategory as Bug['category'],
+        updatedAt: new Date().toISOString()
+      }
+
+      // Update UI immediately
+      setBug({ ...bug, ...updates })
+      setIsEditingCategory(false)
+
+      // Update backend
+      try {
+        await updateBug(bug.bugId, updates)
+      } catch (error) {
+        console.warn('Backend update failed, but UI updated:', error)
+      }
+    } catch (error) {
+      console.error('Failed to update category:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handlePlatformChange = async (newPlatform: string) => {
+    if (!bug || !newPlatform || !currentUser) return
+
+    setIsUpdating(true)
+    try {
+      const updates: Partial<Bug> = {
+        platform: newPlatform as Bug['platform'],
+        updatedAt: new Date().toISOString()
+      }
+
+      // Update UI immediately
+      setBug({ ...bug, ...updates })
+      setIsEditingPlatform(false)
+
+      // Update backend
+      try {
+        await updateBug(bug.bugId, updates)
+      } catch (error) {
+        console.warn('Backend update failed, but UI updated:', error)
+      }
+    } catch (error) {
+      console.error('Failed to update platform:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleEnvironmentChange = async (newEnvironment: string) => {
+    if (!bug || !newEnvironment || !currentUser) return
+
+    setIsUpdating(true)
+    try {
+      const updates: Partial<Bug> = {
+        environment: newEnvironment as Bug['environment'],
+        updatedAt: new Date().toISOString()
+      }
+
+      // Update UI immediately
+      setBug({ ...bug, ...updates })
+      setIsEditingEnvironment(false)
+
+      // Update backend
+      try {
+        await updateBug(bug.bugId, updates)
+      } catch (error) {
+        console.warn('Backend update failed, but UI updated:', error)
+      }
+    } catch (error) {
+      console.error('Failed to update environment:', error)
     } finally {
       setIsUpdating(false)
     }
@@ -605,25 +739,117 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               <h3 className="text-lg font-semibold mb-4">Bug Information</h3>
 
               <div className="space-y-3">
+                {/* Criticality (Severity) - Read-only */}
                 <div>
-                  <span className="text-sm font-medium text-gray-600">Priority:</span>
-                  <span className="ml-2 text-sm text-gray-900">{bug.priority}</span>
+                  <span className="text-sm font-medium text-gray-600">Criticality:</span>
+                  <span className="ml-2 text-sm text-gray-900">{bug.severity}</span>
                 </div>
 
+                {/* Category - Inline Dropdown */}
                 <div>
                   <span className="text-sm font-medium text-gray-600">Category:</span>
-                  <span className="ml-2 text-sm text-gray-900">{bug.category}</span>
+                  {canEdit ? (
+                    isEditingCategory ? (
+                      <select
+                        value={bug.category}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
+                        onBlur={() => setIsEditingCategory(false)}
+                        autoFocus
+                        disabled={isUpdating || isLoadingSettings}
+                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {categoryOptions.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingCategory(true)}
+                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
+                      >
+                        {bug.category}
+                      </button>
+                    )
+                  ) : (
+                    <span className="ml-2 text-sm text-gray-900">{bug.category}</span>
+                  )}
                 </div>
 
+                {/* Platform - Inline Dropdown */}
                 <div>
                   <span className="text-sm font-medium text-gray-600">Platform:</span>
-                  <span className="ml-2 text-sm text-gray-900">{bug.platform}</span>
+                  {canEdit ? (
+                    isEditingPlatform ? (
+                      <select
+                        value={bug.platform}
+                        onChange={(e) => handlePlatformChange(e.target.value)}
+                        onBlur={() => setIsEditingPlatform(false)}
+                        autoFocus
+                        disabled={isUpdating || isLoadingSettings}
+                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {platformOptions.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingPlatform(true)}
+                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
+                      >
+                        {bug.platform}
+                      </button>
+                    )
+                  ) : (
+                    <span className="ml-2 text-sm text-gray-900">{bug.platform}</span>
+                  )}
                 </div>
 
+                {/* Environment - Inline Dropdown */}
                 <div>
                   <span className="text-sm font-medium text-gray-600">Environment:</span>
-                  <span className="ml-2 text-sm text-gray-900">{bug.environment}</span>
+                  {canEdit ? (
+                    isEditingEnvironment ? (
+                      <select
+                        value={bug.environment}
+                        onChange={(e) => handleEnvironmentChange(e.target.value)}
+                        onBlur={() => setIsEditingEnvironment(false)}
+                        autoFocus
+                        disabled={isUpdating || isLoadingSettings}
+                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {environmentOptions.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingEnvironment(true)}
+                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
+                      >
+                        {bug.environment}
+                      </button>
+                    )
+                  ) : (
+                    <span className="ml-2 text-sm text-gray-900">{bug.environment}</span>
+                  )}
                 </div>
+
+                {/* Project - Read-only */}
+                {bug.projectId && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Project:</span>
+                    <span className="ml-2 text-sm text-gray-900">{projectName || bug.projectId}</span>
+                  </div>
+                )}
+
+                {/* Subproject - Read-only */}
+                {bug.subprojectId && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Subproject:</span>
+                    <span className="ml-2 text-sm text-gray-900">{subprojectName || bug.subprojectId}</span>
+                  </div>
+                )}
 
                 {bug.browserInfo && (
                   <div>

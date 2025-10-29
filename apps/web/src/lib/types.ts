@@ -262,6 +262,7 @@ export interface Bug {
   tags?: string             // Optional: Comma-separated tags (e.g., "login,authentication")
   relatedBugs?: string      // Optional: Comma-separated related bug IDs
   projectId?: string | null // Optional: Project ID this bug belongs to (e.g., "PRJ-001")
+  subprojectId?: string | null // Optional: Subproject ID this bug belongs to
   feature?: string | null   // Optional: Feature name this bug is related to
   type?: 'testcase' | 'feature' | 'other' | null  // Optional: Bug type categorization
   timerState?: string | null // Optional: Timer state (stopped, running, paused)
