@@ -461,6 +461,7 @@ export default function UnifiedWorkItemsList({
                         entityType="task"
                         entityId={task.taskId}
                         entityTitle={task.description}
+                        status={task.status}
                         size="md"
                       />
                     </div>
@@ -607,6 +608,7 @@ export default function UnifiedWorkItemsList({
                         entityType="bug"
                         entityId={bug.bugId}
                         entityTitle={bug.title}
+                        status={bug.status}
                         size="md"
                       />
                     </div>

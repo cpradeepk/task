@@ -217,8 +217,13 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
   return (
     <div
       className="fixed bottom-4 right-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-3 py-2"
-      style={{ minWidth: '140px' }}
+      style={{ minWidth: '180px', maxWidth: '280px' }}
     >
+      {/* Task Name */}
+      <div className="mb-1.5 text-xs font-medium text-gray-700 truncate" title={timerData.entityTitle}>
+        {timerData.entityTitle}
+      </div>
+
       {/* Timer Display */}
       <div className="flex items-center justify-between space-x-2">
         <div className="text-sm font-mono font-semibold text-gray-900">

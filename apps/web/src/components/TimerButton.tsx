@@ -8,6 +8,7 @@ interface TimerButtonProps {
   entityType: 'task' | 'bug'
   entityId: string
   entityTitle: string
+  status?: string
   size?: 'sm' | 'md' | 'lg'
   showLabel?: boolean
 }
@@ -16,11 +17,16 @@ export default function TimerButton({
   entityType,
   entityId,
   entityTitle,
+  status,
   size = 'md',
   showLabel = false
 }: TimerButtonProps) {
   const [isActive, setIsActive] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  // Statuses that should disable the timer
+  const disabledStatuses = ['Done', 'Cancel', 'Hold', 'Stop']
+  const isDisabled = status ? disabledStatuses.includes(status) : false
 
   // Check if timer is running for this entity
   useEffect(() => {
@@ -44,7 +50,13 @@ export default function TimerButton({
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent triggering parent click events
-    
+
+    // Prevent starting timer on disabled statuses
+    if (isDisabled && !isActive) {
+      alert(`Cannot start timer on ${entityType} with status "${status}". Please change the status first.`)
+      return
+    }
+
     setIsLoading(true)
     try {
       if (isActive) {
@@ -82,28 +94,38 @@ export default function TimerButton({
     flex
     items-center
     justify-center
-    ${isActive 
-      ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50' 
-      : 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
+    ${isActive
+      ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50'
+      : isDisabled
+        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+        : 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
     }
-    ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+    ${isLoading ? 'opacity-50 cursor-not-allowed' : isDisabled && !isActive ? 'cursor-not-allowed' : 'cursor-pointer'}
   `
 
   if (showLabel) {
     return (
       <button
         onClick={handleClick}
-        disabled={isLoading}
+        disabled={isLoading || (isDisabled && !isActive)}
         className={`
           flex items-center space-x-2 px-3 py-1.5 rounded-lg
           transition-all duration-200
-          ${isActive 
-            ? 'bg-red-500 hover:bg-red-600 text-white' 
-            : 'bg-green-500 hover:bg-green-600 text-white'
+          ${isActive
+            ? 'bg-red-500 hover:bg-red-600 text-white'
+            : isDisabled
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-green-500 hover:bg-green-600 text-white'
           }
-          ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
         `}
-        title={isActive ? 'Stop timer' : 'Start timer'}
+        title={
+          isDisabled && !isActive
+            ? `Cannot start timer - status is "${status}"`
+            : isActive
+              ? 'Stop timer'
+              : 'Start timer'
+        }
       >
         {isActive ? (
           <>
@@ -123,9 +145,15 @@ export default function TimerButton({
   return (
     <button
       onClick={handleClick}
-      disabled={isLoading}
+      disabled={isLoading || (isDisabled && !isActive)}
       className={buttonClass}
-      title={isActive ? 'Stop timer' : 'Start timer'}
+      title={
+        isDisabled && !isActive
+          ? `Cannot start timer - status is "${status}"`
+          : isActive
+            ? 'Stop timer'
+            : 'Start timer'
+      }
     >
       {isActive ? (
         <Square className={iconSizeClasses[size]} />
