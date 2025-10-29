@@ -5,6 +5,7 @@ import { LoadingProvider } from '@/contexts/LoadingContext'
 import { SettingsProvider } from '@/contexts/SettingsContext'
 import PageTransition from '@/components/layout/PageTransition'
 import ChunkErrorBoundary from '@/components/error/ChunkErrorBoundary'
+import TimerProvider from '@/components/TimerProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -46,9 +47,11 @@ export default function RootLayout({
         <ChunkErrorBoundary>
           <LoadingProvider>
             <SettingsProvider>
-              <PageTransition>
-                {children}
-              </PageTransition>
+              <TimerProvider>
+                <PageTransition>
+                  {children}
+                </PageTransition>
+              </TimerProvider>
             </SettingsProvider>
           </LoadingProvider>
         </ChunkErrorBoundary>

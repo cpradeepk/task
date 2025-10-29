@@ -12,6 +12,7 @@ import {
 import TaskUpdateModal from '@/components/tasks/TaskUpdateModal'
 import SupportTaskBadge from '@/components/tasks/SupportTaskBadge'
 import SubTaskManager from '@/components/subtasks/SubTaskManager'
+import TimerButton from '@/components/TimerButton'
 
 // Helper function to check if task is overdue
 function isTaskOverdue(task: Task): boolean {
@@ -319,18 +320,28 @@ export default function UnifiedWorkItemsList({
                       </div>
                     </div>
 
-                    {allowEdit && (
-                      <button
-                        onClick={() => {
-                          setSelectedTask(task)
-                          setIsModalOpen(true)
-                        }}
-                        className="sm:ml-4 p-2 text-primary hover:bg-primary-50 rounded-lg transition-colors flex-shrink-0"
-                        title="Update task"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {/* Timer Button */}
+                      <TimerButton
+                        entityType="task"
+                        entityId={task.taskId}
+                        entityTitle={task.description}
+                        size="md"
+                      />
+
+                      {allowEdit && (
+                        <button
+                          onClick={() => {
+                            setSelectedTask(task)
+                            setIsModalOpen(true)
+                          }}
+                          className="p-2 text-primary hover:bg-primary-50 rounded-lg transition-colors flex-shrink-0"
+                          title="Update task"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )
@@ -410,6 +421,16 @@ export default function UnifiedWorkItemsList({
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    {/* Timer Button for Bugs */}
+                    <div className="flex items-center">
+                      <TimerButton
+                        entityType="bug"
+                        entityId={bug.bugId}
+                        entityTitle={bug.title}
+                        size="md"
+                      />
                     </div>
                   </div>
                 </div>

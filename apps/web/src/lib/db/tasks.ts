@@ -275,6 +275,26 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
       fields.push('end_date = ?')
       values.push(updates.endDate)
     }
+    if (updates.timerState !== undefined) {
+      fields.push('timer_state = ?')
+      values.push(updates.timerState)
+    }
+    if (updates.timerStartTime !== undefined) {
+      fields.push('timer_start_time = ?')
+      values.push(updates.timerStartTime)
+    }
+    if (updates.timerPausedTime !== undefined) {
+      fields.push('timer_paused_time = ?')
+      values.push(updates.timerPausedTime)
+    }
+    if (updates.timerTotalTime !== undefined) {
+      fields.push('timer_total_time = ?')
+      values.push(updates.timerTotalTime)
+    }
+    if (updates.timerSessions !== undefined) {
+      fields.push('timer_sessions = ?')
+      values.push(updates.timerSessions)
+    }
 
     if (fields.length === 0) {
       const task = await getTaskById(id)

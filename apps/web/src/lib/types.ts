@@ -92,6 +92,11 @@ export interface Task {
   difficulties?: string     // Optional: Challenges faced during task execution
   relatedTasks?: string | null // Optional: Comma-separated task IDs for multi-user assignments
   projectId?: string | null // Optional: Project ID this task belongs to (e.g., "PRJ-001")
+  timerState?: string | null // Optional: Timer state (stopped, running, paused)
+  timerStartTime?: string | null // Optional: Timer start timestamp
+  timerPausedTime?: number | null // Optional: Total paused time in milliseconds
+  timerTotalTime?: number | null // Optional: Total time tracked in milliseconds
+  timerSessions?: string | null // Optional: JSON string of timer sessions
   deletedAt?: string | null // Optional: Soft delete timestamp
   deletedBy?: string | null // Optional: Employee ID who deleted the task
   createdAt: string         // Timestamp when task was created
@@ -259,6 +264,11 @@ export interface Bug {
   projectId?: string | null // Optional: Project ID this bug belongs to (e.g., "PRJ-001")
   feature?: string | null   // Optional: Feature name this bug is related to
   type?: 'testcase' | 'feature' | 'other' | null  // Optional: Bug type categorization
+  timerState?: string | null // Optional: Timer state (stopped, running, paused)
+  timerStartTime?: string | null // Optional: Timer start timestamp
+  timerPausedTime?: number | null // Optional: Total paused time in milliseconds
+  timerTotalTime?: number | null // Optional: Total time tracked in milliseconds
+  timerSessions?: string | null // Optional: JSON string of timer sessions
   deletedAt?: string | null // Optional: Soft delete timestamp
   deletedBy?: string | null // Optional: Employee ID who deleted the bug
   createdAt: string         // Timestamp when bug was created
