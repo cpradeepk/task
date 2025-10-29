@@ -97,6 +97,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [showHoursModal, setShowHoursModal] = useState(false)
   const [hoursWorked, setHoursWorked] = useState('')
   const [workDescription, setWorkDescription] = useState('')
+  const [useTimerHours, setUseTimerHours] = useState(true) // Default to using timer hours
 
   // Settings state
   const [bugStatusOptions, setBugStatusOptions] = useState<string[]>([])
@@ -320,22 +321,52 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   }
 
   const handleAddHours = async () => {
-    if (!bug || !currentUser || !hoursWorked.trim()) return
+    if (!bug || !currentUser) return
 
     setIsUpdating(true)
     try {
-      const hours = parseFloat(hoursWorked)
-      if (isNaN(hours) || hours <= 0) {
-        alert('Please enter a valid number of hours')
-        return
+      let hoursToAdd = 0
+
+      if (useTimerHours) {
+        // Use timer hours
+        const timerTotalMs = bug.timerTotalTime || 0
+        if (timerTotalMs === 0) {
+          alert('No timer hours to log. Please start the timer first or enter hours manually.')
+          setIsUpdating(false)
+          return
+        }
+        hoursToAdd = timerTotalMs / (1000 * 60 * 60) // Convert milliseconds to hours
+      } else {
+        // Use manual hours
+        if (!hoursWorked.trim()) {
+          alert('Please enter hours worked')
+          setIsUpdating(false)
+          return
+        }
+        const hours = parseFloat(hoursWorked)
+        if (isNaN(hours) || hours <= 0) {
+          alert('Please enter a valid number of hours')
+          setIsUpdating(false)
+          return
+        }
+        hoursToAdd = hours
       }
 
       const currentHours = bug.actualHours || 0
-      const newTotalHours = currentHours + hours
+      const newTotalHours = currentHours + hoursToAdd
 
       const updates: Partial<Bug> = {
         actualHours: newTotalHours,
         updatedAt: new Date().toISOString()
+      }
+
+      // If using timer hours, reset timer state
+      if (useTimerHours) {
+        updates.timerState = 'stopped'
+        updates.timerTotalTime = 0
+        updates.timerStartTime = null
+        updates.timerPausedTime = 0
+        updates.timerSessions = null
       }
 
       const success = await updateBug(bug.bugId, updates)
@@ -344,6 +375,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         setShowHoursModal(false)
         setHoursWorked('')
         setWorkDescription('')
+        setUseTimerHours(true)
         // Activity log will automatically track the hours change
       }
     } catch (error) {
@@ -1158,21 +1190,66 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hours Worked:
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0.5"
-                    max="24"
-                    value={hoursWorked}
-                    onChange={(e) => setHoursWorked(e.target.value)}
-                    placeholder="e.g., 2.5"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+                {/* Timer Info */}
+                {bug.timerTotalTime && bug.timerTotalTime > 0 && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Timer className="h-4 w-4 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-900">Timer Data Available</span>
+                    </div>
+                    <p className="text-sm text-purple-700">
+                      <strong>Timer Hours:</strong> {formatMillisecondsToTime(bug.timerTotalTime)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Source Selection */}
+                {bug.timerTotalTime && bug.timerTotalTime > 0 && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Hours Source:
+                    </label>
+                    <div className="flex space-x-4">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          checked={useTimerHours}
+                          onChange={() => setUseTimerHours(true)}
+                          className="text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">Use Timer Hours</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          checked={!useTimerHours}
+                          onChange={() => setUseTimerHours(false)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Enter Manually</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual Hours Input */}
+                {!useTimerHours && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Hours Worked:
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0.5"
+                      max="24"
+                      value={hoursWorked}
+                      onChange={(e) => setHoursWorked(e.target.value)}
+                      placeholder="e.g., 2.5"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1187,23 +1264,37 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   />
                 </div>
 
+                {/* Summary */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="text-sm text-blue-700">
+                  <div className="text-sm text-blue-700 space-y-1">
                     <p><strong>Current Total:</strong> {formatHoursToTime(bug.actualHours || 0)}</p>
                     {bug.estimatedHours && (
                       <p><strong>Estimated:</strong> {formatHoursToTime(bug.estimatedHours)}</p>
                     )}
-                    {hoursWorked && (
-                      <p><strong>New Total:</strong> {formatHoursToTime((bug.actualHours || 0) + parseFloat(hoursWorked || '0'))}</p>
+                    {useTimerHours && bug.timerTotalTime && bug.timerTotalTime > 0 ? (
+                      <p><strong>New Total:</strong> {formatHoursToTime((bug.actualHours || 0) + (bug.timerTotalTime / (1000 * 60 * 60)))}</p>
+                    ) : (
+                      hoursWorked && (
+                        <p><strong>New Total:</strong> {formatHoursToTime((bug.actualHours || 0) + parseFloat(hoursWorked || '0'))}</p>
+                      )
                     )}
                   </div>
                 </div>
+
+                {/* Warning if using timer hours */}
+                {useTimerHours && bug.timerTotalTime && bug.timerTotalTime > 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-xs text-yellow-800">
+                      ⚠️ Logging timer hours will reset the timer to zero.
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex space-x-3">
                   <LoadingButton
                     onClick={handleAddHours}
                     isLoading={isUpdating}
-                    disabled={!hoursWorked || parseFloat(hoursWorked) <= 0}
+                    disabled={!useTimerHours && (!hoursWorked || parseFloat(hoursWorked) <= 0)}
                     className="btn-primary flex-1"
                   >
                     <Timer className="h-4 w-4 mr-2" />
@@ -1214,6 +1305,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                       setShowHoursModal(false)
                       setHoursWorked('')
                       setWorkDescription('')
+                      setUseTimerHours(true)
                     }}
                     className="btn-secondary flex-1"
                   >
