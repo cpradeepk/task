@@ -17,7 +17,7 @@ import { verifyToken } from '@/lib/auth'
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify authentication
@@ -37,8 +37,11 @@ export async function DELETE(
       )
     }
 
+    // Unwrap params Promise
+    const { id: idParam } = await params
+
     // Parse ID
-    const id = parseInt(params.id)
+    const id = parseInt(idParam)
     if (isNaN(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid activity log ID' },
@@ -105,7 +108,7 @@ export async function DELETE(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify authentication
@@ -125,8 +128,11 @@ export async function GET(
       )
     }
 
+    // Unwrap params Promise
+    const { id: idParam } = await params
+
     // Parse ID
-    const id = parseInt(params.id)
+    const id = parseInt(idParam)
     if (isNaN(id)) {
       return NextResponse.json(
         { success: false, error: 'Invalid activity log ID' },
