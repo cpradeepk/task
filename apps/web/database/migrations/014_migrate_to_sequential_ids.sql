@@ -14,15 +14,15 @@ ALTER TABLE bugs ADD COLUMN new_bug_id VARCHAR(50) NULL;
 
 -- Step 2: Create a temporary mapping table for task ID conversions
 CREATE TEMPORARY TABLE task_id_mapping (
-    old_id VARCHAR(100),
-    new_id VARCHAR(50),
+    old_id VARCHAR(100) COLLATE utf8mb4_unicode_ci,
+    new_id VARCHAR(50) COLLATE utf8mb4_unicode_ci,
     row_num INT
 );
 
 -- Step 3: Create a temporary mapping table for bug ID conversions
 CREATE TEMPORARY TABLE bug_id_mapping (
-    old_id VARCHAR(100),
-    new_id VARCHAR(50),
+    old_id VARCHAR(100) COLLATE utf8mb4_unicode_ci,
+    new_id VARCHAR(50) COLLATE utf8mb4_unicode_ci,
     row_num INT
 );
 
