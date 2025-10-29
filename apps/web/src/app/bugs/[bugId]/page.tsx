@@ -59,6 +59,24 @@ function UserName({ employeeId }: { employeeId: string }) {
   return <span>{name}</span>
 }
 
+// Helper function to format hours to hh:mm:ss
+function formatHoursToTime(hours: number): string {
+  const totalSeconds = Math.floor(hours * 3600)
+  const h = Math.floor(totalSeconds / 3600)
+  const m = Math.floor((totalSeconds % 3600) / 60)
+  const s = totalSeconds % 60
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+}
+
+// Helper function to format milliseconds to hh:mm:ss
+function formatMillisecondsToTime(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000)
+  const h = Math.floor(totalSeconds / 3600)
+  const m = Math.floor((totalSeconds % 3600) / 60)
+  const s = totalSeconds % 60
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+}
+
 export default function BugDetailPage({ params }: { params: Promise<{ bugId: string }> }) {
   const [bug, setBug] = useState<Bug | null>(null)
   const [users, setUsers] = useState<User[]>([])
@@ -723,19 +741,21 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                         }}
                         className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
                       >
-                        {bug.estimatedHours ? `${bug.estimatedHours}h` : 'Set hours'}
+                        {bug.estimatedHours ? formatHoursToTime(bug.estimatedHours) : 'Set hours'}
                       </button>
                     )
                   ) : (
                     <span className="ml-2 text-sm text-gray-900">
-                      {bug.estimatedHours ? `${bug.estimatedHours}h` : 'Not set'}
+                      {bug.estimatedHours ? formatHoursToTime(bug.estimatedHours) : 'Not set'}
                     </span>
                   )}
                 </div>
 
                 <div>
                   <span className="text-sm font-medium text-gray-600">Actual:</span>
-                  <span className="ml-2 text-sm text-gray-900">{bug.actualHours || 0}h</span>
+                  <span className="ml-2 text-sm text-gray-900">
+                    {bug.actualHours ? formatHoursToTime(bug.actualHours) : '00:00:00'}
+                  </span>
                 </div>
 
                 {bug.estimatedHours && (
@@ -943,12 +963,12 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="text-sm text-blue-700">
-                    <p><strong>Current Total:</strong> {bug.actualHours || 0} hours</p>
+                    <p><strong>Current Total:</strong> {formatHoursToTime(bug.actualHours || 0)}</p>
                     {bug.estimatedHours && (
-                      <p><strong>Estimated:</strong> {bug.estimatedHours} hours</p>
+                      <p><strong>Estimated:</strong> {formatHoursToTime(bug.estimatedHours)}</p>
                     )}
                     {hoursWorked && (
-                      <p><strong>New Total:</strong> {(bug.actualHours || 0) + parseFloat(hoursWorked || '0')} hours</p>
+                      <p><strong>New Total:</strong> {formatHoursToTime((bug.actualHours || 0) + parseFloat(hoursWorked || '0'))}</p>
                     )}
                   </div>
                 </div>
