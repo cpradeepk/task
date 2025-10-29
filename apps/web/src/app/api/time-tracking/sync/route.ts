@@ -2,7 +2,7 @@
 // Handles periodic sync of timer state from client to server
 
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken } from '@/lib/auth'
+import { verifyToken } from '@/lib/auth-server'
 import { updateTask } from '@/lib/db/tasks'
 import { updateBug } from '@/lib/db/bugs'
 
@@ -40,10 +40,15 @@ interface SyncRequest {
  * }
  */
 export async function POST(request: NextRequest) {
+  console.log('🔵 [TIME-TRACKING-SYNC] API called')
+
   try {
     // Verify authentication
     const token = request.cookies.get('token')?.value
+    console.log('🔵 [TIME-TRACKING-SYNC] Token present:', !!token)
+
     if (!token) {
+      console.log('❌ [TIME-TRACKING-SYNC] No token found')
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -51,7 +56,10 @@ export async function POST(request: NextRequest) {
     }
 
     const user = verifyToken(token)
+    console.log('🔵 [TIME-TRACKING-SYNC] User verified:', user ? user.employeeId : 'null')
+
     if (!user) {
+      console.log('❌ [TIME-TRACKING-SYNC] Invalid token')
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -62,8 +70,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as SyncRequest
     const { entityType, entityId, state, totalTime, sessions } = body
 
+    console.log('🔵 [TIME-TRACKING-SYNC] Request:', { entityType, entityId, state, totalTime, sessionCount: sessions?.length })
+
     // Validate required fields
     if (!entityType || !entityId || !state || totalTime === undefined) {
+      console.log('❌ [TIME-TRACKING-SYNC] Missing required fields:', { entityType, entityId, state, totalTime })
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
@@ -83,19 +94,29 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString()
     }
 
+    console.log('🔵 [TIME-TRACKING-SYNC] Updates to apply:', updates)
+
     // Update the appropriate entity
     try {
+      console.log('🔵 [TIME-TRACKING-SYNC] Updating entity:', entityType, entityId)
+
       if (entityType === 'task') {
+        console.log('🔵 [TIME-TRACKING-SYNC] Calling updateTask...')
         await updateTask(entityId, updates)
+        console.log('✅ [TIME-TRACKING-SYNC] Task updated successfully')
       } else if (entityType === 'bug') {
+        console.log('🔵 [TIME-TRACKING-SYNC] Calling updateBug...')
         await updateBug(entityId, updates)
+        console.log('✅ [TIME-TRACKING-SYNC] Bug updated successfully')
       } else {
+        console.log('❌ [TIME-TRACKING-SYNC] Invalid entity type:', entityType)
         return NextResponse.json(
           { success: false, error: 'Invalid entity type' },
           { status: 400 }
         )
       }
 
+      console.log('✅ [TIME-TRACKING-SYNC] Sync completed successfully')
       return NextResponse.json({
         success: true,
         message: 'Timer synced successfully',
@@ -105,34 +126,48 @@ export async function POST(request: NextRequest) {
         }
       })
     } catch (updateError) {
-      console.error('❌ Error updating entity:', updateError)
+      console.error('❌ [TIME-TRACKING-SYNC] Error updating entity:', updateError)
 
       // Provide detailed error message
       const errorMessage = updateError instanceof Error ? updateError.message : 'Unknown error'
-      console.error('❌ Error details:', {
+      const errorStack = updateError instanceof Error ? updateError.stack : undefined
+
+      console.error('❌ [TIME-TRACKING-SYNC] Error details:', {
         entityType,
         entityId,
         state,
         totalTime,
-        errorMessage
+        errorMessage,
+        errorStack
       })
 
       return NextResponse.json(
         {
           success: false,
           error: 'Failed to update timer data',
-          details: errorMessage
+          details: errorMessage,
+          stack: errorStack
         },
         { status: 500 }
       )
     }
 
   } catch (error) {
-    console.error('❌ Error syncing timer:', error)
+    console.error('❌ [TIME-TRACKING-SYNC] Outer error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    
+    const errorStack = error instanceof Error ? error.stack : undefined
+
+    console.error('❌ [TIME-TRACKING-SYNC] Outer error details:', {
+      errorMessage,
+      errorStack
+    })
+
     return NextResponse.json(
-      { success: false, error: errorMessage },
+      {
+        success: false,
+        error: errorMessage,
+        stack: errorStack
+      },
       { status: 500 }
     )
   }

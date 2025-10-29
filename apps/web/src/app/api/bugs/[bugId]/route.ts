@@ -3,7 +3,7 @@ import { getBugById, updateBug, deleteBug } from '@/lib/db/bugs'
 import { emailService } from '@/lib/email/service'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
-import { verifyToken } from '@/lib/auth'
+import { verifyToken } from '@/lib/auth-server'
 
 export async function GET(
   request: NextRequest,

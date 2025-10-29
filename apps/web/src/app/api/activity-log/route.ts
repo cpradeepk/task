@@ -2,14 +2,14 @@
 // Handles GET (fetch activities) and POST (create activity/comment)
 
 import { NextRequest, NextResponse } from 'next/server'
-import { 
-  getActivityLogByEntity, 
-  getCommentsByEntity, 
+import {
+  getActivityLogByEntity,
+  getCommentsByEntity,
   getSystemActivitiesByEntity,
   createActivityLog,
   CreateActivityLogInput
 } from '@/lib/db/activityLog'
-import { verifyToken } from '@/lib/auth'
+import { verifyToken } from '@/lib/auth-server'
 
 /**
  * GET /api/activity-log
@@ -146,6 +146,8 @@ export async function GET(request: NextRequest) {
  * }
  */
 export async function POST(request: NextRequest) {
+  console.log('🔵 [ACTIVITY-LOG] API called')
+
   let entityType: string | undefined
   let entityId: string | undefined
   let actionType: string | undefined
@@ -153,7 +155,10 @@ export async function POST(request: NextRequest) {
   try {
     // Verify authentication
     const token = request.cookies.get('token')?.value
+    console.log('🔵 [ACTIVITY-LOG] Token present:', !!token)
+
     if (!token) {
+      console.log('❌ [ACTIVITY-LOG] No token found')
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -161,7 +166,10 @@ export async function POST(request: NextRequest) {
     }
 
     const user = verifyToken(token)
+    console.log('🔵 [ACTIVITY-LOG] User verified:', user ? user.employeeId : 'null')
+
     if (!user) {
+      console.log('❌ [ACTIVITY-LOG] Invalid token')
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -185,6 +193,8 @@ export async function POST(request: NextRequest) {
     entityType = bodyEntityType
     entityId = bodyEntityId
     actionType = bodyActionType
+
+    console.log('🔵 [ACTIVITY-LOG] Request:', { entityType, entityId, actionType, isComment, userId: user.employeeId })
 
     // Validate required fields
     if (!bodyEntityType || !bodyEntityId || !bodyActionType || !description) {
@@ -222,7 +232,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the activity log entry
+    console.log('🔵 [ACTIVITY-LOG] Creating activity log entry...')
     const activity = await createActivityLog(activityInput)
+    console.log('✅ [ACTIVITY-LOG] Activity log created successfully:', activity.id)
 
     return NextResponse.json({
       success: true,
@@ -231,23 +243,25 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('❌ Error creating activity log:', error)
+    console.error('❌ [ACTIVITY-LOG] Error creating activity log:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
 
     // Log detailed error information
-    console.error('❌ Error details:', {
+    console.error('❌ [ACTIVITY-LOG] Error details:', {
       entityType,
       entityId,
       actionType,
       userId: request.cookies.get('token') ? 'authenticated' : 'no token',
-      errorMessage
+      errorMessage,
+      errorStack
     })
 
     return NextResponse.json(
       {
         success: false,
         error: errorMessage,
-        details: error instanceof Error ? error.stack : undefined
+        details: errorStack
       },
       { status: 500 }
     )

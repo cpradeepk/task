@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { deleteActivityLog, getActivityLogById } from '@/lib/db/activityLog'
-import { verifyToken } from '@/lib/auth'
+import { verifyToken } from '@/lib/auth-server'
 
 /**
  * DELETE /api/activity-log/[id]

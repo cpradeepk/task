@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { updateTask, deleteTask, getTaskById } from '@/lib/db/tasks'
 import { calculateTotalHours } from '@/lib/dailyHours'
 import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
-import { verifyToken } from '@/lib/auth'
+import { verifyToken } from '@/lib/auth-server'
 
 export async function PUT(
   request: NextRequest,
