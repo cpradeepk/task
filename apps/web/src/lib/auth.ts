@@ -105,10 +105,24 @@ export async function authenticateUser(employeeId: string, password: string): Pr
 
 export async function login(employeeId: string, password: string): Promise<boolean> {
   try {
-    const user = await authenticateUser(employeeId, password)
+    // Call the login API endpoint to get JWT token and set cookie
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Important: allows cookies to be set
+      body: JSON.stringify({ employeeId, password })
+    })
 
-    if (user) {
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user))
+    if (!response.ok) {
+      return false
+    }
+
+    const result = await response.json()
+
+    if (result.success && result.data) {
+      // Store user in localStorage for client-side access
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(result.data))
+      // Cookie is automatically set by the API response
       return true
     }
 
