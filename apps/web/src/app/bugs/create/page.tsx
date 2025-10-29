@@ -282,26 +282,54 @@ export default function CreateBugPage() {
     try {
       let attachmentUrls: string[] = []
 
-      // Upload files if any
+      // Upload files if any using S3 presigned URLs
       if (uploadedFiles.length > 0) {
         setIsUploading(true)
 
-        const uploadFormData = new FormData()
-        uploadedFiles.forEach(file => {
-          uploadFormData.append('files', file)
-        })
+        try {
+          // Step 1: Get presigned URLs from backend
+          const presignedResponse = await fetch('/api/upload/presigned-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              files: uploadedFiles.map(file => ({
+                name: file.name,
+                type: file.type,
+                size: file.size
+              }))
+            })
+          })
 
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: uploadFormData
-        })
+          const presignedResult = await presignedResponse.json()
 
-        const uploadResult = await uploadResponse.json()
+          if (!presignedResult.success) {
+            throw new Error(presignedResult.error || 'Failed to get upload URLs')
+          }
 
-        if (uploadResult.success) {
-          attachmentUrls = uploadResult.files
-        } else {
-          throw new Error(uploadResult.error || 'Failed to upload files')
+          // Step 2: Upload files directly to S3
+          const uploadPromises = presignedResult.uploads.map(async (upload: any, index: number) => {
+            const file = uploadedFiles[index]
+
+            const s3Response = await fetch(upload.uploadUrl, {
+              method: 'PUT',
+              body: file,
+              headers: {
+                'Content-Type': file.type
+              }
+            })
+
+            if (!s3Response.ok) {
+              throw new Error(`Failed to upload ${file.name} to S3`)
+            }
+
+            return upload.fileUrl
+          })
+
+          attachmentUrls = await Promise.all(uploadPromises)
+        } catch (uploadError) {
+          setIsUploading(false)
+          throw uploadError
         }
 
         setIsUploading(false)
