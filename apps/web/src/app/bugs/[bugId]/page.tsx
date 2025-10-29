@@ -64,17 +64,17 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
-  const [showAssignModal, setShowAssignModal] = useState(false)
-  const [selectedAssignee, setSelectedAssignee] = useState('')
-  const [showStatusModal, setShowStatusModal] = useState(false)
+
+  // Inline editing states
+  const [isEditingStatus, setIsEditingStatus] = useState(false)
+  const [isEditingAssignee, setIsEditingAssignee] = useState(false)
+  const [isEditingEstimatedHours, setIsEditingEstimatedHours] = useState(false)
+  const [tempEstimatedHours, setTempEstimatedHours] = useState('')
+
+  // Log hours modal (keeping this one as it has multiple fields)
   const [showHoursModal, setShowHoursModal] = useState(false)
-  const [showEstimatedHoursModal, setShowEstimatedHoursModal] = useState(false)
-  const [newStatus, setNewStatus] = useState<Bug['status']>('New')
   const [hoursWorked, setHoursWorked] = useState('')
   const [workDescription, setWorkDescription] = useState('')
-  const [estimatedHours, setEstimatedHours] = useState('')
-  const [editData, setEditData] = useState<Partial<Bug>>({})
-  const [editMode, setEditMode] = useState(false)
 
   // Settings state
   const [bugStatusOptions, setBugStatusOptions] = useState<string[]>([])
@@ -133,7 +133,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
       // Set bug data directly without any field swapping
       setBug(bugData)
-      setEditData(bugData)
       setIsLoading(false) // Set loading false immediately after bug data loads
     } catch (error) {
       console.error('Failed to load bug data:', error)
@@ -177,40 +176,23 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     })
   }, [currentUser, router, isHydrated, bugId])
 
-  const handleUpdateBug = async () => {
-    if (!bug || !currentUser) return
+  const handleAssigneeChange = async (newAssignee: string) => {
+    if (!bug || !newAssignee || !currentUser) return
 
     setIsUpdating(true)
     try {
-      const success = await updateBug(bug.bugId, editData)
-      if (success) {
-        setBug({ ...bug, ...editData })
-        setEditMode(false)
-      }
-    } catch (error) {
-      console.error('Failed to update bug:', error)
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
-  const handleAssignBug = async () => {
-    if (!bug || !currentUser || !selectedAssignee) return
-
-    setIsUpdating(true)
-    try {
-      const updates = {
-        assignedTo: selectedAssignee,
+      const updates: Partial<Bug> = {
+        assignedTo: newAssignee,
         assignedBy: currentUser.employeeId,
-        status: 'In Progress' as Bug['status']
+        status: bug.status === 'New' ? 'In Progress' : bug.status,
+        updatedAt: new Date().toISOString()
       }
 
-      // TEMPORARY WORKAROUND: Update UI immediately even if backend fails
+      // Update UI immediately
       setBug({ ...bug, ...updates })
-      setShowAssignModal(false)
-      setSelectedAssignee('')
+      setIsEditingAssignee(false)
 
-      // Try to update backend, but don't fail if it doesn't work
+      // Update backend
       try {
         await updateBug(bug.bugId, updates)
         console.log('Bug assignment updated successfully')
@@ -224,7 +206,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     }
   }
 
-  const handleUpdateStatus = async () => {
+  const handleStatusChange = async (newStatus: Bug['status']) => {
     if (!bug || !currentUser) return
 
     setIsUpdating(true)
@@ -244,12 +226,11 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         updates.closedDate = new Date().toISOString()
       }
 
-      // TEMPORARY WORKAROUND: Update UI immediately even if backend fails
+      // Update UI immediately
       setBug({ ...bug, ...updates })
-      setShowStatusModal(false)
+      setIsEditingStatus(false)
 
-      // Try to update backend, but don't fail if it doesn't work
-      // Activity log will automatically track the status change
+      // Update backend - activity log will automatically track the status change
       try {
         await updateBug(bug.bugId, updates)
         console.log('Bug status updated successfully')
@@ -297,14 +278,19 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     }
   }
 
-  const handleUpdateEstimatedHours = async () => {
-    if (!bug || !currentUser || !estimatedHours.trim()) return
+  const handleEstimatedHoursChange = async () => {
+    if (!bug || !currentUser || !tempEstimatedHours.trim()) {
+      setIsEditingEstimatedHours(false)
+      setTempEstimatedHours('')
+      return
+    }
 
     setIsUpdating(true)
     try {
-      const hours = parseFloat(estimatedHours)
+      const hours = parseFloat(tempEstimatedHours)
       if (isNaN(hours) || hours <= 0) {
         alert('Please enter a valid number of hours')
+        setIsUpdating(false)
         return
       }
 
@@ -313,12 +299,17 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         updatedAt: new Date().toISOString()
       }
 
-      const success = await updateBug(bug.bugId, updates)
-      if (success) {
-        setBug({ ...bug, ...updates })
-        setShowEstimatedHoursModal(false)
-        setEstimatedHours('')
-        // Activity log will automatically track the estimated hours change
+      // Update UI immediately
+      setBug({ ...bug, ...updates })
+      setIsEditingEstimatedHours(false)
+      setTempEstimatedHours('')
+
+      // Update backend - activity log will automatically track the estimated hours change
+      try {
+        await updateBug(bug.bugId, updates)
+        console.log('Estimated hours updated successfully')
+      } catch (error) {
+        console.warn('Backend update failed, but UI updated:', error)
       }
     } catch (error) {
       console.error('Failed to update estimated hours:', error)
@@ -420,29 +411,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
           </div>
 
           <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-            {canAssign && (
-              <button
-                onClick={() => setShowAssignModal(true)}
-                className="inline-flex items-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium rounded-lg shadow-sm hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                <UserCheck className="h-4 w-4 mr-2" />
-                <span>{bug.assignedTo ? 'Reassign' : 'Assign'}</span>
-              </button>
-            )}
-
-            {canEdit && (
-              <button
-                onClick={() => {
-                  setNewStatus(bug.status)
-                  setShowStatusModal(true)
-                }}
-                className="inline-flex items-center px-4 py-2.5 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-medium rounded-lg shadow-sm hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                <span>Update Status</span>
-              </button>
-            )}
-
             {canEdit && (
               <button
                 onClick={() => setShowHoursModal(true)}
@@ -453,25 +421,9 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </button>
             )}
 
-            {canEdit && (
-              <button
-                onClick={() => {
-                  setEstimatedHours(bug.estimatedHours?.toString() || '')
-                  setShowEstimatedHoursModal(true)
-                }}
-                className="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium rounded-lg shadow-sm hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                <Clock className="h-4 w-4 mr-2" />
-                <span>Set Estimated Hours</span>
-              </button>
-            )}
-
             {bug.status === 'Resolved' && canEdit && (
               <button
-                onClick={() => {
-                  setNewStatus('Closed')
-                  handleUpdateStatus()
-                }}
+                onClick={() => handleStatusChange('Closed')}
                 className="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-medium rounded-lg shadow-sm hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
@@ -493,10 +445,41 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(bug.severity)}`}>
                   {bug.severity}
                 </span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(bug.status)}`}>
-                  {getStatusIcon(bug.status)}
-                  <span>{bug.status}</span>
-                </span>
+
+                {/* Status - Inline Dropdown */}
+                {canEdit ? (
+                  <div className="relative inline-block">
+                    {isEditingStatus ? (
+                      <select
+                        value={bug.status}
+                        onChange={(e) => handleStatusChange(e.target.value as Bug['status'])}
+                        onBlur={() => setIsEditingStatus(false)}
+                        autoFocus
+                        disabled={isUpdating}
+                        className="px-2 py-1 rounded-full text-xs font-medium border-2 border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {bugStatusOptions.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingStatus(true)}
+                        className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(bug.status)} hover:ring-2 hover:ring-blue-500 transition-all`}
+                      >
+                        {getStatusIcon(bug.status)}
+                        <span>{bug.status}</span>
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(bug.status)}`}>
+                    {getStatusIcon(bug.status)}
+                    <span>{bug.status}</span>
+                  </span>
+                )}
               </div>
 
               <h2 className="text-xl font-semibold text-black mb-4">{bug.title}</h2>
@@ -640,14 +623,40 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   </span>
                 </div>
 
-                {bug.assignedTo && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Assigned to:</span>
+                {/* Assigned To - Inline Dropdown */}
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Assigned to:</span>
+                  {canAssign ? (
+                    isEditingAssignee ? (
+                      <select
+                        value={bug.assignedTo || ''}
+                        onChange={(e) => handleAssigneeChange(e.target.value)}
+                        onBlur={() => setIsEditingAssignee(false)}
+                        autoFocus
+                        disabled={isUpdating}
+                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Unassigned</option>
+                        {users.map((user) => (
+                          <option key={user.employeeId} value={user.employeeId}>
+                            {user.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingAssignee(true)}
+                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
+                      >
+                        {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
+                      </button>
+                    )
+                  ) : (
                     <span className="ml-2 text-sm text-gray-900">
-                      <UserName employeeId={bug.assignedTo} />
+                      {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
                     </span>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {bug.assignedBy && (
                   <div>
@@ -668,12 +677,49 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </h3>
 
               <div className="space-y-3">
-                {bug.estimatedHours && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Estimated:</span>
-                    <span className="ml-2 text-sm text-gray-900">{bug.estimatedHours}h</span>
-                  </div>
-                )}
+                {/* Estimated Hours - Inline Input */}
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Estimated:</span>
+                  {canEdit ? (
+                    isEditingEstimatedHours ? (
+                      <div className="inline-flex items-center ml-2">
+                        <input
+                          type="number"
+                          value={tempEstimatedHours}
+                          onChange={(e) => setTempEstimatedHours(e.target.value)}
+                          onBlur={handleEstimatedHoursChange}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleEstimatedHoursChange()
+                            } else if (e.key === 'Escape') {
+                              setIsEditingEstimatedHours(false)
+                              setTempEstimatedHours('')
+                            }
+                          }}
+                          autoFocus
+                          disabled={isUpdating}
+                          placeholder="Hours"
+                          className="w-20 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="ml-1 text-sm text-gray-900">h</span>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setTempEstimatedHours(bug.estimatedHours?.toString() || '')
+                          setIsEditingEstimatedHours(true)
+                        }}
+                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
+                      >
+                        {bug.estimatedHours ? `${bug.estimatedHours}h` : 'Set hours'}
+                      </button>
+                    )
+                  ) : (
+                    <span className="ml-2 text-sm text-gray-900">
+                      {bug.estimatedHours ? `${bug.estimatedHours}h` : 'Not set'}
+                    </span>
+                  )}
+                </div>
 
                 <div>
                   <span className="text-sm font-medium text-gray-600">Actual:</span>
@@ -833,158 +879,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
           </div>
         </div>
 
-        {/* Assignment Modal */}
-        {showAssignModal && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center z-50 p-4"
-            onClick={() => setShowAssignModal(false)}
-          >
-            <div
-              className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl transform transition-all duration-200 scale-100 modal-content"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">
-                  {bug.assignedTo ? 'Reassign Bug' : 'Assign Bug'}
-                </h3>
-                <button
-                  onClick={() => setShowAssignModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {bug.assignedTo && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                    <p className="text-sm text-gray-700">
-                      <strong>Currently assigned to:</strong> <UserName employeeId={bug.assignedTo} />
-                    </p>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {bug.assignedTo ? 'Reassign to:' : 'Assign to:'}
-                  </label>
-                  <select
-                    value={selectedAssignee}
-                    onChange={(e) => setSelectedAssignee(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select assignee...</option>
-                    {users.map(user => (
-                      <option key={user.employeeId} value={user.employeeId}>
-                        {user.name} ({user.employeeId})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-700">
-                    <strong>Note:</strong> {bug.assignedTo ? 'Reassigning' : 'Assigning'} this bug will automatically change its status to "In Progress".
-                  </p>
-                </div>
-
-                <div className="flex space-x-3">
-                  <LoadingButton
-                    onClick={handleAssignBug}
-                    isLoading={isUpdating}
-                    disabled={!selectedAssignee || selectedAssignee === bug.assignedTo}
-                    className="btn-primary flex-1"
-                  >
-                    <UserCheck className="h-4 w-4 mr-2" />
-                    {bug.assignedTo ? 'Reassign Bug' : 'Assign Bug'}
-                  </LoadingButton>
-                  <button
-                    onClick={() => {
-                      setShowAssignModal(false)
-                      setSelectedAssignee('')
-                    }}
-                    className="btn-secondary flex-1"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Status Update Modal */}
-        {showStatusModal && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center z-50 p-4"
-            onClick={() => setShowStatusModal(false)}
-          >
-            <div
-              className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl transform transition-all duration-200 scale-100 modal-content"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Update Bug Status</h3>
-                <button
-                  onClick={() => setShowStatusModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Current Status: <span className="font-semibold text-gray-900">{bug.status}</span>
-                  </label>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value as Bug['status'])}
-                    disabled={isLoadingSettings}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    {bugStatusOptions.map(status => (
-                      <option key={status} value={status}>
-                        {status === 'New' && '🆕 '}
-                        {status === 'In Progress' && '⏳ '}
-                        {status === 'Resolved' && '✅ '}
-                        {status === 'Closed' && '🔒 '}
-                        {status === 'Reopened' && '🔄 '}
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <p className="text-sm text-yellow-700">
-                    <strong>Note:</strong> Status changes will be logged as comments and update timestamps automatically.
-                  </p>
-                </div>
-
-                <div className="flex space-x-3">
-                  <LoadingButton
-                    onClick={handleUpdateStatus}
-                    isLoading={isUpdating}
-                    disabled={newStatus === bug.status}
-                    className="btn-primary flex-1"
-                  >
-                    <CheckSquare className="h-4 w-4 mr-2" />
-                    Update Status
-                  </LoadingButton>
-                  <button
-                    onClick={() => setShowStatusModal(false)}
-                    className="btn-secondary flex-1"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Hours Tracking Modal */}
         {showHoursModal && (
           <div
@@ -1062,80 +956,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                       setShowHoursModal(false)
                       setHoursWorked('')
                       setWorkDescription('')
-                    }}
-                    className="btn-secondary flex-1"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Estimated Hours Modal */}
-        {showEstimatedHoursModal && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center z-50 p-4"
-            onClick={() => setShowEstimatedHoursModal(false)}
-          >
-            <div
-              className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl transform transition-all duration-200 scale-100 modal-content"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Set Estimated Hours</h3>
-                <button
-                  onClick={() => setShowEstimatedHoursModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Estimated Hours to Fix:
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0.5"
-                    max="168"
-                    value={estimatedHours}
-                    onChange={(e) => setEstimatedHours(e.target.value)}
-                    placeholder="e.g., 4.5"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Estimate how many hours it will take to fix this bug
-                  </p>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="text-sm text-blue-700">
-                    <p><strong>Current Estimated:</strong> {bug?.estimatedHours || 'Not set'} hours</p>
-                    {estimatedHours && (
-                      <p><strong>New Estimated:</strong> {estimatedHours} hours</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex space-x-3">
-                  <LoadingButton
-                    onClick={handleUpdateEstimatedHours}
-                    isLoading={isUpdating}
-                    disabled={!estimatedHours || parseFloat(estimatedHours) <= 0}
-                    className="btn-primary flex-1"
-                  >
-                    <Clock className="h-4 w-4 mr-2" />
-                    Update Estimate
-                  </LoadingButton>
-                  <button
-                    onClick={() => {
-                      setShowEstimatedHoursModal(false)
-                      setEstimatedHours('')
                     }}
                     className="btn-secondary flex-1"
                   >
