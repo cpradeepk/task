@@ -30,9 +30,17 @@ export default function CreateBugPage() {
     tags: '',
     relatedBugs: '',
     projectId: undefined,
+    subprojectId: undefined,
     feature: '',
     type: undefined
   })
+
+  const [projects, setProjects] = useState<any[]>([])
+  const [subprojects, setSubprojects] = useState<any[]>([])
+  const [allBugs, setAllBugs] = useState<any[]>([])
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
+  const [isLoadingSubprojects, setIsLoadingSubprojects] = useState(false)
+  const [isLoadingBugs, setIsLoadingBugs] = useState(false)
   
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -44,9 +52,9 @@ export default function CreateBugPage() {
 
   // Settings state
   const [severityOptions, setSeverityOptions] = useState<string[]>([])
-  const [priorityOptions, setPriorityOptions] = useState<string[]>([])
   const [categoryOptions, setCategoryOptions] = useState<string[]>([])
   const [platformOptions, setPlatformOptions] = useState<string[]>([])
+  const [environmentOptions, setEnvironmentOptions] = useState<string[]>([])
   const [bugTypeOptions, setBugTypeOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
 
@@ -68,7 +76,15 @@ export default function CreateBugPage() {
     try {
       setIsLoadingUsers(true)
       const allUsers = await getAllUsers()
-      setUsers(allUsers.filter(user => user.status === 'active'))
+      // Sort by employeeId
+      const activeUsers = allUsers
+        .filter(user => user.status === 'active')
+        .sort((a, b) => {
+          const idA = a.employeeId || ''
+          const idB = b.employeeId || ''
+          return idA.localeCompare(idB)
+        })
+      setUsers(activeUsers)
       setUsersLoaded(true)
     } catch (error) {
       console.error('Failed to load users:', error)
@@ -92,20 +108,20 @@ export default function CreateBugPage() {
 
         // Set options from database, with fallback to defaults if empty
         setSeverityOptions(grouped.severity && grouped.severity.length > 0 ? grouped.severity : ['Critical', 'Major', 'Minor'])
-        setPriorityOptions(grouped.priority && grouped.priority.length > 0 ? grouped.priority : ['High', 'Medium', 'Low'])
         setCategoryOptions(grouped.category && grouped.category.length > 0 ? grouped.category : ['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
         setPlatformOptions(grouped.platform && grouped.platform.length > 0 ? grouped.platform : ['Web', 'iOS', 'Android', 'All'])
-        setBugTypeOptions(grouped.bug_type && grouped.bug_type.length > 0 ? grouped.bug_type : ['Bug', 'Feature Request', 'Enhancement'])
+        setEnvironmentOptions(grouped.environment && grouped.environment.length > 0 ? grouped.environment : ['Development', 'Staging', 'UAT', 'Production'])
+        setBugTypeOptions(grouped.bug_type && grouped.bug_type.length > 0 ? grouped.bug_type : ['testcase', 'feature', 'other'])
 
         console.log('Settings loaded successfully:', grouped)
       } else {
         console.warn('Settings API returned empty data, using defaults:', data)
         // Use default options if API returns empty
         setSeverityOptions(['Critical', 'Major', 'Minor'])
-        setPriorityOptions(['High', 'Medium', 'Low'])
         setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
         setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
-        setBugTypeOptions(['Bug', 'Feature Request', 'Enhancement'])
+        setEnvironmentOptions(['Development', 'Staging', 'UAT', 'Production'])
+        setBugTypeOptions(['testcase', 'feature', 'other'])
       }
 
       setSettingsLoaded(true)
@@ -113,16 +129,85 @@ export default function CreateBugPage() {
       console.error('Failed to load settings:', error)
       // Use default options on error
       setSeverityOptions(['Critical', 'Major', 'Minor'])
-      setPriorityOptions(['High', 'Medium', 'Low'])
       setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
       setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
-      setBugTypeOptions(['Bug', 'Feature Request', 'Enhancement'])
+      setEnvironmentOptions(['Development', 'Staging', 'UAT', 'Production'])
+      setBugTypeOptions(['testcase', 'feature', 'other'])
       setError('Using default dropdown options. Database settings may be unavailable.')
       setSettingsLoaded(true)
     } finally {
       setIsLoadingSettings(false)
     }
   }, [settingsLoaded])
+
+  // Load projects
+  const loadProjects = useCallback(async () => {
+    try {
+      setIsLoadingProjects(true)
+      const response = await fetch('/api/projects')
+      const data = await response.json()
+      if (data.success) {
+        // Sort by projectId
+        const sorted = data.data.sort((a: any, b: any) => {
+          const idA = a.projectId || ''
+          const idB = b.projectId || ''
+          return idA.localeCompare(idB)
+        })
+        setProjects(sorted)
+      }
+    } catch (error) {
+      console.error('Failed to load projects:', error)
+    } finally {
+      setIsLoadingProjects(false)
+    }
+  }, [])
+
+  // Load subprojects when project changes
+  const loadSubprojects = useCallback(async (projectId: string) => {
+    if (!projectId) {
+      setSubprojects([])
+      return
+    }
+
+    try {
+      setIsLoadingSubprojects(true)
+      const response = await fetch(`/api/projects?parentId=${projectId}`)
+      const data = await response.json()
+      if (data.success) {
+        // Sort by projectId
+        const sorted = data.data.sort((a: any, b: any) => {
+          const idA = a.projectId || ''
+          const idB = b.projectId || ''
+          return idA.localeCompare(idB)
+        })
+        setSubprojects(sorted)
+      }
+    } catch (error) {
+      console.error('Failed to load subprojects:', error)
+    } finally {
+      setIsLoadingSubprojects(false)
+    }
+  }, [])
+
+  // Load bugs for related bugs dropdown
+  const loadBugs = useCallback(async (projectId?: string) => {
+    try {
+      setIsLoadingBugs(true)
+      let url = '/api/bugs?status=New,In Progress,Reopened'
+      if (projectId) {
+        url += `&projectId=${projectId}`
+      }
+      const response = await fetch(url)
+      const data = await response.json()
+      if (data.success) {
+        setAllBugs(data.data || [])
+      }
+    } catch (error) {
+      console.error('Failed to load bugs:', error)
+    } finally {
+      setIsLoadingBugs(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (!isHydrated) return
@@ -136,7 +221,19 @@ export default function CreateBugPage() {
 
     loadUsers()
     loadSettings()
-  }, [currentUser, router, isHydrated, loadUsers, loadSettings])
+    loadProjects()
+  }, [currentUser, router, isHydrated, loadUsers, loadSettings, loadProjects])
+
+  // Load subprojects and bugs when project changes
+  useEffect(() => {
+    if (formData.projectId) {
+      loadSubprojects(formData.projectId)
+      loadBugs(formData.projectId)
+    } else {
+      setSubprojects([])
+      setFormData(prev => ({ ...prev, subprojectId: undefined }))
+    }
+  }, [formData.projectId, loadSubprojects, loadBugs])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -153,12 +250,17 @@ export default function CreateBugPage() {
 
     // Validate required fields
     if (!formData.title.trim()) {
-      setError('Title is required')
+      setError('Feature name is required')
       return
     }
 
     if (!formData.description.trim()) {
       setError('Description is required')
+      return
+    }
+
+    if (!formData.projectId) {
+      setError('Project is required')
       return
     }
 
@@ -276,9 +378,57 @@ export default function CreateBugPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-6">
+                {/* Project and Subproject - MOVED TO TOP */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Project <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="projectId"
+                      value={formData.projectId || ''}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setFormData(prev => ({ ...prev, projectId: value || undefined, subprojectId: undefined }))
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      required
+                      disabled={isLoadingProjects}
+                    >
+                      <option value="">Select project...</option>
+                      {projects.map(project => (
+                        <option key={project.projectId} value={project.projectId}>
+                          {project.projectName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Subproject (Optional)
+                    </label>
+                    <select
+                      name="subprojectId"
+                      value={formData.subprojectId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, subprojectId: e.target.value || undefined }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      disabled={!formData.projectId || isLoadingSubprojects}
+                    >
+                      <option value="">Select subproject...</option>
+                      {subprojects.map(subproject => (
+                        <option key={subproject.projectId} value={subproject.projectId}>
+                          {subproject.projectName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Feature (renamed from Bug Title) */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Bug Title <span className="text-red-500">*</span>
+                    Feature <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -286,15 +436,19 @@ export default function CreateBugPage() {
                     value={formData.title}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="Brief, descriptive title of the bug"
+                    placeholder="e.g., User Login, Payment Gateway, Dashboard"
                     required
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Specify which feature this bug is related to
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Criticality, Category, Platform - 3 columns (removed Priority) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Severity <span className="text-red-500">*</span>
+                      Criticality <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="severity"
@@ -312,33 +466,6 @@ export default function CreateBugPage() {
                             {option === 'Critical' && '🔴 '}
                             {option === 'Major' && '🟠 '}
                             {option === 'Minor' && '🟡 '}
-                            {option}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Priority <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="priority"
-                      value={formData.priority}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                      required
-                      disabled={isLoadingSettings}
-                    >
-                      {isLoadingSettings ? (
-                        <option>Loading...</option>
-                      ) : (
-                        priorityOptions.map(option => (
-                          <option key={option} value={option}>
-                            {option === 'High' && '⬆️ '}
-                            {option === 'Medium' && '➡️ '}
-                            {option === 'Low' && '⬇️ '}
                             {option}
                           </option>
                         ))
@@ -407,7 +534,8 @@ export default function CreateBugPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Technical Details - Environment, Browser, Device (MOVED HERE) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Environment <span className="text-red-500">*</span>
@@ -418,13 +546,55 @@ export default function CreateBugPage() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                       required
+                      disabled={isLoadingSettings}
                     >
-                      <option value="Production">🚀 Production</option>
-                      <option value="Staging">🧪 Staging</option>
-                      <option value="Development">💻 Development</option>
+                      {isLoadingSettings ? (
+                        <option>Loading...</option>
+                      ) : (
+                        environmentOptions.map(option => (
+                          <option key={option} value={option}>
+                            {option === 'Production' && '🚀 '}
+                            {option === 'Staging' && '🧪 '}
+                            {option === 'UAT' && '🔍 '}
+                            {option === 'Development' && '💻 '}
+                            {option}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Browser Information
+                    </label>
+                    <input
+                      type="text"
+                      name="browserInfo"
+                      value={formData.browserInfo}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="e.g., Chrome 91, Safari 14.1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Device Information
+                    </label>
+                    <input
+                      type="text"
+                      name="deviceInfo"
+                      value={formData.deviceInfo}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="e.g., iPhone 12, Windows 10"
+                    />
+                  </div>
+                </div>
+
+                {/* Bug Type and Related Bugs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Bug Type (Optional)
@@ -447,40 +617,41 @@ export default function CreateBugPage() {
                       ))}
                     </select>
                   </div>
-                </div>
-
-                {/* Project and Feature */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <ProjectSelector
-                      value={formData.projectId || null}
-                      onChange={(projectId) => setFormData({ ...formData, projectId: projectId || undefined })}
-                      disabled={isLoading}
-                      required={false}
-                      includeNone={true}
-                      label="Project (Optional)"
-                    />
-                  </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Feature (Optional)
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
+                      <Bug className="h-4 w-4" />
+                      <span>Related Bugs (Optional)</span>
                     </label>
-                    <input
-                      type="text"
-                      name="feature"
-                      value={formData.feature || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      placeholder="e.g., User Authentication, Payment Gateway"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      Specify which feature this bug is related to
-                    </p>
+                    <select
+                      multiple
+                      name="relatedBugs"
+                      value={formData.relatedBugs ? formData.relatedBugs.split(',').map(b => b.trim()) : []}
+                      onChange={(e) => {
+                        const selected = Array.from(e.target.selectedOptions).map(opt => opt.value)
+                        setFormData(prev => ({ ...prev, relatedBugs: selected.join(', ') }))
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      disabled={isLoadingBugs || !formData.projectId}
+                      size={4}
+                    >
+                      {isLoadingBugs ? (
+                        <option disabled>Loading bugs...</option>
+                      ) : allBugs.length === 0 ? (
+                        <option disabled>No open bugs in this project</option>
+                      ) : (
+                        allBugs.map(bug => (
+                          <option key={bug.bugId} value={bug.bugId}>
+                            {bug.bugId} - {bug.title}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple bugs</p>
                   </div>
                 </div>
 
-                {/* Assign To */}
+                {/* Assign To - Sorted by employee_id */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Assign To (Optional)
@@ -540,46 +711,7 @@ export default function CreateBugPage() {
               </div>
             </div>
 
-            {/* Technical Details Section */}
-            <div className="space-y-6">
-              <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                  <Settings className="h-5 w-5 text-purple-600" />
-                  <span>Technical Details</span>
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">Environment and system information</p>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Browser Information
-                  </label>
-                  <input
-                    type="text"
-                    name="browserInfo"
-                    value={formData.browserInfo}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="e.g., Chrome 91.0.4472.124, Safari 14.1"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Device Information
-                  </label>
-                  <input
-                    type="text"
-                    name="deviceInfo"
-                    value={formData.deviceInfo}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="e.g., iPhone 12, Windows 10, MacBook Pro"
-                  />
-                </div>
-              </div>
-            </div>
 
             {/* Reproduction Steps Section */}
             <div className="space-y-6">
@@ -667,39 +799,20 @@ export default function CreateBugPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
-                    <Tag className="h-4 w-4" />
-                    <span>Tags</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="tags"
-                    value={formData.tags}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="urgent, login, payment, mobile"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Comma-separated keywords for categorization</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
-                    <Bug className="h-4 w-4" />
-                    <span>Related Bugs</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="relatedBugs"
-                    value={formData.relatedBugs}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="BUG-123456789, BUG-987654321"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Reference related bug IDs</p>
-                </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
+                  <Tag className="h-4 w-4" />
+                  <span>Tags</span>
+                </label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={formData.tags}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="urgent, login, payment, mobile"
+                />
+                <p className="text-xs text-gray-500 mt-1">Comma-separated keywords for categorization</p>
               </div>
             </div>
 

@@ -302,6 +302,7 @@ export interface BugFormData {
   tags?: string
   relatedBugs?: string
   projectId?: string | null
+  subprojectId?: string | null
   feature?: string | null
   type?: 'testcase' | 'feature' | 'other' | null
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, X, Image as ImageIcon, FileText, AlertCircle } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, FileText, AlertCircle, Video } from 'lucide-react'
 
 interface FileUploadProps {
   onFilesChange: (files: File[]) => void
@@ -20,7 +20,10 @@ export default function FileUpload({
   onFilesChange,
   maxFiles = 5,
   maxSizeMB = 10,
-  acceptedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
+  acceptedTypes = [
+    'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp',
+    'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'
+  ]
 }: FileUploadProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [error, setError] = useState('')
@@ -30,7 +33,7 @@ export default function FileUpload({
   const validateFile = (file: File): string | null => {
     // Check file type
     if (!acceptedTypes.includes(file.type)) {
-      return `File type ${file.type} is not supported. Please upload images only.`
+      return `File type ${file.type} is not supported. Please upload images or videos only.`
     }
 
     // Check file size
@@ -70,8 +73,8 @@ export default function FileUpload({
         id
       }
 
-      // Create preview for images
-      if (file.type.startsWith('image/')) {
+      // Create preview for images and videos
+      if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
         const reader = new FileReader()
         reader.onloadend = () => {
           uploadedFile.preview = reader.result as string
@@ -164,7 +167,7 @@ export default function FileUpload({
           Click to upload or drag and drop
         </p>
         <p className="text-xs text-gray-500">
-          PNG, JPG, GIF, WEBP up to {maxSizeMB}MB (max {maxFiles} files)
+          Images (PNG, JPG, GIF, WEBP) or Videos (MP4, MOV, AVI, WEBM) up to {maxSizeMB}MB (max {maxFiles} files)
         </p>
       </div>
 
@@ -192,11 +195,23 @@ export default function FileUpload({
                 {/* Preview */}
                 <div className="aspect-square bg-gray-100 flex items-center justify-center">
                   {uploadedFile.preview ? (
-                    <img
-                      src={uploadedFile.preview}
-                      alt={uploadedFile.file.name}
-                      className="w-full h-full object-cover"
-                    />
+                    uploadedFile.file.type.startsWith('video/') ? (
+                      <div className="relative w-full h-full">
+                        <video
+                          src={uploadedFile.preview}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                          <Video className="h-12 w-12 text-white" />
+                        </div>
+                      </div>
+                    ) : (
+                      <img
+                        src={uploadedFile.preview}
+                        alt={uploadedFile.file.name}
+                        className="w-full h-full object-cover"
+                      />
+                    )
                   ) : (
                     <FileText className="h-12 w-12 text-gray-400" />
                   )}
