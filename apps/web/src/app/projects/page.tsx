@@ -112,7 +112,7 @@ export default function ProjectsPage() {
     fetchProjects()
   }
 
-  const canManageProjects = userRole === 'admin' || userRole === 'top_management'
+  const canManageProjects = userRole === 'admin' || userRole === 'top_management' || employeeId === 'AM-0001'
   const canDelete = userRole === 'admin'
 
   // Render project tree recursively
@@ -293,7 +293,8 @@ export default function ProjectsPage() {
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• Main projects can have sub-projects</li>
             <li>• Sub-projects cannot have further sub-projects (2-level maximum)</li>
-            <li>• Only admin and top management can create/delete projects</li>
+            <li>• Only admin, top management, and AM-0001 can create/edit projects</li>
+            <li>• Only admin can delete projects</li>
             <li>• Projects can be marked as Active, Inactive, or Deleted</li>
           </ul>
         </div>

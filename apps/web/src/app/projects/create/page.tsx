@@ -29,12 +29,13 @@ export default function CreateProjectPage() {
     // Get user info from localStorage
     const role = localStorage.getItem('userRole') || ''
     const empId = localStorage.getItem('employeeId') || ''
-    
+
     setUserRole(role)
     setEmployeeId(empId)
 
-    // Check permissions
-    if (role !== 'admin' && role !== 'top_management') {
+    // Check permissions: admin, top_management, or AM-0001
+    const hasPermission = role === 'admin' || role === 'top_management' || empId === 'AM-0001'
+    if (!hasPermission) {
       router.push('/projects')
     }
   }, [router])
