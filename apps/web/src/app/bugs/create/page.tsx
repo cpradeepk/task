@@ -63,13 +63,14 @@ export default function CreateBugPage() {
   // File upload state
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
 
   const router = useRouter()
-  const currentUser = getCurrentUser()
 
-  // Handle hydration
+  // Handle hydration and get current user
   useEffect(() => {
     setIsHydrated(true)
+    setCurrentUser(getCurrentUser())
   }, [])
 
   const loadUsers = useCallback(async () => {
