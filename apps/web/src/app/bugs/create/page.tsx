@@ -63,14 +63,15 @@ export default function CreateBugPage() {
   // File upload state
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined)
 
   const router = useRouter()
 
   // Handle hydration and get current user
   useEffect(() => {
     setIsHydrated(true)
-    setCurrentUser(getCurrentUser())
+    const user = getCurrentUser()
+    setCurrentUser(user)
   }, [])
 
   const loadUsers = useCallback(async () => {
@@ -218,7 +219,11 @@ export default function CreateBugPage() {
   useEffect(() => {
     if (!isHydrated) return
 
-    if (!currentUser) {
+    // If currentUser is still being loaded (undefined), wait
+    if (currentUser === undefined) return
+
+    // If currentUser is null after hydration, redirect to login
+    if (currentUser === null) {
       router.push('/')
       return
     }
