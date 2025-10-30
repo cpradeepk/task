@@ -1,0 +1,37 @@
+// React Native 0.73 doesn't use the new settings plugin
+// pluginManagement block removed for compatibility
+
+def getRNMinorVersion() {
+  def version = providers.exec {
+    commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
+  }.standardOutput.asText.get().trim()
+
+  def coreVersion = version.split("-")[0]
+  def (major, minor, patch) = coreVersion.tokenize('.').collect { it.toInteger() }
+
+  return minor
+}
+
+// React Native 0.73 doesn't support ReactSettingsExtension
+// This block is only for RN 0.75+
+
+rootProject.name = 'JSR Task Management'
+
+dependencyResolutionManagement {
+  versionCatalogs {
+    reactAndroidLibs {
+      from(files(new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), "../gradle/libs.versions.toml")))
+    }
+  }
+}
+
+apply from: new File(["node", "--print", "require.resolve('expo/package.json')"].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle");
+useExpoModules()
+
+if (getRNMinorVersion() < 75) {
+  apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), "../native_modules.gradle");
+  applyNativeModulesSettingsGradle(settings)
+}
+
+include ':app'
+// React Native 0.73 doesn't need explicit gradle-plugin includeBuild

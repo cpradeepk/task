@@ -5,7 +5,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AuthContext } from './contexts/AuthContext'
 import LoginScreen from './screens/LoginScreen'
 import DashboardScreen from './screens/DashboardScreen'
+import BugListScreen from './screens/BugListScreen'
+import BugDetailsScreen from './screens/BugDetailsScreen'
+import CreateBugScreen from './screens/CreateBugScreen'
 import { ActivityIndicator, View } from 'react-native'
+import { buildApiUrl, API_ENDPOINTS } from './config/api'
 
 const Stack = createNativeStackNavigator()
 
@@ -59,7 +63,7 @@ export default function App() {
     () => ({
       signIn: async (employeeId: string, password: string) => {
         try {
-          const response = await fetch('http://localhost:3000/api/auth/login', {
+          const response = await fetch(buildApiUrl(API_ENDPOINTS.LOGIN), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ employeeId, password }),
@@ -116,13 +120,36 @@ export default function App() {
               }}
             />
           ) : (
-            <Stack.Screen
-              name="Dashboard"
-              component={DashboardScreen}
-              options={{
-                headerTitle: 'JSR Task Management',
-              }}
-            />
+            <>
+              <Stack.Screen
+                name="Dashboard"
+                component={DashboardScreen}
+                options={{
+                  headerTitle: 'JSR Task Management',
+                }}
+              />
+              <Stack.Screen
+                name="BugList"
+                component={BugListScreen}
+                options={{
+                  headerTitle: 'Bugs',
+                }}
+              />
+              <Stack.Screen
+                name="BugDetails"
+                component={BugDetailsScreen}
+                options={{
+                  headerTitle: 'Bug Details',
+                }}
+              />
+              <Stack.Screen
+                name="CreateBug"
+                component={CreateBugScreen}
+                options={{
+                  headerTitle: 'Create Bug',
+                }}
+              />
+            </>
           )}
         </Stack.Navigator>
       </NavigationContainer>

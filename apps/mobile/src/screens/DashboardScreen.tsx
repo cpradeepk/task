@@ -10,8 +10,10 @@ import {
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AuthContext } from '../contexts/AuthContext'
+import { useNavigation } from '@react-navigation/native'
 
 export default function DashboardScreen() {
+  const navigation = useNavigation()
   const [user, setUser] = useState<any>(null)
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -90,6 +92,24 @@ export default function DashboardScreen() {
           </Text>
           <Text style={styles.statLabel}>Completed</Text>
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => navigation.navigate('BugList' as never)}
+        >
+          <Text style={styles.actionTitle}>🐛 Bugs</Text>
+          <Text style={styles.actionDescription}>View and manage bugs</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => navigation.navigate('CreateBug' as never)}
+        >
+          <Text style={styles.actionTitle}>➕ Report Bug</Text>
+          <Text style={styles.actionDescription}>Create a new bug report</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -182,6 +202,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 5,
+  },
+  actionCard: {
+    backgroundColor: '#fff',
+    padding: 18,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  actionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  actionDescription: {
+    fontSize: 14,
+    color: '#6B7280',
   },
   logoutButton: {
     backgroundColor: '#FF3B30',
