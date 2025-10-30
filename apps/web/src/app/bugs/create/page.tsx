@@ -152,9 +152,11 @@ export default function CreateBugPage() {
       setIsLoadingProjects(true)
       const response = await fetch('/api/projects')
       const data = await response.json()
-      if (data.success) {
+
+      // API returns array directly, not wrapped in {success, data}
+      if (Array.isArray(data)) {
         // Sort by projectId
-        const sorted = data.data.sort((a: any, b: any) => {
+        const sorted = data.sort((a: any, b: any) => {
           const idA = a.projectId || ''
           const idB = b.projectId || ''
           return idA.localeCompare(idB)

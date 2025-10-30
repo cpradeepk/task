@@ -61,8 +61,10 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
       setIsLoadingProjects(true)
       const response = await fetch('/api/projects')
       const data = await response.json()
-      if (data.success) {
-        const sorted = data.data.sort((a: any, b: any) => {
+
+      // API returns array directly, not wrapped in {success, data}
+      if (Array.isArray(data)) {
+        const sorted = data.sort((a: any, b: any) => {
           const idA = a.projectId || ''
           const idB = b.projectId || ''
           return idA.localeCompare(idB)
