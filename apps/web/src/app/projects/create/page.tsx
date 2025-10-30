@@ -27,11 +27,21 @@ export default function CreateProjectPage() {
 
   useEffect(() => {
     // Get user info from localStorage
-    const role = localStorage.getItem('userRole') || ''
-    const empId = localStorage.getItem('employeeId') || ''
+    const userStr = localStorage.getItem('jsr_current_user')
+    let role = ''
+    let empId = ''
 
-    setUserRole(role)
-    setEmployeeId(empId)
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        role = user.role || ''
+        empId = user.employeeId || ''
+        setUserRole(role)
+        setEmployeeId(empId)
+      } catch (error) {
+        console.error('Failed to parse user data:', error)
+      }
+    }
 
     // Check permissions: admin, top_management, or AM-0001
     const hasPermission = role === 'admin' || role === 'top_management' || empId === 'AM-0001'

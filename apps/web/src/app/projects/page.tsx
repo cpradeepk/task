@@ -32,10 +32,21 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     // Get user info from localStorage
-    const role = localStorage.getItem('userRole') || ''
-    const empId = localStorage.getItem('employeeId') || ''
-    setUserRole(role)
-    setEmployeeId(empId)
+    const userStr = localStorage.getItem('jsr_current_user')
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        const role = user.role || ''
+        const empId = user.employeeId || ''
+
+        console.log('🔍 Projects Page - User Info:', { role, empId, user })
+
+        setUserRole(role)
+        setEmployeeId(empId)
+      } catch (error) {
+        console.error('Failed to parse user data:', error)
+      }
+    }
     setIsHydrated(true)
 
     fetchProjects()
@@ -118,22 +129,21 @@ export default function ProjectsPage() {
   const canManageProjects = isHydrated && (userRole === 'admin' || userRole === 'top_management' || employeeId === 'AM-0001')
   const canDelete = isHydrated && userRole === 'admin'
 
-  // Render project tree recursively
-  const renderProjectTree = (nodes: ProjectNode[], level = 0) => {
+  console.log('🔐 Permission Check:', { isHydrated, userRole, employeeId, canManageProjects, canDelete })
+
+  // Render main projects only (no subprojects - those are shown in detail view)
+  const renderProjectList = (nodes: ProjectNode[]) => {
     return nodes.map(node => (
-      <div key={node.projectId} className={`${level > 0 ? 'ml-8' : ''}`}>
+      <div key={node.projectId}>
         <div className="bg-white border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3">
-                {level > 0 && (
-                  <span className="text-gray-400">└─</span>
-                )}
                 <h3 className="text-lg font-semibold text-gray-900">
                   {node.projectName}
                 </h3>
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  node.status === 'Active' 
+                  node.status === 'Active'
                     ? 'bg-green-100 text-green-800'
                     : node.status === 'Inactive'
                     ? 'bg-yellow-100 text-yellow-800'
@@ -141,19 +151,14 @@ export default function ProjectsPage() {
                 }`}>
                   {node.status}
                 </span>
-                {!node.parentProjectId && (
-                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                    Main Project
-                  </span>
-                )}
               </div>
-              
+
               {node.description && (
                 <p className="mt-2 text-sm text-gray-600">
                   {node.description}
                 </p>
               )}
-              
+
               <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
                 <span>ID: {node.projectId}</span>
                 <span>Created: {new Date(node.createdAt).toLocaleDateString()}</span>
@@ -164,7 +169,7 @@ export default function ProjectsPage() {
                 )}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {canManageProjects && (
                 <button
@@ -196,13 +201,6 @@ export default function ProjectsPage() {
             </div>
           </div>
         </div>
-        
-        {/* Render sub-projects */}
-        {node.children && node.children.length > 0 && (
-          <div className="mt-2">
-            {renderProjectTree(node.children, level + 1)}
-          </div>
-        )}
       </div>
     ))
   }
@@ -286,16 +284,16 @@ export default function ProjectsPage() {
 
         {!error && projects.length > 0 && (
           <div>
-            {renderProjectTree(projects)}
+            {renderProjectList(projects)}
           </div>
         )}
 
         {/* Info Box */}
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">Project Hierarchy</h4>
+          <h4 className="font-medium text-blue-900 mb-2">Project Management</h4>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Main projects can have sub-projects</li>
-            <li>• Sub-projects cannot have further sub-projects (2-level maximum)</li>
+            <li>• Only main projects are shown on this page</li>
+            <li>• Click "View Details" to see sub-projects of a main project</li>
             <li>• Only admin, top management, and AM-0001 can create/edit projects</li>
             <li>• Only admin can delete projects</li>
             <li>• Projects can be marked as Active, Inactive, or Deleted</li>

@@ -71,9 +71,16 @@ export async function PUT(
     const bug = await updateBug(bugId, updates)
 
     // Log all changes to activity log
+    // Skip actualHours if it's being updated (handled manually in frontend with mode info)
     if (currentBug) {
       try {
-        await logEntityChanges('bug', bugId, userId, currentBug, updates, {
+        // Create a copy of updates without actualHours (it's logged manually with mode info)
+        const updatesForLogging = { ...updates }
+        if ('actualHours' in updatesForLogging) {
+          delete updatesForLogging.actualHours
+        }
+
+        await logEntityChanges('bug', bugId, userId, currentBug, updatesForLogging, {
           status: 'Status',
           assignedTo: 'Assigned To',
           priority: 'Priority',

@@ -10,6 +10,7 @@ interface UnifiedTimelineProps {
   sortOrder?: 'asc' | 'desc'
   autoRefresh?: boolean
   refreshInterval?: number // in milliseconds
+  filterFn?: (activity: ActivityLog) => boolean // Optional filter function
 }
 
 /**
@@ -30,13 +31,17 @@ export default function UnifiedTimeline({
   showCommentInput = true,
   sortOrder = 'desc',
   autoRefresh = false,
-  refreshInterval = 30000 // 30 seconds
+  refreshInterval = 30000, // 30 seconds
+  filterFn
 }: UnifiedTimelineProps) {
   const [activities, setActivities] = useState<ActivityLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [commentText, setCommentText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Apply filter if provided
+  const filteredActivities = filterFn ? activities.filter(filterFn) : activities
 
   // Fetch activities
   const fetchActivities = useCallback(async () => {
@@ -139,7 +144,15 @@ export default function UnifiedTimeline({
   // Format relative time
   const formatRelativeTime = (timestamp: string): string => {
     const now = new Date()
-    const then = new Date(timestamp)
+
+    // MySQL returns timestamps in UTC format like "2025-10-30 14:55:09"
+    // We need to explicitly treat them as UTC, not local time
+    // Add 'Z' suffix to indicate UTC if not already present
+    const utcTimestamp = timestamp.includes('Z') || timestamp.includes('+')
+      ? timestamp
+      : timestamp.replace(' ', 'T') + 'Z'
+
+    const then = new Date(utcTimestamp)
     const diffMs = now.getTime() - then.getTime()
     const diffSecs = Math.floor(diffMs / 1000)
     const diffMins = Math.floor(diffSecs / 60)
@@ -150,11 +163,11 @@ export default function UnifiedTimeline({
     if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`
     if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
     if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-    
-    return then.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: now.getFullYear() !== then.getFullYear() ? 'numeric' : undefined 
+
+    return then.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: now.getFullYear() !== then.getFullYear() ? 'numeric' : undefined
     })
   }
 
@@ -220,12 +233,12 @@ export default function UnifiedTimeline({
 
       {/* Timeline */}
       <div className="space-y-3">
-        {activities.length === 0 ? (
+        {filteredActivities.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            No activity yet. Be the first to comment!
+            {activities.length === 0 ? 'No activity yet. Be the first to comment!' : 'No activities match the current filter.'}
           </div>
         ) : (
-          activities.map((activity) => (
+          filteredActivities.map((activity) => (
             <div
               key={activity.id}
               className={`rounded-lg border p-4 ${

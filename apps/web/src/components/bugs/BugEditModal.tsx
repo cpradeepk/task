@@ -312,10 +312,10 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
             <p className="text-xs text-gray-500">Specify which feature this bug is related to</p>
           </div>
 
-          {/* Description */}
+          {/* Steps to Reproduce (renamed from Description) */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              Description <span className="text-red-500">*</span>
+              Steps to Reproduce <span className="text-red-500">*</span>
             </label>
             <textarea
               value={formData.description || ''}
@@ -323,7 +323,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
               rows={3}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Detailed description of the bug..."
+              placeholder="Please provide step-by-step instructions:&#10;1. Go to...&#10;2. Click on...&#10;3. Observe the error..."
             />
           </div>
 
@@ -504,20 +504,6 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
                 })}
               </select>
             </div>
-          </div>
-
-          {/* Steps to Reproduce */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Steps to Reproduce
-            </label>
-            <textarea
-              value={formData.stepsToReproduce || ''}
-              onChange={(e) => setFormData({ ...formData, stepsToReproduce: e.target.value })}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="1. Go to...\n2. Click on...\n3. See error..."
-            />
           </div>
 
           {/* Expected vs Actual Behavior */}

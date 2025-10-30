@@ -175,8 +175,9 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
     // Sync final state to backend
     await syncToBackend()
 
-    // Log to activity log
+    // Log to activity log with hh:mm:ss format
     try {
+      const timeFormatted = formatTime(currentTime) // Already in hh:mm:ss format
       await fetch('/api/activity-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -185,7 +186,7 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
           entityType: timerData.entityType,
           entityId: timerData.entityId,
           actionType: 'time_logged',
-          description: `Logged ${formatTime(currentTime)} of work`,
+          description: `Logged ${timeFormatted} (timer entry)`,
           isComment: false
         })
       })

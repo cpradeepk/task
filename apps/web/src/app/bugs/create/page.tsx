@@ -731,35 +731,7 @@ export default function CreateBugPage() {
               </div>
             </div>
 
-            {/* Description Section */}
-            <div className="space-y-6">
-              <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                  <FileText className="h-5 w-5 text-green-600" />
-                  <span>Bug Description</span>
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">Provide detailed information about the bug</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Description <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
-                  placeholder="Provide a detailed description of the bug, including what went wrong and any relevant context..."
-                  required
-                />
-              </div>
-            </div>
-
-
-
-            {/* Reproduction Steps Section */}
+            {/* Steps to Reproduce Section */}
             <div className="space-y-6">
               <div className="border-b border-gray-200 pb-4">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
@@ -772,15 +744,16 @@ export default function CreateBugPage() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Steps to Reproduce
+                    Steps to Reproduce <span className="text-red-500">*</span>
                   </label>
                   <textarea
-                    name="stepsToReproduce"
-                    value={formData.stepsToReproduce}
+                    name="description"
+                    value={formData.description}
                     onChange={handleInputChange}
                     rows={4}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
                     placeholder="Please provide step-by-step instructions:&#10;1. Go to the login page&#10;2. Enter invalid credentials&#10;3. Click 'Sign In' button&#10;4. Observe the error"
+                    required
                   />
                 </div>
 

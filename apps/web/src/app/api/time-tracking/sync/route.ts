@@ -81,17 +81,47 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Calculate actual hours from total time (milliseconds to hours)
-    const actualHours = totalTime / (1000 * 60 * 60)
-
     // Prepare update data
-    const updates = {
+    const updates: any = {
       timerState: state,
       timerStartTime: state === 'running' ? new Date().toISOString() : null,
       timerTotalTime: totalTime,
       timerSessions: JSON.stringify(sessions),
-      actualHours: Math.round(actualHours * 100) / 100, // Round to 2 decimal places
       updatedAt: new Date().toISOString()
+    }
+
+    // Only update actualHours when timer is stopped (final sync)
+    // When stopped, ADD the timer's elapsed time to existing actualHours
+    if (state === 'stopped') {
+      // Import the appropriate get function to fetch current entity
+      const { getBugById } = await import('@/lib/db/bugs')
+      const { getTaskById } = await import('@/lib/db/tasks')
+
+      let currentActualHours = 0
+
+      if (entityType === 'bug') {
+        const bug = await getBugById(entityId)
+        currentActualHours = parseFloat(bug?.actualHours as any) || 0
+      } else if (entityType === 'task') {
+        const task = await getTaskById(entityId)
+        currentActualHours = parseFloat(task?.actualHours as any) || 0
+      }
+
+      // Calculate hours to add from timer (milliseconds to hours)
+      const hoursToAdd = totalTime / (1000 * 60 * 60)
+      const newActualHours = currentActualHours + hoursToAdd
+
+      updates.actualHours = Math.round(newActualHours * 100) / 100 // Round to 2 decimal places
+
+      // Reset timer fields when stopped
+      updates.timerTotalTime = 0
+      updates.timerSessions = null
+
+      console.log('🔵 [TIME-TRACKING-SYNC] Timer stopped - adding hours:', {
+        currentActualHours,
+        hoursToAdd,
+        newActualHours: updates.actualHours
+      })
     }
 
     console.log('🔵 [TIME-TRACKING-SYNC] Updates to apply:', updates)

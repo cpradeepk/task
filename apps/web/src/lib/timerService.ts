@@ -58,23 +58,6 @@ export async function startTimer(
   // Save to localStorage
   localStorage.setItem('activeTimer', JSON.stringify(newTimer))
 
-  // Log timer start to activity log
-  try {
-    await fetch('/api/activity-log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        entityType,
-        entityId,
-        actionType: 'timer_started',
-        description: 'Timer started',
-        isComment: false
-      })
-    })
-  } catch (error) {
-    console.error('Failed to log timer start:', error)
-  }
-
   // Trigger storage event to notify FloatingTimer component
   window.dispatchEvent(new Event('storage'))
 }
@@ -110,23 +93,8 @@ export async function stopTimer(): Promise<void> {
     console.error('Failed to sync timer:', error)
   }
 
-  // Log to activity log
-  try {
-    const hours = (finalTime / (1000 * 60 * 60)).toFixed(2)
-    await fetch('/api/activity-log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        entityType: timer.entityType,
-        entityId: timer.entityId,
-        actionType: 'time_logged',
-        description: `Logged ${hours} hours of work`,
-        isComment: false
-      })
-    })
-  } catch (error) {
-    console.error('Failed to log time to activity log:', error)
-  }
+  // Note: Activity log is created in FloatingTimer.tsx handleStop
+  // to avoid duplicate entries and use proper hh:mm:ss format
 
   // Clear from localStorage
   localStorage.removeItem('activeTimer')

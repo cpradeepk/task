@@ -8,11 +8,12 @@ import ProjectSelector from '@/components/ProjectSelector'
 interface ProjectModalProps {
   project: Project | null
   employeeId: string
+  parentProjectId?: string | null  // Optional: pre-select parent project for subproject creation
   onClose: () => void
   onSuccess: () => void
 }
 
-export default function ProjectModal({ project, employeeId, onClose, onSuccess }: ProjectModalProps) {
+export default function ProjectModal({ project, employeeId, parentProjectId, onClose, onSuccess }: ProjectModalProps) {
   const [formData, setFormData] = useState({
     projectName: '',
     parentProjectId: null as string | null,
@@ -32,15 +33,15 @@ export default function ProjectModal({ project, employeeId, onClose, onSuccess }
         status: (project.status === 'Deleted' ? 'Inactive' : project.status) as 'Active' | 'Inactive'
       })
     } else {
-      // Create mode - reset form
+      // Create mode - reset form (with optional pre-selected parent)
       setFormData({
         projectName: '',
-        parentProjectId: null,
+        parentProjectId: parentProjectId || null,
         description: '',
         status: 'Active'
       })
     }
-  }, [project])
+  }, [project, parentProjectId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

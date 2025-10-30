@@ -10,6 +10,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Project } from '@/lib/types'
+import ProjectModal from '@/components/projects/ProjectModal'
+import { Plus } from 'lucide-react'
 
 interface ProjectWithSubProjects extends Project {
   subProjects?: Project[]
@@ -34,14 +36,21 @@ export default function ProjectDetailsPage() {
   })
   const [saving, setSaving] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [isSubprojectModalOpen, setIsSubprojectModalOpen] = useState(false)
+  const [subprojectToEdit, setSubprojectToEdit] = useState<Project | null>(null)
 
   useEffect(() => {
     // Get user info from localStorage
-    const role = localStorage.getItem('userRole') || ''
-    const empId = localStorage.getItem('employeeId') || ''
-
-    setUserRole(role)
-    setEmployeeId(empId)
+    const userStr = localStorage.getItem('jsr_current_user')
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        setUserRole(user.role || '')
+        setEmployeeId(user.employeeId || '')
+      } catch (error) {
+        console.error('Failed to parse user data:', error)
+      }
+    }
     setIsHydrated(true)
 
     fetchProject()
@@ -162,6 +171,22 @@ export default function ProjectDetailsPage() {
 
   const handleBack = () => {
     router.push('/projects')
+  }
+
+  const handleAddSubproject = () => {
+    setSubprojectToEdit(null)
+    setIsSubprojectModalOpen(true)
+  }
+
+  const handleSubprojectModalClose = () => {
+    setIsSubprojectModalOpen(false)
+    setSubprojectToEdit(null)
+  }
+
+  const handleSubprojectModalSuccess = () => {
+    setIsSubprojectModalOpen(false)
+    setSubprojectToEdit(null)
+    fetchProject() // Refresh to show new subproject
   }
 
   // Only check permissions after hydration to avoid SSR/client mismatch
@@ -367,34 +392,50 @@ export default function ProjectDetailsPage() {
         </div>
 
         {/* Sub-Projects */}
-        {project.subProjects && project.subProjects.length > 0 && (
+        {!project.parentProjectId && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Sub-Projects ({project.subProjects.length})
-            </h2>
-            <div className="space-y-3">
-              {project.subProjects.map(subProject => (
-                <div
-                  key={subProject.projectId}
-                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => router.push(`/projects/${subProject.projectId}`)}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">
+                Sub-Projects {project.subProjects && `(${project.subProjects.length})`}
+              </h2>
+              {canManageProjects && (
+                <button
+                  onClick={handleAddSubproject}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{subProject.projectName}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{subProject.projectId}</p>
-                    </div>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      subProject.status === 'Active' 
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {subProject.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  <Plus className="h-4 w-4" />
+                  Add Subproject
+                </button>
+              )}
             </div>
+
+            {project.subProjects && project.subProjects.length > 0 ? (
+              <div className="space-y-3">
+                {project.subProjects.map(subProject => (
+                  <div
+                    key={subProject.projectId}
+                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/projects/${subProject.projectId}`)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{subProject.projectName}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{subProject.projectId}</p>
+                      </div>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        subProject.status === 'Active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {subProject.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">No sub-projects yet. Click "Add Subproject" to create one.</p>
+            )}
           </div>
         )}
 
@@ -414,6 +455,17 @@ export default function ProjectDetailsPage() {
           </ul>
         </div>
       </div>
+
+      {/* Subproject Modal */}
+      {isSubprojectModalOpen && (
+        <ProjectModal
+          project={subprojectToEdit}
+          employeeId={employeeId}
+          parentProjectId={project.projectId}  // Pre-select current project as parent
+          onClose={handleSubprojectModalClose}
+          onSuccess={handleSubprojectModalSuccess}
+        />
+      )}
     </div>
   )
 }
