@@ -110,6 +110,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [projectName, setProjectName] = useState<string>('')
   const [subprojectName, setSubprojectName] = useState<string>('')
 
+  // Related bugs state
+  const [relatedBugsData, setRelatedBugsData] = useState<Bug[]>([])
+  const [isLoadingRelatedBugs, setIsLoadingRelatedBugs] = useState(false)
+
   // Lightbox state
   const [showLightbox, setShowLightbox] = useState(false)
   const [lightboxImages, setLightboxImages] = useState<string[]>([])
@@ -218,6 +222,46 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     }
   }, [bug])
 
+  // Load related bugs
+  const loadRelatedBugs = useCallback(async () => {
+    if (!bug || !bug.relatedBugs) {
+      setRelatedBugsData([])
+      return
+    }
+
+    try {
+      setIsLoadingRelatedBugs(true)
+      const bugIds = bug.relatedBugs.split(',').map(id => id.trim()).filter(id => id)
+
+      if (bugIds.length === 0) {
+        setRelatedBugsData([])
+        return
+      }
+
+      // Fetch each related bug
+      const bugPromises = bugIds.map(async (bugId) => {
+        try {
+          const response = await fetch(`/api/bugs/${bugId}`)
+          const data = await response.json()
+          if (data.success && data.data) {
+            return data.data
+          }
+          return null
+        } catch (error) {
+          console.error(`Failed to load bug ${bugId}:`, error)
+          return null
+        }
+      })
+
+      const bugs = await Promise.all(bugPromises)
+      setRelatedBugsData(bugs.filter(b => b !== null) as Bug[])
+    } catch (error) {
+      console.error('Failed to load related bugs:', error)
+    } finally {
+      setIsLoadingRelatedBugs(false)
+    }
+  }, [bug])
+
   // Memoize user lookup for performance
   const userMap = useMemo(() => {
     const map = new Map()
@@ -251,6 +295,13 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
       loadProjectNames()
     }
   }, [bug, loadProjectNames])
+
+  // Load related bugs when bug data is available
+  useEffect(() => {
+    if (bug) {
+      loadRelatedBugs()
+    }
+  }, [bug, loadRelatedBugs])
 
   const handleAssigneeChange = async (newAssignee: string) => {
     if (!bug || !newAssignee || !currentUser) return
@@ -1166,6 +1217,64 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 )}
               </div>
             </div>
+
+            {/* Related Bugs */}
+            {(bug.relatedBugs || relatedBugsData.length > 0) && (
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
+                  <ExternalLink className="h-5 w-5" />
+                  <span>Related Bugs</span>
+                </h3>
+
+                {isLoadingRelatedBugs ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-sm text-gray-600">Loading related bugs...</span>
+                  </div>
+                ) : relatedBugsData.length > 0 ? (
+                  <div className="space-y-2">
+                    {relatedBugsData.map((relatedBug) => (
+                      <a
+                        key={relatedBug.bugId}
+                        href={`/bugs/${relatedBug.bugId}`}
+                        className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium text-blue-600">{relatedBug.bugId}</span>
+                              <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                relatedBug.status === 'New' ? 'bg-blue-100 text-blue-700' :
+                                relatedBug.status === 'In Progress' ? 'bg-yellow-100 text-yellow-700' :
+                                relatedBug.status === 'Resolved' ? 'bg-green-100 text-green-700' :
+                                relatedBug.status === 'Closed' ? 'bg-gray-100 text-gray-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {relatedBug.status}
+                              </span>
+                              <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                relatedBug.severity === 'Critical' ? 'bg-red-100 text-red-700' :
+                                relatedBug.severity === 'Major' ? 'bg-orange-100 text-orange-700' :
+                                'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {relatedBug.severity}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-900 mt-1">{relatedBug.title}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {relatedBug.category} • {relatedBug.platform}
+                            </p>
+                          </div>
+                          <ExternalLink className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No related bugs found</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
