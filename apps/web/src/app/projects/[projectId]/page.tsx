@@ -33,15 +33,17 @@ export default function ProjectDetailsPage() {
     status: 'Active' as 'Active' | 'Inactive' | 'Deleted'
   })
   const [saving, setSaving] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     // Get user info from localStorage
     const role = localStorage.getItem('userRole') || ''
     const empId = localStorage.getItem('employeeId') || ''
-    
+
     setUserRole(role)
     setEmployeeId(empId)
-    
+    setIsHydrated(true)
+
     fetchProject()
   }, [projectId])
 
@@ -162,8 +164,9 @@ export default function ProjectDetailsPage() {
     router.push('/projects')
   }
 
-  const canManageProjects = userRole === 'admin' || userRole === 'top_management' || employeeId === 'AM-0001'
-  const canDelete = userRole === 'admin'
+  // Only check permissions after hydration to avoid SSR/client mismatch
+  const canManageProjects = isHydrated && (userRole === 'admin' || userRole === 'top_management' || employeeId === 'AM-0001')
+  const canDelete = isHydrated && userRole === 'admin'
 
   if (loading) {
     return (

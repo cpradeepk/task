@@ -144,19 +144,20 @@ export default function CreateBugPage() {
     }
   }, [settingsLoaded])
 
-  // Load projects
+  // Load projects (main projects only, no subprojects)
   const loadProjects = useCallback(async () => {
     if (projectsLoaded) return
 
     try {
       setIsLoadingProjects(true)
-      const response = await fetch('/api/projects')
+      const response = await fetch('/api/projects?type=main')
       const data = await response.json()
 
       // API returns array directly, not wrapped in {success, data}
       if (Array.isArray(data)) {
-        // Sort by projectId
-        const sorted = data.sort((a: any, b: any) => {
+        // Filter to only main projects (no parent) and sort by projectId
+        const mainProjects = data.filter((p: any) => !p.parentProjectId)
+        const sorted = mainProjects.sort((a: any, b: any) => {
           const idA = a.projectId || ''
           const idB = b.projectId || ''
           return idA.localeCompare(idB)
@@ -182,9 +183,12 @@ export default function CreateBugPage() {
       setIsLoadingSubprojects(true)
       const response = await fetch(`/api/projects?parentId=${projectId}`)
       const data = await response.json()
-      if (data.success) {
-        // Sort by projectId
-        const sorted = data.data.sort((a: any, b: any) => {
+
+      // API returns array directly, not wrapped in {success, data}
+      if (Array.isArray(data)) {
+        // Filter to only subprojects of the selected project and sort by projectId
+        const projectSubprojects = data.filter((p: any) => p.parentProjectId === projectId)
+        const sorted = projectSubprojects.sort((a: any, b: any) => {
           const idA = a.projectId || ''
           const idB = b.projectId || ''
           return idA.localeCompare(idB)

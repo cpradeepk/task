@@ -28,6 +28,7 @@ export default function ProjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     // Get user info from localStorage
@@ -35,6 +36,7 @@ export default function ProjectsPage() {
     const empId = localStorage.getItem('employeeId') || ''
     setUserRole(role)
     setEmployeeId(empId)
+    setIsHydrated(true)
 
     fetchProjects()
   }, [])
@@ -112,8 +114,9 @@ export default function ProjectsPage() {
     fetchProjects()
   }
 
-  const canManageProjects = userRole === 'admin' || userRole === 'top_management' || employeeId === 'AM-0001'
-  const canDelete = userRole === 'admin'
+  // Only check permissions after hydration to avoid SSR/client mismatch
+  const canManageProjects = isHydrated && (userRole === 'admin' || userRole === 'top_management' || employeeId === 'AM-0001')
+  const canDelete = isHydrated && userRole === 'admin'
 
   // Render project tree recursively
   const renderProjectTree = (nodes: ProjectNode[], level = 0) => {
