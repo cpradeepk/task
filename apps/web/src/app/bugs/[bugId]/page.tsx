@@ -14,6 +14,7 @@ import { Bug, User } from '@/lib/types'
 import { getBugById, updateBug, canEditBug, canCommentOnBug } from '@/lib/bugService'
 import UnifiedTimeline from '@/components/UnifiedTimeline'
 import BugEditModal from '@/components/bugs/BugEditModal'
+import BugSubTaskManager from '@/components/bugs/BugSubTaskManager'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import ImageLightbox from '@/components/bugs/ImageLightbox'
@@ -1275,6 +1276,18 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 )}
               </div>
             )}
+
+            {/* Bug Subtasks */}
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <BugSubTaskManager
+                parentBugId={bug.bugId}
+                createdBy={currentUser.employeeId}
+                editable={canEdit}
+                showAssignee={true}
+                defaultExpanded={true}
+                compact={false}
+              />
+            </div>
           </div>
         </div>
 
