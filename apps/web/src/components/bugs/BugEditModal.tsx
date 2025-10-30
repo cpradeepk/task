@@ -24,6 +24,8 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isLoadingSubprojects, setIsLoadingSubprojects] = useState(false)
   const [isLoadingBugs, setIsLoadingBugs] = useState(false)
+  const [projectsLoaded, setProjectsLoaded] = useState(false)
+  const [bugsLoaded, setBugsLoaded] = useState(false)
 
   const { settings, isLoading: isLoadingSettings } = useSettings()
 
@@ -53,6 +55,8 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
 
   // Load projects
   const loadProjects = useCallback(async () => {
+    if (projectsLoaded) return
+
     try {
       setIsLoadingProjects(true)
       const response = await fetch('/api/projects')
@@ -64,13 +68,14 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
           return idA.localeCompare(idB)
         })
         setProjects(sorted)
+        setProjectsLoaded(true)
       }
     } catch (error) {
       console.error('Failed to load projects:', error)
     } finally {
       setIsLoadingProjects(false)
     }
-  }, [])
+  }, [projectsLoaded])
 
   // Load subprojects when project changes
   const loadSubprojects = useCallback(async (projectId: string) => {
@@ -100,6 +105,9 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
 
   // Load bugs for related bugs dropdown
   const loadBugs = useCallback(async (projectId?: string) => {
+    // Only prevent initial load, allow reload when project changes
+    if (!projectId && bugsLoaded) return
+
     try {
       setIsLoadingBugs(true)
       const url = projectId ? `/api/bugs?projectId=${projectId}` : '/api/bugs'
@@ -107,13 +115,14 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
       const data = await response.json()
       if (data.success) {
         setAllBugs(data.data || [])
+        if (!projectId) setBugsLoaded(true)
       }
     } catch (error) {
       console.error('Failed to load bugs:', error)
     } finally {
       setIsLoadingBugs(false)
     }
-  }, [])
+  }, [bugsLoaded])
 
   // Load projects and bugs on mount
   useEffect(() => {
@@ -160,6 +169,14 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
       })
     }
   }, [bug])
+
+  // Reset loaded flags when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setProjectsLoaded(false)
+      setBugsLoaded(false)
+    }
+  }, [isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
