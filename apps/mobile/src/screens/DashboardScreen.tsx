@@ -98,6 +98,20 @@ export default function DashboardScreen() {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <TouchableOpacity
           style={styles.actionCard}
+          onPress={() => navigation.navigate('TaskList' as never)}
+        >
+          <Text style={styles.actionTitle}>📋 Tasks</Text>
+          <Text style={styles.actionDescription}>View and manage tasks</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => navigation.navigate('CreateTask' as never)}
+        >
+          <Text style={styles.actionTitle}>➕ Create Task</Text>
+          <Text style={styles.actionDescription}>Create a new task</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionCard}
           onPress={() => navigation.navigate('BugList' as never)}
         >
           <Text style={styles.actionTitle}>🐛 Bugs</Text>

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Task } from '@/lib/types'
 import { X, Save, Calendar, User, Users, Clock, FileText, AlertTriangle, Tag } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
+import { useSettingsIcons } from '@/hooks/useSettingsIcons'
 import { getUserNameByEmployeeId } from '@/lib/auth'
 
 // Helper function to format ISO date to yyyy-MM-dd for HTML5 date inputs
@@ -41,10 +42,14 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
   const [selectedMainProject, setSelectedMainProject] = useState<string>('')
 
   const { settings, isLoading: isLoadingSettings } = useSettings()
+  const { getIcon } = useSettingsIcons()
 
-  // Get options from settings
-  const taskStatusOptions = settings?.task_status || []
-  const priorityOptions = settings?.task_priority || []
+  // Ref for the modal content to detect clicks outside
+  const modalContentRef = useRef<HTMLDivElement>(null)
+
+  // Get options from settings (using correct keys from database)
+  const taskStatusOptions = settings?.task_statuses || []
+  const priorityOptions = settings?.task_priorities || []
   const taskTypeOptions = ['Normal', 'Recursive']
   const recursiveTypeOptions = ['Daily', 'Weekly', 'Monthly', 'Annually']
 
@@ -143,6 +148,26 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
     }
   }, [task, projects])
 
+  // Click outside to close modal
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+        onClose()
+      }
+    }
+
+    if (isOpen) {
+      // Add a small delay to prevent immediate closing when opening
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside)
+      }, 100)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen, onClose])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!task) return
@@ -189,7 +214,7 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-      <div className="bg-white w-full max-w-2xl h-full overflow-y-auto shadow-2xl">
+      <div ref={modalContentRef} className="bg-white w-full max-w-2xl h-full overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <div>
@@ -354,12 +379,22 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
                 value={formData.priority || ''}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value as Task['priority'] })}
                 required
+                disabled={isLoadingSettings}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="">Select priority...</option>
-                {priorityOptions.map((priority) => (
-                  <option key={priority} value={priority}>{priority}</option>
-                ))}
+                {isLoadingSettings ? (
+                  <option>Loading...</option>
+                ) : (
+                  priorityOptions.map((priority) => {
+                    const icon = getIcon('task_priorities', priority)
+                    return (
+                      <option key={priority} value={priority}>
+                        {icon && `${icon} `}{priority}
+                      </option>
+                    )
+                  })
+                )}
               </select>
             </div>
             <div className="space-y-2">
@@ -373,9 +408,18 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
                 disabled={isLoadingSettings}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
-                {taskStatusOptions.map((status) => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
+                {isLoadingSettings ? (
+                  <option>Loading...</option>
+                ) : (
+                  taskStatusOptions.map((status) => {
+                    const icon = getIcon('task_statuses', status)
+                    return (
+                      <option key={status} value={status}>
+                        {icon && `${icon} `}{status}
+                      </option>
+                    )
+                  })
+                )}
               </select>
             </div>
           </div>

@@ -11,7 +11,7 @@ import LoadingButton from '@/components/ui/LoadingButton'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ProjectSelector from '@/components/ProjectSelector'
 import FileUpload from '@/components/bugs/FileUpload'
-import { getIconForSettingValueSync } from '@/lib/iconMappings'
+import { useSettingsIcons } from '@/hooks/useSettingsIcons'
 
 export default function CreateBugPage() {
   const [formData, setFormData] = useState<BugFormData>({
@@ -66,6 +66,9 @@ export default function CreateBugPage() {
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined)
 
   const router = useRouter()
+
+  // Load icons from settings metadata
+  const { getIcon, isLoading: isLoadingIcons } = useSettingsIcons()
 
   // Handle hydration and get current user
   useEffect(() => {
@@ -515,7 +518,7 @@ export default function CreateBugPage() {
                         <option>Loading...</option>
                       ) : (
                         severityOptions.map(option => {
-                          const icon = getIconForSettingValueSync('severities', option)
+                          const icon = getIcon('severities', option)
                           return (
                             <option key={option} value={option}>
                               {icon && `${icon} `}{option}
@@ -542,7 +545,7 @@ export default function CreateBugPage() {
                         <option>Loading...</option>
                       ) : (
                         categoryOptions.map(option => {
-                          const icon = getIconForSettingValueSync('categories', option)
+                          const icon = getIcon('categories', option)
                           return (
                             <option key={option} value={option}>
                               {icon && `${icon} `}{option}
@@ -569,7 +572,7 @@ export default function CreateBugPage() {
                         <option>Loading...</option>
                       ) : (
                         platformOptions.map(option => {
-                          const icon = getIconForSettingValueSync('platforms', option)
+                          const icon = getIcon('platforms', option)
                           return (
                             <option key={option} value={option}>
                               {icon && `${icon} `}{option}
@@ -599,7 +602,7 @@ export default function CreateBugPage() {
                         <option>Loading...</option>
                       ) : (
                         environmentOptions.map(option => {
-                          const icon = getIconForSettingValueSync('environments', option)
+                          const icon = getIcon('environments', option)
                           return (
                             <option key={option} value={option}>
                               {icon && `${icon} `}{option}
@@ -654,7 +657,7 @@ export default function CreateBugPage() {
                     >
                       <option value="">Select type...</option>
                       {bugTypeOptions.map(type => {
-                        const icon = getIconForSettingValueSync('bug_types', type)
+                        const icon = getIcon('bug_types', type)
                         return (
                           <option key={type} value={type}>
                             {icon && `${icon} `}{type.charAt(0).toUpperCase() + type.slice(1)}

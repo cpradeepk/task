@@ -106,12 +106,39 @@ export async function getSettingById(id: number): Promise<Setting | null> {
     }
 
     const row = results[0]
+
+    // Parse value - handle both JSON strings and native MySQL JSON type
+    let parsedValue = row.value
+    if (typeof row.value === 'string') {
+      try {
+        parsedValue = JSON.parse(row.value)
+      } catch (e) {
+        // If parsing fails, it's a plain string value - keep it as is
+        parsedValue = row.value
+      }
+    }
+
+    // Parse metadata - handle both JSON strings and native MySQL JSON type
+    let parsedMetadata = null
+    if (row.metadata) {
+      if (typeof row.metadata === 'string') {
+        try {
+          parsedMetadata = JSON.parse(row.metadata)
+        } catch (e) {
+          // If parsing fails, keep as string
+          parsedMetadata = row.metadata
+        }
+      } else {
+        parsedMetadata = row.metadata
+      }
+    }
+
     return {
       id: row.id,
       key: row.key,
-      value: typeof row.value === 'string' ? JSON.parse(row.value) : row.value,
+      value: parsedValue,
       description: row.description,
-      metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null,
+      metadata: parsedMetadata,
       isActive: Boolean(row.isActive),
       createdBy: row.createdBy,
       createdAt: row.createdAt,
@@ -150,12 +177,39 @@ export async function getSettingByKey(key: string): Promise<Setting | null> {
     }
 
     const row = results[0]
+
+    // Parse value - handle both JSON strings and native MySQL JSON type
+    let parsedValue = row.value
+    if (typeof row.value === 'string') {
+      try {
+        parsedValue = JSON.parse(row.value)
+      } catch (e) {
+        // If parsing fails, it's a plain string value - keep it as is
+        parsedValue = row.value
+      }
+    }
+
+    // Parse metadata - handle both JSON strings and native MySQL JSON type
+    let parsedMetadata = null
+    if (row.metadata) {
+      if (typeof row.metadata === 'string') {
+        try {
+          parsedMetadata = JSON.parse(row.metadata)
+        } catch (e) {
+          // If parsing fails, keep as string
+          parsedMetadata = row.metadata
+        }
+      } else {
+        parsedMetadata = row.metadata
+      }
+    }
+
     return {
       id: row.id,
       key: row.key,
-      value: typeof row.value === 'string' ? JSON.parse(row.value) : row.value,
+      value: parsedValue,
       description: row.description,
-      metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null,
+      metadata: parsedMetadata,
       isActive: Boolean(row.isActive),
       createdBy: row.createdBy,
       createdAt: row.createdAt,
@@ -212,17 +266,45 @@ export async function getAllSettings(activeOnly: boolean = true): Promise<Settin
 
     const results = await query<RowDataPacket[]>(sql, params)
 
-    return results.map(row => ({
-      id: row.id,
-      key: row.key,
-      value: typeof row.value === 'string' ? JSON.parse(row.value) : row.value,
-      description: row.description,
-      metadata: row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : null,
-      isActive: Boolean(row.isActive),
-      createdBy: row.createdBy,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    }))
+    return results.map(row => {
+      // Parse value - handle both JSON strings and native MySQL JSON type
+      let parsedValue = row.value
+      if (typeof row.value === 'string') {
+        try {
+          parsedValue = JSON.parse(row.value)
+        } catch (e) {
+          // If parsing fails, it's a plain string value - keep it as is
+          parsedValue = row.value
+        }
+      }
+
+      // Parse metadata - handle both JSON strings and native MySQL JSON type
+      let parsedMetadata = null
+      if (row.metadata) {
+        if (typeof row.metadata === 'string') {
+          try {
+            parsedMetadata = JSON.parse(row.metadata)
+          } catch (e) {
+            // If parsing fails, keep as string
+            parsedMetadata = row.metadata
+          }
+        } else {
+          parsedMetadata = row.metadata
+        }
+      }
+
+      return {
+        id: row.id,
+        key: row.key,
+        value: parsedValue,
+        description: row.description,
+        metadata: parsedMetadata,
+        isActive: Boolean(row.isActive),
+        createdBy: row.createdBy,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt
+      }
+    })
   } catch (error) {
     console.error('Error fetching settings:', error)
     throw new Error('Failed to fetch settings')

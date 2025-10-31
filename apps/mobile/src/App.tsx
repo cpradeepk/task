@@ -8,6 +8,9 @@ import DashboardScreen from './screens/DashboardScreen'
 import BugListScreen from './screens/BugListScreen'
 import BugDetailsScreen from './screens/BugDetailsScreen'
 import CreateBugScreen from './screens/CreateBugScreen'
+import TaskListScreen from './screens/TaskListScreen'
+import TaskDetailsScreen from './screens/TaskDetailsScreen'
+import CreateTaskScreen from './screens/CreateTaskScreen'
 import { ActivityIndicator, View } from 'react-native'
 import { buildApiUrl, API_ENDPOINTS } from './config/api'
 
@@ -147,6 +150,27 @@ export default function App() {
                 component={CreateBugScreen}
                 options={{
                   headerTitle: 'Create Bug',
+                }}
+              />
+              <Stack.Screen
+                name="TaskList"
+                component={TaskListScreen}
+                options={{
+                  headerTitle: 'Tasks',
+                }}
+              />
+              <Stack.Screen
+                name="TaskDetails"
+                component={TaskDetailsScreen}
+                options={{
+                  headerTitle: 'Task Details',
+                }}
+              />
+              <Stack.Screen
+                name="CreateTask"
+                component={CreateTaskScreen}
+                options={{
+                  headerTitle: 'Create Task',
                 }}
               />
             </>

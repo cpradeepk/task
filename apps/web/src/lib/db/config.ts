@@ -15,11 +15,14 @@ export const DB_CONFIG = {
   },
   // Connection pool settings
   waitForConnections: true,
-  connectionLimit: 50, // Increased to handle more concurrent requests (Vercel serverless)
+  connectionLimit: 150, // Increased to handle more concurrent requests (Vercel serverless + local dev)
   queueLimit: 0, // Unlimited queue
+  maxIdle: 10, // Maximum idle connections to keep
+  idleTimeout: 60000, // Close idle connections after 60 seconds
 
   // Timeout settings to prevent hanging (mysql2 valid options)
   connectTimeout: 10000, // 10 seconds to establish connection
+  acquireTimeout: 10000, // 10 seconds to acquire connection from pool
 
   // Keep-alive settings
   enableKeepAlive: true,

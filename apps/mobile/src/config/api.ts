@@ -34,10 +34,15 @@ export const API_ENDPOINTS = {
   // Tasks
   TASKS: '/api/tasks',
   TASK_BY_ID: (taskId: string) => `/api/tasks/${taskId}`,
-  
+  TASKS_BY_EMPLOYEE: (employeeId: string) => `/api/tasks/user/${employeeId}`,
+
+  // Task Subtasks
+  TASK_SUBTASKS: '/api/subtasks',
+  TASK_SUBTASK_BY_ID: (id: number) => `/api/subtasks/${id}`,
+
   // Time Tracking
   TIME_TRACKING_SYNC: '/api/time-tracking/sync',
-  
+
   // Upload
   UPLOAD_PRESIGNED_URL: '/api/upload/presigned-url',
 }

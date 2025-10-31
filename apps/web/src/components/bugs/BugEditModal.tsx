@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Bug } from '@/lib/types'
 import { X, Save, FileText, AlertTriangle, Tag, Monitor, Globe, Clock, FolderTree } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
-import { getIconForSettingValueSync } from '@/lib/iconMappings'
+import { useSettingsIcons } from '@/hooks/useSettingsIcons'
 
 interface BugEditModalProps {
   bug: Bug | null
@@ -28,6 +28,10 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
   const [bugsLoaded, setBugsLoaded] = useState(false)
 
   const { settings, isLoading: isLoadingSettings } = useSettings()
+  const { getIcon } = useSettingsIcons()
+
+  // Ref for the modal content to detect clicks outside
+  const modalContentRef = useRef<HTMLDivElement>(null)
 
   // Get options from settings (dynamic from database)
   const bugStatusOptions = settings?.bug_status || []
@@ -191,6 +195,26 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
     }
   }, [isOpen])
 
+  // Handle click outside to close modal
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+        onClose()
+      }
+    }
+
+    if (isOpen) {
+      // Add event listener with a slight delay to prevent immediate closing
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside)
+      }, 100)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen, onClose])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!bug) return
@@ -229,7 +253,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end">
-      <div className="bg-white w-full max-w-2xl h-full overflow-y-auto shadow-2xl">
+      <div ref={modalContentRef} className="bg-white w-full max-w-2xl h-full overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <div>
@@ -346,7 +370,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 {severityOptions.map((severity) => {
-                  const icon = getIconForSettingValueSync('severity', severity)
+                  const icon = getIcon('severities', severity)
                   return (
                     <option key={severity} value={severity}>
                       {icon && `${icon} `}{severity}
@@ -368,7 +392,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 {categoryOptions.map((category) => {
-                  const icon = getIconForSettingValueSync('category', category)
+                  const icon = getIcon('categories', category)
                   return (
                     <option key={category} value={category}>
                       {icon && `${icon} `}{category}
@@ -390,7 +414,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 {platformOptions.map((platform) => {
-                  const icon = getIconForSettingValueSync('platform', platform)
+                  const icon = getIcon('platforms', platform)
                   return (
                     <option key={platform} value={platform}>
                       {icon && `${icon} `}{platform}
@@ -433,7 +457,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               {environmentOptions.map((env) => {
-                const icon = getIconForSettingValueSync('environment', env)
+                const icon = getIcon('environments', env)
                 return (
                   <option key={env} value={env}>
                     {icon && `${icon} `}{env}
@@ -474,7 +498,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
               >
                 <option value="">Select type...</option>
                 {bugTypeOptions.map((type) => {
-                  const icon = getIconForSettingValueSync('bug_type', type)
+                  const icon = getIcon('bug_types', type)
                   return (
                     <option key={type} value={type}>
                       {icon && `${icon} `}{type}

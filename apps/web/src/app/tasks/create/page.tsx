@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
@@ -10,12 +10,14 @@ import { optimizedDataService } from '@/lib/optimizedDataService'
 import SupportTaskService from '@/lib/supportTaskService'
 import { usePageLoading } from '@/hooks/usePageLoading'
 import { User } from '@/lib/types'
-import { Save, X, Calendar, Clock, AlertCircle } from 'lucide-react'
+import { Save, X, Calendar, Clock, AlertCircle, CheckSquare, Paperclip, FileText, Tag } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import LoadingButton from '@/components/ui/LoadingButton'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { useLoading } from '@/contexts/LoadingContext'
 import ProjectSelector from '@/components/ProjectSelector'
+import FileUpload from '@/components/bugs/FileUpload'
+import { useSettingsIcons } from '@/hooks/useSettingsIcons'
 
 export default function CreateTask() {
   const [formData, setFormData] = useState({
@@ -26,13 +28,15 @@ export default function CreateTask() {
     startDate: '',
     endDate: '',
     priority: '',
-    estimatedHours: '',
-    hoursWorked: '',
-    projectId: null as string | null,
+    status: 'Open', // Default status
+    estimatedHours: '', // Format: hh:mm:ss
+    projectId: undefined as string | undefined,
+    subprojectId: undefined as string | undefined,
     assignToSomeoneElse: false,
     assignedTo: '',
     multiUserAssignment: false, // Enable multi-user assignment
-    assignees: [] as string[] // Array of employee IDs for multi-user assignment
+    assignees: [] as string[], // Array of employee IDs for multi-user assignment
+    attachments: '' // File attachments
   })
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -42,12 +46,28 @@ export default function CreateTask() {
   const [isHydrated, setIsHydrated] = useState(false)
 
   // Settings state
-  const [taskPriorityOptions, setTaskPriorityOptions] = useState<Array<{value: string, label: string}>>([])
+  const [taskStatusOptions, setTaskStatusOptions] = useState<string[]>([])
+  const [taskPriorityOptions, setTaskPriorityOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
+
+  // File upload state
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+
+  // Project state
+  const [projects, setProjects] = useState<any[]>([])
+  const [subprojects, setSubprojects] = useState<any[]>([])
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
+  const [isLoadingSubprojects, setIsLoadingSubprojects] = useState(false)
+  const [projectsLoaded, setProjectsLoaded] = useState(false)
 
   const router = useRouter()
   const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
+
+  // Load icons from settings metadata
+  const { getIcon, isLoading: isLoadingIcons } = useSettingsIcons()
 
   // Handle hydration
   useEffect(() => {
@@ -61,67 +81,176 @@ export default function CreateTask() {
     }
   }, [currentUser, router])
 
-  // Load settings
-  useEffect(() => {
-    const loadSettings = async () => {
-      if (!isHydrated) return
+  // Load settings from database
+  const loadSettings = useCallback(async () => {
+    if (settingsLoaded) return
 
-      try {
-        setIsLoadingSettings(true)
-        const response = await fetch('/api/settings?grouped=true&activeOnly=true')
-        const data = await response.json()
+    try {
+      setIsLoadingSettings(true)
 
-        if (data.success) {
-          const grouped = data.data
-          const priorities = (grouped.task_priority || []).map((value: string) => ({
-            value,
-            label: value
-          }))
-          setTaskPriorityOptions(priorities)
-        } else {
-          console.error('Failed to load settings:', data.error)
-          setError('Failed to load dropdown options. Please refresh the page.')
-        }
-      } catch (error) {
-        console.error('Failed to load settings:', error)
-        setError('Failed to load dropdown options. Please refresh the page.')
-      } finally {
-        setIsLoadingSettings(false)
+      // Fetch all settings
+      const response = await fetch('/api/settings')
+      const data = await response.json()
+
+      if (data.success && data.data) {
+        const settings = data.data
+
+        // Process task statuses
+        const statusesSetting = settings.find((s: any) => s.key === 'task_statuses')
+        const statuses = statusesSetting?.value || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed']
+        setTaskStatusOptions(statuses)
+
+        // Process task priorities
+        const prioritiesSetting = settings.find((s: any) => s.key === 'task_priorities')
+        const priorities = prioritiesSetting?.value || ['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)']
+        setTaskPriorityOptions(priorities)
+
+        console.log('Task settings loaded successfully:', { statuses, priorities })
+      } else {
+        console.warn('Settings API returned empty data, using defaults:', data)
+        // Use default options if API returns empty
+        setTaskStatusOptions(['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'])
+        setTaskPriorityOptions(['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)'])
       }
+
+      setSettingsLoaded(true)
+    } catch (error) {
+      console.error('Failed to load settings:', error)
+      // Use default options on error
+      setTaskStatusOptions(['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'])
+      setTaskPriorityOptions(['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)'])
+      setError('Using default dropdown options. Database settings may be unavailable.')
+      setSettingsLoaded(true)
+    } finally {
+      setIsLoadingSettings(false)
+    }
+  }, [settingsLoaded])
+
+  // Load users
+  const loadUsers = useCallback(async () => {
+    if (usersLoaded) return
+
+    try {
+      setIsLoadingUsers(true)
+      const allUsers = await getAllUsers()
+      // Sort by employeeId
+      const activeUsers = allUsers
+        .filter(user => user.status === 'active')
+        .sort((a, b) => {
+          const idA = a.employeeId || ''
+          const idB = b.employeeId || ''
+          return idA.localeCompare(idB)
+        })
+      setUsers(activeUsers)
+      setUsersLoaded(true)
+    } catch (error) {
+      console.error('Failed to load users:', error)
+    } finally {
+      setIsLoadingUsers(false)
+    }
+  }, [usersLoaded])
+
+  // Load projects (main projects only, no subprojects)
+  const loadProjects = useCallback(async () => {
+    if (projectsLoaded) return
+
+    try {
+      setIsLoadingProjects(true)
+      const response = await fetch('/api/projects?type=main')
+      const data = await response.json()
+
+      // API returns array directly, not wrapped in {success, data}
+      if (Array.isArray(data)) {
+        // Filter to only main projects (no parent) and sort by projectId
+        const mainProjects = data.filter((p: any) => !p.parentProjectId)
+        const sorted = mainProjects.sort((a: any, b: any) => {
+          const idA = a.projectId || ''
+          const idB = b.projectId || ''
+          return idA.localeCompare(idB)
+        })
+        setProjects(sorted)
+        setProjectsLoaded(true)
+      }
+    } catch (error) {
+      console.error('Failed to load projects:', error)
+    } finally {
+      setIsLoadingProjects(false)
+    }
+  }, [projectsLoaded])
+
+  // Load subprojects when project changes
+  const loadSubprojects = useCallback(async (projectId: string) => {
+    if (!projectId) {
+      setSubprojects([])
+      return
     }
 
-    loadSettings()
-  }, [isHydrated])
+    try {
+      setIsLoadingSubprojects(true)
+      const response = await fetch(`/api/projects?parentId=${projectId}`)
+      const data = await response.json()
 
-  // Initialize form data and users
+      // API returns array directly, not wrapped in {success, data}
+      if (Array.isArray(data)) {
+        // Filter to only subprojects of the selected project and sort by projectId
+        const projectSubprojects = data.filter((p: any) => p.parentProjectId === projectId)
+        const sorted = projectSubprojects.sort((a: any, b: any) => {
+          const idA = a.projectId || ''
+          const idB = b.projectId || ''
+          return idA.localeCompare(idB)
+        })
+        setSubprojects(sorted)
+      }
+    } catch (error) {
+      console.error('Failed to load subprojects:', error)
+    } finally {
+      setIsLoadingSubprojects(false)
+    }
+  }, [])
+
+  // Initialize data loading
   useEffect(() => {
-    const loadData = async () => {
-      if (currentUser && isHydrated && !usersLoaded) {
-        try {
-          setIsLoadingUsers(true)
-          // Load users for assignment
-          const allUsers = await getAllUsers()
-          setUsers(allUsers.filter(user => user.status === 'active'))
-          setUsersLoaded(true)
-        } catch (error) {
-          console.error('Failed to load users:', error)
-          setError('Failed to load users. Please refresh the page.')
-        } finally {
-          setIsLoadingUsers(false)
-        }
+    if (!isHydrated) return
 
-        // Set default dates only after hydration
-        const today = new Date().toISOString().split('T')[0]
-        setFormData(prev => ({
+    // If currentUser is still being loaded (undefined), wait
+    if (currentUser === undefined) return
+
+    // If currentUser is null after hydration, redirect to login
+    if (currentUser === null) {
+      router.push('/')
+      return
+    }
+
+    // Set default dates only once on mount
+    const today = new Date().toISOString().split('T')[0]
+    setFormData(prev => {
+      // Only set if not already set to prevent infinite loop
+      if (!prev.startDate && !prev.endDate) {
+        return {
           ...prev,
           startDate: today,
           endDate: today
-        }))
+        }
       }
-    }
+      return prev
+    })
 
-    loadData()
-  }, [currentUser, isHydrated, usersLoaded]) // Run when user and hydration are ready
+    loadUsers()
+    loadSettings()
+    loadProjects()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHydrated])
+
+  // Load subprojects when project changes
+  useEffect(() => {
+    if (formData.projectId) {
+      loadSubprojects(formData.projectId)
+    } else {
+      setSubprojects([])
+      setFormData(prev => ({ ...prev, subprojectId: undefined }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.projectId])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -172,17 +301,90 @@ export default function CreateTask() {
         throw new Error('Please select at least one user for multi-user assignment')
       }
 
-      const estimatedHours = parseFloat(formData.estimatedHours)
-      if (isNaN(estimatedHours) || estimatedHours <= 0) {
-        throw new Error('Please enter a valid estimated hours value')
+      // Convert hh:mm:ss to decimal hours
+      const timeRegex = /^(\d{1,2}):(\d{2}):(\d{2})$/
+      const timeMatch = formData.estimatedHours.match(timeRegex)
+
+      if (!timeMatch) {
+        throw new Error('Please enter estimated hours in hh:mm:ss format (e.g., 02:30:00)')
       }
 
+      const hours = parseInt(timeMatch[1], 10)
+      const minutes = parseInt(timeMatch[2], 10)
+      const seconds = parseInt(timeMatch[3], 10)
 
-      const hoursWorked = formData.hoursWorked ? parseFloat(formData.hoursWorked) : 0
-      if (formData.hoursWorked && (isNaN(hoursWorked) || hoursWorked < 0)) {
-        throw new Error('Please enter a valid hours worked value')
+      if (minutes >= 60 || seconds >= 60) {
+        throw new Error('Invalid time format: minutes and seconds must be less than 60')
       }
 
+      const estimatedHours = hours + (minutes / 60) + (seconds / 3600)
+
+      if (estimatedHours <= 0) {
+        throw new Error('Estimated hours must be greater than 0')
+      }
+
+      let attachmentUrls: string[] = []
+
+      // Upload files if any using S3 presigned URLs
+      if (uploadedFiles.length > 0) {
+        setIsUploading(true)
+        try {
+          // Prepare files array for API
+          const filesData = uploadedFiles.map(file => ({
+            name: file.name,
+            type: file.type,
+            size: file.size
+          }))
+
+          // Get presigned URLs for all files
+          const presignResponse = await fetch('/api/upload/presigned-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ files: filesData })
+          })
+
+          if (!presignResponse.ok) {
+            const errorData = await presignResponse.json()
+            throw new Error(errorData.error || 'Failed to get upload URLs')
+          }
+
+          const { success, uploads, errors } = await presignResponse.json()
+
+          if (!success || !uploads || uploads.length === 0) {
+            throw new Error(errors?.join(', ') || 'Failed to generate upload URLs')
+          }
+
+          // Upload each file to S3 using presigned URLs
+          for (let i = 0; i < uploads.length; i++) {
+            const upload = uploads[i]
+            const file = uploadedFiles[i]
+
+            const uploadResponse = await fetch(upload.uploadUrl, {
+              method: 'PUT',
+              body: file,
+              headers: {
+                'Content-Type': file.type
+              }
+            })
+
+            if (!uploadResponse.ok) {
+              throw new Error(`Failed to upload ${file.name}`)
+            }
+
+            attachmentUrls.push(upload.fileUrl)
+          }
+
+          // Show warning if some files failed
+          if (errors && errors.length > 0) {
+            console.warn('Some files failed to upload:', errors)
+          }
+        } catch (uploadError) {
+          console.error('File upload error:', uploadError)
+          throw new Error(uploadError instanceof Error ? uploadError.message : 'Failed to upload attachments. Please try again.')
+        } finally {
+          setIsUploading(false)
+        }
+      }
 
       // Create task(s)
       let mainTaskData: any = null // Store main task data for support task creation
@@ -204,11 +406,12 @@ export default function CreateTask() {
             support: formData.support,
             startDate: formData.startDate,
             endDate: formData.endDate,
-            priority: formData.priority as 'U&I' | 'NU&I' | 'U&NI' | 'NU&NI',
+            priority: formData.priority,
             estimatedHours: estimatedHours,
             projectId: formData.projectId,
-            hoursWorked: hoursWorked,
-            status: 'Yet to Start' as const,
+            subprojectId: formData.subprojectId,
+            status: formData.status || 'Open',
+            attachments: attachmentUrls.length > 0 ? attachmentUrls.join(',') : undefined,
             relatedTasks: createdTaskIds.length > 0 ? createdTaskIds.join(',') : undefined
           }
 
@@ -261,11 +464,12 @@ export default function CreateTask() {
           support: formData.support, // Array of support employee IDs
           startDate: formData.startDate,
           endDate: formData.endDate,
-          priority: formData.priority as 'U&I' | 'NU&I' | 'U&NI' | 'NU&NI',
+          priority: formData.priority,
           estimatedHours: estimatedHours,
           projectId: formData.projectId,
-          hoursWorked: hoursWorked,
-          status: 'Yet to Start' as const
+          subprojectId: formData.subprojectId,
+          status: formData.status || 'Open',
+          attachments: attachmentUrls.length > 0 ? attachmentUrls.join(',') : undefined
         }
 
         mainTaskData = taskData
@@ -321,14 +525,17 @@ export default function CreateTask() {
       startDate: today,
       endDate: today,
       priority: '',
+      status: 'Open',
       estimatedHours: '',
-      hoursWorked: '',
-      projectId: null,
+      projectId: undefined,
+      subprojectId: undefined,
       assignToSomeoneElse: false,
       assignedTo: '',
       multiUserAssignment: false,
-      assignees: []
+      assignees: [],
+      attachments: ''
     })
+    setUploadedFiles([])
     setError('')
   }
 
@@ -450,15 +657,118 @@ export default function CreateTask() {
             />
           </div>
 
-          {/* Project Selection */}
-          <ProjectSelector
-            value={formData.projectId}
-            onChange={(projectId) => setFormData({ ...formData, projectId })}
-            disabled={isLoading}
-            required={false}
-            includeNone={true}
-            label="Project (Optional)"
-          />
+          {/* Project and Subproject Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                Project (Optional)
+              </label>
+              <select
+                value={formData.projectId || ''}
+                onChange={(e) => {
+                  const projectId = e.target.value || undefined
+                  setFormData(prev => ({ ...prev, projectId, subprojectId: undefined }))
+                }}
+                className="input-field"
+                disabled={isLoadingProjects}
+              >
+                <option value="">No Project</option>
+                {!projectsLoaded ? (
+                  <option disabled>Loading projects...</option>
+                ) : (
+                  projects.map((project) => (
+                    <option key={project.projectId} value={project.projectId}>
+                      {project.projectId} - {project.projectName}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                Subproject (Optional)
+              </label>
+              <select
+                value={formData.subprojectId || ''}
+                onChange={(e) => {
+                  const subprojectId = e.target.value || undefined
+                  setFormData(prev => ({ ...prev, subprojectId }))
+                }}
+                className="input-field"
+                disabled={!formData.projectId || isLoadingSubprojects}
+              >
+                <option value="">No Subproject</option>
+                {isLoadingSubprojects ? (
+                  <option disabled>Loading subprojects...</option>
+                ) : (
+                  subprojects.map((subproject) => (
+                    <option key={subproject.projectId} value={subproject.projectId}>
+                      {subproject.projectId} - {subproject.projectName}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+          </div>
+
+          {/* Status and Priority */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                Status *
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                required
+                disabled={isLoadingSettings}
+                className="input-field"
+              >
+                {isLoadingSettings ? (
+                  <option>Loading...</option>
+                ) : (
+                  taskStatusOptions.map(option => {
+                    const icon = getIcon('task_statuses', option)
+                    return (
+                      <option key={option} value={option}>
+                        {icon && `${icon} `}{option}
+                      </option>
+                    )
+                  })
+                )}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                Priority *
+              </label>
+              <select
+                name="priority"
+                value={formData.priority}
+                onChange={handleInputChange}
+                required
+                disabled={isLoadingSettings}
+                className="input-field"
+              >
+                <option value="">Choose priority...</option>
+                {isLoadingSettings ? (
+                  <option>Loading...</option>
+                ) : (
+                  taskPriorityOptions.map(option => {
+                    const icon = getIcon('task_priorities', option)
+                    return (
+                      <option key={option} value={option}>
+                        {icon && `${icon} `}{option}
+                      </option>
+                    )
+                  })
+                )}
+              </select>
+            </div>
+          </div>
 
           {/* Task Assignment */}
           <div className="space-y-4">
@@ -635,8 +945,8 @@ export default function CreateTask() {
             )}
           </div>
 
-          {/* Dates and Priority */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Dates */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
                 Start Date *
@@ -670,76 +980,47 @@ export default function CreateTask() {
                 />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Priority *
-              </label>
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleInputChange}
-                required
-                disabled={isLoadingSettings}
-                className="input-field"
-              >
-                <option value="">Choose priority...</option>
-                {taskPriorityOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
-          {/* Estimated Hours, Hours Worked, and SubTask */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Estimated Hours *
-              </label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
-                <input
-                  type="number"
-                  name="estimatedHours"
-                  value={formData.estimatedHours}
-                  onChange={handleInputChange}
-                  required
-                  step="0.5"
-                  min="0.5"
-                  className="input-field pl-10"
-                  placeholder="e.g., 2.5"
-                />
-              </div>
-              <p className="text-xs text-secondary-500 mt-1">
-                Enter in hours (0.5 = 30 minutes, 1.0 = 1 hour)
-              </p>
+          {/* Estimated Hours */}
+          <div>
+            <label className="block text-sm font-medium text-secondary-700 mb-2">
+              Estimated Hours *
+            </label>
+            <div className="relative max-w-md">
+              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
+              <input
+                type="text"
+                name="estimatedHours"
+                value={formData.estimatedHours}
+                onChange={handleInputChange}
+                required
+                className="input-field pl-10"
+                placeholder="hh:mm:ss (e.g., 02:30:00)"
+                pattern="^\d{1,2}:\d{2}:\d{2}$"
+                title="Enter time in hh:mm:ss format (e.g., 02:30:00)"
+              />
             </div>
+            <p className="text-xs text-secondary-500 mt-1">
+              Enter estimated time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
+            </p>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Hours Worked (Optional)
-              </label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
-                <input
-                  type="number"
-                  name="hoursWorked"
-                  value={formData.hoursWorked}
-                  onChange={handleInputChange}
-                  step="0.5"
-                  min="0"
-                  className="input-field pl-10"
-                  placeholder="e.g., 1.5"
-                />
-              </div>
-              <p className="text-xs text-secondary-500 mt-1">
-                Hours already worked on this task
-              </p>
-            </div>
-
+          {/* File Attachments */}
+          <div>
+            <label className="block text-sm font-medium text-secondary-700 mb-2 flex items-center space-x-2">
+              <Paperclip className="h-4 w-4" />
+              <span>Attachments (Optional)</span>
+            </label>
+            <FileUpload
+              files={uploadedFiles}
+              onFilesChange={setUploadedFiles}
+              maxFiles={5}
+              maxSizeMB={10}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Upload screenshots, documents, or other relevant files (max 5 files, 10MB each)
+            </p>
           </div>
 
           {/* Submit Buttons */}

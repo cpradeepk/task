@@ -23,7 +23,8 @@ import {
   Edit,
   Trash2,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  Sparkles
 } from 'lucide-react'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
@@ -36,6 +37,53 @@ function UserName({ employeeId }: { employeeId: string }) {
   }, [employeeId])
 
   return <span>{name}</span>
+}
+
+// Component to handle async project name fetching
+function ProjectDisplay({ projectId, subprojectId }: { projectId?: string | null; subprojectId?: string | null }) {
+  const [projectName, setProjectName] = useState<string>('')
+  const [subprojectName, setSubprojectName] = useState<string>('')
+
+  useEffect(() => {
+    const loadProjectNames = async () => {
+      try {
+        if (projectId) {
+          const response = await fetch(`/api/projects/${projectId}`)
+          const data = await response.json()
+          if (data && data.projectName) {
+            setProjectName(data.projectName)
+          }
+        }
+
+        if (subprojectId) {
+          const response = await fetch(`/api/projects/${subprojectId}`)
+          const data = await response.json()
+          if (data && data.projectName) {
+            setSubprojectName(data.projectName)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load project names:', error)
+      }
+    }
+
+    loadProjectNames()
+  }, [projectId, subprojectId])
+
+  if (!projectName) return null
+
+  return (
+    <div className="flex items-center space-x-2 text-sm text-gray-600">
+      <span className="text-gray-400">-</span>
+      <span>{projectName}</span>
+      {subprojectName && (
+        <>
+          <span className="text-gray-400">&gt;</span>
+          <span>{subprojectName}</span>
+        </>
+      )}
+    </div>
+  )
 }
 
 export default function BugsPage() {
@@ -54,6 +102,17 @@ export default function BugsPage() {
   const [retryCount, setRetryCount] = useState(0)
   const [isOnline, setIsOnline] = useState(true)
   const hasLoadedData = useRef(false)
+
+  // Settings data from database
+  const [settingsData, setSettingsData] = useState<{
+    bugStatuses: Array<{ value: string; icon: string }>;
+    severities: Array<{ value: string; icon: string }>;
+    categories: Array<{ value: string; icon: string }>;
+  }>({
+    bugStatuses: [],
+    severities: [],
+    categories: []
+  })
 
   const router = useRouter()
   const currentUser = getCurrentUser()
@@ -74,6 +133,51 @@ export default function BugsPage() {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
+  }, [])
+
+  // Load settings data from database
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const response = await fetch('/api/settings')
+        const data = await response.json()
+
+        if (data.success && data.data) {
+          const settings = data.data
+
+          // Process bug statuses (use bug_statuses key from settings table)
+          const bugStatusesSetting = settings.find((s: any) => s.key === 'bug_statuses')
+          const bugStatuses = bugStatusesSetting?.value?.map((val: string) => ({
+            value: val,
+            icon: bugStatusesSetting?.metadata?.icons?.[val] || ''
+          })) || []
+
+          // Process severities
+          const severitiesSetting = settings.find((s: any) => s.key === 'severities')
+          const severities = severitiesSetting?.value?.map((val: string) => ({
+            value: val,
+            icon: severitiesSetting?.metadata?.icons?.[val] || ''
+          })) || []
+
+          // Process categories
+          const categoriesSetting = settings.find((s: any) => s.key === 'categories')
+          const categories = categoriesSetting?.value?.map((val: string) => ({
+            value: val,
+            icon: categoriesSetting?.metadata?.icons?.[val] || ''
+          })) || []
+
+          setSettingsData({
+            bugStatuses,
+            severities,
+            categories
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error)
+      }
+    }
+
+    loadSettings()
   }, [])
 
   const loadBugs = useCallback(async (isRetry = false) => {
@@ -239,6 +343,19 @@ export default function BugsPage() {
       }
     }
 
+    // Sort bugs: Closed bugs should appear last
+    filtered = filtered.sort((a, b) => {
+      // If both are closed or both are not closed, maintain original order
+      if ((a.status === 'Closed' && b.status === 'Closed') ||
+          (a.status !== 'Closed' && b.status !== 'Closed')) {
+        return 0
+      }
+      // If a is closed and b is not, a should come after b
+      if (a.status === 'Closed') return 1
+      // If b is closed and a is not, b should come after a
+      return -1
+    })
+
     return filtered
   }, [bugs, searchTerm, statusFilter, severityFilter, categoryFilter, assigneeFilter, currentUser])
 
@@ -353,8 +470,9 @@ export default function BugsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-red-100 rounded-lg">
-              <BugIcon className="h-6 w-6 text-red-600" />
+            {/* This was requested by Chandralekha because she wants to solve bugs with flying colours */}
+            <div className="p-3 bg-purple-100 rounded-lg">
+              <Sparkles className="h-6 w-6 text-purple-600" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Bug Tracking</h1>
@@ -381,7 +499,7 @@ export default function BugsPage() {
 
         {/* Statistics Cards */}
         {statistics && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -426,12 +544,38 @@ export default function BugsPage() {
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
+                  <p className="text-sm font-medium text-gray-600">Blocker</p>
+                  <p className="text-3xl font-bold text-purple-600 mt-2">{statistics.bySeverity['Blocker'] || 0}</p>
+                  <p className="text-xs text-gray-500 mt-1">Blocking issues</p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
                   <p className="text-sm font-medium text-gray-600">Critical</p>
                   <p className="text-3xl font-bold text-red-600 mt-2">{statistics.bySeverity['Critical'] || 0}</p>
                   <p className="text-xs text-gray-500 mt-1">High priority</p>
                 </div>
                 <div className="p-3 bg-red-100 rounded-lg">
                   <AlertTriangle className="h-6 w-6 text-red-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Major</p>
+                  <p className="text-3xl font-bold text-orange-600 mt-2">{statistics.bySeverity['Major'] || 0}</p>
+                  <p className="text-xs text-gray-500 mt-1">Important issues</p>
+                </div>
+                <div className="p-3 bg-orange-100 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-orange-600" />
                 </div>
               </div>
             </div>
@@ -465,11 +609,11 @@ export default function BugsPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
             >
               <option value="all">All Status</option>
-              <option value="New">🆕 New</option>
-              <option value="In Progress">⏳ In Progress</option>
-              <option value="Resolved">✅ Resolved</option>
-              <option value="Closed">🔒 Closed</option>
-              <option value="Reopened">🔄 Reopened</option>
+              {settingsData.bugStatuses.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.icon} {status.value}
+                </option>
+              ))}
             </select>
 
             {/* Severity Filter */}
@@ -479,9 +623,11 @@ export default function BugsPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
             >
               <option value="all">All Severity</option>
-              <option value="Critical">🔴 Critical</option>
-              <option value="Major">🟠 Major</option>
-              <option value="Minor">🟡 Minor</option>
+              {settingsData.severities.map((severity) => (
+                <option key={severity.value} value={severity.value}>
+                  {severity.icon} {severity.value}
+                </option>
+              ))}
             </select>
 
             {/* Category Filter */}
@@ -491,14 +637,11 @@ export default function BugsPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
             >
               <option value="all">All Categories</option>
-              <option value="UI">🎨 UI</option>
-              <option value="API">🔌 API</option>
-              <option value="Backend">⚙️ Backend</option>
-              <option value="Performance">⚡ Performance</option>
-              <option value="Security">🔒 Security</option>
-              <option value="Database">🗄️ Database</option>
-              <option value="Integration">🔗 Integration</option>
-              <option value="Other">📋 Other</option>
+              {settingsData.categories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.icon} {category.value}
+                </option>
+              ))}
             </select>
 
             {/* Assignee Filter */}
@@ -623,15 +766,22 @@ export default function BugsPage() {
                         {getStatusIcon(bug.status)}
                         <span>{bug.status}</span>
                       </span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                       <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                         {bug.platform === 'Web' ? '🌐' : bug.platform === 'iOS' ? '📱' : bug.platform === 'Android' ? '🤖' : '🔄'} {bug.platform}
+                      </span>
+                      {/* Environment */}
+                      <span className="px-2 py-1 bg-teal-100 text-teal-700 rounded text-xs font-medium">
+                        {bug.environment}
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors cursor-pointer"
-                        onClick={() => router.push(`/bugs/${bug.bugId}`)}>
-                      {bug.title}
-                    </h3>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                          onClick={() => router.push(`/bugs/${bug.bugId}`)}>
+                        {bug.title}
+                      </h3>
+                      <ProjectDisplay projectId={bug.projectId} subprojectId={bug.subprojectId} />
+                    </div>
                     <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed">{bug.description}</p>
 
                     <div className="flex items-center flex-wrap gap-4 text-sm text-gray-500">
@@ -641,17 +791,7 @@ export default function BugsPage() {
                           {bug.category === 'UI' ? '🎨' : bug.category === 'API' ? '🔌' : bug.category === 'Backend' ? '⚙️' : '📋'} {bug.category}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <span className="font-medium">Priority:</span>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          bug.priority === 'High' ? 'bg-red-50 text-red-700' :
-                          bug.priority === 'Medium' ? 'bg-yellow-50 text-yellow-700' :
-                          'bg-green-50 text-green-700'
-                        }`}>
-                          {bug.priority === 'High' ? '⬆️' : bug.priority === 'Medium' ? '➡️' : '⬇️'} {bug.priority}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-1">
+                       <div className="flex items-center space-x-1">
                         <span className="font-medium">Reported:</span>
                         <span>{new Date(bug.createdAt).toLocaleDateString()}</span>
                       </div>
