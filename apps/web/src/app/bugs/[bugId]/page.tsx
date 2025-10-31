@@ -139,8 +139,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [projectName, setProjectName] = useState<string>('')
   const [subprojectName, setSubprojectName] = useState<string>('')
 
-  // Activity log filter state
-  const [showActivity, setShowActivity] = useState(true)
+  // Activity log filter state - default to showing only comments
+  const [showActivity, setShowActivity] = useState(false)
   const [showComments, setShowComments] = useState(true)
 
   // Related bugs state
@@ -782,12 +782,12 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             {/* Bug Details */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-3 mb-4">
-                <button
-                  onClick={() => setBugEditModalOpen(true)}
-                  className="font-mono text-sm bg-gray-100 px-2 py-1 rounded hover:bg-primary hover:text-white transition-colors cursor-pointer"
-                >
+                {/* Bug ID - Non-clickable */}
+                <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
                   {bug.bugId}
-                </button>
+                </span>
+
+                {/* Criticality (Severity) */}
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(bug.severity)}`}>
                   {bug.severity}
                 </span>
@@ -814,14 +814,48 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                     <span>{bug.status}</span>
                   </span>
                 )}
+
+                {/* Category */}
+                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                  {bug.category}
+                </span>
+
+                {/* Platform */}
+                <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">
+                  {bug.platform}
+                </span>
+
+                {/* Environment */}
+                <span className="px-2 py-1 bg-teal-100 text-teal-700 rounded text-xs font-medium">
+                  {bug.environment}
+                </span>
               </div>
 
-              <button
-                onClick={() => setBugEditModalOpen(true)}
-                className="text-xl font-semibold text-black mb-4 hover:text-primary transition-colors cursor-pointer text-left w-full"
-              >
-                {bug.title}
-              </button>
+              {/* Bug Title with Project/Subproject */}
+              <div className="mb-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <BugIcon className="h-5 w-5 text-gray-600" />
+                  <span className="font-mono text-sm text-gray-600">{bug.bugId}</span>
+                  {projectName && (
+                    <>
+                      <span className="text-gray-400">-</span>
+                      <span className="text-sm text-gray-700">{projectName}</span>
+                      {subprojectName && (
+                        <>
+                          <span className="text-gray-400">&gt;</span>
+                          <span className="text-sm text-gray-700">{subprojectName}</span>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={() => setBugEditModalOpen(true)}
+                  className="text-xl font-semibold text-black hover:text-primary transition-colors cursor-pointer text-left w-full"
+                >
+                  {bug.title}
+                </button>
+              </div>
 
               <div className="space-y-4">
                 <div>
@@ -883,37 +917,32 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </div>
             </div>
 
+            {/* Browser and Device Information */}
+            {(bug.browserInfo || bug.deviceInfo) && (
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold mb-4">Browser & Device</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {bug.browserInfo && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">Browser:</span>
+                      <span className="ml-2 text-sm text-gray-900">{bug.browserInfo}</span>
+                    </div>
+                  )}
+                  {bug.deviceInfo && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">Device:</span>
+                      <span className="ml-2 text-sm text-gray-900">{bug.deviceInfo}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Activity Timeline (includes comments and system activities) */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <MessageSquare className="h-5 w-5" />
-                  <h3 className="text-lg font-semibold">Activity & Comments</h3>
-                </div>
-
-                {/* Filter Toggles */}
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setShowActivity(!showActivity)}
-                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                      showActivity
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    Activity
-                  </button>
-                  <button
-                    onClick={() => setShowComments(!showComments)}
-                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                      showComments
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    Comments
-                  </button>
-                </div>
+              <div className="flex items-center space-x-2 mb-4">
+                <MessageSquare className="h-5 w-5" />
+                <h3 className="text-lg font-semibold">Activity & Comments</h3>
               </div>
 
               <UnifiedTimeline
@@ -922,6 +951,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 showCommentInput={canComment}
                 sortOrder="desc"
                 autoRefresh={false}
+                showActivity={showActivity}
+                showComments={showComments}
+                onToggleActivity={() => setShowActivity(!showActivity)}
+                onToggleComments={() => setShowComments(!showComments)}
                 filterFn={(activity) => {
                   // If both toggles are ON or both are OFF, show all
                   if ((showActivity && showComments) || (!showActivity && !showComments)) {
@@ -943,137 +976,16 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Bug Information */}
+            {/* Bug Subtasks - Moved from bottom */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Bug Information</h3>
-
-              <div className="space-y-3">
-                {/* Criticality (Severity) - Read-only */}
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Criticality:</span>
-                  <span className="ml-2 text-sm text-gray-900">{bug.severity}</span>
-                </div>
-
-                {/* Category - Inline Dropdown */}
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Category:</span>
-                  {canEdit ? (
-                    isEditingCategory ? (
-                      <select
-                        value={bug.category}
-                        onChange={(e) => handleCategoryChange(e.target.value)}
-                        onBlur={() => setIsEditingCategory(false)}
-                        autoFocus
-                        disabled={isUpdating || isLoadingSettings}
-                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {categoryOptions.map(option => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <button
-                        onClick={() => setIsEditingCategory(true)}
-                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
-                      >
-                        {bug.category}
-                      </button>
-                    )
-                  ) : (
-                    <span className="ml-2 text-sm text-gray-900">{bug.category}</span>
-                  )}
-                </div>
-
-                {/* Platform - Inline Dropdown */}
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Platform:</span>
-                  {canEdit ? (
-                    isEditingPlatform ? (
-                      <select
-                        value={bug.platform}
-                        onChange={(e) => handlePlatformChange(e.target.value)}
-                        onBlur={() => setIsEditingPlatform(false)}
-                        autoFocus
-                        disabled={isUpdating || isLoadingSettings}
-                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {platformOptions.map(option => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <button
-                        onClick={() => setIsEditingPlatform(true)}
-                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
-                      >
-                        {bug.platform}
-                      </button>
-                    )
-                  ) : (
-                    <span className="ml-2 text-sm text-gray-900">{bug.platform}</span>
-                  )}
-                </div>
-
-                {/* Environment - Inline Dropdown */}
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Environment:</span>
-                  {canEdit ? (
-                    isEditingEnvironment ? (
-                      <select
-                        value={bug.environment}
-                        onChange={(e) => handleEnvironmentChange(e.target.value)}
-                        onBlur={() => setIsEditingEnvironment(false)}
-                        autoFocus
-                        disabled={isUpdating || isLoadingSettings}
-                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {environmentOptions.map(option => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <button
-                        onClick={() => setIsEditingEnvironment(true)}
-                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
-                      >
-                        {bug.environment}
-                      </button>
-                    )
-                  ) : (
-                    <span className="ml-2 text-sm text-gray-900">{bug.environment}</span>
-                  )}
-                </div>
-
-                {/* Project - Read-only */}
-                {bug.projectId && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Project:</span>
-                    <span className="ml-2 text-sm text-gray-900">{projectName || bug.projectId}</span>
-                  </div>
-                )}
-
-                {/* Subproject - Read-only */}
-                {bug.subprojectId && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Subproject:</span>
-                    <span className="ml-2 text-sm text-gray-900">{subprojectName || bug.subprojectId}</span>
-                  </div>
-                )}
-
-                {bug.browserInfo && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Browser:</span>
-                    <span className="ml-2 text-sm text-gray-900">{bug.browserInfo}</span>
-                  </div>
-                )}
-
-                {bug.deviceInfo && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Device:</span>
-                    <span className="ml-2 text-sm text-gray-900">{bug.deviceInfo}</span>
-                  </div>
-                )}
-              </div>
+              <BugSubTaskManager
+                parentBugId={bug.bugId}
+                createdBy={currentUser.employeeId}
+                editable={canEdit}
+                showAssignee={true}
+                defaultExpanded={true}
+                compact={false}
+              />
             </div>
 
             {/* People */}
@@ -1574,18 +1486,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 )}
               </div>
             )}
-
-            {/* Bug Subtasks */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <BugSubTaskManager
-                parentBugId={bug.bugId}
-                createdBy={currentUser.employeeId}
-                editable={canEdit}
-                showAssignee={true}
-                defaultExpanded={true}
-                compact={false}
-              />
-            </div>
           </div>
         </div>
 

@@ -92,7 +92,7 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
     }
   }, [timerData])
 
-  const syncToBackend = async () => {
+  const syncToBackend = async (overrideState?: 'stopped' | 'running' | 'paused') => {
     if (!timerData) return
 
     try {
@@ -103,7 +103,7 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
         body: JSON.stringify({
           entityType: timerData.entityType,
           entityId: timerData.entityId,
-          state: timerData.state,
+          state: overrideState || timerData.state,
           totalTime: currentTime,
           sessions: timerData.sessions
         })
@@ -172,8 +172,8 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
       handlePause()
     }
 
-    // Sync final state to backend
-    await syncToBackend()
+    // Sync final state to backend with 'stopped' state to trigger actualHours update
+    await syncToBackend('stopped')
 
     // Log to activity log with hh:mm:ss format
     try {

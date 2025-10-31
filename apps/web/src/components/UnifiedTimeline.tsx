@@ -11,6 +11,10 @@ interface UnifiedTimelineProps {
   autoRefresh?: boolean
   refreshInterval?: number // in milliseconds
   filterFn?: (activity: ActivityLog) => boolean // Optional filter function
+  showActivity?: boolean // Filter state for activity
+  showComments?: boolean // Filter state for comments
+  onToggleActivity?: () => void // Toggle activity filter
+  onToggleComments?: () => void // Toggle comments filter
 }
 
 /**
@@ -32,7 +36,11 @@ export default function UnifiedTimeline({
   sortOrder = 'desc',
   autoRefresh = false,
   refreshInterval = 30000, // 30 seconds
-  filterFn
+  filterFn,
+  showActivity = false,
+  showComments = true,
+  onToggleActivity,
+  onToggleComments
 }: UnifiedTimelineProps) {
   const [activities, setActivities] = useState<ActivityLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -219,7 +227,36 @@ export default function UnifiedTimeline({
             rows={3}
             disabled={isSubmitting}
           />
-          <div className="flex justify-end mt-2">
+          <div className="flex justify-between items-center mt-2">
+            {/* Filter Toggles - Left aligned */}
+            {onToggleActivity && onToggleComments && (
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={onToggleActivity}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    showActivity
+                      ? 'bg-orange-500 text-white hover:bg-orange-600'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Activity
+                </button>
+                <button
+                  type="button"
+                  onClick={onToggleComments}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    showComments
+                      ? 'bg-orange-500 text-white hover:bg-orange-600'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Comments
+                </button>
+              </div>
+            )}
+
+            {/* Post Comment Button - Right aligned */}
             <button
               type="submit"
               disabled={isSubmitting || !commentText.trim()}

@@ -414,54 +414,28 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
             </select>
           </div>
 
-          {/* Environment, Browser, Device */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                <Globe className="h-4 w-4 inline mr-2" />
-                Environment <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.environment || ''}
-                onChange={(e) => setFormData({ ...formData, environment: e.target.value as Bug['environment'] })}
-                required
-                disabled={isLoadingSettings}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                {environmentOptions.map((env) => {
-                  const icon = getIconForSettingValueSync('environment', env)
-                  return (
-                    <option key={env} value={env}>
-                      {icon && `${icon} `}{env}
-                    </option>
-                  )
-                })}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Browser Info
-              </label>
-              <input
-                type="text"
-                value={formData.browserInfo || ''}
-                onChange={(e) => setFormData({ ...formData, browserInfo: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="e.g., Chrome 120.0.0"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Device Info
-              </label>
-              <input
-                type="text"
-                value={formData.deviceInfo || ''}
-                onChange={(e) => setFormData({ ...formData, deviceInfo: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="e.g., iPhone 15 Pro, iOS 17.2"
-              />
-            </div>
+          {/* Environment */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              <Globe className="h-4 w-4 inline mr-2" />
+              Environment <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formData.environment || ''}
+              onChange={(e) => setFormData({ ...formData, environment: e.target.value as Bug['environment'] })}
+              required
+              disabled={isLoadingSettings}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              {environmentOptions.map((env) => {
+                const icon = getIconForSettingValueSync('environment', env)
+                return (
+                  <option key={env} value={env}>
+                    {icon && `${icon} `}{env}
+                  </option>
+                )
+              })}
+            </select>
           </div>
 
           {/* Assigned To and Type */}
@@ -530,40 +504,6 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="What actually happens..."
-              />
-            </div>
-          </div>
-
-          {/* Hours */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                <Clock className="h-4 w-4 inline mr-2" />
-                Estimated Hours
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                value={formData.estimatedHours || ''}
-                onChange={(e) => setFormData({ ...formData, estimatedHours: parseFloat(e.target.value) || undefined })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="e.g., 4"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                <Clock className="h-4 w-4 inline mr-2" />
-                Actual Hours
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                value={formData.actualHours || ''}
-                onChange={(e) => setFormData({ ...formData, actualHours: parseFloat(e.target.value) || undefined })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="e.g., 3.5"
               />
             </div>
           </div>
