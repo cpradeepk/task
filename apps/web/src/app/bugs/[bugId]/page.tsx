@@ -755,11 +755,26 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               <span>Back</span>
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-black flex items-center space-x-2">
-                <BugIcon className="h-6 w-6" />
-                <span>{bug.bugId}</span>
-              </h1>
-              <p className="text-gray-600">{bug.title}</p>
+              {/* Bug Title Section with Project/Subproject */}
+              <div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <BugIcon className="h-5 w-5 text-gray-600" />
+                  <span className="font-mono text-sm text-gray-600">{bug.bugId}</span>
+                  {projectName && (
+                    <>
+                      <span className="text-gray-400">-</span>
+                      <span className="text-sm text-gray-700">{projectName}</span>
+                      {subprojectName && (
+                        <>
+                          <span className="text-gray-400">&gt;</span>
+                          <span className="text-sm text-gray-700">{subprojectName}</span>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+                <h1 className="text-2xl font-bold text-black">{bug.title}</h1>
+              </div>
             </div>
           </div>
 
@@ -782,11 +797,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             {/* Bug Details */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-3 mb-4">
-                {/* Bug ID - Non-clickable */}
-                <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                  {bug.bugId}
-                </span>
-
                 {/* Criticality (Severity) */}
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(bug.severity)}`}>
                   {bug.severity}
@@ -829,32 +839,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 <span className="px-2 py-1 bg-teal-100 text-teal-700 rounded text-xs font-medium">
                   {bug.environment}
                 </span>
-              </div>
-
-              {/* Bug Title with Project/Subproject */}
-              <div className="mb-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  <BugIcon className="h-5 w-5 text-gray-600" />
-                  <span className="font-mono text-sm text-gray-600">{bug.bugId}</span>
-                  {projectName && (
-                    <>
-                      <span className="text-gray-400">-</span>
-                      <span className="text-sm text-gray-700">{projectName}</span>
-                      {subprojectName && (
-                        <>
-                          <span className="text-gray-400">&gt;</span>
-                          <span className="text-sm text-gray-700">{subprojectName}</span>
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-                <button
-                  onClick={() => setBugEditModalOpen(true)}
-                  className="text-xl font-semibold text-black hover:text-primary transition-colors cursor-pointer text-left w-full"
-                >
-                  {bug.title}
-                </button>
               </div>
 
               <div className="space-y-4">
@@ -920,7 +904,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             {/* Browser and Device Information */}
             {(bug.browserInfo || bug.deviceInfo) && (
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Browser & Device</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {bug.browserInfo && (
                     <div>
@@ -976,77 +959,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Bug Subtasks - Moved from bottom */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <BugSubTaskManager
-                parentBugId={bug.bugId}
-                createdBy={currentUser.employeeId}
-                editable={canEdit}
-                showAssignee={true}
-                defaultExpanded={true}
-                compact={false}
-              />
-            </div>
-
-            {/* People */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">People</h3>
-
-              <div className="space-y-3">
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Reported by:</span>
-                  <span className="ml-2 text-sm text-gray-900">
-                    <UserName employeeId={bug.reportedBy} />
-                  </span>
-                </div>
-
-                {/* Assigned To - Inline Dropdown */}
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Assigned to:</span>
-                  {canAssign ? (
-                    isEditingAssignee ? (
-                      <select
-                        value={bug.assignedTo || ''}
-                        onChange={(e) => handleAssigneeChange(e.target.value)}
-                        onBlur={() => setIsEditingAssignee(false)}
-                        autoFocus
-                        disabled={isUpdating}
-                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Unassigned</option>
-                        {users.map((user) => (
-                          <option key={user.employeeId} value={user.employeeId}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <button
-                        onClick={() => setIsEditingAssignee(true)}
-                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
-                      >
-                        {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
-                      </button>
-                    )
-                  ) : (
-                    <span className="ml-2 text-sm text-gray-900">
-                      {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
-                    </span>
-                  )}
-                </div>
-
-                {bug.assignedBy && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Assigned by:</span>
-                    <span className="ml-2 text-sm text-gray-900">
-                      <UserName employeeId={bug.assignedBy} />
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Time Tracking */}
+            {/* Time Tracking - Moved above subtasks */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
@@ -1054,8 +967,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   <span>Time Tracking</span>
                 </h3>
 
-                {/* Log Hours Button - Moved to heading */}
-                {canEdit && (
+                {/* Log Hours Button - Disabled for Closed/Resolved bugs */}
+                {canEdit && bug.status !== 'Closed' && bug.status !== 'Resolved' && (
                   <div className="relative">
                     <button
                       onClick={() => {
@@ -1265,14 +1178,14 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                     </span>
                   </div>
 
-                  {/* Timer Play/Pause Button */}
-                  {canEdit && (
+                  {/* Timer Play/Pause Button - 20% larger and disabled for Closed/Resolved */}
+                  {canEdit && bug.status !== 'Closed' && bug.status !== 'Resolved' && (
                     <TimerButton
                       entityType="bug"
                       entityId={bug.bugId}
                       entityTitle={bug.title}
                       status={bug.status}
-                      size="sm"
+                      size="md"
                       showLabel={false}
                     />
                   )}
@@ -1298,6 +1211,76 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                         {bug.estimatedHours ? Math.round(((bug.actualHours || 0) / bug.estimatedHours) * 100) : 0}% complete
                       </span>
                     </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bug Subtasks - Moved from bottom */}
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <BugSubTaskManager
+                parentBugId={bug.bugId}
+                createdBy={currentUser.employeeId}
+                editable={canEdit}
+                showAssignee={true}
+                defaultExpanded={true}
+                compact={false}
+              />
+            </div>
+
+            {/* People */}
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <h3 className="text-lg font-semibold mb-4">People</h3>
+
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Reported by:</span>
+                  <span className="ml-2 text-sm text-gray-900">
+                    <UserName employeeId={bug.reportedBy} />
+                  </span>
+                </div>
+
+                {/* Assigned To - Inline Dropdown */}
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Assigned to:</span>
+                  {canAssign ? (
+                    isEditingAssignee ? (
+                      <select
+                        value={bug.assignedTo || ''}
+                        onChange={(e) => handleAssigneeChange(e.target.value)}
+                        onBlur={() => setIsEditingAssignee(false)}
+                        autoFocus
+                        disabled={isUpdating}
+                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Unassigned</option>
+                        {users.map((user) => (
+                          <option key={user.employeeId} value={user.employeeId}>
+                            {user.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingAssignee(true)}
+                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
+                      >
+                        {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
+                      </button>
+                    )
+                  ) : (
+                    <span className="ml-2 text-sm text-gray-900">
+                      {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
+                    </span>
+                  )}
+                </div>
+
+                {bug.assignedBy && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Assigned by:</span>
+                    <span className="ml-2 text-sm text-gray-900">
+                      <UserName employeeId={bug.assignedBy} />
+                    </span>
                   </div>
                 )}
               </div>

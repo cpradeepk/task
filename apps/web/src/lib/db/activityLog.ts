@@ -71,12 +71,18 @@ export interface CreateActivityLogInput {
  */
 export async function createActivityLog(input: CreateActivityLogInput): Promise<ActivityLog> {
   return withRetry(async () => {
+    // Calculate IST timestamp (UTC + 5:30)
+    const now = new Date()
+    const istOffset = 5.5 * 60 * 60 * 1000 // 5.5 hours in milliseconds
+    const istTime = new Date(now.getTime() + istOffset)
+    const istTimestamp = istTime.toISOString().slice(0, 19).replace('T', ' ') // Format: YYYY-MM-DD HH:MM:SS
+
     const result = await withTimeout(
       query<ResultSetHeader>(
         `INSERT INTO activity_log (
           entity_type, entity_id, user_id, action_type,
-          field_name, old_value, new_value, description, is_comment
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          field_name, old_value, new_value, description, is_comment, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           input.entityType,
           input.entityId,
@@ -86,7 +92,8 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
           input.oldValue || null,
           input.newValue || null,
           input.description,
-          input.isComment || false
+          input.isComment || false,
+          istTimestamp
         ]
       ),
       10000,
