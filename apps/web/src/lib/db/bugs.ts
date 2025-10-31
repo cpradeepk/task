@@ -55,6 +55,7 @@ interface BugRow extends RowDataPacket {
   tags: string | null                 // Comma-separated tags (optional)
   related_bugs: string | null         // Comma-separated bug IDs (optional)
   project_id: string | null           // Project ID this bug belongs to (optional)
+  subproject_id: string | null        // Subproject ID this bug belongs to (optional)
   feature: string | null              // Feature name this bug is related to (optional)
   type: string | null                 // Bug type: 'testcase', 'feature', 'other' (optional)
   created_at: string                  // Timestamp when bug was created
@@ -112,6 +113,7 @@ function rowToBug(row: BugRow): Bug {
     tags: row.tags || undefined,
     relatedBugs: row.related_bugs || undefined,
     projectId: row.project_id || undefined,
+    subprojectId: row.subproject_id || undefined,
     feature: row.feature || undefined,
     type: row.type as Bug['type'] || undefined,
     createdAt: row.created_at,

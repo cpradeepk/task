@@ -175,8 +175,13 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
         feature: bug.feature || '',
         type: bug.type || null,
       })
+
+      // Load subprojects for the bug's project when modal opens
+      if (bug.projectId) {
+        loadSubprojects(bug.projectId)
+      }
     }
-  }, [bug])
+  }, [bug, loadSubprojects])
 
   // Reset loaded flags when modal closes
   useEffect(() => {

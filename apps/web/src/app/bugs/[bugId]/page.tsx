@@ -36,7 +36,8 @@ import {
   Timer,
   Settings,
   CheckSquare,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Pencil
 } from 'lucide-react'
 
 // Component to handle async user name fetching
@@ -845,12 +846,13 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
               {/* Bug Title with Project/Subproject */}
               <div className="mb-4">
-               
+
                 <button
                   onClick={() => setBugEditModalOpen(true)}
-                  className="text-xl font-semibold text-black hover:text-primary transition-colors cursor-pointer text-left w-full"
+                  className="text-xl font-semibold text-black hover:text-primary transition-colors cursor-pointer text-left w-full flex items-center space-x-2 group"
                 >
-                  {bug.title}
+                  <span>{bug.title}</span>
+                  <Pencil className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               </div>
 
