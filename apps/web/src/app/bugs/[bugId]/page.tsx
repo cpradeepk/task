@@ -253,16 +253,18 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
       if (bug.projectId) {
         const response = await fetch(`/api/projects/${bug.projectId}`)
         const data = await response.json()
-        if (data.success && data.data) {
-          setProjectName(data.data.projectName || bug.projectId)
+        // API returns project data directly, not wrapped in { success, data }
+        if (data && data.projectName) {
+          setProjectName(data.projectName)
         }
       }
 
       if (bug.subprojectId) {
         const response = await fetch(`/api/projects/${bug.subprojectId}`)
         const data = await response.json()
-        if (data.success && data.data) {
-          setSubprojectName(data.data.projectName || bug.subprojectId)
+        // API returns project data directly, not wrapped in { success, data }
+        if (data && data.projectName) {
+          setSubprojectName(data.projectName)
         }
       }
     } catch (error) {
@@ -755,11 +757,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               <span>Back</span>
             </button>
             <div>
-              {/* Bug Title Section with Project/Subproject */}
-              <div>
+              <h1 className="text-2xl font-bold text-black flex items-center space-x-2">
+                <BugIcon className="h-6 w-6" />
+                <span>{bug.bugId}</span>
                 <div className="flex items-center space-x-2 mb-2">
-                  <BugIcon className="h-5 w-5 text-gray-600" />
-                  <span className="font-mono text-sm text-gray-600">{bug.bugId}</span>
                   {projectName && (
                     <>
                       <span className="text-gray-400">-</span>
@@ -773,10 +774,11 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                     </>
                   )}
                 </div>
-                <h1 className="text-2xl font-bold text-black">{bug.title}</h1>
+              </h1>
+              
+               
               </div>
             </div>
-          </div>
 
           <div className="flex flex-wrap items-center gap-3 lg:justify-end">
             {bug.status === 'Resolved' && canEdit && (
@@ -841,6 +843,17 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 </span>
               </div>
 
+              {/* Bug Title with Project/Subproject */}
+              <div className="mb-4">
+               
+                <button
+                  onClick={() => setBugEditModalOpen(true)}
+                  className="text-xl font-semibold text-black hover:text-primary transition-colors cursor-pointer text-left w-full"
+                >
+                  {bug.title}
+                </button>
+              </div>
+
               <div className="space-y-4">
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2">Steps to Reproduce</h3>
@@ -858,6 +871,25 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   <div>
                     <h3 className="font-medium text-gray-900 mb-2">Actual Behavior</h3>
                     <p className="text-gray-700 whitespace-pre-wrap">{bug.actualBehavior}</p>
+                  </div>
+                )}
+                {/* Browser and Device Information */}
+            {(bug.browserInfo || bug.deviceInfo) && (
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                <div className="grid grid-cols-2 gap-4">
+                  {bug.browserInfo && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">Browser:</span>
+                      <span className="ml-2 text-sm text-gray-900">{bug.browserInfo}</span>
+                    </div>
+                  )}
+                  {bug.deviceInfo && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">Device:</span>
+                      <span className="ml-2 text-sm text-gray-900">{bug.deviceInfo}</span>
+                    </div>
+                  )}
+                </div>
                   </div>
                 )}
 
@@ -901,25 +933,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </div>
             </div>
 
-            {/* Browser and Device Information */}
-            {(bug.browserInfo || bug.deviceInfo) && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <div className="grid grid-cols-2 gap-4">
-                  {bug.browserInfo && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Browser:</span>
-                      <span className="ml-2 text-sm text-gray-900">{bug.browserInfo}</span>
-                    </div>
-                  )}
-                  {bug.deviceInfo && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Device:</span>
-                      <span className="ml-2 text-sm text-gray-900">{bug.deviceInfo}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+
 
             {/* Activity Timeline (includes comments and system activities) */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
