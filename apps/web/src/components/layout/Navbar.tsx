@@ -75,7 +75,7 @@ export default function Navbar() {
       case 'employee':
         return [
           ...baseItems,
-          { href: '/tasks/create', label: 'Tasks', icon: Plus },
+          { href: '/tasks', label: 'Tasks', icon: CheckSquare },
           { href: '/bugs', label: 'Bugs', icon: Bug },
           { href: '/my-applications', label: 'Applications', icon: FileText },
           { href: '/profile', label: 'Profile', icon: User }
@@ -84,7 +84,7 @@ export default function Navbar() {
       case 'management':
         return [
           ...baseItems,
-          { href: '/tasks/create', label: 'Tasks', icon: Plus },
+          { href: '/tasks', label: 'Tasks', icon: CheckSquare },
           { href: '/bugs', label: 'Bugs', icon: Bug },
           { href: '/my-applications', label: 'Applications', icon: FileText },
           { href: '/reports', label: 'Reports', icon: BarChart3 },
@@ -94,7 +94,7 @@ export default function Navbar() {
       case 'top_management':
         return [
           ...baseItems,
-          { href: '/tasks/create', label: 'Tasks', icon: Plus },
+          { href: '/tasks', label: 'Tasks', icon: CheckSquare },
           { href: '/bugs', label: 'Bugs', icon: Bug },
           { href: '/projects', label: 'Projects', icon: Briefcase },
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
