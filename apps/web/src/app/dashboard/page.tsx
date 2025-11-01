@@ -557,32 +557,65 @@ export default function Dashboard() {
   // For non-admin users, show the original task-based dashboard
   // Calculate statistics for ALL tasks (not filtered by employee)
   const allTasksCount = tasks.length
-  const totalTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId).length
-  const completedTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId && task.status === 'Done').length
-  const inProgressTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId && task.status === 'In Progress').length
-  const delayedTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId && task.status === 'Delayed').length
-  const pendingTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId && task.status === 'Yet to Start').length
 
-  // Filter tasks based on active filter - ONLY show tasks assigned to current user
+  // Calculate statistics for current user's tasks (assigned to OR created by current user)
+  const myTasks = tasks.filter(task =>
+    task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId
+  )
+  const totalTasks = myTasks.length
+  const completedTasks = myTasks.filter(task => task.status === 'Done').length
+  const inProgressTasks = myTasks.filter(task => task.status === 'In Progress').length
+  const delayedTasks = myTasks.filter(task => task.status === 'Delayed').length
+  const pendingTasks = myTasks.filter(task => task.status === 'Yet to Start').length
+
+  // Filter tasks based on active filter
   const getFilteredTasks = () => {
-    // First filter by current user
-    let filteredTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId)
+    let filteredTasks: typeof tasks = []
 
     switch (activeFilter) {
+      case 'all-system':
+        // Show ALL tasks from ALL employees (no employee filter)
+        filteredTasks = tasks
+        break
+      case 'all':
+        // Show all tasks assigned to OR created by current user
+        filteredTasks = tasks.filter(task =>
+          task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId
+        )
+        break
       case 'completed':
-        filteredTasks = filteredTasks.filter(task => task.status === 'Done')
+        // Show completed tasks assigned to OR created by current user
+        filteredTasks = tasks.filter(task =>
+          (task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId) &&
+          task.status === 'Done'
+        )
         break
       case 'in-progress':
-        filteredTasks = filteredTasks.filter(task => task.status === 'In Progress')
+        // Show in-progress tasks assigned to OR created by current user
+        filteredTasks = tasks.filter(task =>
+          (task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId) &&
+          task.status === 'In Progress'
+        )
         break
       case 'delayed':
-        filteredTasks = filteredTasks.filter(task => task.status === 'Delayed')
+        // Show delayed tasks assigned to OR created by current user
+        filteredTasks = tasks.filter(task =>
+          (task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId) &&
+          task.status === 'Delayed'
+        )
         break
       case 'pending':
-        filteredTasks = filteredTasks.filter(task => task.status === 'Yet to Start')
+        // Show pending tasks assigned to OR created by current user
+        filteredTasks = tasks.filter(task =>
+          (task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId) &&
+          task.status === 'Yet to Start'
+        )
         break
       default:
-        // 'all' filter - already filtered by current user
+        // Default to showing current user's tasks
+        filteredTasks = tasks.filter(task =>
+          task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId
+        )
         break
     }
 
@@ -695,6 +728,8 @@ export default function Dashboard() {
               icon={ListTodo}
               color="purple"
               subtitle="Total tasks in system"
+              onClick={() => handleFilterClick('all-system')}
+              isActive={activeFilter === 'all-system'}
             />
             <StatsCard
               title="My Tasks"
