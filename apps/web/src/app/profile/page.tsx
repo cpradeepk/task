@@ -5,6 +5,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, updateUser, getRoleDisplayName } from '@/lib/auth'
 import { User, Task } from '@/lib/types'
+import { QUERIES } from '@/lib/graphql-queries'
 import {
   User as UserIcon,
   Mail,
@@ -22,6 +23,19 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import IDCard from '@/components/profile/IDCard'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  return result.data
+}
 
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null)
@@ -100,18 +114,35 @@ export default function Profile() {
     const loadStats = async () => {
       if (currentUser) {
         try {
-          // Fetch data from API endpoints
-          const [tasksResponse, leavesResponse, wfhsResponse] = await Promise.all([
-            fetch(`/api/tasks/user/${currentUser.employeeId}`),
+          let tasks: Task[] = []
+
+          // Try GraphQL for tasks first
+          try {
+            console.log('🔵 [Profile] Attempting GraphQL query for tasks...')
+            const data = await executeGraphQLQuery(QUERIES.GET_TASKS, {
+              assignedTo: currentUser.employeeId
+            })
+            tasks = data.tasks || []
+            console.log('✅ [Profile] GraphQL query successful:', tasks.length, 'tasks')
+          } catch (graphqlError) {
+            console.warn('⚠️ [Profile] GraphQL failed, falling back to REST:', graphqlError)
+
+            // Fallback to REST API
+            const tasksResponse = await fetch(`/api/tasks/user/${currentUser.employeeId}`)
+            const tasksData = tasksResponse.ok ? await tasksResponse.json() : { data: [] }
+            tasks = tasksData.data || []
+            console.log('✅ [Profile] REST API successful:', tasks.length, 'tasks')
+          }
+
+          // Fetch leaves and WFH from REST (not in GraphQL schema yet)
+          const [leavesResponse, wfhsResponse] = await Promise.all([
             fetch(`/api/leaves/user/${currentUser.employeeId}`),
             fetch(`/api/wfh/user/${currentUser.employeeId}`)
           ])
 
-          const tasksData = tasksResponse.ok ? await tasksResponse.json() : { data: [] }
           const leavesData = leavesResponse.ok ? await leavesResponse.json() : { data: [] }
           const wfhsData = wfhsResponse.ok ? await wfhsResponse.json() : { data: [] }
 
-          const tasks = tasksData.data || []
           const leaves = leavesData.data || []
           const wfhs = wfhsData.data || []
 
@@ -142,18 +173,35 @@ export default function Profile() {
     if (!currentUser) return
 
     try {
-      // Fetch data from API endpoints
-      const [tasksResponse, leavesResponse, wfhsResponse] = await Promise.all([
-        fetch(`/api/tasks/user/${currentUser.employeeId}`),
+      let tasks: Task[] = []
+
+      // Try GraphQL for tasks first
+      try {
+        console.log('🔵 [Profile Refresh] Attempting GraphQL query for tasks...')
+        const data = await executeGraphQLQuery(QUERIES.GET_TASKS, {
+          assignedTo: currentUser.employeeId
+        })
+        tasks = data.tasks || []
+        console.log('✅ [Profile Refresh] GraphQL query successful:', tasks.length, 'tasks')
+      } catch (graphqlError) {
+        console.warn('⚠️ [Profile Refresh] GraphQL failed, falling back to REST:', graphqlError)
+
+        // Fallback to REST API
+        const tasksResponse = await fetch(`/api/tasks/user/${currentUser.employeeId}`)
+        const tasksData = tasksResponse.ok ? await tasksResponse.json() : { data: [] }
+        tasks = tasksData.data || []
+        console.log('✅ [Profile Refresh] REST API successful:', tasks.length, 'tasks')
+      }
+
+      // Fetch leaves and WFH from REST (not in GraphQL schema yet)
+      const [leavesResponse, wfhsResponse] = await Promise.all([
         fetch(`/api/leaves/user/${currentUser.employeeId}`),
         fetch(`/api/wfh/user/${currentUser.employeeId}`)
       ])
 
-      const tasksData = tasksResponse.ok ? await tasksResponse.json() : { data: [] }
       const leavesData = leavesResponse.ok ? await leavesResponse.json() : { data: [] }
       const wfhsData = wfhsResponse.ok ? await wfhsResponse.json() : { data: [] }
 
-      const tasks = tasksData.data || []
       const leaves = leavesData.data || []
       const wfhs = wfhsData.data || []
 
