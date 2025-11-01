@@ -1013,7 +1013,6 @@ export default function CreateTask() {
               <span>Attachments (Optional)</span>
             </label>
             <FileUpload
-              files={uploadedFiles}
               onFilesChange={setUploadedFiles}
               maxFiles={5}
               maxSizeMB={10}
