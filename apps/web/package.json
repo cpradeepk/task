@@ -13,6 +13,9 @@
     "setup": "npm install && npm run dev"
   },
   "dependencies": {
+    "@apollo/client": "^4.0.9",
+    "@apollo/server": "^5.1.0",
+    "@as-integrations/next": "^4.1.0",
     "@aws-sdk/client-s3": "^3.919.0",
     "@aws-sdk/s3-request-presigner": "^3.919.0",
     "@types/node": "^20",
@@ -21,8 +24,12 @@
     "@types/react-dom": "^19",
     "@upstash/redis": "^1.35.6",
     "autoprefixer": "^10.0.1",
+    "bcryptjs": "^3.0.2",
     "clsx": "^2.0.0",
+    "dataloader": "^2.2.3",
     "framer-motion": "^12.23.24",
+    "graphql": "^16.11.0",
+    "graphql-tag": "^2.12.6",
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.548.0",
@@ -37,6 +44,7 @@
     "typescript": "^5"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "eslint": "^9",
     "eslint-config-next": "^16.0.0",
