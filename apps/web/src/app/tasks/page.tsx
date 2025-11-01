@@ -1,6 +1,7 @@
 /**
  * Task Listing Page - Role-based task visibility and filtering
  * Created: 2025-11-01 - Based on bugs/page.tsx structure
+ * Updated: GraphQL migration with REST fallback
  */
 'use client'
 
@@ -10,6 +11,7 @@ import Navbar from '@/components/layout/Navbar'
 import { Task } from '@/lib/types'
 import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth'
 import { useLoading } from '@/contexts/LoadingContext'
+import { QUERIES } from '@/lib/graphql-queries'
 import {
   CheckSquare,
   Plus,
@@ -23,6 +25,19 @@ import {
   RefreshCw,
   Target
 } from 'lucide-react'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  return result.data
+}
 
 // Component to handle async user name fetching
 function UserName({ employeeId }: { employeeId: string }) {
@@ -155,13 +170,27 @@ export default function TasksPage() {
       setIsLoading(true)
       setError(null)
 
-      const response = await fetch('/api/tasks')
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks')
-      }
+      let tasksData: Task[] = []
 
-      const result = await response.json()
-      let tasksData = result.data || []
+      // Try GraphQL first
+      try {
+        console.log('🔵 [Tasks] Attempting GraphQL query...')
+        const data = await executeGraphQLQuery(QUERIES.GET_TASKS, {})
+        tasksData = data.tasks || []
+        console.log('✅ [Tasks] GraphQL query successful:', tasksData.length, 'tasks')
+      } catch (graphqlError) {
+        console.warn('⚠️ [Tasks] GraphQL failed, falling back to REST:', graphqlError)
+
+        // Fallback to REST API
+        const response = await fetch('/api/tasks')
+        if (!response.ok) {
+          throw new Error('Failed to fetch tasks')
+        }
+
+        const result = await response.json()
+        tasksData = result.data || []
+        console.log('✅ [Tasks] REST API successful:', tasksData.length, 'tasks')
+      }
 
       // Filter tasks based on user role and involvement
       if (currentUser) {

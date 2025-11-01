@@ -1,6 +1,7 @@
 /**
  * Task Detail Page - Enhanced UI with modern button styling
  * Features: Role-based access, responsive design, improved UX, timer integration
+ * Updated: GraphQL migration with REST fallback
  */
 'use client'
 
@@ -16,6 +17,7 @@ import TaskSubTaskManager from '@/components/tasks/TaskSubTaskManager'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import TimerButton from '@/components/TimerButton'
+import { QUERIES } from '@/lib/graphql-queries'
 import {
   CheckSquare,
   MessageSquare,
@@ -34,6 +36,19 @@ import {
   Pencil,
   Target
 } from 'lucide-react'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  return result.data
+}
 
 // Component to handle async user name fetching
 function UserName({ employeeId }: { employeeId: string }) {
@@ -185,7 +200,22 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
 
   const loadTaskData = useCallback(async () => {
     try {
-      const taskData = await getTaskById(taskId)
+      let taskData: Task | null = null
+
+      // Try GraphQL first
+      try {
+        console.log('🔵 [Task Detail] Attempting GraphQL query for task:', taskId)
+        const data = await executeGraphQLQuery(QUERIES.GET_TASK, { taskId })
+        taskData = data.tasks?.[0] || null
+        console.log('✅ [Task Detail] GraphQL query successful')
+      } catch (graphqlError) {
+        console.warn('⚠️ [Task Detail] GraphQL failed, falling back to REST:', graphqlError)
+
+        // Fallback to REST API
+        taskData = await getTaskById(taskId)
+        console.log('✅ [Task Detail] REST API successful')
+      }
+
       if (!taskData) {
         router.push('/tasks')
         return
