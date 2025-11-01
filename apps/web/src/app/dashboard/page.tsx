@@ -9,6 +9,7 @@ import { Task, User, Bug } from '@/lib/types'
 import StatsCard from '@/components/dashboard/StatsCard'
 import UnifiedWorkItemsList from '@/components/dashboard/UnifiedWorkItemsList'
 import TaskWarningAlert from '@/components/TaskWarningAlert'
+import { QUERIES } from '@/lib/graphql-queries'
 
 import {
   CheckCircle,
@@ -32,6 +33,32 @@ import UserModal from '@/components/users/UserModal'
 import { useLoading } from '@/contexts/LoadingContext'
 import { DashboardCardSkeleton, TaskCardSkeleton, UserListSkeleton } from '@/components/ui/Skeletons'
 
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query,
+      variables
+    })
+  })
+
+  if (!response.ok) {
+    throw new Error(`GraphQL request failed: ${response.status}`)
+  }
+
+  const result = await response.json()
+
+  if (result.errors) {
+    throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  }
+
+  return result.data
+}
+
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [bugs, setBugs] = useState<Bug[]>([])
@@ -46,7 +73,7 @@ export default function Dashboard() {
   const [isHydrated, setIsHydrated] = useState(false)
   const router = useRouter()
   const currentUser = getCurrentUser()
-  const { showGlobalLoading, hideGlobalLoading } = useLoading()
+  const { showGlobalLoading, hideGlobalLoading} = useLoading()
 
   // Handle hydration
   useEffect(() => {
@@ -75,34 +102,68 @@ export default function Dashboard() {
         }))
         setTodayString(now.toISOString().split('T')[0])
 
-        // Unified dashboard load (single API call)
+        // Try GraphQL first, fallback to REST if it fails
         const includeUsers = currentUser.role === 'admin' || currentUser.role === 'top_management'
+
         try {
-          const resp = await fetch(`/api/dashboard-data?employeeId=${currentUser.employeeId}&role=${currentUser.role}&includeUsers=${includeUsers}`)
-          if (resp.ok) {
-            const json = await resp.json()
-            const payload = json.data || {}
-            setTasks(payload.tasks || [])
-            setBugs(payload.bugs || [])
-            if (includeUsers) {
-              setUsers(payload.users || [])
+          console.log('🔵 [Dashboard] Attempting GraphQL query...')
+          const data = await executeGraphQLQuery(QUERIES.GET_DASHBOARD, {
+            employeeId: currentUser.employeeId,
+            role: currentUser.role
+          })
+
+          console.log('✅ [Dashboard] GraphQL query successful')
+          const dashboardData = data.dashboard
+
+          setTasks(dashboardData.tasks || [])
+          setBugs(dashboardData.bugs || [])
+          if (includeUsers) {
+            setUsers(dashboardData.users || [])
+          }
+
+          // Cache data in window for other components
+          if (typeof window !== 'undefined') {
+            ;(window as any).__DASHBOARD_DATA = {
+              tasks: dashboardData.tasks || [],
+              bugs: dashboardData.bugs || [],
+              users: dashboardData.users || [],
+              userMap: {}, // Build userMap from users array
+              timestamp: Date.now(),
+              source: 'graphql'
             }
-            if (typeof window !== 'undefined') {
-              ;(window as any).__DASHBOARD_DATA = {
-                tasks: payload.tasks || [],
-                bugs: payload.bugs || [],
-                users: payload.users || [],
-                userMap: payload.userMap || {},
-                timestamp: Date.now(),
+          }
+        } catch (graphqlError) {
+          console.warn('⚠️ [Dashboard] GraphQL failed, falling back to REST:', graphqlError)
+
+          // Fallback to REST API
+          try {
+            const resp = await fetch(`/api/dashboard-data?employeeId=${currentUser.employeeId}&role=${currentUser.role}&includeUsers=${includeUsers}`)
+            if (resp.ok) {
+              const json = await resp.json()
+              const payload = json.data || {}
+              setTasks(payload.tasks || [])
+              setBugs(payload.bugs || [])
+              if (includeUsers) {
+                setUsers(payload.users || [])
               }
+              if (typeof window !== 'undefined') {
+                ;(window as any).__DASHBOARD_DATA = {
+                  tasks: payload.tasks || [],
+                  bugs: payload.bugs || [],
+                  users: payload.users || [],
+                  userMap: payload.userMap || {},
+                  timestamp: Date.now(),
+                  source: 'rest'
+                }
+              }
+            } else {
+              console.warn('Dashboard data request failed with status', resp.status)
+              if (includeUsers) setUsers([currentUser])
             }
-          } else {
-            console.warn('Dashboard data request failed with status', resp.status)
+          } catch (restError) {
+            console.error('❌ [Dashboard] Both GraphQL and REST failed:', restError)
             if (includeUsers) setUsers([currentUser])
           }
-        } catch (e) {
-          console.warn('Failed to load dashboard data:', e)
-          if (includeUsers) setUsers([currentUser])
         }
       } catch (error) {
         console.error('Failed to load initial data:', error)
@@ -120,22 +181,53 @@ export default function Dashboard() {
 
     try {
       const includeUsers = currentUser.role === 'admin' || currentUser.role === 'top_management'
-      const resp = await fetch(`/api/dashboard-data?employeeId=${currentUser.employeeId}&role=${currentUser.role}&includeUsers=${includeUsers}`)
-      if (resp.ok) {
-        const json = await resp.json()
-        const payload = json.data || {}
-        setTasks(payload.tasks || [])
-        setBugs(payload.bugs || [])
+
+      // Try GraphQL first
+      try {
+        const data = await executeGraphQLQuery(QUERIES.GET_DASHBOARD, {
+          employeeId: currentUser.employeeId,
+          role: currentUser.role
+        })
+
+        const dashboardData = data.dashboard
+        setTasks(dashboardData.tasks || [])
+        setBugs(dashboardData.bugs || [])
         if (includeUsers) {
-          setUsers(payload.users || [])
+          setUsers(dashboardData.users || [])
         }
+
         if (typeof window !== 'undefined') {
           ;(window as any).__DASHBOARD_DATA = {
-            tasks: payload.tasks || [],
-            bugs: payload.bugs || [],
-            users: payload.users || [],
-            userMap: payload.userMap || {},
+            tasks: dashboardData.tasks || [],
+            bugs: dashboardData.bugs || [],
+            users: dashboardData.users || [],
+            userMap: {},
             timestamp: Date.now(),
+            source: 'graphql'
+          }
+        }
+      } catch (graphqlError) {
+        console.warn('GraphQL reload failed, falling back to REST:', graphqlError)
+
+        // Fallback to REST
+        const resp = await fetch(`/api/dashboard-data?employeeId=${currentUser.employeeId}&role=${currentUser.role}&includeUsers=${includeUsers}`)
+        if (resp.ok) {
+          const json = await resp.json()
+          const payload = json.data || {}
+          setTasks(payload.tasks || [])
+          setBugs(payload.bugs || [])
+          if (includeUsers) {
+            setUsers(payload.users || [])
+          }
+          if (typeof window !== 'undefined') {
+            ;(window as any).__DASHBOARD_DATA = {
+              tasks: payload.tasks || [],
+              bugs: payload.bugs || [],
+              users: payload.users || [],
+              userMap: payload.userMap || {},
+              timestamp: Date.now(),
+              source: 'rest'
+            }
           }
         }
       }

@@ -7,6 +7,7 @@ export const typeDefs = `#graphql
     department: String
     role: String!
     status: String!
+    managerEmail: String
     isTodayTask: Boolean
     warningCount: Int
     createdAt: String!
