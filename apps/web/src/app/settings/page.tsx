@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { QUERIES } from '@/lib/graphql-queries'
 
 import {
   Download,
@@ -19,6 +20,19 @@ import {
 import Navbar from '@/components/layout/Navbar'
 import UserImport from '@/components/admin/UserImport'
 import DelayedTasksManager from '@/components/tasks/DelayedTasksManager'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  return result.data
+}
 
 export default function Settings() {
   const [isLoading, setIsLoading] = useState(false)
@@ -68,14 +82,26 @@ export default function Settings() {
 
       // Load users with error handling
       try {
-        const response = await fetch('/api/users')
-        if (response.ok) {
-          const result = await response.json()
-          const users = result.data || []
+        // Try GraphQL first
+        try {
+          console.log('🔵 [Settings] Attempting GraphQL query for users...')
+          const data = await executeGraphQLQuery(QUERIES.GET_USERS, {})
+          const users = data.users || []
           usersCount = users.length
-          console.log(`Successfully loaded ${usersCount} users`)
-        } else {
-          usersCount = 0
+          console.log(`✅ [Settings] GraphQL successful: ${usersCount} users`)
+        } catch (graphqlError) {
+          console.warn('⚠️ [Settings] GraphQL failed for users, falling back to REST:', graphqlError)
+
+          // Fallback to REST
+          const response = await fetch('/api/users')
+          if (response.ok) {
+            const result = await response.json()
+            const users = result.data || []
+            usersCount = users.length
+            console.log(`✅ [Settings] REST successful: ${usersCount} users`)
+          } else {
+            usersCount = 0
+          }
         }
       } catch (error: any) {
         console.warn('Failed to load users:', error.message)
@@ -84,14 +110,26 @@ export default function Settings() {
 
       // Load tasks with error handling
       try {
-        const response = await fetch('/api/tasks')
-        if (response.ok) {
-          const result = await response.json()
-          const tasks = result.data || []
+        // Try GraphQL first
+        try {
+          console.log('🔵 [Settings] Attempting GraphQL query for tasks...')
+          const data = await executeGraphQLQuery(QUERIES.GET_TASKS, {})
+          const tasks = data.tasks || []
           tasksCount = tasks.length
-          console.log(`Successfully loaded ${tasksCount} tasks`)
-        } else {
-          tasksCount = 0
+          console.log(`✅ [Settings] GraphQL successful: ${tasksCount} tasks`)
+        } catch (graphqlError) {
+          console.warn('⚠️ [Settings] GraphQL failed for tasks, falling back to REST:', graphqlError)
+
+          // Fallback to REST
+          const response = await fetch('/api/tasks')
+          if (response.ok) {
+            const result = await response.json()
+            const tasks = result.data || []
+            tasksCount = tasks.length
+            console.log(`✅ [Settings] REST successful: ${tasksCount} tasks`)
+          } else {
+            tasksCount = 0
+          }
         }
       } catch (error: any) {
         console.warn('Failed to load tasks:', error.message)

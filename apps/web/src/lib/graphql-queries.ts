@@ -397,6 +397,79 @@ export const QUERIES = {
         updatedAt
       }
     }
+  `,
+
+  // Get all projects
+  GET_PROJECTS: `
+    query GetProjects {
+      projects {
+        id
+        projectId
+        projectName
+        description
+        deletedAt
+        deletedBy
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  // Get single project by ID
+  GET_PROJECT: `
+    query GetProject($projectId: ID!) {
+      project(projectId: $projectId) {
+        id
+        projectId
+        projectName
+        description
+        deletedAt
+        deletedBy
+        createdAt
+        updatedAt
+        tasks {
+          id
+          taskId
+          description
+          status
+          assignedTo
+          assignedBy
+          startDate
+          endDate
+          priority
+        }
+      }
+    }
+  `,
+
+  // Get all settings
+  GET_SETTINGS: `
+    query GetSettings($activeOnly: Boolean) {
+      settings(activeOnly: $activeOnly) {
+        id
+        key
+        value
+        type
+        isActive
+        createdAt
+        updatedAt
+      }
+    }
+  `,
+
+  // Get single setting by key
+  GET_SETTING: `
+    query GetSetting($key: String!) {
+      setting(key: $key) {
+        id
+        key
+        value
+        type
+        isActive
+        createdAt
+        updatedAt
+      }
+    }
   `
 }
 
