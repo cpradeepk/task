@@ -36,9 +36,8 @@ function UserName({ employeeId }: { employeeId: string }) {
 }
 
 // Component to handle async project name fetching
-function ProjectDisplay({ projectId, subprojectId }: { projectId?: string | null; subprojectId?: string | null }) {
+function ProjectDisplay({ projectId }: { projectId?: string | null }) {
   const [projectName, setProjectName] = useState<string>('')
-  const [subprojectName, setSubprojectName] = useState<string>('')
 
   useEffect(() => {
     const loadProjectNames = async () => {
@@ -50,21 +49,13 @@ function ProjectDisplay({ projectId, subprojectId }: { projectId?: string | null
             setProjectName(data.projectName)
           }
         }
-
-        if (subprojectId) {
-          const response = await fetch(`/api/projects/${subprojectId}`)
-          const data = await response.json()
-          if (data && data.projectName) {
-            setSubprojectName(data.projectName)
-          }
-        }
       } catch (error) {
         console.error('Failed to load project names:', error)
       }
     }
 
     loadProjectNames()
-  }, [projectId, subprojectId])
+  }, [projectId])
 
   if (!projectName) return null
 
@@ -72,12 +63,6 @@ function ProjectDisplay({ projectId, subprojectId }: { projectId?: string | null
     <div className="flex items-center space-x-2 text-sm text-gray-600">
       <span className="text-gray-400">-</span>
       <span>{projectName}</span>
-      {subprojectName && (
-        <>
-          <span className="text-gray-400">&gt;</span>
-          <span>{subprojectName}</span>
-        </>
-      )}
     </div>
   )
 }
@@ -744,7 +729,7 @@ export default function TasksPage() {
                           onClick={() => router.push(`/tasks/${task.taskId}`)}>
                         {task.description}
                       </h3>
-                      <ProjectDisplay projectId={task.projectId} subprojectId={task.subprojectId} />
+                      <ProjectDisplay projectId={task.projectId} />
                     </div>
 
                     <div className="flex items-center flex-wrap gap-4 text-sm text-gray-500">

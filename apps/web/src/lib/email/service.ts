@@ -25,18 +25,30 @@ export class EmailService {
   }
 
   private async initialize() {
+    // Log-once guard to avoid noisy logs on repeated inits (serverless cold starts)
+    const logOnce = (() => {
+      let logged = false
+      return (msg: any, ...rest: any[]) => {
+        if (!logged) {
+          logged = true
+          console.error(msg, ...rest)
+        }
+      }
+    })()
+
     try {
       console.log('🔄 Initializing email service...')
 
       if (!EMAIL_CONFIG.features.enabled) {
         console.log('📧 Email service disabled by configuration')
-        this.isInitialized = true // Mark as initialized even if disabled
+        this.isInitialized = true
         return
       }
 
       if (!EMAIL_CONFIG.smtp.auth.user || !EMAIL_CONFIG.smtp.auth.pass) {
         console.warn('⚠️ Email credentials not configured. Email service will run in test mode.')
-        this.isInitialized = true // Mark as initialized for test mode
+        EMAIL_CONFIG.features.testMode = true
+        this.isInitialized = true
         return
       }
 
@@ -50,18 +62,31 @@ export class EmailService {
         },
       })
 
-      // Verify connection
+      // Verify connection with a short timeout. On failure, fall back to test mode.
       if (!EMAIL_CONFIG.features.testMode) {
-        await this.transporter.verify()
-        console.log('✅ Email service initialized successfully')
+        try {
+          await Promise.race([
+            this.transporter.verify(),
+            new Promise((_resolve, reject) => setTimeout(() => reject(new Error('SMTP verify timeout')), 2000)),
+          ])
+          console.log('✅ Email service initialized successfully')
+        } catch (verifyErr: any) {
+          logOnce('⚠️ Email verify failed. Falling back to test mode:', verifyErr?.message || verifyErr)
+          EMAIL_CONFIG.features.testMode = true
+          // Keep transporter null so sendEmail uses test mode path
+          this.transporter = null
+        }
       } else {
         console.log('✅ Email service initialized in test mode')
       }
 
       this.isInitialized = true
     } catch (error) {
-      console.error('❌ Failed to initialize email service:', error)
-      this.isInitialized = false
+      logOnce('❌ Failed to initialize email service (non-blocking):', error)
+      // Do not block app. Switch to test mode and mark as initialized.
+      EMAIL_CONFIG.features.testMode = true
+      this.transporter = null
+      this.isInitialized = true
     }
   }
 

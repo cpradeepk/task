@@ -75,43 +75,34 @@ export default function Dashboard() {
         }))
         setTodayString(now.toISOString().split('T')[0])
 
-        // Load data based on user role with error handling
-        if (currentUser.role === 'admin' || currentUser.role === 'top_management') {
-          // For admin and top management, load all users
-          try {
-            console.log('Initial load: Admin/Top Management dashboard loading users...')
-            const allUsers = await getAllUsers()
-            console.log('Initial load: Loaded users:', allUsers.length, allUsers)
-            setUsers(allUsers)
-          } catch (userError) {
-            console.warn('Failed to load users, using fallback:', userError)
-            // Fallback: show at least the current user
-            setUsers([currentUser])
-          }
-        } else {
-          // For other roles, load tasks and bugs
-          try {
-            let userTasks: Task[] = []
-            // All non-admin roles should only see their own tasks
-            userTasks = await optimizedDataService.getTasksByUser(currentUser.employeeId)
-            setTasks(userTasks)
-          } catch (taskError) {
-            console.warn('Failed to load tasks, using empty array:', taskError)
-            // Fallback: show empty tasks array
-            setTasks([])
-          }
-
-          // Load bugs for the user
-          try {
-            const bugsResponse = await fetch(`/api/bugs?employeeId=${currentUser.employeeId}`)
-            if (bugsResponse.ok) {
-              const bugsData = await bugsResponse.json()
-              setBugs(bugsData.data || [])
+        // Unified dashboard load (single API call)
+        const includeUsers = currentUser.role === 'admin' || currentUser.role === 'top_management'
+        try {
+          const resp = await fetch(`/api/dashboard-data?employeeId=${currentUser.employeeId}&role=${currentUser.role}&includeUsers=${includeUsers}`)
+          if (resp.ok) {
+            const json = await resp.json()
+            const payload = json.data || {}
+            setTasks(payload.tasks || [])
+            setBugs(payload.bugs || [])
+            if (includeUsers) {
+              setUsers(payload.users || [])
             }
-          } catch (bugError) {
-            console.warn('Failed to load bugs, using empty array:', bugError)
-            setBugs([])
+            if (typeof window !== 'undefined') {
+              ;(window as any).__DASHBOARD_DATA = {
+                tasks: payload.tasks || [],
+                bugs: payload.bugs || [],
+                users: payload.users || [],
+                userMap: payload.userMap || {},
+                timestamp: Date.now(),
+              }
+            }
+          } else {
+            console.warn('Dashboard data request failed with status', resp.status)
+            if (includeUsers) setUsers([currentUser])
           }
+        } catch (e) {
+          console.warn('Failed to load dashboard data:', e)
+          if (includeUsers) setUsers([currentUser])
         }
       } catch (error) {
         console.error('Failed to load initial data:', error)
@@ -128,40 +119,24 @@ export default function Dashboard() {
     if (!currentUser) return
 
     try {
-      if (currentUser.role === 'admin' || currentUser.role === 'top_management') {
-        // For admin and top management, reload all users
-        try {
-          console.log('Admin/Top Management dashboard: Loading all users...')
-          const allUsers = await getAllUsers()
-          console.log('Admin/Top Management dashboard: Loaded users:', allUsers.length, allUsers)
-          setUsers(allUsers)
-        } catch (userError) {
-          console.warn('Failed to reload users:', userError)
-          // Keep existing users if reload fails
+      const includeUsers = currentUser.role === 'admin' || currentUser.role === 'top_management'
+      const resp = await fetch(`/api/dashboard-data?employeeId=${currentUser.employeeId}&role=${currentUser.role}&includeUsers=${includeUsers}`)
+      if (resp.ok) {
+        const json = await resp.json()
+        const payload = json.data || {}
+        setTasks(payload.tasks || [])
+        setBugs(payload.bugs || [])
+        if (includeUsers) {
+          setUsers(payload.users || [])
         }
-      } else {
-        // For other roles, reload tasks and bugs with force refresh
-        try {
-          let userTasks: Task[] = []
-          // All non-admin roles should only see their own tasks
-          // Use optimized service with force refresh to get latest data
-          userTasks = await optimizedDataService.getTasksByUser(currentUser.employeeId, true)
-          setTasks(userTasks)
-        } catch (taskError) {
-          console.warn('Failed to reload tasks:', taskError)
-          // Keep existing tasks if reload fails
-        }
-
-        // Reload bugs
-        try {
-          const bugsResponse = await fetch(`/api/bugs?employeeId=${currentUser.employeeId}`)
-          if (bugsResponse.ok) {
-            const bugsData = await bugsResponse.json()
-            setBugs(bugsData.data || [])
+        if (typeof window !== 'undefined') {
+          ;(window as any).__DASHBOARD_DATA = {
+            tasks: payload.tasks || [],
+            bugs: payload.bugs || [],
+            users: payload.users || [],
+            userMap: payload.userMap || {},
+            timestamp: Date.now(),
           }
-        } catch (bugError) {
-          console.warn('Failed to reload bugs:', bugError)
-          // Keep existing bugs if reload fails
         }
       }
     } catch (error) {
@@ -555,6 +530,7 @@ export default function Dashboard() {
           {currentUser.role === 'employee' && (
             <TaskWarningAlert
               employeeId={currentUser.employeeId}
+              tasks={tasks}
               onWarningProcessed={(hasWarning, count) => {
                 // Optional: Handle warning state changes
                 console.log('Warning processed:', { hasWarning, count })

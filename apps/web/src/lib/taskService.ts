@@ -143,10 +143,10 @@ export async function createTask(taskData: Partial<Task>): Promise<Task> {
     }
 
     const result = await response.json()
-    
+
     // Invalidate cache
-    cache.clear(CACHE_KEYS.TASKS)
-    
+    cache.delete(`${CACHE_KEYS.TASKS}_all`)
+
     return result.data
   } catch (error) {
     console.error('Failed to create task:', error)
@@ -178,10 +178,10 @@ export async function updateTask(taskId: string, updates: Partial<Task>): Promis
     }
 
     const result = await response.json()
-    
+
     // Invalidate cache
-    cache.clear(CACHE_KEYS.TASKS)
-    
+    cache.delete(`${CACHE_KEYS.TASKS}_all`)
+
     return result.data
   } catch (error) {
     console.error('Failed to update task:', error)
@@ -210,9 +210,9 @@ export async function deleteTask(taskId: string): Promise<void> {
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.error || `Failed to delete task (${response.status})`)
     }
-    
+
     // Invalidate cache
-    cache.clear(CACHE_KEYS.TASKS)
+    cache.delete(`${CACHE_KEYS.TASKS}_all`)
   } catch (error) {
     console.error('Failed to delete task:', error)
     if (error instanceof Error) {
@@ -280,16 +280,16 @@ export async function getTaskStatistics(): Promise<{
 export async function getAverageCompletionTime(): Promise<number> {
   try {
     const tasks = await getAllTasks()
-    const completedTasks = tasks.filter(task => task.status === 'Done' || task.status === 'Completed')
-    
+    const completedTasks = tasks.filter(task => task.status === 'Done')
+
     if (completedTasks.length === 0) return 0
-    
+
     const totalTime = completedTasks.reduce((sum, task) => {
       const start = new Date(task.startDate).getTime()
       const end = new Date(task.updatedAt).getTime()
       return sum + (end - start)
     }, 0)
-    
+
     // Return average in days
     return totalTime / completedTasks.length / (1000 * 60 * 60 * 24)
   } catch (error) {

@@ -114,17 +114,17 @@ export default function TaskAnalyticsPage() {
 
   const getCompletionRate = () => {
     if (tasks.length === 0) return 0
-    const completedTasks = tasks.filter(task => task.status === 'Done' || task.status === 'Completed')
+    const completedTasks = tasks.filter(task => task.status === 'Done')
     return Math.round((completedTasks.length / tasks.length) * 100)
   }
 
   const getAverageEstimatedVsActual = () => {
     const tasksWithActual = tasks.filter(task => task.actualHours && task.actualHours > 0)
-    if (tasksWithActual.length === 0) return { estimated: 0, actual: 0, variance: 0 }
+    if (tasksWithActual.length === 0) return { estimated: '0', actual: '0', variance: '0' }
 
     const totalEstimated = tasksWithActual.reduce((sum, task) => sum + task.estimatedHours, 0)
     const totalActual = tasksWithActual.reduce((sum, task) => sum + (task.actualHours || 0), 0)
-    
+
     const avgEstimated = totalEstimated / tasksWithActual.length
     const avgActual = totalActual / tasksWithActual.length
     const variance = ((avgActual - avgEstimated) / avgEstimated) * 100
@@ -137,7 +137,7 @@ export default function TaskAnalyticsPage() {
   }
 
   const getOnTimeCompletionRate = () => {
-    const completedTasks = tasks.filter(task => task.status === 'Done' || task.status === 'Completed')
+    const completedTasks = tasks.filter(task => task.status === 'Done')
     if (completedTasks.length === 0) return 0
 
     const onTimeTasks = completedTasks.filter(task => {
@@ -312,7 +312,7 @@ export default function TaskAnalyticsPage() {
                 <div key={status} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className={`w-3 h-3 rounded-full ${
-                      status === 'Done' || status === 'Completed' ? 'bg-green-500' :
+                      status === 'Done' ? 'bg-green-500' :
                       status === 'In Progress' ? 'bg-yellow-500' :
                       status === 'Delayed' ? 'bg-red-500' :
                       status === 'On Hold' ? 'bg-gray-500' :
@@ -325,7 +325,7 @@ export default function TaskAnalyticsPage() {
                     <div className="w-32 bg-gray-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full ${
-                          status === 'Done' || status === 'Completed' ? 'bg-green-500' :
+                          status === 'Done' ? 'bg-green-500' :
                           status === 'In Progress' ? 'bg-yellow-500' :
                           status === 'Delayed' ? 'bg-red-500' :
                           status === 'On Hold' ? 'bg-gray-500' :
@@ -394,7 +394,7 @@ export default function TaskAnalyticsPage() {
               <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                 <span className="text-sm text-gray-700">Completed</span>
                 <span className="text-2xl font-bold text-blue-600">
-                  {recentTasks.filter(t => t.status === 'Done' || t.status === 'Completed').length}
+                  {recentTasks.filter(t => t.status === 'Done').length}
                 </span>
               </div>
               <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">

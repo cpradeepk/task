@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserByEmployeeId, updateUser } from '@/lib/db/users'
 import { withTimeout } from '@/lib/db/config'
+import { cache, CACHE_KEYS } from '@/lib/cache'
 
 // Admin user constant
 const ADMIN_USER = {
@@ -34,12 +35,21 @@ export async function GET(
       })
     }
 
+    // Serve from cache if present
+    const cacheKey = CACHE_KEYS.USER_DETAIL(employeeId)
+    if (cache.has(cacheKey)) {
+      return NextResponse.json({ success: true, data: cache.get<any>(cacheKey), source: 'cache' })
+    }
+
     // Get user from MySQL with timeout
     const user = await withTimeout(
       getUserByEmployeeId(employeeId),
       10000,
       'Failed to fetch user - database timeout'
     )
+
+    // Cache for 5 minutes
+    cache.set(cacheKey, user, 5)
 
     return NextResponse.json({
       success: true,
@@ -79,6 +89,10 @@ export async function PUT(
       15000,
       'Failed to update user - database timeout'
     )
+
+    // Invalidate caches
+    cache.delete(CACHE_KEYS.USER_DETAIL(employeeId))
+    cache.delete(CACHE_KEYS.USERS)
 
     return NextResponse.json({
       success: true,

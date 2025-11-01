@@ -124,9 +124,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
   const [taskPriorityOptions, setTaskPriorityOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
 
-  // Project/Subproject names
+  // Project names
   const [projectName, setProjectName] = useState<string>('')
-  const [subprojectName, setSubprojectName] = useState<string>('')
 
   // Activity log filter state - default to showing only comments
   const [showActivity, setShowActivity] = useState(false)
@@ -224,7 +223,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     return () => document.removeEventListener('keydown', handleEscape)
   }, [showHoursModal])
 
-  // Load project and subproject names
+  // Load project names
   const loadProjectNames = useCallback(async () => {
     if (!task?.projectId) return
 
@@ -234,17 +233,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
         const result = await response.json()
         if (result.success && result.data) {
           setProjectName(result.data.name || '')
-          
-          if (task.subprojectId && result.data.subprojects) {
-            const subproject = result.data.subprojects.find((sp: any) => sp.id === task.subprojectId)
-            setSubprojectName(subproject?.name || '')
-          }
         }
       }
     } catch (error) {
       console.error('Failed to load project names:', error)
     }
-  }, [task?.projectId, task?.subprojectId])
+  }, [task?.projectId])
 
   // Load related tasks
   const loadRelatedTasks = useCallback(async () => {
@@ -306,7 +300,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
 
     try {
       setIsUpdating(true)
-      await updateTask(task.taskId, { status: newStatus })
+      await updateTask(task.taskId, { status: newStatus as Task['status'] })
       await loadTaskData()
     } catch (error) {
       console.error('Failed to update status:', error)
@@ -322,7 +316,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
 
     try {
       setIsUpdating(true)
-      await updateTask(task.taskId, { priority: newPriority })
+      await updateTask(task.taskId, { priority: newPriority as Task['priority'] })
       await loadTaskData()
     } catch (error) {
       console.error('Failed to update priority:', error)
@@ -713,9 +707,6 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                     <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
                     <div className="text-gray-900">
                       {projectName || task.projectId}
-                      {task.subprojectId && subprojectName && (
-                        <span className="text-gray-600"> / {subprojectName}</span>
-                      )}
                     </div>
                   </div>
                 )}
@@ -825,7 +816,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               <TimerButton
                 entityType="task"
                 entityId={task.taskId}
-                onTimerUpdate={loadTaskData}
+                entityTitle={task.description}
+                status={task.status}
               />
               {task.timerTotalTime && task.timerTotalTime > 0 && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">

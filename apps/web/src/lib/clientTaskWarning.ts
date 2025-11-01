@@ -11,16 +11,24 @@ export class ClientTaskWarningService {
   /**
    * Check if user has active tasks for today (Client-side version using API)
    */
-  static async checkUserHasTasks(employeeId: string): Promise<boolean> {
+  static async checkUserHasTasks(employeeId: string, preloadedTasks?: Task[]): Promise<boolean> {
     try {
-      // Use API call for client-side compatibility
-      const response = await fetch(`/api/tasks/user/${employeeId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks')
+      // Prefer preloaded tasks from parent/dashboard to avoid extra network calls
+      let tasks: Task[] | null = null
+      if (Array.isArray(preloadedTasks)) {
+        tasks = preloadedTasks
+      } else if (typeof window !== 'undefined' && (window as any).__DASHBOARD_DATA?.tasks) {
+        tasks = (window as any).__DASHBOARD_DATA.tasks as Task[]
       }
-      
-      const result = await response.json()
-      const tasks = result.data || []
+
+      if (!tasks) {
+        // Fallback: unified dashboard endpoint (server-side cached)
+        const resp = await fetch(`/api/dashboard-data?employeeId=${employeeId}&role=employee&includeUsers=false`)
+        if (!resp.ok) throw new Error('Failed to fetch dashboard data')
+        const json = await resp.json()
+        tasks = (json?.data?.tasks || []) as Task[]
+      }
+
       const today = DateUtils.getTodayString()
 
       // Check for active tasks (not completed, cancelled, or stopped)
@@ -40,7 +48,7 @@ export class ClientTaskWarningService {
   /**
    * Process task warning for user (Client-side version)
    */
-  static async processTaskWarning(employeeId: string): Promise<{
+  static async processTaskWarning(employeeId: string, preloadedTasks?: Task[]): Promise<{
     hasWarning: boolean
     warningCount: number
     message?: string
@@ -51,7 +59,7 @@ export class ClientTaskWarningService {
         return { hasWarning: false, warningCount: 0 }
       }
 
-      const hasTasks = await this.checkUserHasTasks(employeeId)
+      const hasTasks = await this.checkUserHasTasks(employeeId, preloadedTasks)
 
       if (!hasTasks) {
         // First increment the warning count

@@ -3,13 +3,15 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { AlertTriangle, X } from 'lucide-react'
 import { ClientTaskWarningService } from '@/lib/clientTaskWarning'
+import type { Task } from '@/lib/types'
 
 interface TaskWarningAlertProps {
   employeeId: string
+  tasks?: Task[]
   onWarningProcessed?: (hasWarning: boolean, count: number) => void
 }
 
-export default function TaskWarningAlert({ employeeId, onWarningProcessed }: TaskWarningAlertProps) {
+export default function TaskWarningAlert({ employeeId, tasks, onWarningProcessed }: TaskWarningAlertProps) {
   const [warning, setWarning] = useState<{
     hasWarning: boolean
     warningCount: number
@@ -21,7 +23,7 @@ export default function TaskWarningAlert({ employeeId, onWarningProcessed }: Tas
   const checkTaskWarning = useCallback(async () => {
     try {
       setIsLoading(true)
-      const result = await ClientTaskWarningService.processTaskWarning(employeeId)
+      const result = await ClientTaskWarningService.processTaskWarning(employeeId, tasks)
       setWarning(result)
       setIsVisible(result.hasWarning)
 
@@ -35,7 +37,7 @@ export default function TaskWarningAlert({ employeeId, onWarningProcessed }: Tas
     } finally {
       setIsLoading(false)
     }
-  }, [employeeId, onWarningProcessed])
+  }, [employeeId, tasks, onWarningProcessed])
 
   useEffect(() => {
     checkTaskWarning()

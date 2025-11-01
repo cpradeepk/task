@@ -18,6 +18,7 @@ import {
   createSetting,
   type CreateSettingData
 } from '@/lib/db/settings'
+import { cache } from '@/lib/cache'
 
 /**
  * GET /api/settings
@@ -48,11 +49,17 @@ export async function GET(request: NextRequest) {
 
     // Legacy grouped format (for backward compatibility)
     if (grouped) {
+      const cacheKey = 'settings_grouped'
+      if (cache.has(cacheKey)) {
+        const res = NextResponse.json({ success: true, data: cache.get<any>(cacheKey) })
+        res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
+        return res
+      }
       const settingsByType = await getSettingsByType()
-      return NextResponse.json({
-        success: true,
-        data: settingsByType
-      })
+      cache.set(cacheKey, settingsByType, 10)
+      const res = NextResponse.json({ success: true, data: settingsByType })
+      res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
+      return res
     }
 
     // Get dropdown settings only
@@ -93,13 +100,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all settings
+    const cacheKeyAll = `settings_all_active_${activeOnly ? '1' : '0'}`
+    if (cache.has(cacheKeyAll)) {
+      const cached = cache.get<any[]>(cacheKeyAll) || []
+      const res = NextResponse.json({ success: true, data: cached, count: cached.length })
+      res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
+      return res
+    }
+
     const settings = await getAllSettings(activeOnly)
 
-    return NextResponse.json({
+    cache.set(cacheKeyAll, settings, 10)
+
+    const res = NextResponse.json({
       success: true,
       data: settings,
       count: settings.length
     })
+    res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
+    return res
   } catch (error) {
     console.error('Settings API GET error:', error)
     return NextResponse.json(

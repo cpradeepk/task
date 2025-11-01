@@ -102,6 +102,24 @@ export async function getUsersByDepartment(department: string): Promise<User[]> 
   })
 }
 
+// Get users by a list of employee IDs (batch)
+export async function getUsersByEmployeeIds(employeeIds: string[]): Promise<User[]> {
+  return withRetry(async () => {
+    if (!employeeIds || employeeIds.length === 0) return []
+    // Deduplicate IDs to avoid SQL errors and reduce result size
+    const ids = Array.from(new Set(employeeIds)).filter(Boolean)
+    if (ids.length === 0) return []
+
+    const placeholders = ids.map(() => '?').join(',')
+    const rows = await query<UserRow[]>(
+      `SELECT * FROM users WHERE employee_id IN (${placeholders}) AND status = ? ORDER BY name`,
+      [...ids, 'active']
+    )
+    return rows.map(rowToUser)
+  })
+}
+
+
 // Create a new user
 export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): Promise<User> {
   return withRetry(async () => {

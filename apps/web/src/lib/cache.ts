@@ -74,10 +74,12 @@ export const cache = new SimpleCache()
 
 // Cache keys
 export const CACHE_KEYS = {
+  TASKS: 'tasks',
   BUGS: 'bugs',
   USERS: 'users',
   BUG_STATISTICS: 'bug_statistics',
   BUG_DETAIL: (bugId: string) => `bug_${bugId}`,
   BUG_COMMENTS: (bugId: string) => `bug_comments_${bugId}`,
-  USER_DETAIL: (employeeId: string) => `user_${employeeId}`
+  USER_DETAIL: (employeeId: string) => `user_${employeeId}`,
+  TASK_DETAIL: (taskId: string) => `task_${taskId}`
 } as const

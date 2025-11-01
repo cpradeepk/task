@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllUsers, createUser } from '@/lib/db/users'
 import { withTimeout } from '@/lib/db/config'
+import { cache, CACHE_KEYS } from '@/lib/cache'
 
 // Admin user constant - only hardcoded user in the system
 const ADMIN_USER = {
@@ -20,6 +21,16 @@ const ADMIN_USER = {
 
 export async function GET() {
   try {
+    // Return cached users if available
+    if (cache.has(CACHE_KEYS.USERS)) {
+      return NextResponse.json({
+        success: true,
+        data: cache.get<any[]>(CACHE_KEYS.USERS),
+        source: 'cache',
+        timestamp: Date.now()
+      })
+    }
+
     // Get users from MySQL with timeout
     const users = await withTimeout(
       getAllUsers(),
@@ -32,6 +43,9 @@ export async function GET() {
     if (!hasAdmin) {
       users.unshift(ADMIN_USER)
     }
+
+    // Cache for 5 minutes
+    cache.set(CACHE_KEYS.USERS, users, 5)
 
     const response = NextResponse.json({
       success: true,
@@ -74,6 +88,9 @@ export async function POST(request: NextRequest) {
       15000, // 15 second timeout for create operations
       'Failed to create user - database timeout'
     )
+
+    // Invalidate users cache after mutation
+    cache.delete(CACHE_KEYS.USERS)
 
     return NextResponse.json({
       success: true,
