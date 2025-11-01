@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getCurrentUser, addUser, updateUser, getRoleDisplayName } from '@/lib/auth'
 import { optimizedDataService } from '@/lib/optimizedDataService'
 import { User } from '@/lib/types'
+import { QUERIES } from '@/lib/graphql-queries'
 import {
   Plus,
   Edit,
@@ -23,6 +24,19 @@ import Navbar from '@/components/layout/Navbar'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import { useLoading } from '@/contexts/LoadingContext'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  return result.data
+}
 
 // Fetch with timeout to prevent hanging
 async function fetchWithTimeout(
@@ -78,7 +92,23 @@ export default function UserManagement() {
       if (forceRefresh) {
         setIsRefreshing(true)
       }
-      const allUsers = await optimizedDataService.getAllUsers(forceRefresh)
+
+      let allUsers: User[] = []
+
+      // Try GraphQL first
+      try {
+        console.log('🔵 [Users] Attempting GraphQL query...')
+        const data = await executeGraphQLQuery(QUERIES.GET_USERS, {})
+        allUsers = data.users || []
+        console.log('✅ [Users] GraphQL query successful:', allUsers.length, 'users')
+      } catch (graphqlError) {
+        console.warn('⚠️ [Users] GraphQL failed, falling back to REST:', graphqlError)
+
+        // Fallback to REST API
+        allUsers = await optimizedDataService.getAllUsers(forceRefresh)
+        console.log('✅ [Users] REST API successful:', allUsers.length, 'users')
+      }
+
       setUsers(allUsers)
       setLastRefresh(Date.now())
     } catch (error) {
@@ -107,7 +137,22 @@ export default function UserManagement() {
 
       // Load users with caching - only show loading on initial load
       try {
-        const allUsers = await optimizedDataService.getAllUsers(false)
+        let allUsers: User[] = []
+
+        // Try GraphQL first
+        try {
+          console.log('🔵 [Users Init] Attempting GraphQL query...')
+          const data = await executeGraphQLQuery(QUERIES.GET_USERS, {})
+          allUsers = data.users || []
+          console.log('✅ [Users Init] GraphQL query successful:', allUsers.length, 'users')
+        } catch (graphqlError) {
+          console.warn('⚠️ [Users Init] GraphQL failed, falling back to REST:', graphqlError)
+
+          // Fallback to REST API
+          allUsers = await optimizedDataService.getAllUsers(false)
+          console.log('✅ [Users Init] REST API successful:', allUsers.length, 'users')
+        }
+
         setUsers(allUsers)
         setLastRefresh(Date.now())
       } catch (error) {
