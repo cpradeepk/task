@@ -4,12 +4,26 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { isTaskOwner, isTaskSupporter } from '@/lib/data'
+import { QUERIES } from '@/lib/graphql-queries'
 
 import { Task } from '@/lib/types'
 import { Calendar, Clock, BarChart3, FileText, CheckCircle, AlertCircle, RefreshCw, Crown, Heart, AlertTriangle, Edit } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import TaskUpdateModal from '@/components/tasks/TaskUpdateModal'
 import { getHoursForDate, wasWorkedOnDate } from '@/lib/dailyHours'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  return result.data
+}
 
 export default function YourWork() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -36,14 +50,31 @@ export default function YourWork() {
     setError(null)
 
     try {
-      const response = await fetch(`/api/tasks/user/${currentUser.employeeId}`)
-      if (response.ok) {
-        const result = await response.json()
-        const userTasks = result.data || []
-        setTasks(userTasks)
-      } else {
-        setTasks([])
+      let userTasks: Task[] = []
+
+      // Try GraphQL first
+      try {
+        console.log('🔵 [Your Work] Attempting GraphQL query...')
+        const data = await executeGraphQLQuery(QUERIES.GET_TASKS, {
+          assignedTo: currentUser.employeeId
+        })
+        userTasks = data.tasks || []
+        console.log('✅ [Your Work] GraphQL query successful:', userTasks.length, 'tasks')
+      } catch (graphqlError) {
+        console.warn('⚠️ [Your Work] GraphQL failed, falling back to REST:', graphqlError)
+
+        // Fallback to REST API
+        const response = await fetch(`/api/tasks/user/${currentUser.employeeId}`)
+        if (response.ok) {
+          const result = await response.json()
+          userTasks = result.data || []
+          console.log('✅ [Your Work] REST API successful:', userTasks.length, 'tasks')
+        } else {
+          userTasks = []
+        }
       }
+
+      setTasks(userTasks)
 
       // Set default date to yesterday only if no date is selected
       if (!selectedDate) {
@@ -53,7 +84,7 @@ export default function YourWork() {
         setSelectedDate(yesterdayStr)
       }
     } catch (error) {
-      console.error('Error loading tasks from Google Sheets:', error)
+      console.error('Error loading tasks:', error)
       setTasks([])
       setError('Failed to load tasks. Please check your connection and try again.')
     } finally {

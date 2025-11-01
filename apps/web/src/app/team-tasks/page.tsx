@@ -3,10 +3,24 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, getTeamMembers } from '@/lib/auth'
+import { QUERIES } from '@/lib/graphql-queries'
 
 import { Task, User } from '@/lib/types'
 import { User as UserIcon, Clock, Calendar, BarChart3, Eye, Timer } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  return result.data
+}
 
 
 export default function TeamTasks() {
@@ -66,12 +80,26 @@ export default function TeamTasks() {
 
       for (const member of members) {
         try {
-          const response = await fetch(`/api/tasks/user/${member.employeeId}`)
-          if (response.ok) {
-            const result = await response.json()
-            tasksData[member.employeeId] = result.data || []
-          } else {
-            tasksData[member.employeeId] = []
+          // Try GraphQL first
+          try {
+            console.log(`🔵 [Team Tasks] Attempting GraphQL query for ${member.employeeId}...`)
+            const data = await executeGraphQLQuery(QUERIES.GET_TASKS, {
+              assignedTo: member.employeeId
+            })
+            tasksData[member.employeeId] = data.tasks || []
+            console.log(`✅ [Team Tasks] GraphQL successful: ${tasksData[member.employeeId].length} tasks`)
+          } catch (graphqlError) {
+            console.warn(`⚠️ [Team Tasks] GraphQL failed for ${member.employeeId}, falling back to REST:`, graphqlError)
+
+            // Fallback to REST API
+            const response = await fetch(`/api/tasks/user/${member.employeeId}`)
+            if (response.ok) {
+              const result = await response.json()
+              tasksData[member.employeeId] = result.data || []
+              console.log(`✅ [Team Tasks] REST successful: ${tasksData[member.employeeId].length} tasks`)
+            } else {
+              tasksData[member.employeeId] = []
+            }
           }
         } catch (error) {
           console.error(`Error loading tasks for ${member.employeeId}:`, error)
