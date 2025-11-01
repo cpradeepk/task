@@ -555,31 +555,35 @@ export default function Dashboard() {
   }
 
   // For non-admin users, show the original task-based dashboard
-  const totalTasks = tasks.length
-  const completedTasks = tasks.filter(task => task.status === 'Done').length
-  const inProgressTasks = tasks.filter(task => task.status === 'In Progress').length
-  const delayedTasks = tasks.filter(task => task.status === 'Delayed').length
-  const pendingTasks = tasks.filter(task => task.status === 'Yet to Start').length
+  // Calculate statistics for ALL tasks (not filtered by employee)
+  const allTasksCount = tasks.length
+  const totalTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId).length
+  const completedTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId && task.status === 'Done').length
+  const inProgressTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId && task.status === 'In Progress').length
+  const delayedTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId && task.status === 'Delayed').length
+  const pendingTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId && task.status === 'Yet to Start').length
 
-  // Filter tasks based on active filter
+  // Filter tasks based on active filter - ONLY show tasks assigned to current user
   const getFilteredTasks = () => {
-    let filteredTasks = tasks
+    // First filter by current user
+    let filteredTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId)
 
     switch (activeFilter) {
       case 'completed':
-        filteredTasks = tasks.filter(task => task.status === 'Done')
+        filteredTasks = filteredTasks.filter(task => task.status === 'Done')
         break
       case 'in-progress':
-        filteredTasks = tasks.filter(task => task.status === 'In Progress')
+        filteredTasks = filteredTasks.filter(task => task.status === 'In Progress')
         break
       case 'delayed':
-        filteredTasks = tasks.filter(task => task.status === 'Delayed')
+        filteredTasks = filteredTasks.filter(task => task.status === 'Delayed')
         break
       case 'pending':
-        filteredTasks = tasks.filter(task => task.status === 'Yet to Start')
+        filteredTasks = filteredTasks.filter(task => task.status === 'Yet to Start')
         break
       default:
-        filteredTasks = tasks
+        // 'all' filter - already filtered by current user
+        break
     }
 
     return filteredTasks
@@ -630,10 +634,70 @@ export default function Dashboard() {
             />
           )}
 
+          {/* Quick Actions - Moved here before statistics */}
+          <div className="card">
+            <h3 className="text-lg font-semibold text-black mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {currentUser.role === 'employee' && (
+                <>
+                  <button
+                    onClick={() => router.push('/tasks/create')}
+                    className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
+                  >
+                    <div className="text-primary font-medium">Create Task</div>
+                    <div className="text-sm text-gray-600 mt-1">Add a new task</div>
+                  </button>
+                  <button
+                    onClick={() => router.push('/leave/apply')}
+                    className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
+                  >
+                    <div className="text-primary font-medium">Apply Leave</div>
+                    <div className="text-sm text-gray-600 mt-1">Request time off</div>
+                  </button>
+                  <button
+                    onClick={() => router.push('/wfh/apply')}
+                    className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
+                  >
+                    <div className="text-primary font-medium">Apply WFH</div>
+                    <div className="text-sm text-gray-600 mt-1">Work from home request</div>
+                  </button>
+                </>
+              )}
+
+              {currentUser.role === 'top_management' && (
+                <>
+                  <button
+                    onClick={() => router.push('/reports')}
+                    className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
+                  >
+                    <div className="text-primary font-medium">View Reports</div>
+                    <div className="text-sm text-gray-600 mt-1">Team performance</div>
+                  </button>
+                  {currentUser.role === 'top_management' && (
+                    <button
+                      onClick={() => router.push('/approvals')}
+                      className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
+                    >
+                      <div className="text-primary font-medium">Pending Approvals</div>
+                      <div className="text-sm text-gray-600 mt-1">Review requests</div>
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
           {/* Statistics Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <StatsCard
-              title="Total Tasks"
+              title="All Tasks"
+              value={allTasksCount}
+              icon={ListTodo}
+              color="purple"
+              subtitle="Total tasks in system"
+            />
+            <StatsCard
+              title="My Tasks"
               value={totalTasks}
               icon={ListTodo}
               color="blue"
@@ -688,59 +752,6 @@ export default function Dashboard() {
             allowEdit={true}
             onTaskUpdate={loadData}
           />
-
-          {/* Quick Actions */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-black mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {currentUser.role === 'employee' && (
-                <>
-                  <button
-                    onClick={() => router.push('/tasks/create')}
-                    className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
-                  >
-                    <div className="text-primary font-medium">Create Task</div>
-                    <div className="text-sm text-gray-600 mt-1">Add a new task</div>
-                  </button>
-                  <button
-                    onClick={() => router.push('/leave/apply')}
-                    className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
-                  >
-                    <div className="text-primary font-medium">Apply Leave</div>
-                    <div className="text-sm text-gray-600 mt-1">Request time off</div>
-                  </button>
-                  <button
-                    onClick={() => router.push('/wfh/apply')}
-                    className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
-                  >
-                    <div className="text-primary font-medium">Apply WFH</div>
-                    <div className="text-sm text-gray-600 mt-1">Work from home request</div>
-                  </button>
-                </>
-              )}
-
-              {currentUser.role === 'top_management' && (
-                <>
-                  <button
-                    onClick={() => router.push('/reports')}
-                    className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
-                  >
-                    <div className="text-primary font-medium">View Reports</div>
-                    <div className="text-sm text-gray-600 mt-1">Team performance</div>
-                  </button>
-                  {currentUser.role === 'top_management' && (
-                    <button
-                      onClick={() => router.push('/approvals')}
-                      className="p-4 text-left border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors"
-                    >
-                      <div className="text-primary font-medium">Pending Approvals</div>
-                      <div className="text-sm text-gray-600 mt-1">Review requests</div>
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>
