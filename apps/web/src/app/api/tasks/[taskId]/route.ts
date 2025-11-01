@@ -4,6 +4,37 @@ import { calculateTotalHours } from '@/lib/dailyHours'
 import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
 import { verifyToken } from '@/lib/auth-server'
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ taskId: string }> }
+) {
+  try {
+    const { taskId } = await params
+
+    // Get task from MySQL
+    const task = await getTaskById(taskId)
+
+    if (!task) {
+      return NextResponse.json({
+        success: false,
+        error: 'Task not found'
+      }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: task,
+      source: 'mysql'
+    })
+  } catch (error) {
+    console.error('Failed to fetch task from MySQL:', error)
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch task - MySQL unavailable'
+    }, { status: 500 })
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ taskId: string }> }
