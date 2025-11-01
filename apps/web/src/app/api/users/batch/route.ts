@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     // Build a deterministic cache key from the sorted IDs
     const key = `users_batch_${ids.slice().sort().join('_')}`
 
-    if (cache.has(key)) {
-      return NextResponse.json({ success: true, data: cache.get<any[]>(key), source: 'cache' })
+    if (await cache.has(key)) {
+      return NextResponse.json({ success: true, data: await cache.get<any[]>(key), source: 'cache' })
     }
 
     const users = await withTimeout(
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     )
 
     // Cache for 5 minutes
-    cache.set(key, users, 5)
+    await cache.set(key, users, 5)
 
     const res = NextResponse.json({ success: true, data: users, source: 'mysql' })
     res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')

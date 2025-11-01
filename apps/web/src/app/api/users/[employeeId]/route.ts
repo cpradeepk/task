@@ -37,8 +37,8 @@ export async function GET(
 
     // Serve from cache if present
     const cacheKey = CACHE_KEYS.USER_DETAIL(employeeId)
-    if (cache.has(cacheKey)) {
-      return NextResponse.json({ success: true, data: cache.get<any>(cacheKey), source: 'cache' })
+    if (await cache.has(cacheKey)) {
+      return NextResponse.json({ success: true, data: await cache.get<any>(cacheKey), source: 'cache' })
     }
 
     // Get user from MySQL with timeout
@@ -49,7 +49,7 @@ export async function GET(
     )
 
     // Cache for 5 minutes
-    cache.set(cacheKey, user, 5)
+    await cache.set(cacheKey, user, 5)
 
     return NextResponse.json({
       success: true,
@@ -91,8 +91,8 @@ export async function PUT(
     )
 
     // Invalidate caches
-    cache.delete(CACHE_KEYS.USER_DETAIL(employeeId))
-    cache.delete(CACHE_KEYS.USERS)
+    await cache.delete(CACHE_KEYS.USER_DETAIL(employeeId))
+    await cache.delete(CACHE_KEYS.USERS)
 
     return NextResponse.json({
       success: true,

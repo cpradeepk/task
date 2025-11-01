@@ -50,13 +50,13 @@ export async function GET(request: NextRequest) {
     // Legacy grouped format (for backward compatibility)
     if (grouped) {
       const cacheKey = 'settings_grouped'
-      if (cache.has(cacheKey)) {
-        const res = NextResponse.json({ success: true, data: cache.get<any>(cacheKey) })
+      if (await cache.has(cacheKey)) {
+        const res = NextResponse.json({ success: true, data: await cache.get<any>(cacheKey) })
         res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
         return res
       }
       const settingsByType = await getSettingsByType()
-      cache.set(cacheKey, settingsByType, 10)
+      await cache.set(cacheKey, settingsByType, 10)
       const res = NextResponse.json({ success: true, data: settingsByType })
       res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
       return res
@@ -101,8 +101,8 @@ export async function GET(request: NextRequest) {
 
     // Get all settings
     const cacheKeyAll = `settings_all_active_${activeOnly ? '1' : '0'}`
-    if (cache.has(cacheKeyAll)) {
-      const cached = cache.get<any[]>(cacheKeyAll) || []
+    if (await cache.has(cacheKeyAll)) {
+      const cached = await cache.get<any[]>(cacheKeyAll) || []
       const res = NextResponse.json({ success: true, data: cached, count: cached.length })
       res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
       return res
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
 
     const settings = await getAllSettings(activeOnly)
 
-    cache.set(cacheKeyAll, settings, 10)
+    await cache.set(cacheKeyAll, settings, 10)
 
     const res = NextResponse.json({
       success: true,

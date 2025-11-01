@@ -1,6 +1,9 @@
 /**
- * Simple in-memory cache utility to reduce API calls
+ * Cache utility - uses Redis in production, in-memory in development
+ * This is a compatibility wrapper for existing code
  */
+
+import { redisCache, CACHE_KEYS as REDIS_CACHE_KEYS } from './redis'
 
 interface CacheItem<T> {
   data: T
@@ -10,8 +13,14 @@ interface CacheItem<T> {
 
 class SimpleCache {
   private cache = new Map<string, CacheItem<any>>()
+  private useRedis = typeof window === 'undefined' && process.env.NODE_ENV === 'production'
 
-  set<T>(key: string, data: T, ttlMinutes: number = 5): void {
+  async set<T>(key: string, data: T, ttlMinutes: number = 5): Promise<void> {
+    if (this.useRedis) {
+      await redisCache.set(key, data, ttlMinutes)
+      return
+    }
+
     const ttl = ttlMinutes * 60 * 1000 // Convert to milliseconds
     this.cache.set(key, {
       data,
@@ -20,9 +29,13 @@ class SimpleCache {
     })
   }
 
-  get<T>(key: string): T | null {
+  async get<T>(key: string): Promise<T | null> {
+    if (this.useRedis) {
+      return await redisCache.get<T>(key)
+    }
+
     const item = this.cache.get(key)
-    
+
     if (!item) {
       return null
     }
@@ -36,9 +49,13 @@ class SimpleCache {
     return item.data as T
   }
 
-  has(key: string): boolean {
+  async has(key: string): Promise<boolean> {
+    if (this.useRedis) {
+      return await redisCache.has(key)
+    }
+
     const item = this.cache.get(key)
-    
+
     if (!item) {
       return false
     }
@@ -52,19 +69,39 @@ class SimpleCache {
     return true
   }
 
-  delete(key: string): void {
+  async delete(key: string): Promise<void> {
+    if (this.useRedis) {
+      await redisCache.delete(key)
+      return
+    }
+
     this.cache.delete(key)
   }
 
-  clear(): void {
+  async clear(): Promise<void> {
+    if (this.useRedis) {
+      await redisCache.clear()
+      return
+    }
+
     this.cache.clear()
   }
 
   // Get cache stats
-  getStats(): { size: number; keys: string[] } {
+  async getStats(): Promise<{ size: number; keys: string[]; type?: string }> {
+    if (this.useRedis) {
+      const stats = await redisCache.getStats()
+      return {
+        size: stats.size || 0,
+        keys: stats.keys || [],
+        type: stats.type
+      }
+    }
+
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
+      type: 'memory'
     }
   }
 }
@@ -72,14 +109,5 @@ class SimpleCache {
 // Export a singleton instance
 export const cache = new SimpleCache()
 
-// Cache keys
-export const CACHE_KEYS = {
-  TASKS: 'tasks',
-  BUGS: 'bugs',
-  USERS: 'users',
-  BUG_STATISTICS: 'bug_statistics',
-  BUG_DETAIL: (bugId: string) => `bug_${bugId}`,
-  BUG_COMMENTS: (bugId: string) => `bug_comments_${bugId}`,
-  USER_DETAIL: (employeeId: string) => `user_${employeeId}`,
-  TASK_DETAIL: (taskId: string) => `task_${taskId}`
-} as const
+// Cache keys - re-export from redis for consistency
+export const CACHE_KEYS = REDIS_CACHE_KEYS

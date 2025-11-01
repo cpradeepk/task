@@ -20,7 +20,7 @@ export async function getAllTasks(filters?: {
 
     // Check cache first (only for unfiltered requests to avoid complexity)
     if (!filters || Object.keys(filters).length === 0) {
-      const cachedTasks = cache.get<Task[]>(cacheKey)
+      const cachedTasks = await cache.get<Task[]>(cacheKey)
       if (cachedTasks) {
         console.log('Returning cached tasks data')
         return cachedTasks
@@ -44,7 +44,7 @@ export async function getAllTasks(filters?: {
     if (!response.ok) {
       // If we have cached data, return it instead of throwing error
       if (!filters || Object.keys(filters).length === 0) {
-        const cachedTasks = cache.get<Task[]>(cacheKey)
+        const cachedTasks = await cache.get<Task[]>(cacheKey)
         if (cachedTasks) {
           console.log('API failed, returning cached tasks data')
           return cachedTasks
@@ -65,7 +65,7 @@ export async function getAllTasks(filters?: {
 
     // Cache the result (only for unfiltered requests)
     if (!filters || Object.keys(filters).length === 0) {
-      cache.set(cacheKey, tasks, 2) // Cache for 2 minutes
+      await cache.set(cacheKey, tasks, 2) // Cache for 2 minutes
     }
 
     return tasks
@@ -75,7 +75,7 @@ export async function getAllTasks(filters?: {
     // Try to return cached data as fallback
     if (!filters || Object.keys(filters).length === 0) {
       const cacheKey = `${CACHE_KEYS.TASKS}_all`
-      const cachedTasks = cache.get<Task[]>(cacheKey)
+      const cachedTasks = await cache.get<Task[]>(cacheKey)
       if (cachedTasks) {
         console.log('Error occurred, returning cached tasks data as fallback')
         return cachedTasks
@@ -145,7 +145,7 @@ export async function createTask(taskData: Partial<Task>): Promise<Task> {
     const result = await response.json()
 
     // Invalidate cache
-    cache.delete(`${CACHE_KEYS.TASKS}_all`)
+    await cache.delete(`${CACHE_KEYS.TASKS}_all`)
 
     return result.data
   } catch (error) {
@@ -180,7 +180,7 @@ export async function updateTask(taskId: string, updates: Partial<Task>): Promis
     const result = await response.json()
 
     // Invalidate cache
-    cache.delete(`${CACHE_KEYS.TASKS}_all`)
+    await cache.delete(`${CACHE_KEYS.TASKS}_all`)
 
     return result.data
   } catch (error) {
@@ -212,7 +212,7 @@ export async function deleteTask(taskId: string): Promise<void> {
     }
 
     // Invalidate cache
-    cache.delete(`${CACHE_KEYS.TASKS}_all`)
+    await cache.delete(`${CACHE_KEYS.TASKS}_all`)
   } catch (error) {
     console.error('Failed to delete task:', error)
     if (error instanceof Error) {

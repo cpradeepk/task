@@ -22,10 +22,10 @@ const ADMIN_USER = {
 export async function GET() {
   try {
     // Return cached users if available
-    if (cache.has(CACHE_KEYS.USERS)) {
+    if (await cache.has(CACHE_KEYS.USERS)) {
       return NextResponse.json({
         success: true,
-        data: cache.get<any[]>(CACHE_KEYS.USERS),
+        data: await cache.get<any[]>(CACHE_KEYS.USERS),
         source: 'cache',
         timestamp: Date.now()
       })
@@ -45,7 +45,7 @@ export async function GET() {
     }
 
     // Cache for 5 minutes
-    cache.set(CACHE_KEYS.USERS, users, 5)
+    await cache.set(CACHE_KEYS.USERS, users, 5)
 
     const response = NextResponse.json({
       success: true,
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     )
 
     // Invalidate users cache after mutation
-    cache.delete(CACHE_KEYS.USERS)
+    await cache.delete(CACHE_KEYS.USERS)
 
     return NextResponse.json({
       success: true,

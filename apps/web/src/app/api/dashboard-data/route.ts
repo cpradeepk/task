@@ -14,8 +14,9 @@ export async function GET(request: NextRequest) {
     const includeUsers = sp.get('includeUsers') === 'true' || ['admin', 'top_management'].includes(role)
 
     const cacheKey = `dashboard_${employeeId}_${role}_${includeUsers ? '1' : '0'}`
-    if (cache.has(cacheKey)) {
-      const res = NextResponse.json({ success: true, ...cache.get<any>(cacheKey), source: 'cache' })
+    if (await cache.has(cacheKey)) {
+      const cached = await cache.get<any>(cacheKey)
+      const res = NextResponse.json({ success: true, ...cached, source: 'cache' })
       res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
       return res
     }
@@ -81,7 +82,7 @@ export async function GET(request: NextRequest) {
       source: 'mysql'
     }
 
-    cache.set(cacheKey, payload, 2) // 2 minutes TTL for dashboard snapshot
+    await cache.set(cacheKey, payload, 2) // 2 minutes TTL for dashboard snapshot
 
     const res = NextResponse.json(payload)
     res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')

@@ -21,7 +21,7 @@ export async function getAllBugs(filters?: {
 
     // Check cache first (only for unfiltered requests to avoid complexity)
     if (!filters || Object.keys(filters).length === 0) {
-      const cachedBugs = cache.get<Bug[]>(cacheKey)
+      const cachedBugs = await cache.get<Bug[]>(cacheKey)
       if (cachedBugs) {
         console.log('Returning cached bugs data')
         return cachedBugs
@@ -47,7 +47,7 @@ export async function getAllBugs(filters?: {
     if (!response.ok) {
       // If we have cached data, return it instead of throwing error
       if (!filters || Object.keys(filters).length === 0) {
-        const cachedBugs = cache.get<Bug[]>(cacheKey)
+        const cachedBugs = await cache.get<Bug[]>(cacheKey)
         if (cachedBugs) {
           console.log('API failed, returning cached bugs data')
           return cachedBugs
@@ -68,7 +68,7 @@ export async function getAllBugs(filters?: {
 
     // Cache the result (only for unfiltered requests)
     if (!filters || Object.keys(filters).length === 0) {
-      cache.set(cacheKey, bugs, 2) // Cache for 2 minutes
+      await cache.set(cacheKey, bugs, 2) // Cache for 2 minutes
     }
 
     return bugs
@@ -78,7 +78,7 @@ export async function getAllBugs(filters?: {
     // Try to return cached data as fallback
     if (!filters || Object.keys(filters).length === 0) {
       const cacheKey = `${CACHE_KEYS.BUGS}_all`
-      const cachedBugs = cache.get<Bug[]>(cacheKey)
+      const cachedBugs = await cache.get<Bug[]>(cacheKey)
       if (cachedBugs) {
         console.log('Error occurred, returning cached bugs data as fallback')
         return cachedBugs
