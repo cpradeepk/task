@@ -1,6 +1,7 @@
 /**
  * Bug Listing Page - Role-based bug visibility and filtering
  * Updated: 2025-10-23 - Fixed statistics and visibility issues
+ * Updated: GraphQL migration with REST fallback
  */
 'use client'
 
@@ -11,6 +12,7 @@ import { Bug } from '@/lib/types'
 import { getAllBugs, getBugStatistics } from '@/lib/bugService'
 import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth'
 import { useLoading } from '@/contexts/LoadingContext'
+import { QUERIES } from '@/lib/graphql-queries'
 import {
   Bug as BugIcon,
   Plus,
@@ -27,6 +29,19 @@ import {
   Sparkles
 } from 'lucide-react'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  return result.data
+}
 
 // Component to handle async user name fetching
 function UserName({ employeeId }: { employeeId: string }) {
@@ -185,7 +200,21 @@ export default function BugsPage() {
       setIsLoading(true)
       setError(null)
 
-      let bugsData = await getAllBugs()
+      let bugsData: Bug[] = []
+
+      // Try GraphQL first
+      try {
+        console.log('🔵 [Bugs] Attempting GraphQL query...')
+        const data = await executeGraphQLQuery(QUERIES.GET_BUGS, {})
+        bugsData = data.bugs || []
+        console.log('✅ [Bugs] GraphQL query successful:', bugsData.length, 'bugs')
+      } catch (graphqlError) {
+        console.warn('⚠️ [Bugs] GraphQL failed, falling back to REST:', graphqlError)
+
+        // Fallback to REST API
+        bugsData = await getAllBugs()
+        console.log('✅ [Bugs] REST API successful:', bugsData.length, 'bugs')
+      }
 
       // Filter bugs based on user role and involvement
       if (currentUser) {

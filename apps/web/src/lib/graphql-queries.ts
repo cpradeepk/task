@@ -316,6 +316,69 @@ export const QUERIES = {
     }
   `,
 
+  // Get single bug by ID
+  GET_BUG: `
+    query GetBug($bugId: ID!) {
+      bug(bugId: $bugId) {
+        id
+        bugId
+        description
+        category
+        severity
+        status
+        assignedTo
+        assignedBy
+        reportedBy
+        reportedDate
+        resolvedDate
+        estimatedHours
+        actualHours
+        remarks
+        attachments
+        projectId
+        subprojectId
+        relatedBugs
+        platform
+        environment
+        bugType
+        criticality
+        createdAt
+        updatedAt
+        assignedToUser {
+          employeeId
+          name
+          email
+          role
+        }
+        assignedByUser {
+          employeeId
+          name
+          email
+          role
+        }
+        reportedByUser {
+          employeeId
+          name
+          email
+          role
+        }
+        subtasks {
+          id
+          subTaskId
+          description
+          assignedTo
+          startDate
+          endDate
+          priority
+          estimatedHours
+          actualHours
+          status
+          remarks
+        }
+      }
+    }
+  `,
+
   // Get all users
   GET_USERS: `
     query GetUsers {

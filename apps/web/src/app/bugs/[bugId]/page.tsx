@@ -2,6 +2,7 @@
  * Bug Detail Page - Enhanced UI with modern button styling
  * Last updated: 2025-10-23
  * Features: Role-based access, responsive design, improved UX
+ * Updated: GraphQL migration with REST fallback
  * Author: prathameassyserve
  */
 'use client'
@@ -19,6 +20,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import ImageLightbox from '@/components/bugs/ImageLightbox'
 import TimerButton from '@/components/TimerButton'
+import { QUERIES } from '@/lib/graphql-queries'
 import {
   Bug as BugIcon,
   MessageSquare,
@@ -39,6 +41,19 @@ import {
   Image as ImageIcon,
   Pencil
 } from 'lucide-react'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  return result.data
+}
 
 // Component to handle async user name fetching
 function UserName({ employeeId }: { employeeId: string }) {
@@ -207,7 +222,22 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
   const loadBugData = useCallback(async () => {
     try {
-      const bugData = await getBugById(bugId)
+      let bugData: Bug | null = null
+
+      // Try GraphQL first
+      try {
+        console.log('🔵 [Bug Detail] Attempting GraphQL query for bug:', bugId)
+        const data = await executeGraphQLQuery(QUERIES.GET_BUG, { bugId })
+        bugData = data.bug || null
+        console.log('✅ [Bug Detail] GraphQL query successful')
+      } catch (graphqlError) {
+        console.warn('⚠️ [Bug Detail] GraphQL failed, falling back to REST:', graphqlError)
+
+        // Fallback to REST API
+        bugData = await getBugById(bugId)
+        console.log('✅ [Bug Detail] REST API successful')
+      }
+
       if (!bugData) {
         router.push('/bugs')
         return
