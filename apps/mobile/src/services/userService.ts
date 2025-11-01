@@ -1,10 +1,13 @@
 /**
  * User Service
  * API calls for user management
+ * Updated: GraphQL with REST fallback
  */
 
 import { get, ApiResponse } from './apiClient'
 import { API_ENDPOINTS } from '../config/api'
+import { executeGraphQLWithFallback } from './graphqlClient'
+import { QUERIES } from './graphqlQueries'
 
 export interface User {
   employeeId: string
@@ -20,10 +23,22 @@ export interface User {
 }
 
 /**
- * Get all users
+ * Get all users (GraphQL with REST fallback)
  */
 export const getAllUsers = async (): Promise<ApiResponse<User[]>> => {
-  return get<User[]>(API_ENDPOINTS.USERS)
+  return executeGraphQLWithFallback<User[]>(
+    QUERIES.GET_USERS,
+    {},
+    () => get<User[]>(API_ENDPOINTS.USERS),
+    'UserService.getAllUsers'
+  ).then(response => {
+    if (response.success && response.data) {
+      // GraphQL returns users directly, REST returns { data: users }
+      const users = Array.isArray(response.data) ? response.data : (response.data as any).users || []
+      return { success: true, data: users }
+    }
+    return response
+  })
 }
 
 /**

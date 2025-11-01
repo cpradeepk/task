@@ -1,10 +1,13 @@
 /**
  * Bug Service
  * API calls for bug management
+ * Updated: GraphQL with REST fallback
  */
 
 import { get, post, patch, del, ApiResponse } from './apiClient'
 import { API_ENDPOINTS } from '../config/api'
+import { executeGraphQLWithFallback } from './graphqlClient'
+import { QUERIES } from './graphqlQueries'
 
 export interface Bug {
   bugId: string
@@ -54,17 +57,41 @@ export interface BugSubTask {
 }
 
 /**
- * Get all bugs
+ * Get all bugs (GraphQL with REST fallback)
  */
 export const getAllBugs = async (): Promise<ApiResponse<Bug[]>> => {
-  return get<Bug[]>(API_ENDPOINTS.BUGS)
+  return executeGraphQLWithFallback<Bug[]>(
+    QUERIES.GET_BUGS,
+    {},
+    () => get<Bug[]>(API_ENDPOINTS.BUGS),
+    'BugService.getAllBugs'
+  ).then(response => {
+    if (response.success && response.data) {
+      // GraphQL returns bugs directly, REST returns { data: bugs }
+      const bugs = Array.isArray(response.data) ? response.data : (response.data as any).bugs || []
+      return { success: true, data: bugs }
+    }
+    return response
+  })
 }
 
 /**
- * Get bug by ID
+ * Get bug by ID (GraphQL with REST fallback)
  */
 export const getBugById = async (bugId: string): Promise<ApiResponse<Bug>> => {
-  return get<Bug>(API_ENDPOINTS.BUG_BY_ID(bugId))
+  return executeGraphQLWithFallback<Bug>(
+    QUERIES.GET_BUG,
+    { bugId },
+    () => get<Bug>(API_ENDPOINTS.BUG_BY_ID(bugId)),
+    'BugService.getBugById'
+  ).then(response => {
+    if (response.success && response.data) {
+      // GraphQL returns bug directly, REST returns { data: bug }
+      const bug = (response.data as any).bug || response.data
+      return { success: true, data: bug }
+    }
+    return response
+  })
 }
 
 /**

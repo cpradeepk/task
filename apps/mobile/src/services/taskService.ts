@@ -1,10 +1,13 @@
 /**
  * Task Service
  * API calls for task management
+ * Updated: GraphQL with REST fallback
  */
 
 import { get, post, patch, del, ApiResponse } from './apiClient'
 import { API_ENDPOINTS } from '../config/api'
+import { executeGraphQLWithFallback, executeGraphQLQuery } from './graphqlClient'
+import { QUERIES, MUTATIONS } from './graphqlQueries'
 
 export interface Task {
   taskId: string
@@ -45,17 +48,41 @@ export interface TaskSubTask {
 }
 
 /**
- * Get all tasks
+ * Get all tasks (GraphQL with REST fallback)
  */
 export const getAllTasks = async (): Promise<ApiResponse<Task[]>> => {
-  return get<Task[]>(API_ENDPOINTS.TASKS)
+  return executeGraphQLWithFallback<Task[]>(
+    QUERIES.GET_TASKS,
+    {},
+    () => get<Task[]>(API_ENDPOINTS.TASKS),
+    'TaskService.getAllTasks'
+  ).then(response => {
+    if (response.success && response.data) {
+      // GraphQL returns tasks directly, REST returns { data: tasks }
+      const tasks = Array.isArray(response.data) ? response.data : (response.data as any).tasks || []
+      return { success: true, data: tasks }
+    }
+    return response
+  })
 }
 
 /**
- * Get task by ID
+ * Get task by ID (GraphQL with REST fallback)
  */
 export const getTaskById = async (taskId: string): Promise<ApiResponse<Task>> => {
-  return get<Task>(API_ENDPOINTS.TASK_BY_ID(taskId))
+  return executeGraphQLWithFallback<Task>(
+    QUERIES.GET_TASK,
+    { taskId },
+    () => get<Task>(API_ENDPOINTS.TASK_BY_ID(taskId)),
+    'TaskService.getTaskById'
+  ).then(response => {
+    if (response.success && response.data) {
+      // GraphQL returns task directly, REST returns { data: task }
+      const task = (response.data as any).task || response.data
+      return { success: true, data: task }
+    }
+    return response
+  })
 }
 
 /**
@@ -83,12 +110,24 @@ export const deleteTask = async (taskId: string): Promise<ApiResponse<void>> => 
 }
 
 /**
- * Get tasks by employee ID
+ * Get tasks by employee ID (GraphQL with REST fallback)
  */
 export const getTasksByEmployeeId = async (
   employeeId: string
 ): Promise<ApiResponse<Task[]>> => {
-  return get<Task[]>(API_ENDPOINTS.TASKS_BY_EMPLOYEE(employeeId))
+  return executeGraphQLWithFallback<Task[]>(
+    QUERIES.GET_TASKS,
+    { assignedTo: employeeId },
+    () => get<Task[]>(API_ENDPOINTS.TASKS_BY_EMPLOYEE(employeeId)),
+    'TaskService.getTasksByEmployeeId'
+  ).then(response => {
+    if (response.success && response.data) {
+      // GraphQL returns tasks directly, REST returns { data: tasks }
+      const tasks = Array.isArray(response.data) ? response.data : (response.data as any).tasks || []
+      return { success: true, data: tasks }
+    }
+    return response
+  })
 }
 
 /**
