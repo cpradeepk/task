@@ -150,21 +150,22 @@ export async function updateLeave(id: string, updates: Partial<LeaveApplication>
   return withRetry(async () => {
     const fields: string[] = []
     const values: any[] = []
+    let paramIndex = 1
 
     if (updates.status !== undefined) {
-      fields.push('status = ?')
+      fields.push(`status = $${paramIndex++}`)
       values.push(updates.status)
     }
-    if (updates.approved_by !== undefined) {
-      fields.push('approved_by = ?')
+    if (updates.approvedBy !== undefined) {
+      fields.push(`approved_by = $${paramIndex++}`)
       values.push(updates.approvedBy || null)
     }
     if (updates.approvalDate !== undefined) {
-      fields.push('approval_date = ?')
+      fields.push(`approval_date = $${paramIndex++}`)
       values.push(updates.approvalDate || null)
     }
     if (updates.approvalRemarks !== undefined) {
-      fields.push('approval_remarks = ?')
+      fields.push(`approval_remarks = $${paramIndex++}`)
       values.push(updates.approvalRemarks || null)
     }
 
@@ -176,7 +177,7 @@ export async function updateLeave(id: string, updates: Partial<LeaveApplication>
 
     values.push(id)
     await query(
-      `UPDATE leave_applications SET ${fields.join(', ')} WHERE application_id = $1`,
+      `UPDATE leave_applications SET ${fields.join(', ')} WHERE application_id = $${paramIndex}`,
       values
     )
 
@@ -192,7 +193,7 @@ export async function updateLeave(id: string, updates: Partial<LeaveApplication>
 export async function approveLeave(id: string, approvedBy: string, remarks?: string): Promise<LeaveApplication> {
   return updateLeave(id, {
     status: 'Approved',
-    approved_by,
+    approvedBy,
     approvalDate: new Date().toISOString(),
     approvalRemarks: remarks
   })
