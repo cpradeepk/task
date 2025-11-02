@@ -16,18 +16,16 @@
 
 import { query, queryOne, withRetry } from './config'
 import { Bug, BugComment } from '../types'
-import { RowDataPacket, ResultSetHeader } from 'mysql2'
-
 /**
  * BugRow Interface
  *
  * Represents a bug record as it comes from the MySQL database.
  * Database columns use snake_case naming (e.g., bug_id, assigned_to).
  *
- * This interface extends RowDataPacket from mysql2 library to ensure
+ * This interface  from mysql2 library to ensure
  * type safety when querying the database.
  */
-interface BugRow extends RowDataPacket {
+interface BugRow  {
   id: number                          // Auto-increment primary key
   bug_id: string                      // Unique bug identifier (e.g., "BUG-1735123456789001234")
   title: string                       // Bug title/summary
@@ -68,7 +66,7 @@ interface BugRow extends RowDataPacket {
  * Represents a bug comment record from the MySQL database.
  * Comments are stored in a separate table linked by bug_id.
  */
-interface BugCommentRow extends RowDataPacket {
+interface BugCommentRow  {
   id: number              // Auto-increment primary key
   bug_id: string          // Foreign key to bugs table
   commented_by: string    // Employee ID of commenter
@@ -145,7 +143,7 @@ export async function getAllBugs(): Promise<Bug[]> {
 export async function getBugById(bugId: string): Promise<Bug | null> {
   return withRetry(async () => {
     const row = await queryOne<BugRow>(
-      'SELECT * FROM bugs WHERE bug_id = ?',
+      'SELECT * FROM bugs WHERE bug_id = $1',
       [bugId]
     )
     return row ? rowToBug(row) : null
@@ -156,7 +154,7 @@ export async function getBugById(bugId: string): Promise<Bug | null> {
 export async function getBugsByStatus(status: Bug['status']): Promise<Bug[]> {
   return withRetry(async () => {
     const rows = await query<BugRow[]>(
-      'SELECT * FROM bugs WHERE status = ? ORDER BY created_at DESC',
+      'SELECT * FROM bugs WHERE status = $1 ORDER BY created_at DESC',
       [status]
     )
     return rows.map(rowToBug)
@@ -167,7 +165,7 @@ export async function getBugsByStatus(status: Bug['status']): Promise<Bug[]> {
 export async function getBugsAssignedTo(employeeId: string): Promise<Bug[]> {
   return withRetry(async () => {
     const rows = await query<BugRow[]>(
-      'SELECT * FROM bugs WHERE assigned_to = ? ORDER BY created_at DESC',
+      'SELECT * FROM bugs WHERE assigned_to = $1 ORDER BY created_at DESC',
       [employeeId]
     )
     return rows.map(rowToBug)
@@ -178,7 +176,7 @@ export async function getBugsAssignedTo(employeeId: string): Promise<Bug[]> {
 export async function getBugsReportedBy(employeeId: string): Promise<Bug[]> {
   return withRetry(async () => {
     const rows = await query<BugRow[]>(
-      'SELECT * FROM bugs WHERE reported_by = ? ORDER BY created_at DESC',
+      'SELECT * FROM bugs WHERE reported_by = $1 ORDER BY created_at DESC',
       [employeeId]
     )
     return rows.map(rowToBug)
@@ -189,7 +187,7 @@ export async function getBugsReportedBy(employeeId: string): Promise<Bug[]> {
 export async function getBugsByEmployeeId(employeeId: string): Promise<Bug[]> {
   return withRetry(async () => {
     const rows = await query<BugRow[]>(
-      'SELECT * FROM bugs WHERE assigned_to = ? OR reported_by = ? ORDER BY created_at DESC',
+      'SELECT * FROM bugs WHERE assigned_to = $1 OR reported_by = $2 ORDER BY created_at DESC',
       [employeeId, employeeId]
     )
     return rows.map(rowToBug)
@@ -200,7 +198,7 @@ export async function getBugsByEmployeeId(employeeId: string): Promise<Bug[]> {
 export async function getBugsByProject(projectId: string): Promise<Bug[]> {
   return withRetry(async () => {
     const rows = await query<BugRow[]>(
-      'SELECT * FROM bugs WHERE project_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM bugs WHERE project_id = $1 ORDER BY created_at DESC',
       [projectId]
     )
     return rows.map(rowToBug)
@@ -241,7 +239,7 @@ export async function getBugsByProject(projectId: string): Promise<Bug[]> {
 // Get the latest bug ID for sequential ID generation
 export async function getLatestBugId(): Promise<string | undefined> {
   return withRetry(async () => {
-    const rows = await query<RowDataPacket[]>(
+    const rows = await query<any[]>(
       `SELECT bug_id FROM bugs
        WHERE deleted_at IS NULL
        ORDER BY created_at DESC
@@ -254,7 +252,7 @@ export async function getLatestBugId(): Promise<string | undefined> {
 export async function createBug(bug: Omit<Bug, 'createdAt' | 'updatedAt'>): Promise<Bug> {
   return withRetry(async () => {
     // Insert bug into database using parameterized query (prevents SQL injection)
-    await query<ResultSetHeader>(
+    await query<any>(
       `INSERT INTO bugs (
         bug_id, title, description, severity, priority, status, category,
         platform, assigned_to, assigned_by, reported_by, environment,
@@ -326,7 +324,7 @@ export async function updateBug(bugId: string, updates: Partial<Bug>): Promise<B
 
     values.push(bugId)
     await query(
-      `UPDATE bugs SET ${fields.join(', ')} WHERE bug_id = ?`,
+      `UPDATE bugs SET ${fields.join(', ')} WHERE bug_id = $1`,
       values
     )
 
@@ -342,11 +340,11 @@ export async function updateBug(bugId: string, updates: Partial<Bug>): Promise<B
 export async function deleteBug(bugId: string): Promise<boolean> {
   return withRetry(async () => {
     // Delete comments first
-    await query('DELETE FROM bug_comments WHERE bug_id = ?', [bugId])
+    await query('DELETE FROM bug_comments WHERE bug_id = $1', [bugId])
     
     // Delete bug
-    const result = await query<ResultSetHeader>(
-      'DELETE FROM bugs WHERE bug_id = ?',
+    const result = await query<any>(
+      'DELETE FROM bugs WHERE bug_id = $1',
       [bugId]
     )
     return result.affectedRows > 0
@@ -357,7 +355,7 @@ export async function deleteBug(bugId: string): Promise<boolean> {
 export async function getBugComments(bugId: string): Promise<BugComment[]> {
   return withRetry(async () => {
     const rows = await query<BugCommentRow[]>(
-      'SELECT * FROM bug_comments WHERE bug_id = ? ORDER BY timestamp',
+      'SELECT * FROM bug_comments WHERE bug_id = $1 ORDER BY timestamp',
       [bugId]
     )
     return rows.map(rowToBugComment)
@@ -369,14 +367,14 @@ export async function addBugComment(
   comment: Omit<BugComment, 'timestamp'>
 ): Promise<BugComment> {
   return withRetry(async () => {
-    await query<ResultSetHeader>(
-      'INSERT INTO bug_comments (bug_id, commented_by, comment_text) VALUES (?, ?, ?)',
+    await query<any>(
+      'INSERT INTO bug_comments (bug_id, commented_by, comment_text) VALUES ($1, $2, $3)',
       [comment.bugId, comment.commentedBy, comment.commentText]
     )
 
     // Get the last inserted comment
     const row = await queryOne<BugCommentRow>(
-      'SELECT * FROM bug_comments WHERE bug_id = ? ORDER BY id DESC LIMIT 1',
+      'SELECT * FROM bug_comments WHERE bug_id = $1 ORDER BY id DESC LIMIT 1',
       [comment.bugId]
     )
 

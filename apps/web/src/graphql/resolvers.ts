@@ -1,75 +1,73 @@
 import DataLoader from 'dataloader'
 import { getPool } from '@/lib/db'
-import { RowDataPacket } from 'mysql2'
-
 const pool = getPool()
 
 // DataLoader for batching user queries
 const createUserLoader = () => new DataLoader(async (employeeIds: readonly string[]) => {
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT * FROM users WHERE employeeId IN (?) AND deletedAt IS NULL',
+  const result = await pool.query(
+    'SELECT * FROM users WHERE employeeId IN ($1) AND deletedAt IS NULL',
     [employeeIds]
   )
-  
-  const userMap = new Map(rows.map(user => [user.employeeId, user]))
+
+  const userMap = new Map(result.rows.map((user: any) => [user.employeeId, user]))
   return employeeIds.map(id => userMap.get(id) || null)
 })
 
 // DataLoader for batching task queries
 const createTaskLoader = () => new DataLoader(async (taskIds: readonly string[]) => {
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT * FROM tasks WHERE taskId IN (?) AND deletedAt IS NULL',
+  const result = await pool.query(
+    'SELECT * FROM tasks WHERE taskId IN ($1) AND deletedAt IS NULL',
     [taskIds]
   )
-  
-  const taskMap = new Map(rows.map(task => [task.taskId, task]))
+
+  const taskMap = new Map(result.rows.map((task: any) => [task.taskId, task]))
   return taskIds.map(id => taskMap.get(id) || null)
 })
 
 // DataLoader for batching bug queries
 const createBugLoader = () => new DataLoader(async (bugIds: readonly string[]) => {
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT * FROM bugs WHERE bugId IN (?) AND deletedAt IS NULL',
+  const result = await pool.query(
+    'SELECT * FROM bugs WHERE bugId IN ($1) AND deletedAt IS NULL',
     [bugIds]
   )
-  
-  const bugMap = new Map(rows.map(bug => [bug.bugId, bug]))
+
+  const bugMap = new Map(result.rows.map((bug: any) => [bug.bugId, bug]))
   return bugIds.map(id => bugMap.get(id) || null)
 })
 
 // DataLoader for batching subtask queries
 const createSubtaskLoader = () => new DataLoader(async (parentTaskIds: readonly string[]) => {
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT * FROM subtasks WHERE parentTaskId IN (?) AND deletedAt IS NULL',
+  const result = await pool.query(
+    'SELECT * FROM subtasks WHERE parentTaskId IN ($1) AND deletedAt IS NULL',
     [parentTaskIds]
   )
-  
+
   const subtaskMap = new Map<string, any[]>()
-  rows.forEach(subtask => {
+  result.rows.forEach((subtask: any) => {
     if (!subtaskMap.has(subtask.parentTaskId)) {
       subtaskMap.set(subtask.parentTaskId, [])
     }
     subtaskMap.get(subtask.parentTaskId)!.push(subtask)
   })
-  
+
   return parentTaskIds.map(id => subtaskMap.get(id) || [])
 })
 
 // DataLoader for batching bug subtask queries
 const createBugSubtaskLoader = () => new DataLoader(async (parentBugIds: readonly string[]) => {
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT * FROM bug_subtasks WHERE parentBugId IN (?) AND deletedAt IS NULL',
+  const result = await pool.query(
+    'SELECT * FROM bug_subtasks WHERE parentBugId IN ($1) AND deletedAt IS NULL',
     [parentBugIds]
   )
-  
+
   const subtaskMap = new Map<string, any[]>()
-  rows.forEach(subtask => {
+  result.rows.forEach((subtask: any) => {
     if (!subtaskMap.has(subtask.parentBugId)) {
       subtaskMap.set(subtask.parentBugId, [])
     }
     subtaskMap.get(subtask.parentBugId)!.push(subtask)
   })
-  
+
   return parentBugIds.map(id => subtaskMap.get(id) || [])
 })
 
@@ -87,10 +85,10 @@ export const resolvers = {
   Query: {
     // Users
     users: async () => {
-      const [rows] = await pool.query<RowDataPacket[]>(
+      const result = await pool.query(
         'SELECT * FROM users WHERE deletedAt IS NULL ORDER BY name'
       )
-      return rows
+      return result.rows
     },
     
     user: async (_: any, { employeeId }: any, { loaders }: any) => {
@@ -103,26 +101,26 @@ export const resolvers = {
       const params: any[] = []
       
       if (filters.assignedTo) {
-        query += ' AND assignedTo = ?'
+        query += ' AND assignedTo = $1'
         params.push(filters.assignedTo)
       }
       if (filters.assignedBy) {
-        query += ' AND assignedBy = ?'
+        query += ' AND assignedBy = $1'
         params.push(filters.assignedBy)
       }
       if (filters.status) {
-        query += ' AND status = ?'
+        query += ' AND status = $1'
         params.push(filters.status)
       }
       if (filters.priority) {
-        query += ' AND priority = ?'
+        query += ' AND priority = $1'
         params.push(filters.priority)
       }
       
       query += ' ORDER BY createdAt DESC'
       
-      const [rows] = await pool.query<RowDataPacket[]>(query, params)
-      return rows
+      const result = await pool.query(query, params)
+      return result.rows
     },
     
     task: async (_: any, { taskId }: any, { loaders }: any) => {
@@ -140,30 +138,30 @@ export const resolvers = {
       const params: any[] = []
       
       if (filters.assignedTo) {
-        query += ' AND assignedTo = ?'
+        query += ' AND assignedTo = $1'
         params.push(filters.assignedTo)
       }
       if (filters.reportedBy) {
-        query += ' AND reportedBy = ?'
+        query += ' AND reportedBy = $1'
         params.push(filters.reportedBy)
       }
       if (filters.status) {
-        query += ' AND status = ?'
+        query += ' AND status = $1'
         params.push(filters.status)
       }
       if (filters.severity) {
-        query += ' AND severity = ?'
+        query += ' AND severity = $1'
         params.push(filters.severity)
       }
       if (filters.category) {
-        query += ' AND category = ?'
+        query += ' AND category = $1'
         params.push(filters.category)
       }
       
       query += ' ORDER BY createdAt DESC'
       
-      const [rows] = await pool.query<RowDataPacket[]>(query, params)
-      return rows
+      const result = await pool.query(query, params)
+      return result.rows
     },
     
     bug: async (_: any, { bugId }: any, { loaders }: any) => {
@@ -177,18 +175,18 @@ export const resolvers = {
     
     // Projects
     projects: async () => {
-      const [rows] = await pool.query<RowDataPacket[]>(
+      const result = await pool.query(
         'SELECT * FROM projects WHERE deletedAt IS NULL ORDER BY projectName'
       )
-      return rows
+      return result.rows
     },
     
     project: async (_: any, { projectId }: any) => {
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM projects WHERE projectId = ? AND deletedAt IS NULL',
+      const result = await pool.query(
+        'SELECT * FROM projects WHERE projectId = $1 AND deletedAt IS NULL',
         [projectId]
       )
-      return rows[0] || null
+      return result.rows[0] || null
     },
     
     // Settings
@@ -198,17 +196,17 @@ export const resolvers = {
         query += ' WHERE isActive = 1'
       }
       query += ' ORDER BY key'
-      
-      const [rows] = await pool.query<RowDataPacket[]>(query)
-      return rows
+
+      const result = await pool.query(query)
+      return result.rows
     },
     
     setting: async (_: any, { key }: any) => {
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM settings WHERE key = ?',
+      const result = await pool.query(
+        'SELECT * FROM settings WHERE key = $1',
         [key]
       )
-      return rows[0] || null
+      return result.rows[0] || null
     },
     
     // Dashboard
@@ -218,30 +216,35 @@ export const resolvers = {
       // Fetch tasks
       let tasksQuery = 'SELECT * FROM tasks WHERE deletedAt IS NULL'
       if (!isManagement) {
-        tasksQuery += ' AND (assignedTo = ? OR assignedBy = ? OR FIND_IN_SET(?, support) > 0)'
+        tasksQuery += ' AND (assignedTo = $1 OR assignedBy = $2 OR $3 = ANY(string_to_array(support::text, ',')))'
       }
       tasksQuery += ' ORDER BY createdAt DESC'
       
       const tasksParams = isManagement ? [] : [employeeId, employeeId, employeeId]
-      const [tasks] = await pool.query<RowDataPacket[]>(tasksQuery, tasksParams)
+      const tasksResult = await pool.query(tasksQuery, tasksParams)
+      const tasks = tasksResult.rows
       
       // Fetch bugs
       let bugsQuery = 'SELECT * FROM bugs WHERE deletedAt IS NULL'
       if (!isManagement) {
-        bugsQuery += ' AND (assignedTo = ? OR reportedBy = ?)'
+        bugsQuery += ' AND (assignedTo = $1 OR reportedBy = $2)'
       }
       bugsQuery += ' ORDER BY createdAt DESC'
       
       const bugsParams = isManagement ? [] : [employeeId, employeeId]
-      const [bugs] = await pool.query<RowDataPacket[]>(bugsQuery, bugsParams)
+      const bugsResult = await pool.query(bugsQuery, bugsParams)
+      const bugs = bugsResult.rows
       
       // Fetch users and settings
-      const [users] = await pool.query<RowDataPacket[]>(
+      const usersResult = await pool.query(
         'SELECT * FROM users WHERE deletedAt IS NULL ORDER BY name'
       )
-      const [settings] = await pool.query<RowDataPacket[]>(
+      const users = usersResult.rows
+
+      const settingsResult = await pool.query(
         'SELECT * FROM settings WHERE isActive = 1 ORDER BY key'
       )
+      const settings = settingsResult.rows
       
       return { tasks, bugs, users, settings }
     }
@@ -250,19 +253,19 @@ export const resolvers = {
   // Field resolvers for User
   User: {
     tasks: async (user: any, _: any, { loaders }: any) => {
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM tasks WHERE assignedTo = ? AND deletedAt IS NULL',
+      const result = await pool.query(
+        'SELECT * FROM tasks WHERE assignedTo = $1 AND deletedAt IS NULL',
         [user.employeeId]
       )
-      return rows
+      return result.rows
     },
     
     bugs: async (user: any, _: any, { loaders }: any) => {
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM bugs WHERE assignedTo = ? AND deletedAt IS NULL',
+      const result = await pool.query(
+        'SELECT * FROM bugs WHERE assignedTo = $1 AND deletedAt IS NULL',
         [user.employeeId]
       )
-      return rows
+      return result.rows
     }
   },
   
@@ -288,11 +291,11 @@ export const resolvers = {
     
     project: async (task: any) => {
       if (!task.projectId) return null
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM projects WHERE projectId = ? AND deletedAt IS NULL',
+      const result = await pool.query(
+        'SELECT * FROM projects WHERE projectId = $1 AND deletedAt IS NULL',
         [task.projectId]
       )
-      return rows[0] || null
+      return result.rows[0] || null
     }
   },
 
@@ -357,11 +360,11 @@ export const resolvers = {
   // Field resolvers for Project
   Project: {
     tasks: async (project: any) => {
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM tasks WHERE projectId = ? AND deletedAt IS NULL',
+      const result = await pool.query(
+        'SELECT * FROM tasks WHERE projectId = $1 AND deletedAt IS NULL',
         [project.projectId]
       )
-      return rows
+      return result.rows
     }
   },
 
@@ -380,11 +383,11 @@ export const resolvers = {
          input.endDate, input.priority, input.estimatedHours, input.selectType, input.recursiveType, input.projectId]
       )
 
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM tasks WHERE taskId = ?',
+      const result = await pool.query(
+        'SELECT * FROM tasks WHERE taskId = $1',
         [taskId]
       )
-      return rows[0]
+      return result.rows[0]
     },
 
     updateTask: async (_: any, { taskId, input }: any) => {
@@ -409,20 +412,20 @@ export const resolvers = {
       params.push(taskId)
 
       await pool.query(
-        `UPDATE tasks SET ${updates.join(', ')} WHERE taskId = ?`,
+        `UPDATE tasks SET ${updates.join(', ')} WHERE taskId = $1`,
         params
       )
 
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM tasks WHERE taskId = ?',
+      const result = await pool.query(
+        'SELECT * FROM tasks WHERE taskId = $1',
         [taskId]
       )
-      return rows[0]
+      return result.rows[0]
     },
 
     deleteTask: async (_: any, { taskId }: any) => {
       await pool.query(
-        'UPDATE tasks SET deletedAt = NOW() WHERE taskId = ?',
+        'UPDATE tasks SET deletedAt = NOW() WHERE taskId = $1',
         [taskId]
       )
       return true
@@ -440,11 +443,11 @@ export const resolvers = {
          input.reportedBy, input.reportedDate, input.estimatedHours]
       )
 
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM bugs WHERE bugId = ?',
+      const result = await pool.query(
+        'SELECT * FROM bugs WHERE bugId = $1',
         [bugId]
       )
-      return rows[0]
+      return result.rows[0]
     },
 
     updateBug: async (_: any, { bugId, input }: any) => {
@@ -466,20 +469,20 @@ export const resolvers = {
       params.push(bugId)
 
       await pool.query(
-        `UPDATE bugs SET ${updates.join(', ')} WHERE bugId = ?`,
+        `UPDATE bugs SET ${updates.join(', ')} WHERE bugId = $1`,
         params
       )
 
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM bugs WHERE bugId = ?',
+      const result = await pool.query(
+        'SELECT * FROM bugs WHERE bugId = $1',
         [bugId]
       )
-      return rows[0]
+      return result.rows[0]
     },
 
     deleteBug: async (_: any, { bugId }: any) => {
       await pool.query(
-        'UPDATE bugs SET deletedAt = NOW() WHERE bugId = ?',
+        'UPDATE bugs SET deletedAt = NOW() WHERE bugId = $1',
         [bugId]
       )
       return true
@@ -496,11 +499,11 @@ export const resolvers = {
         [input.employeeId, input.name, input.email, input.phone, input.department, input.role, hashedPassword]
       )
 
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM users WHERE employeeId = ?',
+      const result = await pool.query(
+        'SELECT * FROM users WHERE employeeId = $1',
         [input.employeeId]
       )
-      return rows[0]
+      return result.rows[0]
     },
 
     updateUser: async (_: any, { employeeId, input }: any) => {
@@ -522,15 +525,15 @@ export const resolvers = {
       params.push(employeeId)
 
       await pool.query(
-        `UPDATE users SET ${updates.join(', ')} WHERE employeeId = ?`,
+        `UPDATE users SET ${updates.join(', ')} WHERE employeeId = $1`,
         params
       )
 
-      const [rows] = await pool.query<RowDataPacket[]>(
-        'SELECT * FROM users WHERE employeeId = ?',
+      const result = await pool.query(
+        'SELECT * FROM users WHERE employeeId = $1',
         [employeeId]
       )
-      return rows[0]
+      return result.rows[0]
     }
   }
 }

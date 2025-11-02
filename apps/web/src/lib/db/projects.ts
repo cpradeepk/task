@@ -17,15 +17,13 @@
 
 import { query, queryOne, withRetry } from './config'
 import { Project } from '../types'
-import { RowDataPacket, ResultSetHeader } from 'mysql2'
-
 /**
  * ProjectRow Interface
  *
  * Represents a project record as it comes from the MySQL database.
  * Database columns use snake_case naming (e.g., project_id, parent_project_id).
  */
-interface ProjectRow extends RowDataPacket {
+interface ProjectRow  {
   id: number
   project_id: string
   project_name: string
@@ -66,7 +64,7 @@ export async function getAllProjects(includeDeleted = false): Promise<Project[]>
   return withRetry(async () => {
     const sql = includeDeleted
       ? 'SELECT * FROM projects ORDER BY parent_project_id IS NOT NULL, project_id'
-      : 'SELECT * FROM projects WHERE status != ? ORDER BY parent_project_id IS NOT NULL, project_id'
+      : 'SELECT * FROM projects WHERE status != $1 ORDER BY parent_project_id IS NOT NULL, project_id'
     
     const params = includeDeleted ? [] : ['Deleted']
     const rows = await query<ProjectRow[]>(sql, params)
@@ -80,7 +78,7 @@ export async function getAllProjects(includeDeleted = false): Promise<Project[]>
 export async function getActiveProjects(): Promise<Project[]> {
   return withRetry(async () => {
     const rows = await query<ProjectRow[]>(
-      'SELECT * FROM projects WHERE status = ? ORDER BY parent_project_id IS NOT NULL, project_id',
+      'SELECT * FROM projects WHERE status = $1 ORDER BY parent_project_id IS NOT NULL, project_id',
       ['Active']
     )
     return rows.map(rowToProject)
@@ -95,8 +93,8 @@ export async function getActiveProjects(): Promise<Project[]> {
 export async function getProjectById(projectId: string, includeDeleted = false): Promise<Project | null> {
   return withRetry(async () => {
     const sql = includeDeleted
-      ? 'SELECT * FROM projects WHERE project_id = ?'
-      : 'SELECT * FROM projects WHERE project_id = ? AND status != ?'
+      ? 'SELECT * FROM projects WHERE project_id = $1'
+      : 'SELECT * FROM projects WHERE project_id = $1 AND status != $2'
     
     const params = includeDeleted ? [projectId] : [projectId, 'Deleted']
     const row = await queryOne<ProjectRow>(sql, params)
@@ -111,7 +109,7 @@ export async function getProjectById(projectId: string, includeDeleted = false):
 export async function getSubProjects(parentProjectId: string): Promise<Project[]> {
   return withRetry(async () => {
     const rows = await query<ProjectRow[]>(
-      'SELECT * FROM projects WHERE parent_project_id = ? AND status != ? ORDER BY project_id',
+      'SELECT * FROM projects WHERE parent_project_id = $1 AND status != $2 ORDER BY project_id',
       [parentProjectId, 'Deleted']
     )
     return rows.map(rowToProject)
@@ -124,7 +122,7 @@ export async function getSubProjects(parentProjectId: string): Promise<Project[]
 export async function getMainProjects(): Promise<Project[]> {
   return withRetry(async () => {
     const rows = await query<ProjectRow[]>(
-      'SELECT * FROM projects WHERE parent_project_id IS NULL AND status != ? ORDER BY project_id',
+      'SELECT * FROM projects WHERE parent_project_id IS NULL AND status != $1 ORDER BY project_id',
       ['Deleted']
     )
     return rows.map(rowToProject)
@@ -159,7 +157,7 @@ export async function getProjectHierarchy(includeDeleted = false): Promise<Proje
 export async function getNextProjectId(): Promise<string> {
   return withRetry(async () => {
     const row = await queryOne<{ max_id: string | null }>(
-      'SELECT MAX(CAST(SUBSTRING(project_id, 5) AS UNSIGNED)) as max_id FROM projects WHERE project_id LIKE ?',
+      'SELECT MAX(CAST(SUBSTRING(project_id FROM 5) AS INTEGER)) as max_id FROM projects WHERE project_id LIKE $1',
       ['PRJ-%']
     )
     
@@ -218,7 +216,7 @@ export async function createProject(
     const projectId = await getNextProjectId()
     
     // Insert project
-    await query<ResultSetHeader>(
+    await query<any>(
       `INSERT INTO projects (
         project_id, project_name, parent_project_id, description, status, created_by
       ) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -291,7 +289,7 @@ export async function updateProject(
     
     values.push(projectId)
     await query(
-      `UPDATE projects SET ${fields.join(', ')} WHERE project_id = ?`,
+      `UPDATE projects SET ${fields.join(', ')} WHERE project_id = $1`,
       values
     )
     
@@ -317,7 +315,7 @@ export async function softDeleteProject(projectId: string, deletedBy: string): P
       throw new Error('Cannot delete project with sub-projects. Delete sub-projects first.')
     }
     
-    const result = await query<ResultSetHeader>(
+    const result = await query<any>(
       `UPDATE projects 
        SET status = 'Deleted', deleted_at = NOW(), deleted_by = ? 
        WHERE project_id = ?`,
@@ -334,7 +332,7 @@ export async function softDeleteProject(projectId: string, deletedBy: string): P
  */
 export async function restoreProject(projectId: string): Promise<boolean> {
   return withRetry(async () => {
-    const result = await query<ResultSetHeader>(
+    const result = await query<any>(
       `UPDATE projects 
        SET status = 'Active', deleted_at = NULL, deleted_by = NULL 
        WHERE project_id = ?`,

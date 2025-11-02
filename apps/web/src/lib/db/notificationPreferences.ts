@@ -146,20 +146,20 @@ function rowToPreferences(row: NotificationPreferencesRow): NotificationPreferen
  */
 export async function getNotificationPreferences(employeeId: string): Promise<NotificationPreferences> {
   const rows = await query<NotificationPreferencesRow[]>(
-    `SELECT * FROM user_notification_preferences WHERE employee_id = ? LIMIT 1`,
+    `SELECT * FROM user_notification_preferences WHERE employee_id = $1 LIMIT 1`,
     [employeeId]
   )
 
   if (rows.length === 0) {
     // Create default preferences
     await query(
-      `INSERT INTO user_notification_preferences (employee_id) VALUES (?)`,
+      `INSERT INTO user_notification_preferences (employee_id) VALUES ($1)`,
       [employeeId]
     )
 
     // Fetch the newly created preferences
     const newRows = await query<NotificationPreferencesRow[]>(
-      `SELECT * FROM user_notification_preferences WHERE employee_id = ? LIMIT 1`,
+      `SELECT * FROM user_notification_preferences WHERE employee_id = $1 LIMIT 1`,
       [employeeId]
     )
 
@@ -224,7 +224,7 @@ export async function updateNotificationPreferences(
   if (updates.length > 0) {
     values.push(employeeId)
     await query(
-      `UPDATE user_notification_preferences SET ${updates.join(', ')} WHERE employee_id = ?`,
+      `UPDATE user_notification_preferences SET ${updates.join(', ')} WHERE employee_id = $1`,
       values
     )
   }
@@ -276,7 +276,7 @@ export async function shouldNotify(
  */
 export async function resetNotificationPreferences(employeeId: string): Promise<NotificationPreferences> {
   await query(
-    `DELETE FROM user_notification_preferences WHERE employee_id = ?`,
+    `DELETE FROM user_notification_preferences WHERE employee_id = $1`,
     [employeeId]
   )
 

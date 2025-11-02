@@ -16,8 +16,6 @@
  */
 
 import { query } from './index'
-import { RowDataPacket } from 'mysql2'
-
 /**
  * Setting interface for the new key-value JSON structure
  */
@@ -87,7 +85,7 @@ export async function getSettingById(id: number): Promise<Setting | null> {
     const sql = `
       SELECT
         id,
-        \`key\`,
+        key,
         value,
         description,
         metadata,
@@ -96,10 +94,10 @@ export async function getSettingById(id: number): Promise<Setting | null> {
         created_at as createdAt,
         updated_at as updatedAt
       FROM settings
-      WHERE id = ?
+      WHERE id = $1
     `
 
-    const results = await query<RowDataPacket[]>(sql, [id])
+    const results = await query<any[]>(sql, [id])
 
     if (results.length === 0) {
       return null
@@ -158,7 +156,7 @@ export async function getSettingByKey(key: string): Promise<Setting | null> {
     const sql = `
       SELECT
         id,
-        \`key\`,
+        key,
         value,
         description,
         metadata,
@@ -167,10 +165,10 @@ export async function getSettingByKey(key: string): Promise<Setting | null> {
         created_at as createdAt,
         updated_at as updatedAt
       FROM settings
-      WHERE \`key\` = ? AND is_active = TRUE
+      WHERE key = $1 AND is_active = TRUE
     `
 
-    const results = await query<RowDataPacket[]>(sql, [key])
+    const results = await query<any[]>(sql, [key])
 
     if (results.length === 0) {
       return null
@@ -245,7 +243,7 @@ export async function getAllSettings(activeOnly: boolean = true): Promise<Settin
     let sql = `
       SELECT
         id,
-        \`key\`,
+        key,
         value,
         description,
         metadata,
@@ -262,9 +260,9 @@ export async function getAllSettings(activeOnly: boolean = true): Promise<Settin
       sql += ' AND is_active = TRUE'
     }
 
-    sql += ' ORDER BY \`key\`'
+    sql += ' ORDER BY key'
 
-    const results = await query<RowDataPacket[]>(sql, params)
+    const results = await query<any[]>(sql, params)
 
     return results.map(row => {
       // Parse value - handle both JSON strings and native MySQL JSON type
@@ -320,16 +318,16 @@ export async function getSettingsByKeys(keys: string[]): Promise<Record<string, 
       return {}
     }
 
-    const placeholders = keys.map(() => '?').join(',')
+    const placeholders = keys.map((_, i) => `$${i + 1}`).join(',')
     const sql = `
       SELECT
-        \`key\`,
+        key,
         value
       FROM settings
-      WHERE \`key\` IN (${placeholders}) AND is_active = TRUE
+      WHERE key IN (${placeholders}) AND is_active = TRUE
     `
 
-    const results = await query<RowDataPacket[]>(sql, keys)
+    const results = await query<any[]>(sql, keys)
 
     const settings: Record<string, any> = {}
     results.forEach(row => {
@@ -351,15 +349,15 @@ export async function getDropdownSettings(): Promise<Record<string, string[]>> {
   try {
     const sql = `
       SELECT
-        \`key\`,
+        key,
         value
       FROM settings
       WHERE is_active = TRUE
-        AND JSON_TYPE(value) = 'ARRAY'
-      ORDER BY \`key\`
+        AND jsonb_typeof(value) = 'array'
+      ORDER BY key
     `
 
-    const results = await query<RowDataPacket[]>(sql)
+    const results = await query<any[]>(sql)
 
     const dropdowns: Record<string, string[]> = {}
     results.forEach(row => {
@@ -383,12 +381,12 @@ export async function createSetting(data: CreateSettingData): Promise<Setting> {
   try {
     const sql = `
       INSERT INTO settings (
-        \`key\`,
+        key,
         value,
         description,
         metadata,
         created_by
-      ) VALUES (?, ?, ?, ?, ?)
+      ) VALUES ($1, $2, $3, $4, $5)
     `
 
     const valueJson = JSON.stringify(data.value)
@@ -431,23 +429,23 @@ export async function updateSetting(id: number, data: UpdateSettingData): Promis
     const params: any[] = []
 
     if (data.value !== undefined) {
-      updates.push('value = ?')
       params.push(JSON.stringify(data.value))
+      updates.push(`value = $${params.length}`)
     }
 
     if (data.description !== undefined) {
-      updates.push('description = ?')
       params.push(data.description)
+      updates.push(`description = $${params.length}`)
     }
 
     if (data.metadata !== undefined) {
-      updates.push('metadata = ?')
       params.push(data.metadata ? JSON.stringify(data.metadata) : null)
+      updates.push(`metadata = $${params.length}`)
     }
 
     if (data.isActive !== undefined) {
-      updates.push('is_active = ?')
       params.push(data.isActive)
+      updates.push(`is_active = $${params.length}`)
     }
 
     if (updates.length === 0) {
@@ -459,7 +457,7 @@ export async function updateSetting(id: number, data: UpdateSettingData): Promis
     const sql = `
       UPDATE settings
       SET ${updates.join(', ')}
-      WHERE id = ?
+      WHERE id = $${params.length}
     `
 
     await query(sql, params)
@@ -485,8 +483,8 @@ export async function updateSettingByKey(key: string, value: any): Promise<Setti
   try {
     const sql = `
       UPDATE settings
-      SET value = ?
-      WHERE \`key\` = ?
+      SET value = $1
+      WHERE key = $2
     `
 
     await query(sql, [JSON.stringify(value), key])
@@ -506,7 +504,7 @@ export async function deleteSetting(id: number): Promise<boolean> {
     const sql = `
       UPDATE settings
       SET is_active = FALSE
-      WHERE id = ?
+      WHERE id = $1
     `
 
     await query(sql, [id])
@@ -525,7 +523,7 @@ export async function deleteSettingByKey(key: string): Promise<boolean> {
     const sql = `
       UPDATE settings
       SET is_active = FALSE
-      WHERE \`key\` = ?
+      WHERE key = $1
     `
 
     await query(sql, [key])
@@ -541,7 +539,7 @@ export async function deleteSettingByKey(key: string): Promise<boolean> {
  */
 export async function permanentlyDeleteSetting(id: number): Promise<boolean> {
   try {
-    const sql = 'DELETE FROM settings WHERE id = ?'
+    const sql = 'DELETE FROM settings WHERE id = $1'
     await query(sql, [id])
     return true
   } catch (error) {

@@ -3,9 +3,7 @@
 
 import { query, queryOne, withRetry } from './config'
 import { WFHApplication } from '../types'
-import { RowDataPacket, ResultSetHeader } from 'mysql2'
-
-interface WFHRow extends RowDataPacket {
+interface WFHRow  {
   id: number
   application_id: string
   employee_id: string
@@ -65,7 +63,7 @@ export async function getAllWFH(): Promise<WFHApplication[]> {
 export async function getWFHById(id: string): Promise<WFHApplication | null> {
   return withRetry(async () => {
     const row = await queryOne<WFHRow>(
-      'SELECT * FROM wfh_applications WHERE application_id = ?',
+      'SELECT * FROM wfh_applications WHERE application_id = $1',
       [id]
     )
     return row ? rowToWFH(row) : null
@@ -76,7 +74,7 @@ export async function getWFHById(id: string): Promise<WFHApplication | null> {
 export async function getWFHByEmployeeId(employeeId: string): Promise<WFHApplication[]> {
   return withRetry(async () => {
     const rows = await query<WFHRow[]>(
-      'SELECT * FROM wfh_applications WHERE employee_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM wfh_applications WHERE employee_id = $1 ORDER BY created_at DESC',
       [employeeId]
     )
     return rows.map(rowToWFH)
@@ -87,7 +85,7 @@ export async function getWFHByEmployeeId(employeeId: string): Promise<WFHApplica
 export async function getWFHByManagerId(managerId: string): Promise<WFHApplication[]> {
   return withRetry(async () => {
     const rows = await query<WFHRow[]>(
-      'SELECT * FROM wfh_applications WHERE manager_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM wfh_applications WHERE manager_id = $1 ORDER BY created_at DESC',
       [managerId]
     )
     return rows.map(rowToWFH)
@@ -98,7 +96,7 @@ export async function getWFHByManagerId(managerId: string): Promise<WFHApplicati
 export async function getWFHByStatus(status: WFHApplication['status']): Promise<WFHApplication[]> {
   return withRetry(async () => {
     const rows = await query<WFHRow[]>(
-      'SELECT * FROM wfh_applications WHERE status = ? ORDER BY created_at DESC',
+      'SELECT * FROM wfh_applications WHERE status = $1 ORDER BY created_at DESC',
       [status]
     )
     return rows.map(rowToWFH)
@@ -109,7 +107,7 @@ export async function getWFHByStatus(status: WFHApplication['status']): Promise<
 export async function getPendingWFHForManager(managerId: string): Promise<WFHApplication[]> {
   return withRetry(async () => {
     const rows = await query<WFHRow[]>(
-      'SELECT * FROM wfh_applications WHERE manager_id = ? AND status = ? ORDER BY created_at',
+      'SELECT * FROM wfh_applications WHERE manager_id = $1 AND status = $2 ORDER BY created_at',
       [managerId, 'Pending']
     )
     return rows.map(rowToWFH)
@@ -119,7 +117,7 @@ export async function getPendingWFHForManager(managerId: string): Promise<WFHApp
 // Create WFH application
 export async function createWFH(wfh: Omit<WFHApplication, 'createdAt' | 'updatedAt'>): Promise<WFHApplication> {
   return withRetry(async () => {
-    await query<ResultSetHeader>(
+    await query<any>(
       `INSERT INTO wfh_applications (
         application_id, employee_id, employee_name, wfh_type, reason,
         from_date, to_date, work_location, available_from, available_to,
@@ -185,7 +183,7 @@ export async function updateWFH(id: string, updates: Partial<WFHApplication>): P
 
     values.push(id)
     await query(
-      `UPDATE wfh_applications SET ${fields.join(', ')} WHERE application_id = ?`,
+      `UPDATE wfh_applications SET ${fields.join(', ')} WHERE application_id = $1`,
       values
     )
 
@@ -220,8 +218,8 @@ export async function rejectWFH(id: string, rejectedBy: string, remarks?: string
 // Delete WFH application
 export async function deleteWFH(id: string): Promise<boolean> {
   return withRetry(async () => {
-    const result = await query<ResultSetHeader>(
-      'DELETE FROM wfh_applications WHERE application_id = ?',
+    const result = await query<any>(
+      'DELETE FROM wfh_applications WHERE application_id = $1',
       [id]
     )
     return result.affectedRows > 0

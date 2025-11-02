@@ -3,9 +3,7 @@
 
 import { query, queryOne, withRetry } from './config'
 import { User } from '../types'
-import { RowDataPacket, ResultSetHeader } from 'mysql2'
-
-interface UserRow extends RowDataPacket {
+interface UserRow  {
   id: number
   employee_id: string
   name: string
@@ -51,7 +49,7 @@ function rowToUser(row: UserRow): User {
 export async function getAllUsers(): Promise<User[]> {
   return withRetry(async () => {
     const rows = await query<UserRow[]>(
-      'SELECT * FROM users WHERE status = ? ORDER BY name',
+      'SELECT * FROM users WHERE status = $1 ORDER BY name',
       ['active']
     )
     return rows.map(rowToUser)
@@ -62,7 +60,7 @@ export async function getAllUsers(): Promise<User[]> {
 export async function getUserByEmployeeId(employeeId: string): Promise<User | null> {
   return withRetry(async () => {
     const row = await queryOne<UserRow>(
-      'SELECT * FROM users WHERE employee_id = ?',
+      'SELECT * FROM users WHERE employee_id = $1',
       [employeeId]
     )
     return row ? rowToUser(row) : null
@@ -73,7 +71,7 @@ export async function getUserByEmployeeId(employeeId: string): Promise<User | nu
 export async function getUserByEmail(email: string): Promise<User | null> {
   return withRetry(async () => {
     const row = await queryOne<UserRow>(
-      'SELECT * FROM users WHERE email = ?',
+      'SELECT * FROM users WHERE email = $1',
       [email]
     )
     return row ? rowToUser(row) : null
@@ -84,7 +82,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 export async function getUsersByManagerId(managerId: string): Promise<User[]> {
   return withRetry(async () => {
     const rows = await query<UserRow[]>(
-      'SELECT * FROM users WHERE manager_id = ? AND status = ? ORDER BY name',
+      'SELECT * FROM users WHERE manager_id = $1 AND status = $2 ORDER BY name',
       [managerId, 'active']
     )
     return rows.map(rowToUser)
@@ -95,7 +93,7 @@ export async function getUsersByManagerId(managerId: string): Promise<User[]> {
 export async function getUsersByDepartment(department: string): Promise<User[]> {
   return withRetry(async () => {
     const rows = await query<UserRow[]>(
-      'SELECT * FROM users WHERE department = ? AND status = ? ORDER BY name',
+      'SELECT * FROM users WHERE department = $1 AND status = $2 ORDER BY name',
       [department, 'active']
     )
     return rows.map(rowToUser)
@@ -110,20 +108,19 @@ export async function getUsersByEmployeeIds(employeeIds: string[]): Promise<User
     const ids = Array.from(new Set(employeeIds)).filter(Boolean)
     if (ids.length === 0) return []
 
-    const placeholders = ids.map(() => '?').join(',')
+    const placeholders = ids.map(() => '$1').join(',')
     const rows = await query<UserRow[]>(
-      `SELECT * FROM users WHERE employee_id IN (${placeholders}) AND status = ? ORDER BY name`,
+      `SELECT * FROM users WHERE employee_id IN (${placeholders}) AND status = $1 ORDER BY name`,
       [...ids, 'active']
     )
     return rows.map(rowToUser)
   })
 }
 
-
 // Create a new user
 export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): Promise<User> {
   return withRetry(async () => {
-    const result = await query<ResultSetHeader>(
+    const result = await query<any>(
       `INSERT INTO users (
         employee_id, name, email, phone, telegram_token, department,
         manager_email, manager_id, is_today_task, warning_count, role,
@@ -234,7 +231,7 @@ export async function updateUser(employeeId: string, updates: Partial<User>): Pr
 
     values.push(employeeId)
     await query(
-      `UPDATE users SET ${fields.join(', ')} WHERE employee_id = ?`,
+      `UPDATE users SET ${fields.join(', ')} WHERE employee_id = $1`,
       values
     )
 
@@ -254,8 +251,8 @@ export async function deleteUser(employeeId: string): Promise<boolean> {
       throw new Error('Cannot delete system admin user')
     }
 
-    const result = await query<ResultSetHeader>(
-      'UPDATE users SET status = ? WHERE employee_id = ?',
+    const result = await query<any>(
+      'UPDATE users SET status = $1 WHERE employee_id = $2',
       ['inactive', employeeId]
     )
     return result.affectedRows > 0
@@ -266,7 +263,7 @@ export async function deleteUser(employeeId: string): Promise<boolean> {
 export async function incrementWarningCount(employeeId: string): Promise<User> {
   return withRetry(async () => {
     await query(
-      'UPDATE users SET warning_count = warning_count + 1 WHERE employee_id = ?',
+      'UPDATE users SET warning_count = warning_count + 1 WHERE employee_id = $1',
       [employeeId]
     )
     const user = await getUserByEmployeeId(employeeId)
@@ -279,7 +276,7 @@ export async function incrementWarningCount(employeeId: string): Promise<User> {
 export async function resetWarningCount(employeeId: string): Promise<User> {
   return withRetry(async () => {
     await query(
-      'UPDATE users SET warning_count = 0 WHERE employee_id = ?',
+      'UPDATE users SET warning_count = 0 WHERE employee_id = $1',
       [employeeId]
     )
     const user = await getUserByEmployeeId(employeeId)
@@ -292,7 +289,7 @@ export async function resetWarningCount(employeeId: string): Promise<User> {
 export async function authenticateUser(employeeId: string, password: string): Promise<User | null> {
   return withRetry(async () => {
     const row = await queryOne<UserRow>(
-      'SELECT * FROM users WHERE employee_id = ? AND password = ? AND status = ?',
+      'SELECT * FROM users WHERE employee_id = $1 AND password = $2 AND status = $3',
       [employeeId, password, 'active']
     )
     return row ? rowToUser(row) : null

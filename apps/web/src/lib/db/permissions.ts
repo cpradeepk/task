@@ -94,7 +94,7 @@ export async function getAllRolePermissions(): Promise<RolePermission[]> {
  */
 export async function getRolePermissions(role: string): Promise<RolePermission[]> {
   const rows = await query<RolePermissionRow[]>(
-    `SELECT * FROM role_permissions WHERE role = ? ORDER BY feature_key`,
+    `SELECT * FROM role_permissions WHERE role = $1 ORDER BY feature_key`,
     [role]
   )
 
@@ -118,7 +118,7 @@ export async function getRolePermissions(role: string): Promise<RolePermission[]
  */
 export async function getUserPermissions(employeeId: string): Promise<UserPermission[]> {
   const rows = await query<UserPermissionRow[]>(
-    `SELECT * FROM user_permissions WHERE employee_id = ? ORDER BY feature_key`,
+    `SELECT * FROM user_permissions WHERE employee_id = $1 ORDER BY feature_key`,
     [employeeId]
   )
 
@@ -146,7 +146,7 @@ export async function getEffectivePermissions(
 ): Promise<Permission> {
   // Get role permission
   const rolePerms = await query<RolePermissionRow[]>(
-    `SELECT * FROM role_permissions WHERE role = ? AND feature_key = ? LIMIT 1`,
+    `SELECT * FROM role_permissions WHERE role = $1 AND feature_key = $2 LIMIT 1`,
     [role, featureKey]
   )
 
@@ -171,7 +171,7 @@ export async function getEffectivePermissions(
 
   // Get user-specific overrides
   const userPerms = await query<UserPermissionRow[]>(
-    `SELECT * FROM user_permissions WHERE employee_id = ? AND feature_key = ? LIMIT 1`,
+    `SELECT * FROM user_permissions WHERE employee_id = $1 AND feature_key = $2 LIMIT 1`,
     [employeeId, featureKey]
   )
 
@@ -225,7 +225,7 @@ export async function updateRolePermission(
   values.push(role, featureKey)
 
   await query(
-    `UPDATE role_permissions SET ${updates.join(', ')} WHERE role = ? AND feature_key = ?`,
+    `UPDATE role_permissions SET ${updates.join(', ')} WHERE role = $1 AND feature_key = $2`,
     values
   )
 }
@@ -240,7 +240,7 @@ export async function setUserPermission(
 ): Promise<void> {
   // Check if user permission override exists
   const existing = await query<UserPermissionRow[]>(
-    `SELECT id FROM user_permissions WHERE employee_id = ? AND feature_key = ? LIMIT 1`,
+    `SELECT id FROM user_permissions WHERE employee_id = $1 AND feature_key = $2 LIMIT 1`,
     [employeeId, featureKey]
   )
 
@@ -275,7 +275,7 @@ export async function setUserPermission(
     values.push(employeeId, featureKey)
 
     await query(
-      `UPDATE user_permissions SET ${updates.join(', ')} WHERE employee_id = ? AND feature_key = ?`,
+      `UPDATE user_permissions SET ${updates.join(', ')} WHERE employee_id = $1 AND feature_key = $2`,
       values
     )
   } else {
@@ -301,7 +301,7 @@ export async function setUserPermission(
  */
 export async function removeUserPermission(employeeId: string, featureKey: string): Promise<void> {
   await query(
-    `DELETE FROM user_permissions WHERE employee_id = ? AND feature_key = ?`,
+    `DELETE FROM user_permissions WHERE employee_id = $1 AND feature_key = $2`,
     [employeeId, featureKey]
   )
 }

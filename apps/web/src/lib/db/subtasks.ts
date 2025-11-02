@@ -71,7 +71,7 @@ export async function getAllSubTasksIncludingDeleted(parentTaskId: string): Prom
  */
 export async function getSubTaskById(id: number): Promise<SubTask | null> {
   const row = await queryOne<SubTaskRow>(
-    'SELECT * FROM subtasks WHERE id = ? AND deleted_at IS NULL',
+    'SELECT * FROM subtasks WHERE id = $1 AND deleted_at IS NULL',
     [id]
   )
   return row ? rowToSubTask(row) : null
@@ -162,7 +162,7 @@ export async function updateSubTask(
   values.push(id)
 
   await query(
-    `UPDATE subtasks SET ${updates.join(', ')} WHERE id = ? AND deleted_at IS NULL`,
+    `UPDATE subtasks SET ${updates.join(', ')} WHERE id = $1 AND deleted_at IS NULL`,
     values
   )
 
@@ -178,7 +178,7 @@ export async function updateSubTask(
  */
 export async function softDeleteSubTask(id: number, deletedBy: string): Promise<void> {
   await query(
-    'UPDATE subtasks SET deleted_at = NOW(), deleted_by = ? WHERE id = ?',
+    'UPDATE subtasks SET deleted_at = NOW(), deleted_by = $1 WHERE id = $2',
     [deletedBy, id]
   )
 }
@@ -188,7 +188,7 @@ export async function softDeleteSubTask(id: number, deletedBy: string): Promise<
  */
 export async function restoreSubTask(id: number): Promise<SubTask> {
   await query(
-    'UPDATE subtasks SET deleted_at = NULL, deleted_by = NULL WHERE id = ?',
+    'UPDATE subtasks SET deleted_at = NULL, deleted_by = NULL WHERE id = $1',
     [id]
   )
 
@@ -203,7 +203,7 @@ export async function restoreSubTask(id: number): Promise<SubTask> {
  * Hard delete a subtask (permanent deletion - use with caution!)
  */
 export async function hardDeleteSubTask(id: number): Promise<void> {
-  await query('DELETE FROM subtasks WHERE id = ?', [id])
+  await query('DELETE FROM subtasks WHERE id = $1', [id])
 }
 
 /**
@@ -216,7 +216,7 @@ export async function reorderSubTasks(
   // Update display_order for each subtask
   for (let i = 0; i < subtaskIds.length; i++) {
     await query(
-      'UPDATE subtasks SET display_order = ? WHERE id = ? AND parent_task_id = ?',
+      'UPDATE subtasks SET display_order = $1 WHERE id = $2 AND parent_task_id = $3',
       [i, subtaskIds[i], parentTaskId]
     )
   }
@@ -277,7 +277,7 @@ export async function deleteSubTasksByParentTaskId(
   deletedBy: string
 ): Promise<void> {
   await query(
-    'UPDATE subtasks SET deleted_at = NOW(), deleted_by = ? WHERE parent_task_id = ?',
+    'UPDATE subtasks SET deleted_at = NOW(), deleted_by = $1 WHERE parent_task_id = $2',
     [deletedBy, parentTaskId]
   )
 }

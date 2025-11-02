@@ -2,8 +2,6 @@
 // Server-side only - do not use 'use client'
 
 import { query, withRetry, withTimeout } from './config'
-import { ResultSetHeader, RowDataPacket } from 'mysql2'
-
 /**
  * Activity Log Entry Interface
  * Represents a single activity or comment in the unified timeline
@@ -78,7 +76,7 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
     const istTimestamp = istTime.toISOString().slice(0, 19).replace('T', ' ') // Format: YYYY-MM-DD HH:MM:SS
 
     const result = await withTimeout(
-      query<ResultSetHeader>(
+      query<any>(
         `INSERT INTO activity_log (
           entity_type, entity_id, user_id, action_type,
           field_name, old_value, new_value, description, is_comment, created_at
@@ -119,7 +117,7 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
 export async function getActivityLogById(id: number): Promise<ActivityLog | null> {
   return withRetry(async () => {
     const rows = await withTimeout(
-      query<(RowDataPacket & ActivityLog)[]>(
+      query<ActivityLog[]>(
         `SELECT 
           al.id,
           al.entity_type as entityType,
@@ -168,7 +166,7 @@ export async function getActivityLogByEntity(
     const order = sortOrder === 'asc' ? 'ASC' : 'DESC'
     
     const rows = await withTimeout(
-      query<(RowDataPacket & ActivityLog)[]>(
+      query<ActivityLog[]>(
         `SELECT 
           al.id,
           al.entity_type as entityType,
@@ -213,7 +211,7 @@ export async function getCommentsByEntity(
     const order = sortOrder === 'asc' ? 'ASC' : 'DESC'
     
     const rows = await withTimeout(
-      query<(RowDataPacket & ActivityLog)[]>(
+      query<ActivityLog[]>(
         `SELECT 
           al.id,
           al.entity_type as entityType,
@@ -258,7 +256,7 @@ export async function getSystemActivitiesByEntity(
     const order = sortOrder === 'asc' ? 'ASC' : 'DESC'
     
     const rows = await withTimeout(
-      query<(RowDataPacket & ActivityLog)[]>(
+      query<ActivityLog[]>(
         `SELECT 
           al.id,
           al.entity_type as entityType,
@@ -311,8 +309,8 @@ export async function deleteActivityLog(id: number, userId: string): Promise<boo
     }
 
     const result = await withTimeout(
-      query<ResultSetHeader>(
-        'DELETE FROM activity_log WHERE id = ? AND user_id = ? AND is_comment = TRUE',
+      query<any>(
+        'DELETE FROM activity_log WHERE id = $1 AND user_id = $2 AND is_comment = TRUE',
         [id, userId]
       ),
       10000,

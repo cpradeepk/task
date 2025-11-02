@@ -73,7 +73,7 @@ export async function getBugSubTasksByParentBugId(parentBugId: string): Promise<
  */
 export async function getBugSubTaskById(id: number): Promise<BugSubTask | null> {
   const row = await queryOne<BugSubTaskRow>(
-    'SELECT * FROM bug_subtasks WHERE id = ? AND deleted_at IS NULL',
+    'SELECT * FROM bug_subtasks WHERE id = $1 AND deleted_at IS NULL',
     [id]
   )
   return row ? rowToBugSubTask(row) : null
@@ -164,7 +164,7 @@ export async function updateBugSubTask(
   values.push(id)
 
   await query(
-    `UPDATE bug_subtasks SET ${updates.join(', ')} WHERE id = ?`,
+    `UPDATE bug_subtasks SET ${updates.join(', ')} WHERE id = $1`,
     values
   )
 
@@ -199,7 +199,7 @@ export async function restoreBugSubTask(id: number): Promise<BugSubTask> {
   )
 
   const restoredBugSubTask = await queryOne<BugSubTaskRow>(
-    'SELECT * FROM bug_subtasks WHERE id = ?',
+    'SELECT * FROM bug_subtasks WHERE id = $1',
     [id]
   )
 

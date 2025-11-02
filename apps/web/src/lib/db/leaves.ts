@@ -3,9 +3,7 @@
 
 import { query, queryOne, withRetry } from './config'
 import { LeaveApplication } from '../types'
-import { RowDataPacket, ResultSetHeader } from 'mysql2'
-
-interface LeaveRow extends RowDataPacket {
+interface LeaveRow  {
   id: number
   application_id: string
   employee_id: string
@@ -61,7 +59,7 @@ export async function getAllLeaves(): Promise<LeaveApplication[]> {
 export async function getLeaveById(id: string): Promise<LeaveApplication | null> {
   return withRetry(async () => {
     const row = await queryOne<LeaveRow>(
-      'SELECT * FROM leave_applications WHERE application_id = ?',
+      'SELECT * FROM leave_applications WHERE application_id = $1',
       [id]
     )
     return row ? rowToLeave(row) : null
@@ -72,7 +70,7 @@ export async function getLeaveById(id: string): Promise<LeaveApplication | null>
 export async function getLeavesByEmployeeId(employeeId: string): Promise<LeaveApplication[]> {
   return withRetry(async () => {
     const rows = await query<LeaveRow[]>(
-      'SELECT * FROM leave_applications WHERE employee_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM leave_applications WHERE employee_id = $1 ORDER BY created_at DESC',
       [employeeId]
     )
     return rows.map(rowToLeave)
@@ -83,7 +81,7 @@ export async function getLeavesByEmployeeId(employeeId: string): Promise<LeaveAp
 export async function getLeavesByManagerId(managerId: string): Promise<LeaveApplication[]> {
   return withRetry(async () => {
     const rows = await query<LeaveRow[]>(
-      'SELECT * FROM leave_applications WHERE manager_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM leave_applications WHERE manager_id = $1 ORDER BY created_at DESC',
       [managerId]
     )
     return rows.map(rowToLeave)
@@ -94,7 +92,7 @@ export async function getLeavesByManagerId(managerId: string): Promise<LeaveAppl
 export async function getLeavesByStatus(status: LeaveApplication['status']): Promise<LeaveApplication[]> {
   return withRetry(async () => {
     const rows = await query<LeaveRow[]>(
-      'SELECT * FROM leave_applications WHERE status = ? ORDER BY created_at DESC',
+      'SELECT * FROM leave_applications WHERE status = $1 ORDER BY created_at DESC',
       [status]
     )
     return rows.map(rowToLeave)
@@ -105,7 +103,7 @@ export async function getLeavesByStatus(status: LeaveApplication['status']): Pro
 export async function getPendingLeavesForManager(managerId: string): Promise<LeaveApplication[]> {
   return withRetry(async () => {
     const rows = await query<LeaveRow[]>(
-      'SELECT * FROM leave_applications WHERE manager_id = ? AND status = ? ORDER BY created_at',
+      'SELECT * FROM leave_applications WHERE manager_id = $1 AND status = $2 ORDER BY created_at',
       [managerId, 'Pending']
     )
     return rows.map(rowToLeave)
@@ -115,7 +113,7 @@ export async function getPendingLeavesForManager(managerId: string): Promise<Lea
 // Create leave application
 export async function createLeave(leave: Omit<LeaveApplication, 'createdAt' | 'updatedAt'>): Promise<LeaveApplication> {
   return withRetry(async () => {
-    await query<ResultSetHeader>(
+    await query<any>(
       `INSERT INTO leave_applications (
         application_id, employee_id, employee_name, leave_type, reason,
         from_date, to_date, is_half_day, emergency_contact, status,
@@ -178,7 +176,7 @@ export async function updateLeave(id: string, updates: Partial<LeaveApplication>
 
     values.push(id)
     await query(
-      `UPDATE leave_applications SET ${fields.join(', ')} WHERE application_id = ?`,
+      `UPDATE leave_applications SET ${fields.join(', ')} WHERE application_id = $1`,
       values
     )
 
@@ -213,8 +211,8 @@ export async function rejectLeave(id: string, rejectedBy: string, remarks?: stri
 // Delete leave application
 export async function deleteLeave(id: string): Promise<boolean> {
   return withRetry(async () => {
-    const result = await query<ResultSetHeader>(
-      'DELETE FROM leave_applications WHERE application_id = ?',
+    const result = await query<any>(
+      'DELETE FROM leave_applications WHERE application_id = $1',
       [id]
     )
     return result.affectedRows > 0

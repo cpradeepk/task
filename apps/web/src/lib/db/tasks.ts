@@ -3,9 +3,7 @@
 
 import { query, queryOne, withRetry } from './config'
 import { Task } from '../types'
-import { RowDataPacket, ResultSetHeader } from 'mysql2'
-
-interface TaskRow extends RowDataPacket {
+interface TaskRow  {
   id: number
   task_id: string
   internal_id: string
@@ -112,7 +110,7 @@ export async function getAllTasks(): Promise<Task[]> {
 export async function getTaskById(id: string): Promise<Task | null> {
   return withRetry(async () => {
     const row = await queryOne<TaskRow>(
-      'SELECT * FROM tasks WHERE internal_id = ? OR task_id = ?',
+      'SELECT * FROM tasks WHERE internal_id = $1 OR task_id = $2',
       [id, id]
     )
     return row ? rowToTask(row) : null
@@ -123,7 +121,7 @@ export async function getTaskById(id: string): Promise<Task | null> {
 export async function getTasksByEmployeeId(employeeId: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE assigned_to = ? ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE assigned_to = $1 ORDER BY created_at DESC',
       [employeeId]
     )
     return rows.map(rowToTask)
@@ -134,7 +132,7 @@ export async function getTasksByEmployeeId(employeeId: string): Promise<Task[]> 
 export async function getTasksAssignedBy(employeeId: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE assigned_by = ? ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE assigned_by = $1 ORDER BY created_at DESC',
       [employeeId]
     )
     return rows.map(rowToTask)
@@ -145,7 +143,7 @@ export async function getTasksAssignedBy(employeeId: string): Promise<Task[]> {
 export async function getTasksByStatus(status: Task['status']): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE status = $1 ORDER BY created_at DESC',
       [status]
     )
     return rows.map(rowToTask)
@@ -156,7 +154,7 @@ export async function getTasksByStatus(status: Task['status']): Promise<Task[]> 
 export async function getTasksByDateRange(startDate: string, endDate: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE start_date >= ? AND end_date <= ? ORDER BY start_date',
+      'SELECT * FROM tasks WHERE start_date >= $1 AND end_date <= $2 ORDER BY start_date',
       [startDate, endDate]
     )
     return rows.map(rowToTask)
@@ -167,7 +165,7 @@ export async function getTasksByDateRange(startDate: string, endDate: string): P
 export async function getSupportTasksForEmployee(employeeId: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE JSON_CONTAINS(support, ?) ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE JSON_CONTAINS(support, $1) ORDER BY created_at DESC',
       [JSON.stringify(employeeId)]
     )
     return rows.map(rowToTask)
@@ -178,7 +176,7 @@ export async function getSupportTasksForEmployee(employeeId: string): Promise<Ta
 export async function getTasksByProject(projectId: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE project_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE project_id = $1 ORDER BY created_at DESC',
       [projectId]
     )
     return rows.map(rowToTask)
@@ -188,7 +186,7 @@ export async function getTasksByProject(projectId: string): Promise<Task[]> {
 // Get the latest task ID for sequential ID generation
 export async function getLatestTaskId(): Promise<string | undefined> {
   return withRetry(async () => {
-    const rows = await query<RowDataPacket[]>(
+    const rows = await query<any[]>(
       `SELECT task_id FROM tasks
        WHERE deleted_at IS NULL
        ORDER BY created_at DESC
@@ -201,7 +199,7 @@ export async function getLatestTaskId(): Promise<string | undefined> {
 // Create a new task
 export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> {
   return withRetry(async () => {
-    await query<ResultSetHeader>(
+    await query<any>(
       `INSERT INTO tasks (
         internal_id, task_id, select_type, recursive_type, description,
         assigned_to, assigned_by, support, start_date, end_date, priority,
@@ -317,7 +315,7 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
 
     values.push(id, id)
     await query(
-      `UPDATE tasks SET ${fields.join(', ')} WHERE internal_id = ? OR task_id = ?`,
+      `UPDATE tasks SET ${fields.join(', ')} WHERE internal_id = $1 OR task_id = $2`,
       values
     )
 
@@ -332,8 +330,8 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
 // Delete task
 export async function deleteTask(id: string): Promise<boolean> {
   return withRetry(async () => {
-    const result = await query<ResultSetHeader>(
-      'DELETE FROM tasks WHERE internal_id = ? OR task_id = ?',
+    const result = await query<any>(
+      'DELETE FROM tasks WHERE internal_id = $1 OR task_id = $2',
       [id, id]
     )
     return result.affectedRows > 0
