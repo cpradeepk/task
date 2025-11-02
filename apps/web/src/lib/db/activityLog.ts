@@ -80,7 +80,7 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
         `INSERT INTO activity_log (
           entity_type, entity_id, user_id, action_type,
           field_name, old_value, new_value, description, is_comment, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
         [
           input.entityType,
           input.entityId,
@@ -118,7 +118,7 @@ export async function getActivityLogById(id: number): Promise<ActivityLog | null
   return withRetry(async () => {
     const rows = await withTimeout(
       query<ActivityLog[]>(
-        `SELECT 
+        `SELECT
           al.id,
           al.entity_type as entityType,
           al.entity_id as entityId,
@@ -133,7 +133,7 @@ export async function getActivityLogById(id: number): Promise<ActivityLog | null
           al.created_at as createdAt
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
-        WHERE al.id = ?`,
+        WHERE al.id = $1`,
         [id]
       ),
       10000,
@@ -167,7 +167,7 @@ export async function getActivityLogByEntity(
     
     const rows = await withTimeout(
       query<ActivityLog[]>(
-        `SELECT 
+        `SELECT
           al.id,
           al.entity_type as entityType,
           al.entity_id as entityId,
@@ -182,7 +182,7 @@ export async function getActivityLogByEntity(
           al.created_at as createdAt
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
-        WHERE al.entity_type = ? AND al.entity_id = ?
+        WHERE al.entity_type = $1 AND al.entity_id = $2
         ORDER BY al.created_at ${order}`,
         [entityType, entityId]
       ),
@@ -212,7 +212,7 @@ export async function getCommentsByEntity(
     
     const rows = await withTimeout(
       query<ActivityLog[]>(
-        `SELECT 
+        `SELECT
           al.id,
           al.entity_type as entityType,
           al.entity_id as entityId,
@@ -227,7 +227,7 @@ export async function getCommentsByEntity(
           al.created_at as createdAt
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
-        WHERE al.entity_type = ? AND al.entity_id = ? AND al.is_comment = TRUE
+        WHERE al.entity_type = $1 AND al.entity_id = $2 AND al.is_comment = TRUE
         ORDER BY al.created_at ${order}`,
         [entityType, entityId]
       ),
@@ -257,7 +257,7 @@ export async function getSystemActivitiesByEntity(
     
     const rows = await withTimeout(
       query<ActivityLog[]>(
-        `SELECT 
+        `SELECT
           al.id,
           al.entity_type as entityType,
           al.entity_id as entityId,
@@ -272,7 +272,7 @@ export async function getSystemActivitiesByEntity(
           al.created_at as createdAt
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
-        WHERE al.entity_type = ? AND al.entity_id = ? AND al.is_comment = FALSE
+        WHERE al.entity_type = $1 AND al.entity_id = $2 AND al.is_comment = FALSE
         ORDER BY al.created_at ${order}`,
         [entityType, entityId]
       ),

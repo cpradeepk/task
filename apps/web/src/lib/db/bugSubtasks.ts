@@ -61,7 +61,7 @@ function rowToBugSubTask(row: BugSubTaskRow): BugSubTask {
 export async function getBugSubTasksByParentBugId(parentBugId: string): Promise<BugSubTask[]> {
   const rows = await query<BugSubTaskRow[]>(
     `SELECT * FROM bug_subtasks
-     WHERE parent_bug_id = ? AND deleted_at IS NULL
+     WHERE parent_bug_id = $1 AND deleted_at IS NULL
      ORDER BY display_order ASC, created_at ASC`,
     [parentBugId]
   )
@@ -93,9 +93,9 @@ export async function createBugSubTask(data: {
 }): Promise<BugSubTask> {
   const result = await query(
     `INSERT INTO bug_subtasks (
-      parent_bug_id, description, assigned_to, status, 
+      parent_bug_id, description, assigned_to, status,
       is_completed, display_order, created_by
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
     [
       data.parentBugId,
       data.description,
@@ -107,7 +107,7 @@ export async function createBugSubTask(data: {
     ]
   )
 
-  const insertId = (result as any).insertId
+  const insertId = (result as any).rows?.[0]?.id || (result as any)[0]?.id
   const newBugSubTask = await getBugSubTaskById(insertId)
   if (!newBugSubTask) {
     throw new Error('Failed to retrieve created bug subtask')
@@ -130,30 +130,31 @@ export async function updateBugSubTask(
 ): Promise<BugSubTask> {
   const updates: string[] = []
   const values: any[] = []
+  let paramIndex = 1
 
   if (data.description !== undefined) {
-    updates.push('description = ?')
+    updates.push(`description = $${paramIndex++}`)
     values.push(data.description)
   }
   if (data.assignedTo !== undefined) {
-    updates.push('assigned_to = ?')
+    updates.push(`assigned_to = $${paramIndex++}`)
     values.push(data.assignedTo)
   }
   if (data.status !== undefined) {
-    updates.push('status = ?')
+    updates.push(`status = $${paramIndex++}`)
     values.push(data.status)
   }
   if (data.isCompleted !== undefined) {
-    updates.push('is_completed = ?')
+    updates.push(`is_completed = $${paramIndex++}`)
     values.push(data.isCompleted ? 1 : 0)
     // Auto-update status based on completion
     if (data.isCompleted) {
-      updates.push('status = ?')
+      updates.push(`status = $${paramIndex++}`)
       values.push('Completed')
     }
   }
   if (data.displayOrder !== undefined) {
-    updates.push('display_order = ?')
+    updates.push(`display_order = $${paramIndex++}`)
     values.push(data.displayOrder)
   }
 
@@ -164,7 +165,7 @@ export async function updateBugSubTask(
   values.push(id)
 
   await query(
-    `UPDATE bug_subtasks SET ${updates.join(', ')} WHERE id = $1`,
+    `UPDATE bug_subtasks SET ${updates.join(', ')} WHERE id = $${paramIndex}`,
     values
   )
 
@@ -180,9 +181,9 @@ export async function updateBugSubTask(
  */
 export async function softDeleteBugSubTask(id: number, deletedBy: string): Promise<void> {
   await query(
-    `UPDATE bug_subtasks 
-     SET deleted_at = NOW(), deleted_by = ? 
-     WHERE id = ?`,
+    `UPDATE bug_subtasks
+     SET deleted_at = NOW(), deleted_by = $1
+     WHERE id = $2`,
     [deletedBy, id]
   )
 }
@@ -192,9 +193,9 @@ export async function softDeleteBugSubTask(id: number, deletedBy: string): Promi
  */
 export async function restoreBugSubTask(id: number): Promise<BugSubTask> {
   await query(
-    `UPDATE bug_subtasks 
-     SET deleted_at = NULL, deleted_by = NULL 
-     WHERE id = ?`,
+    `UPDATE bug_subtasks
+     SET deleted_at = NULL, deleted_by = NULL
+     WHERE id = $1`,
     [id]
   )
 
@@ -220,13 +221,13 @@ export async function getBugSubTaskCount(parentBugId: string): Promise<{
   completed: number
 }> {
   const rows = await query<any[]>(
-    `SELECT 
+    `SELECT
       COUNT(*) as total,
       SUM(CASE WHEN status = 'Not Started' THEN 1 ELSE 0 END) as notStarted,
       SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as inProgress,
       SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) as completed
      FROM bug_subtasks
-     WHERE parent_bug_id = ? AND deleted_at IS NULL`,
+     WHERE parent_bug_id = $1 AND deleted_at IS NULL`,
     [parentBugId]
   )
 
@@ -246,9 +247,9 @@ export async function reorderBugSubTasks(parentBugId: string, subtaskIds: number
   // Update display_order for each subtask
   const promises = subtaskIds.map((id, index) =>
     query(
-      `UPDATE bug_subtasks 
-       SET display_order = ? 
-       WHERE id = ? AND parent_bug_id = ?`,
+      `UPDATE bug_subtasks
+       SET display_order = $1
+       WHERE id = $2 AND parent_bug_id = $3`,
       [index, id, parentBugId]
     )
   )

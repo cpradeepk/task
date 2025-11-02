@@ -240,7 +240,7 @@ export async function getSubTaskCount(parent_task_id: string): Promise<{
   }>(
     `SELECT
       COUNT(*) as total,
-      SUM(CASE WHEN is_completed = true THEN 1 ELSE 0 END) as completed,
+      SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as completed,
       SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress,
       SUM(CASE WHEN status = 'Not Started' THEN 1 ELSE 0 END) as not_started
     FROM subtasks
