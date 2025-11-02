@@ -205,20 +205,20 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         assigned_to, assigned_by, support, start_date, end_date, priority,
         estimated_hours, actual_hours, daily_hours, status, remarks,
         difficulties, project_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
       [
-        task.task_id, // internal_id is same as task_id
-        task.task_id,
-        task.select_type,
+        task.taskId, // internal_id is same as task_id
+        task.taskId,
+        task.selectType,
         task.recursiveType || null,
         task.description,
-        task.assigned_to,
-        task.assigned_by,
+        task.assignedTo,
+        task.assignedBy,
         JSON.stringify(task.support || []),
-        task.start_date,
-        task.end_date,
+        task.startDate,
+        task.endDate,
         task.priority,
-        task.estimated_hours,
+        task.estimatedHours,
         task.actualHours || 0,
         task.dailyHours || '{}',
         task.status,
@@ -228,7 +228,7 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
       ]
     )
 
-    const createdTask = await getTaskById(task.task_id)
+    const createdTask = await getTaskById(task.taskId)
     if (!createdTask) {
       throw new Error('Failed to retrieve created task')
     }
@@ -241,70 +241,71 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
   return withRetry(async () => {
     const fields: string[] = []
     const values: any[] = []
+    let paramIndex = 1
 
     if (updates.description !== undefined) {
-      fields.push('description = ?')
+      fields.push(`description = $${paramIndex++}`)
       values.push(updates.description)
     }
     if (updates.status !== undefined) {
-      fields.push('status = ?')
+      fields.push(`status = $${paramIndex++}`)
       values.push(updates.status)
     }
     if (updates.priority !== undefined) {
-      fields.push('priority = ?')
+      fields.push(`priority = $${paramIndex++}`)
       values.push(updates.priority)
     }
-    if (updates.estimated_hours !== undefined) {
-      fields.push('estimated_hours = ?')
-      values.push(updates.estimated_hours)
+    if (updates.estimatedHours !== undefined) {
+      fields.push(`estimated_hours = $${paramIndex++}`)
+      values.push(updates.estimatedHours)
     }
-    if (updates.actual_hours !== undefined) {
-      fields.push('actual_hours = ?')
-      values.push(updates.actual_hours)
+    if (updates.actualHours !== undefined) {
+      fields.push(`actual_hours = $${paramIndex++}`)
+      values.push(updates.actualHours)
     }
-    if (updates.daily_hours !== undefined) {
-      fields.push('daily_hours = ?')
-      values.push(updates.daily_hours)
+    if (updates.dailyHours !== undefined) {
+      fields.push(`daily_hours = $${paramIndex++}`)
+      values.push(updates.dailyHours)
     }
     if (updates.remarks !== undefined) {
-      fields.push('remarks = ?')
+      fields.push(`remarks = $${paramIndex++}`)
       values.push(updates.remarks || null)
     }
     if (updates.difficulties !== undefined) {
-      fields.push('difficulties = ?')
+      fields.push(`difficulties = $${paramIndex++}`)
       values.push(updates.difficulties || null)
     }
     if (updates.support !== undefined) {
-      fields.push('support = ?')
+      fields.push(`support = $${paramIndex++}`)
       values.push(JSON.stringify(updates.support))
     }
-    if (updates.start_date !== undefined) {
-      fields.push('start_date = ?')
-      values.push(updates.start_date)
+    if (updates.startDate !== undefined) {
+      fields.push(`start_date = $${paramIndex++}`)
+      values.push(updates.startDate)
     }
-    if (updates.end_date !== undefined) {
-      fields.push('end_date = ?')
-      values.push(updates.end_date)
+    if (updates.endDate !== undefined) {
+      fields.push(`end_date = $${paramIndex++}`)
+      values.push(updates.endDate)
     }
-    if (updates.timer_state !== undefined) {
-      fields.push('timer_state = ?')
-      values.push(updates.timer_state)
+    if (updates.timerState !== undefined) {
+      fields.push(`timer_state = $${paramIndex++}`)
+      values.push(updates.timerState)
     }
-    if (updates.timer_start_time !== undefined) {
-      fields.push('timer_start_time = ?')
-      values.push(updates.timer_start_time)
+    if (updates.timerStartTime !== undefined) {
+      fields.push(`timer_start_time = $${paramIndex++}`)
+      values.push(updates.timerStartTime)
     }
-    if (updates.timer_paused_time !== undefined) {
-      fields.push('timer_paused_time = ?')
-      values.push(updates.timer_paused_time)
+    if (updates.timerPausedTime !== undefined) {
+      fields.push(`timer_paused_time = $${paramIndex++}`)
+      values.push(updates.timerPausedTime)
     }
-    if (updates.timer_total_time !== undefined) {
-      fields.push('timer_total_time = ?')
-      values.push(updates.timer_total_time)
+    if (updates.timerTotalTime !== undefined) {
+      fields.push(`timer_total_time = $${paramIndex++}`)
+      values.push(updates.timerTotalTime)
     }
-    if (updates.timer_sessions !== undefined) {
-      fields.push('timer_sessions = ?')
-      values.push(updates.timer_sessions)
+    if (updates.timerSessions !== undefined) {
+      fields.push(`timer_sessions = $${paramIndex++}`)
+      values.push(updates.timerSessions)
     }
 
     if (fields.length === 0) {
@@ -315,7 +316,7 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
 
     values.push(id, id)
     await query(
-      `UPDATE tasks SET ${fields.join(', ')} WHERE internal_id = $1 OR task_id = $2`,
+      `UPDATE tasks SET ${fields.join(', ')} WHERE internal_id = $${paramIndex++} OR task_id = $${paramIndex}`,
       values
     )
 
