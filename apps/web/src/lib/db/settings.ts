@@ -443,8 +443,8 @@ export async function updateSetting(id: number, data: UpdateSettingData): Promis
       updates.push(`metadata = $${params.length}`)
     }
 
-    if (data.is_active !== undefined) {
-      params.push(data.is_active)
+    if (data.isActive !== undefined) {
+      params.push(data.isActive)
       updates.push(`is_active = $${params.length}`)
     }
 

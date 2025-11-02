@@ -61,7 +61,7 @@ export async function getUserByEmployeeId(employee_id: string): Promise<User | n
   return withRetry(async () => {
     const row = await queryOne<UserRow>(
       'SELECT * FROM users WHERE employee_id = $1',
-      [employeeId]
+      [employee_id]
     )
     return row ? rowToUser(row) : null
   })
@@ -253,7 +253,7 @@ export async function deleteUser(employee_id: string): Promise<boolean> {
 
     const result = await query<any>(
       'UPDATE users SET status = $1 WHERE employee_id = $2',
-      ['inactive', employeeId]
+      ['inactive', employee_id]
     )
     return result.affectedRows > 0
   })
@@ -264,7 +264,7 @@ export async function incrementWarningCount(employee_id: string): Promise<User> 
   return withRetry(async () => {
     await query(
       'UPDATE users SET warning_count = warning_count + 1 WHERE employee_id = $1',
-      [employeeId]
+      [employee_id]
     )
     const user = await getUserByEmployeeId(employee_id)
     if (!user) throw new Error('User not found')
@@ -277,7 +277,7 @@ export async function resetWarningCount(employee_id: string): Promise<User> {
   return withRetry(async () => {
     await query(
       'UPDATE users SET warning_count = 0 WHERE employee_id = $1',
-      [employeeId]
+      [employee_id]
     )
     const user = await getUserByEmployeeId(employee_id)
     if (!user) throw new Error('User not found')

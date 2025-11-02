@@ -214,22 +214,22 @@ export async function createProject(
     
     // Generate next project ID
     const project_id = await getNextProjectId()
-    
+
     // Insert project
     await query<any>(
       `INSERT INTO projects (
         project_id, project_name, parent_project_id, description, status, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6)`,
       [
         project_id,
-        project.project_name,
+        project.projectName,
         project.parentProjectId || null,
         project.description || null,
         project.status || 'Active',
         createdBy
       ]
     )
-    
+
     // Retrieve and return the created project
     const createdProject = await getProjectById(project_id, true)
     if (!createdProject) {
@@ -258,42 +258,43 @@ export async function updateProject(
         throw new Error(validation.error)
       }
     }
-    
+
     const fields: string[] = []
     const values: any[] = []
-    
+    let paramIndex = 1
+
     // Build dynamic UPDATE query
-    if (updates.project_name !== undefined) {
-      fields.push('project_name = ?')
-      values.push(updates.project_name)
+    if (updates.projectName !== undefined) {
+      fields.push(`project_name = $${paramIndex++}`)
+      values.push(updates.projectName)
     }
     if (updates.parentProjectId !== undefined) {
-      fields.push('parent_project_id = ?')
+      fields.push(`parent_project_id = $${paramIndex++}`)
       values.push(updates.parentProjectId || null)
     }
     if (updates.description !== undefined) {
-      fields.push('description = ?')
+      fields.push(`description = $${paramIndex++}`)
       values.push(updates.description || null)
     }
     if (updates.status !== undefined) {
-      fields.push('status = ?')
+      fields.push(`status = $${paramIndex++}`)
       values.push(updates.status)
     }
-    
+
     if (fields.length === 0) {
       // No updates, just return current project
-      const project = await getProjectById(project_id, true)
+      const project = await getProjectById(projectId, true)
       if (!project) throw new Error('Project not found')
       return project
     }
-    
-    values.push(project_id)
+
+    values.push(projectId)
     await query(
-      `UPDATE projects SET ${fields.join(', ')} WHERE project_id = $1`,
+      `UPDATE projects SET ${fields.join(', ')} WHERE project_id = $${paramIndex}`,
       values
     )
-    
-    const updatedProject = await getProjectById(project_id, true)
+
+    const updatedProject = await getProjectById(projectId, true)
     if (!updatedProject) {
       throw new Error('Failed to retrieve updated project')
     }
@@ -314,14 +315,14 @@ export async function softDeleteProject(project_id: string, deletedBy: string): 
     if (subProjects.length > 0) {
       throw new Error('Cannot delete project with sub-projects. Delete sub-projects first.')
     }
-    
+
     const result = await query<any>(
-      `UPDATE projects 
-       SET status = 'Deleted', deleted_at = NOW(), deleted_by = ? 
-       WHERE project_id = ?`,
-      [deleted_by, projectId]
+      `UPDATE projects
+       SET status = 'Deleted', deleted_at = NOW(), deleted_by = $1
+       WHERE project_id = $2`,
+      [deletedBy, project_id]
     )
-    
+
     return result.affectedRows > 0
   })
 }
@@ -333,12 +334,12 @@ export async function softDeleteProject(project_id: string, deletedBy: string): 
 export async function restoreProject(project_id: string): Promise<boolean> {
   return withRetry(async () => {
     const result = await query<any>(
-      `UPDATE projects 
-       SET status = 'Active', deleted_at = NULL, deleted_by = NULL 
-       WHERE project_id = ?`,
-      [projectId]
+      `UPDATE projects
+       SET status = 'Active', deleted_at = NULL, deleted_by = NULL
+       WHERE project_id = $1`,
+      [project_id]
     )
-    
+
     return result.affectedRows > 0
   })
 }

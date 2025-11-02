@@ -46,9 +46,9 @@ function rowToSubTask(row: SubTaskRow): SubTask {
 export async function getSubTasksByParentTaskId(parent_task_id: string): Promise<SubTask[]> {
   const rows = await query<SubTaskRow[]>(
     `SELECT * FROM subtasks
-     WHERE parent_task_id = ? AND deleted_at IS NULL
+     WHERE parent_task_id = $1 AND deleted_at IS NULL
      ORDER BY display_order ASC, created_at ASC`,
-    [parentTaskId]
+    [parent_task_id]
   )
   return rows.map(rowToSubTask)
 }
@@ -59,9 +59,9 @@ export async function getSubTasksByParentTaskId(parent_task_id: string): Promise
 export async function getAllSubTasksIncludingDeleted(parent_task_id: string): Promise<SubTask[]> {
   const rows = await query<SubTaskRow[]>(
     `SELECT * FROM subtasks
-     WHERE parent_task_id = ?
+     WHERE parent_task_id = $1
      ORDER BY display_order ASC, created_at ASC`,
-    [parentTaskId]
+    [parent_task_id]
   )
   return rows.map(rowToSubTask)
 }
@@ -128,30 +128,31 @@ export async function updateSubTask(
 ): Promise<SubTask> {
   const updates: string[] = []
   const values: any[] = []
+  let paramIndex = 1
 
   if (data.description !== undefined) {
-    updates.push('description = ?')
+    updates.push(`description = $${paramIndex++}`)
     values.push(data.description)
   }
-  if (data.assigned_to !== undefined) {
-    updates.push('assigned_to = ?')
-    values.push(data.assigned_to)
+  if (data.assignedTo !== undefined) {
+    updates.push(`assigned_to = $${paramIndex++}`)
+    values.push(data.assignedTo)
   }
   if (data.status !== undefined) {
-    updates.push('status = ?')
+    updates.push(`status = $${paramIndex++}`)
     values.push(data.status)
   }
-  if (data.is_completed !== undefined) {
-    updates.push('is_completed = ?')
+  if (data.isCompleted !== undefined) {
+    updates.push(`is_completed = $${paramIndex++}`)
     values.push(data.isCompleted ? 1 : 0)
     // Auto-update status based on completion
-    if (data.is_completed) {
-      updates.push('status = ?')
+    if (data.isCompleted) {
+      updates.push(`status = $${paramIndex++}`)
       values.push('Completed')
     }
   }
   if (data.displayOrder !== undefined) {
-    updates.push('display_order = ?')
+    updates.push(`display_order = $${paramIndex++}`)
     values.push(data.displayOrder)
   }
 
@@ -162,7 +163,7 @@ export async function updateSubTask(
   values.push(id)
 
   await query(
-    `UPDATE subtasks SET ${updates.join(', ')} WHERE id = $1 AND deleted_at IS NULL`,
+    `UPDATE subtasks SET ${updates.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL`,
     values
   )
 
@@ -179,7 +180,7 @@ export async function updateSubTask(
 export async function softDeleteSubTask(id: number, deletedBy: string): Promise<void> {
   await query(
     'UPDATE subtasks SET deleted_at = NOW(), deleted_by = $1 WHERE id = $2',
-    [deleted_by, id]
+    [deletedBy, id]
   )
 }
 
@@ -237,14 +238,14 @@ export async function getSubTaskCount(parent_task_id: string): Promise<{
     in_progress: number
     not_started: number
   }>(
-    `SELECT 
+    `SELECT
       COUNT(*) as total,
       SUM(CASE WHEN is_completed = true THEN 1 ELSE 0 END) as completed,
       SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress,
       SUM(CASE WHEN status = 'Not Started' THEN 1 ELSE 0 END) as not_started
-    FROM subtasks 
-    WHERE parent_task_id = ? AND deleted_at IS NULL`,
-    [parentTaskId]
+    FROM subtasks
+    WHERE parent_task_id = $1 AND deleted_at IS NULL`,
+    [parent_task_id]
   )
 
   return {
@@ -278,7 +279,7 @@ export async function deleteSubTasksByParentTaskId(
 ): Promise<void> {
   await query(
     'UPDATE subtasks SET deleted_at = NOW(), deleted_by = $1 WHERE parent_task_id = $2',
-    [deleted_by, parentTaskId]
+    [deletedBy, parentTaskId]
   )
 }
 
