@@ -807,8 +807,13 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               </div>
             )}
 
-            {/* Activity Timeline */}
+            {/* Activity Timeline (includes comments and system activities) */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <div className="flex items-center space-x-2 mb-4">
+                <MessageSquare className="h-5 w-5" />
+                <h3 className="text-lg font-semibold">Activity & Comments</h3>
+              </div>
+
               <UnifiedTimeline
                 entityType="task"
                 entityId={task.taskId}
@@ -820,12 +825,15 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                 onToggleActivity={() => setShowActivity(!showActivity)}
                 onToggleComments={() => setShowComments(!showComments)}
                 filterFn={(activity) => {
+                  // If both toggles are ON or both are OFF, show all
                   if ((showActivity && showComments) || (!showActivity && !showComments)) {
                     return true
                   }
+                  // If only Activity is ON, show only non-comments
                   if (showActivity && !showComments) {
                     return !activity.isComment
                   }
+                  // If only Comments is ON, show only comments
                   if (!showActivity && showComments) {
                     return activity.isComment
                   }

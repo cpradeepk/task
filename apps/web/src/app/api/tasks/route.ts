@@ -70,6 +70,19 @@ export async function POST(request: NextRequest) {
     // Override any client-provided taskId with server-generated one
     taskData.taskId = newTaskId
 
+    // Set assignedBy to createdBy if not provided (required field in database)
+    if (!taskData.assignedBy) {
+      taskData.assignedBy = taskData.createdBy
+    }
+
+    // Set default dates if not provided (required fields in database)
+    if (!taskData.startDate) {
+      taskData.startDate = new Date().toISOString().split('T')[0] // Today's date in YYYY-MM-DD format
+    }
+    if (!taskData.endDate) {
+      taskData.endDate = new Date().toISOString().split('T')[0] // Today's date in YYYY-MM-DD format
+    }
+
     // Add task to MySQL
     const task = await createTask(taskData)
 

@@ -90,7 +90,7 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
           input.oldValue || null,
           input.newValue || null,
           input.description,
-          input.isComment || false,
+          input.isComment ? 1 : 0,  // Convert boolean to integer (0/1) for PostgreSQL
           istTimestamp
         ]
       ),
@@ -227,7 +227,7 @@ export async function getCommentsByEntity(
           al.created_at as createdAt
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
-        WHERE al.entity_type = $1 AND al.entity_id = $2 AND al.is_comment = TRUE
+        WHERE al.entity_type = $1 AND al.entity_id = $2 AND al.is_comment = 1
         ORDER BY al.created_at ${order}`,
         [entityType, entityId]
       ),
@@ -272,7 +272,7 @@ export async function getSystemActivitiesByEntity(
           al.created_at as createdAt
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
-        WHERE al.entity_type = $1 AND al.entity_id = $2 AND al.is_comment = FALSE
+        WHERE al.entity_type = $1 AND al.entity_id = $2 AND al.is_comment = 0
         ORDER BY al.created_at ${order}`,
         [entityType, entityId]
       ),
@@ -310,7 +310,7 @@ export async function deleteActivityLog(id: number, userId: string): Promise<boo
 
     const result = await withTimeout(
       query<any>(
-        'DELETE FROM activity_log WHERE id = $1 AND user_id = $2 AND is_comment = TRUE',
+        'DELETE FROM activity_log WHERE id = $1 AND user_id = $2 AND is_comment = 1',
         [id, userId]
       ),
       10000,
