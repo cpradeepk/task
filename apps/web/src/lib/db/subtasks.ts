@@ -91,13 +91,13 @@ export async function createSubTask(data: {
 }): Promise<SubTask> {
   const result = await query(
     `INSERT INTO subtasks (
-      parent_task_id, description, assigned_to, status, 
+      parent_task_id, description, assigned_to, status,
       is_completed, display_order, created_by
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
-      data.parent_task_id,
+      data.parentTaskId,
       data.description,
-      data.assigned_to,
+      data.assignedTo,
       data.status || 'Not Started',
       data.isCompleted ? 1 : 0,
       data.displayOrder ?? 0,

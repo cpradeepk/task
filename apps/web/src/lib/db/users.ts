@@ -125,9 +125,9 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
         employee_id, name, email, phone, telegram_token, department,
         manager_email, manager_id, is_today_task, warning_count, role,
         password, status, hours_log
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
-        user.employee_id,
+        user.employeeId,
         user.name,
         user.email,
         user.phone,
@@ -144,7 +144,7 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
       ]
     )
 
-    const createdUser = await getUserByEmployeeId(user.employee_id)
+    const createdUser = await getUserByEmployeeId(user.employeeId)
     if (!createdUser) {
       throw new Error('Failed to retrieve created user')
     }
@@ -157,7 +157,7 @@ export async function updateUser(employee_id: string, updates: Partial<User>): P
   return withRetry(async () => {
     // Check if user is system admin
     const user = await getUserByEmployeeId(employee_id)
-    if (user && user.employee_id === 'admin-001') {
+    if (user && user.employeeId === 'admin-001') {
       // System admin can only update certain fields (not role or status)
       if (updates.role !== undefined && updates.role !== 'admin') {
         throw new Error('Cannot change system admin role')

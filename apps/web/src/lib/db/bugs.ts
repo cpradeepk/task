@@ -370,7 +370,7 @@ export async function addBugComment(
   return withRetry(async () => {
     await query<any>(
       'INSERT INTO bug_comments (bug_id, commented_by, comment_text) VALUES ($1, $2, $3)',
-      [comment.bug_id, comment.commentedBy, comment.commentText]
+      [comment.bugId, comment.commentedBy, comment.commentText]
     )
 
     // Get the last inserted comment
