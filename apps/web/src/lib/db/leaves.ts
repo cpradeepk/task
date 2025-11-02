@@ -71,7 +71,7 @@ export async function getLeavesByEmployeeId(employee_id: string): Promise<LeaveA
   return withRetry(async () => {
     const rows = await query<LeaveRow[]>(
       'SELECT * FROM leave_applications WHERE employee_id = $1 ORDER BY created_at DESC',
-      [employeeId]
+      [employee_id]
     )
     return rows.map(rowToLeave)
   })

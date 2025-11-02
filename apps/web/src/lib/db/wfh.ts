@@ -75,7 +75,7 @@ export async function getWFHByEmployeeId(employee_id: string): Promise<WFHApplic
   return withRetry(async () => {
     const rows = await query<WFHRow[]>(
       'SELECT * FROM wfh_applications WHERE employee_id = $1 ORDER BY created_at DESC',
-      [employeeId]
+      [employee_id]
     )
     return rows.map(rowToWFH)
   })
