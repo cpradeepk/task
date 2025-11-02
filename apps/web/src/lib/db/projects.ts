@@ -90,13 +90,13 @@ export async function getActiveProjects(): Promise<Project[]> {
  * @param projectId - The project ID to fetch
  * @param includeDeleted - If true, can fetch deleted projects (admin only)
  */
-export async function getProjectById(projectId: string, includeDeleted = false): Promise<Project | null> {
+export async function getProjectById(project_id: string, includeDeleted = false): Promise<Project | null> {
   return withRetry(async () => {
     const sql = includeDeleted
       ? 'SELECT * FROM projects WHERE project_id = $1'
       : 'SELECT * FROM projects WHERE project_id = $1 AND status != $2'
     
-    const params = includeDeleted ? [projectId] : [projectId, 'Deleted']
+    const params = includeDeleted ? [projectId] : [project_id, 'Deleted']
     const row = await queryOne<ProjectRow>(sql, params)
     return row ? rowToProject(row) : null
   })
@@ -196,7 +196,7 @@ export async function validateHierarchy(parentProjectId: string | null): Promise
 
 /**
  * Create a new project
- * @param project - Project data (without projectId, it will be auto-generated)
+ * @param project - Project data (without project_id, it will be auto-generated)
  * @param createdBy - Employee ID of creator
  */
 export async function createProject(
@@ -213,7 +213,7 @@ export async function createProject(
     }
     
     // Generate next project ID
-    const projectId = await getNextProjectId()
+    const project_id = await getNextProjectId()
     
     // Insert project
     await query<any>(
@@ -221,8 +221,8 @@ export async function createProject(
         project_id, project_name, parent_project_id, description, status, created_by
       ) VALUES (?, ?, ?, ?, ?, ?)`,
       [
-        projectId,
-        project.projectName,
+        project_id,
+        project.project_name,
         project.parentProjectId || null,
         project.description || null,
         project.status || 'Active',
@@ -231,7 +231,7 @@ export async function createProject(
     )
     
     // Retrieve and return the created project
-    const createdProject = await getProjectById(projectId, true)
+    const createdProject = await getProjectById(project_id, true)
     if (!createdProject) {
       throw new Error('Failed to retrieve created project')
     }
@@ -263,9 +263,9 @@ export async function updateProject(
     const values: any[] = []
     
     // Build dynamic UPDATE query
-    if (updates.projectName !== undefined) {
+    if (updates.project_name !== undefined) {
       fields.push('project_name = ?')
-      values.push(updates.projectName)
+      values.push(updates.project_name)
     }
     if (updates.parentProjectId !== undefined) {
       fields.push('parent_project_id = ?')
@@ -282,18 +282,18 @@ export async function updateProject(
     
     if (fields.length === 0) {
       // No updates, just return current project
-      const project = await getProjectById(projectId, true)
+      const project = await getProjectById(project_id, true)
       if (!project) throw new Error('Project not found')
       return project
     }
     
-    values.push(projectId)
+    values.push(project_id)
     await query(
       `UPDATE projects SET ${fields.join(', ')} WHERE project_id = $1`,
       values
     )
     
-    const updatedProject = await getProjectById(projectId, true)
+    const updatedProject = await getProjectById(project_id, true)
     if (!updatedProject) {
       throw new Error('Failed to retrieve updated project')
     }
@@ -307,10 +307,10 @@ export async function updateProject(
  * @param projectId - Project ID to delete
  * @param deletedBy - Employee ID of who is deleting
  */
-export async function softDeleteProject(projectId: string, deletedBy: string): Promise<boolean> {
+export async function softDeleteProject(project_id: string, deletedBy: string): Promise<boolean> {
   return withRetry(async () => {
     // Check if project has sub-projects
-    const subProjects = await getSubProjects(projectId)
+    const subProjects = await getSubProjects(project_id)
     if (subProjects.length > 0) {
       throw new Error('Cannot delete project with sub-projects. Delete sub-projects first.')
     }
@@ -319,7 +319,7 @@ export async function softDeleteProject(projectId: string, deletedBy: string): P
       `UPDATE projects 
        SET status = 'Deleted', deleted_at = NOW(), deleted_by = ? 
        WHERE project_id = ?`,
-      [deletedBy, projectId]
+      [deleted_by, projectId]
     )
     
     return result.affectedRows > 0
@@ -330,7 +330,7 @@ export async function softDeleteProject(projectId: string, deletedBy: string): P
  * Restore soft-deleted project (admin only)
  * @param projectId - Project ID to restore
  */
-export async function restoreProject(projectId: string): Promise<boolean> {
+export async function restoreProject(project_id: string): Promise<boolean> {
   return withRetry(async () => {
     const result = await query<any>(
       `UPDATE projects 

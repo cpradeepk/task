@@ -43,7 +43,7 @@ function rowToSubTask(row: SubTaskRow): SubTask {
 /**
  * Get all subtasks for a parent task (excluding soft-deleted)
  */
-export async function getSubTasksByParentTaskId(parentTaskId: string): Promise<SubTask[]> {
+export async function getSubTasksByParentTaskId(parent_task_id: string): Promise<SubTask[]> {
   const rows = await query<SubTaskRow[]>(
     `SELECT * FROM subtasks
      WHERE parent_task_id = ? AND deleted_at IS NULL
@@ -56,7 +56,7 @@ export async function getSubTasksByParentTaskId(parentTaskId: string): Promise<S
 /**
  * Get all subtasks including soft-deleted (for admin "Deleted Items" page)
  */
-export async function getAllSubTasksIncludingDeleted(parentTaskId: string): Promise<SubTask[]> {
+export async function getAllSubTasksIncludingDeleted(parent_task_id: string): Promise<SubTask[]> {
   const rows = await query<SubTaskRow[]>(
     `SELECT * FROM subtasks
      WHERE parent_task_id = ?
@@ -95,9 +95,9 @@ export async function createSubTask(data: {
       is_completed, display_order, created_by
     ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
-      data.parentTaskId,
+      data.parent_task_id,
       data.description,
-      data.assignedTo,
+      data.assigned_to,
       data.status || 'Not Started',
       data.isCompleted ? 1 : 0,
       data.displayOrder ?? 0,
@@ -133,19 +133,19 @@ export async function updateSubTask(
     updates.push('description = ?')
     values.push(data.description)
   }
-  if (data.assignedTo !== undefined) {
+  if (data.assigned_to !== undefined) {
     updates.push('assigned_to = ?')
-    values.push(data.assignedTo)
+    values.push(data.assigned_to)
   }
   if (data.status !== undefined) {
     updates.push('status = ?')
     values.push(data.status)
   }
-  if (data.isCompleted !== undefined) {
+  if (data.is_completed !== undefined) {
     updates.push('is_completed = ?')
     values.push(data.isCompleted ? 1 : 0)
     // Auto-update status based on completion
-    if (data.isCompleted) {
+    if (data.is_completed) {
       updates.push('status = ?')
       values.push('Completed')
     }
@@ -179,7 +179,7 @@ export async function updateSubTask(
 export async function softDeleteSubTask(id: number, deletedBy: string): Promise<void> {
   await query(
     'UPDATE subtasks SET deleted_at = NOW(), deleted_by = $1 WHERE id = $2',
-    [deletedBy, id]
+    [deleted_by, id]
   )
 }
 
@@ -225,7 +225,7 @@ export async function reorderSubTasks(
 /**
  * Get subtask count for a parent task
  */
-export async function getSubTaskCount(parentTaskId: string): Promise<{
+export async function getSubTaskCount(parent_task_id: string): Promise<{
   total: number
   completed: number
   inProgress: number
@@ -239,7 +239,7 @@ export async function getSubTaskCount(parentTaskId: string): Promise<{
   }>(
     `SELECT 
       COUNT(*) as total,
-      SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as completed,
+      SUM(CASE WHEN is_completed = true THEN 1 ELSE 0 END) as completed,
       SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress,
       SUM(CASE WHEN status = 'Not Started' THEN 1 ELSE 0 END) as not_started
     FROM subtasks 
@@ -278,7 +278,7 @@ export async function deleteSubTasksByParentTaskId(
 ): Promise<void> {
   await query(
     'UPDATE subtasks SET deleted_at = NOW(), deleted_by = $1 WHERE parent_task_id = $2',
-    [deletedBy, parentTaskId]
+    [deleted_by, parentTaskId]
   )
 }
 

@@ -89,9 +89,9 @@ export async function getSettingById(id: number): Promise<Setting | null> {
         value,
         description,
         metadata,
-        is_active as isActive,
+        is_active as is_active,
         created_by as createdBy,
-        created_at as createdAt,
+        created_at as created_at,
         updated_at as updatedAt
       FROM settings
       WHERE id = $1
@@ -137,9 +137,9 @@ export async function getSettingById(id: number): Promise<Setting | null> {
       value: parsedValue,
       description: row.description,
       metadata: parsedMetadata,
-      isActive: Boolean(row.isActive),
+      isActive: Boolean(row.is_active),
       createdBy: row.createdBy,
-      createdAt: row.createdAt,
+      createdAt: row.created_at,
       updatedAt: row.updatedAt
     }
   } catch (error) {
@@ -160,9 +160,9 @@ export async function getSettingByKey(key: string): Promise<Setting | null> {
         value,
         description,
         metadata,
-        is_active as isActive,
+        is_active as is_active,
         created_by as createdBy,
-        created_at as createdAt,
+        created_at as created_at,
         updated_at as updatedAt
       FROM settings
       WHERE key = $1 AND is_active = TRUE
@@ -208,9 +208,9 @@ export async function getSettingByKey(key: string): Promise<Setting | null> {
       value: parsedValue,
       description: row.description,
       metadata: parsedMetadata,
-      isActive: Boolean(row.isActive),
+      isActive: Boolean(row.is_active),
       createdBy: row.createdBy,
-      createdAt: row.createdAt,
+      createdAt: row.created_at,
       updatedAt: row.updatedAt
     }
   } catch (error) {
@@ -247,9 +247,9 @@ export async function getAllSettings(activeOnly: boolean = true): Promise<Settin
         value,
         description,
         metadata,
-        is_active as isActive,
+        is_active as is_active,
         created_by as createdBy,
-        created_at as createdAt,
+        created_at as created_at,
         updated_at as updatedAt
       FROM settings
       WHERE 1=1
@@ -297,9 +297,9 @@ export async function getAllSettings(activeOnly: boolean = true): Promise<Settin
         value: parsedValue,
         description: row.description,
         metadata: parsedMetadata,
-        isActive: Boolean(row.isActive),
+        isActive: Boolean(row.is_active),
         createdBy: row.createdBy,
-        createdAt: row.createdAt,
+        createdAt: row.created_at,
         updatedAt: row.updatedAt
       }
     })
@@ -443,8 +443,8 @@ export async function updateSetting(id: number, data: UpdateSettingData): Promis
       updates.push(`metadata = $${params.length}`)
     }
 
-    if (data.isActive !== undefined) {
-      params.push(data.isActive)
+    if (data.is_active !== undefined) {
+      params.push(data.is_active)
       updates.push(`is_active = $${params.length}`)
     }
 

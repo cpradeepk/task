@@ -118,22 +118,22 @@ export async function getTaskById(id: string): Promise<Task | null> {
 }
 
 // Get tasks by employee ID
-export async function getTasksByEmployeeId(employeeId: string): Promise<Task[]> {
+export async function getTasksByEmployeeId(employee_id: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
       'SELECT * FROM tasks WHERE assigned_to = $1 ORDER BY created_at DESC',
-      [employeeId]
+      [employee_id]
     )
     return rows.map(rowToTask)
   })
 }
 
 // Get tasks assigned by employee ID
-export async function getTasksAssignedBy(employeeId: string): Promise<Task[]> {
+export async function getTasksAssignedBy(employee_id: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
       'SELECT * FROM tasks WHERE assigned_by = $1 ORDER BY created_at DESC',
-      [employeeId]
+      [employee_id]
     )
     return rows.map(rowToTask)
   })
@@ -151,33 +151,33 @@ export async function getTasksByStatus(status: Task['status']): Promise<Task[]> 
 }
 
 // Get tasks by date range
-export async function getTasksByDateRange(startDate: string, endDate: string): Promise<Task[]> {
+export async function getTasksByDateRange(start_date: string, endDate: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
       'SELECT * FROM tasks WHERE start_date >= $1 AND end_date <= $2 ORDER BY start_date',
-      [startDate, endDate]
+      [start_date, endDate]
     )
     return rows.map(rowToTask)
   })
 }
 
 // Get support tasks for employee
-export async function getSupportTasksForEmployee(employeeId: string): Promise<Task[]> {
+export async function getSupportTasksForEmployee(employee_id: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
       'SELECT * FROM tasks WHERE JSON_CONTAINS(support, $1) ORDER BY created_at DESC',
-      [JSON.stringify(employeeId)]
+      [JSON.stringify(employee_id)]
     )
     return rows.map(rowToTask)
   })
 }
 
 // Get tasks by project ID
-export async function getTasksByProject(projectId: string): Promise<Task[]> {
+export async function getTasksByProject(project_id: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
       'SELECT * FROM tasks WHERE project_id = $1 ORDER BY created_at DESC',
-      [projectId]
+      [project_id]
     )
     return rows.map(rowToTask)
   })
@@ -207,18 +207,18 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         difficulties, project_id
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        task.taskId, // internal_id is same as task_id
-        task.taskId,
-        task.selectType,
+        task.task_id, // internal_id is same as task_id
+        task.task_id,
+        task.select_type,
         task.recursiveType || null,
         task.description,
-        task.assignedTo,
-        task.assignedBy,
+        task.assigned_to,
+        task.assigned_by,
         JSON.stringify(task.support || []),
-        task.startDate,
-        task.endDate,
+        task.start_date,
+        task.end_date,
         task.priority,
-        task.estimatedHours,
+        task.estimated_hours,
         task.actualHours || 0,
         task.dailyHours || '{}',
         task.status,
@@ -228,7 +228,7 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
       ]
     )
 
-    const createdTask = await getTaskById(task.taskId)
+    const createdTask = await getTaskById(task.task_id)
     if (!createdTask) {
       throw new Error('Failed to retrieve created task')
     }
@@ -254,17 +254,17 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
       fields.push('priority = ?')
       values.push(updates.priority)
     }
-    if (updates.estimatedHours !== undefined) {
+    if (updates.estimated_hours !== undefined) {
       fields.push('estimated_hours = ?')
-      values.push(updates.estimatedHours)
+      values.push(updates.estimated_hours)
     }
-    if (updates.actualHours !== undefined) {
+    if (updates.actual_hours !== undefined) {
       fields.push('actual_hours = ?')
-      values.push(updates.actualHours)
+      values.push(updates.actual_hours)
     }
-    if (updates.dailyHours !== undefined) {
+    if (updates.daily_hours !== undefined) {
       fields.push('daily_hours = ?')
-      values.push(updates.dailyHours)
+      values.push(updates.daily_hours)
     }
     if (updates.remarks !== undefined) {
       fields.push('remarks = ?')
@@ -278,33 +278,33 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
       fields.push('support = ?')
       values.push(JSON.stringify(updates.support))
     }
-    if (updates.startDate !== undefined) {
+    if (updates.start_date !== undefined) {
       fields.push('start_date = ?')
-      values.push(updates.startDate)
+      values.push(updates.start_date)
     }
-    if (updates.endDate !== undefined) {
+    if (updates.end_date !== undefined) {
       fields.push('end_date = ?')
-      values.push(updates.endDate)
+      values.push(updates.end_date)
     }
-    if (updates.timerState !== undefined) {
+    if (updates.timer_state !== undefined) {
       fields.push('timer_state = ?')
-      values.push(updates.timerState)
+      values.push(updates.timer_state)
     }
-    if (updates.timerStartTime !== undefined) {
+    if (updates.timer_start_time !== undefined) {
       fields.push('timer_start_time = ?')
-      values.push(updates.timerStartTime)
+      values.push(updates.timer_start_time)
     }
-    if (updates.timerPausedTime !== undefined) {
+    if (updates.timer_paused_time !== undefined) {
       fields.push('timer_paused_time = ?')
-      values.push(updates.timerPausedTime)
+      values.push(updates.timer_paused_time)
     }
-    if (updates.timerTotalTime !== undefined) {
+    if (updates.timer_total_time !== undefined) {
       fields.push('timer_total_time = ?')
-      values.push(updates.timerTotalTime)
+      values.push(updates.timer_total_time)
     }
-    if (updates.timerSessions !== undefined) {
+    if (updates.timer_sessions !== undefined) {
       fields.push('timer_sessions = ?')
-      values.push(updates.timerSessions)
+      values.push(updates.timer_sessions)
     }
 
     if (fields.length === 0) {
@@ -342,9 +342,9 @@ export async function deleteTask(id: string): Promise<boolean> {
 export async function getDelayedTasks(): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      `SELECT * FROM tasks 
-       WHERE status = 'Delayed' 
-       OR (status IN ('Yet to Start', 'In Progress') AND end_date < CURDATE())
+      `SELECT * FROM tasks
+       WHERE status = 'Delayed'
+       OR (status IN ('Yet to Start', 'In Progress') AND end_date < CURRENT_DATE)
        ORDER BY end_date`
     )
     return rows.map(rowToTask)

@@ -67,7 +67,7 @@ export async function getLeaveById(id: string): Promise<LeaveApplication | null>
 }
 
 // Get leaves by employee ID
-export async function getLeavesByEmployeeId(employeeId: string): Promise<LeaveApplication[]> {
+export async function getLeavesByEmployeeId(employee_id: string): Promise<LeaveApplication[]> {
   return withRetry(async () => {
     const rows = await query<LeaveRow[]>(
       'SELECT * FROM leave_applications WHERE employee_id = $1 ORDER BY created_at DESC',
@@ -121,12 +121,12 @@ export async function createLeave(leave: Omit<LeaveApplication, 'createdAt' | 'u
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         leave.id,
-        leave.employeeId,
+        leave.employee_id,
         leave.employeeName,
         leave.leaveType,
         leave.reason,
-        leave.fromDate,
-        leave.toDate,
+        leave.from_date,
+        leave.to_date,
         leave.isHalfDay ? 1 : 0,
         leave.emergencyContact || null,
         leave.status,
@@ -155,7 +155,7 @@ export async function updateLeave(id: string, updates: Partial<LeaveApplication>
       fields.push('status = ?')
       values.push(updates.status)
     }
-    if (updates.approvedBy !== undefined) {
+    if (updates.approved_by !== undefined) {
       fields.push('approved_by = ?')
       values.push(updates.approvedBy || null)
     }
@@ -192,7 +192,7 @@ export async function updateLeave(id: string, updates: Partial<LeaveApplication>
 export async function approveLeave(id: string, approvedBy: string, remarks?: string): Promise<LeaveApplication> {
   return updateLeave(id, {
     status: 'Approved',
-    approvedBy,
+    approved_by,
     approvalDate: new Date().toISOString(),
     approvalRemarks: remarks
   })

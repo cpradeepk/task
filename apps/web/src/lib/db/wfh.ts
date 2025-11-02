@@ -71,7 +71,7 @@ export async function getWFHById(id: string): Promise<WFHApplication | null> {
 }
 
 // Get WFH applications by employee ID
-export async function getWFHByEmployeeId(employeeId: string): Promise<WFHApplication[]> {
+export async function getWFHByEmployeeId(employee_id: string): Promise<WFHApplication[]> {
   return withRetry(async () => {
     const rows = await query<WFHRow[]>(
       'SELECT * FROM wfh_applications WHERE employee_id = $1 ORDER BY created_at DESC',
@@ -126,12 +126,12 @@ export async function createWFH(wfh: Omit<WFHApplication, 'createdAt' | 'updated
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         wfh.id,
-        wfh.employeeId,
+        wfh.employee_id,
         wfh.employeeName,
         wfh.wfhType,
         wfh.reason,
-        wfh.fromDate,
-        wfh.toDate,
+        wfh.from_date,
+        wfh.to_date,
         wfh.workLocation,
         wfh.availableFrom || null,
         wfh.availableTo || null,
@@ -162,7 +162,7 @@ export async function updateWFH(id: string, updates: Partial<WFHApplication>): P
       fields.push('status = ?')
       values.push(updates.status)
     }
-    if (updates.approvedBy !== undefined) {
+    if (updates.approved_by !== undefined) {
       fields.push('approved_by = ?')
       values.push(updates.approvedBy || null)
     }
@@ -199,7 +199,7 @@ export async function updateWFH(id: string, updates: Partial<WFHApplication>): P
 export async function approveWFH(id: string, approvedBy: string, remarks?: string): Promise<WFHApplication> {
   return updateWFH(id, {
     status: 'Approved',
-    approvedBy,
+    approved_by,
     approvalDate: new Date().toISOString(),
     approvalRemarks: remarks
   })

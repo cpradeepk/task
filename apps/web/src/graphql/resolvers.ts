@@ -5,49 +5,49 @@ const pool = getPool()
 // DataLoader for batching user queries
 const createUserLoader = () => new DataLoader(async (employeeIds: readonly string[]) => {
   const result = await pool.query(
-    'SELECT * FROM users WHERE employeeId IN ($1) AND deletedAt IS NULL',
+    'SELECT * FROM users WHERE employee_id = ANY($1) AND deleted_at IS NULL',
     [employeeIds]
   )
 
-  const userMap = new Map(result.rows.map((user: any) => [user.employeeId, user]))
+  const userMap = new Map(result.rows.map((user: any) => [user.employee_id, user]))
   return employeeIds.map(id => userMap.get(id) || null)
 })
 
 // DataLoader for batching task queries
 const createTaskLoader = () => new DataLoader(async (taskIds: readonly string[]) => {
   const result = await pool.query(
-    'SELECT * FROM tasks WHERE taskId IN ($1) AND deletedAt IS NULL',
+    'SELECT * FROM tasks WHERE task_id = ANY($1) AND deleted_at IS NULL',
     [taskIds]
   )
 
-  const taskMap = new Map(result.rows.map((task: any) => [task.taskId, task]))
+  const taskMap = new Map(result.rows.map((task: any) => [task.task_id, task]))
   return taskIds.map(id => taskMap.get(id) || null)
 })
 
 // DataLoader for batching bug queries
 const createBugLoader = () => new DataLoader(async (bugIds: readonly string[]) => {
   const result = await pool.query(
-    'SELECT * FROM bugs WHERE bugId IN ($1) AND deletedAt IS NULL',
+    'SELECT * FROM bugs WHERE bug_id = ANY($1) AND deleted_at IS NULL',
     [bugIds]
   )
 
-  const bugMap = new Map(result.rows.map((bug: any) => [bug.bugId, bug]))
+  const bugMap = new Map(result.rows.map((bug: any) => [bug.bug_id, bug]))
   return bugIds.map(id => bugMap.get(id) || null)
 })
 
 // DataLoader for batching subtask queries
 const createSubtaskLoader = () => new DataLoader(async (parentTaskIds: readonly string[]) => {
   const result = await pool.query(
-    'SELECT * FROM subtasks WHERE parentTaskId IN ($1) AND deletedAt IS NULL',
+    'SELECT * FROM subtasks WHERE parent_task_id = ANY($1) AND deleted_at IS NULL',
     [parentTaskIds]
   )
 
   const subtaskMap = new Map<string, any[]>()
   result.rows.forEach((subtask: any) => {
-    if (!subtaskMap.has(subtask.parentTaskId)) {
-      subtaskMap.set(subtask.parentTaskId, [])
+    if (!subtaskMap.has(subtask.parent_task_id)) {
+      subtaskMap.set(subtask.parent_task_id, [])
     }
-    subtaskMap.get(subtask.parentTaskId)!.push(subtask)
+    subtaskMap.get(subtask.parent_task_id)!.push(subtask)
   })
 
   return parentTaskIds.map(id => subtaskMap.get(id) || [])
@@ -56,16 +56,16 @@ const createSubtaskLoader = () => new DataLoader(async (parentTaskIds: readonly 
 // DataLoader for batching bug subtask queries
 const createBugSubtaskLoader = () => new DataLoader(async (parentBugIds: readonly string[]) => {
   const result = await pool.query(
-    'SELECT * FROM bug_subtasks WHERE parentBugId IN ($1) AND deletedAt IS NULL',
+    'SELECT * FROM bug_subtasks WHERE parent_bug_id = ANY($1) AND deleted_at IS NULL',
     [parentBugIds]
   )
 
   const subtaskMap = new Map<string, any[]>()
   result.rows.forEach((subtask: any) => {
-    if (!subtaskMap.has(subtask.parentBugId)) {
-      subtaskMap.set(subtask.parentBugId, [])
+    if (!subtaskMap.has(subtask.parent_bug_id)) {
+      subtaskMap.set(subtask.parent_bug_id, [])
     }
-    subtaskMap.get(subtask.parentBugId)!.push(subtask)
+    subtaskMap.get(subtask.parent_bug_id)!.push(subtask)
   })
 
   return parentBugIds.map(id => subtaskMap.get(id) || [])
@@ -86,84 +86,86 @@ export const resolvers = {
     // Users
     users: async () => {
       const result = await pool.query(
-        'SELECT * FROM users WHERE deletedAt IS NULL ORDER BY name'
+        'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name'
       )
       return result.rows
     },
-    
+
     user: async (_: any, { employeeId }: any, { loaders }: any) => {
       return loaders.user.load(employeeId)
     },
-    
+
     // Tasks
     tasks: async (_: any, filters: any) => {
-      let query = 'SELECT * FROM tasks WHERE deletedAt IS NULL'
+      let query = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
       const params: any[] = []
-      
+      let paramIndex = 1
+
       if (filters.assignedTo) {
-        query += ' AND assignedTo = $1'
+        query += ` AND assigned_to = $${paramIndex++}`
         params.push(filters.assignedTo)
       }
       if (filters.assignedBy) {
-        query += ' AND assignedBy = $1'
+        query += ` AND assigned_by = $${paramIndex++}`
         params.push(filters.assignedBy)
       }
       if (filters.status) {
-        query += ' AND status = $1'
+        query += ` AND status = $${paramIndex++}`
         params.push(filters.status)
       }
       if (filters.priority) {
-        query += ' AND priority = $1'
+        query += ` AND priority = $${paramIndex++}`
         params.push(filters.priority)
       }
-      
-      query += ' ORDER BY createdAt DESC'
-      
+
+      query += ' ORDER BY created_at DESC'
+
       const result = await pool.query(query, params)
       return result.rows
     },
-    
+
     task: async (_: any, { taskId }: any, { loaders }: any) => {
       return loaders.task.load(taskId)
     },
-    
+
     // Subtasks
     subtasks: async (_: any, { parentTaskId }: any, { loaders }: any) => {
       return loaders.subtasks.load(parentTaskId)
     },
-    
+
     // Bugs
     bugs: async (_: any, filters: any) => {
-      let query = 'SELECT * FROM bugs WHERE deletedAt IS NULL'
+      let query = 'SELECT * FROM bugs WHERE deleted_at IS NULL'
       const params: any[] = []
-      
+      let paramIndex = 1
+
       if (filters.assignedTo) {
-        query += ' AND assignedTo = $1'
+        query += ` AND assigned_to = $${paramIndex++}`
         params.push(filters.assignedTo)
       }
       if (filters.reportedBy) {
-        query += ' AND reportedBy = $1'
+        query += ` AND reported_by = $${paramIndex++}`
         params.push(filters.reportedBy)
       }
       if (filters.status) {
-        query += ' AND status = $1'
+        query += ` AND status = $${paramIndex++}`
         params.push(filters.status)
       }
       if (filters.severity) {
-        query += ' AND severity = $1'
+        query += ` AND severity = $${paramIndex++}`
         params.push(filters.severity)
       }
       if (filters.category) {
-        query += ' AND category = $1'
+        query += ` AND category = $${paramIndex++}`
         params.push(filters.category)
       }
-      
-      query += ' ORDER BY createdAt DESC'
-      
+
+      query += ' ORDER BY created_at DESC'
+
       const result = await pool.query(query, params)
       return result.rows
     },
-    
+
     bug: async (_: any, { bugId }: any, { loaders }: any) => {
       return loaders.bug.load(bugId)
     },
@@ -176,31 +178,31 @@ export const resolvers = {
     // Projects
     projects: async () => {
       const result = await pool.query(
-        'SELECT * FROM projects WHERE deletedAt IS NULL ORDER BY projectName'
+        'SELECT * FROM projects WHERE deleted_at IS NULL ORDER BY project_name'
       )
       return result.rows
     },
-    
+
     project: async (_: any, { projectId }: any) => {
       const result = await pool.query(
-        'SELECT * FROM projects WHERE projectId = $1 AND deletedAt IS NULL',
+        'SELECT * FROM projects WHERE project_id = $1 AND deleted_at IS NULL',
         [projectId]
       )
       return result.rows[0] || null
     },
-    
+
     // Settings
     settings: async (_: any, { activeOnly }: any) => {
       let query = 'SELECT * FROM settings'
       if (activeOnly) {
-        query += ' WHERE isActive = 1'
+        query += ' WHERE is_active = true'
       }
       query += ' ORDER BY key'
 
       const result = await pool.query(query)
       return result.rows
     },
-    
+
     setting: async (_: any, { key }: any) => {
       const result = await pool.query(
         'SELECT * FROM settings WHERE key = $1',
@@ -208,41 +210,41 @@ export const resolvers = {
       )
       return result.rows[0] || null
     },
-    
+
     // Dashboard
     dashboard: async (_: any, { employeeId, role }: any) => {
       const isManagement = ['management', 'top_management', 'admin'].includes(role)
-      
+
       // Fetch tasks
-      let tasksQuery = 'SELECT * FROM tasks WHERE deletedAt IS NULL'
+      let tasksQuery = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
       if (!isManagement) {
-        tasksQuery += ' AND (assignedTo = $1 OR assignedBy = $2 OR $3 = ANY(string_to_array(support::text, ',')))'
+        tasksQuery += ' AND (assigned_to = $1 OR assigned_by = $2 OR $3 = ANY(string_to_array(support::text, ',')))'
       }
-      tasksQuery += ' ORDER BY createdAt DESC'
-      
+      tasksQuery += ' ORDER BY created_at DESC'
+
       const tasksParams = isManagement ? [] : [employeeId, employeeId, employeeId]
       const tasksResult = await pool.query(tasksQuery, tasksParams)
       const tasks = tasksResult.rows
-      
+
       // Fetch bugs
-      let bugsQuery = 'SELECT * FROM bugs WHERE deletedAt IS NULL'
+      let bugsQuery = 'SELECT * FROM bugs WHERE deleted_at IS NULL'
       if (!isManagement) {
-        bugsQuery += ' AND (assignedTo = $1 OR reportedBy = $2)'
+        bugsQuery += ' AND (assigned_to = $1 OR reported_by = $2)'
       }
-      bugsQuery += ' ORDER BY createdAt DESC'
-      
+      bugsQuery += ' ORDER BY created_at DESC'
+
       const bugsParams = isManagement ? [] : [employeeId, employeeId]
       const bugsResult = await pool.query(bugsQuery, bugsParams)
       const bugs = bugsResult.rows
-      
+
       // Fetch users and settings
       const usersResult = await pool.query(
-        'SELECT * FROM users WHERE deletedAt IS NULL ORDER BY name'
+        'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name'
       )
       const users = usersResult.rows
 
       const settingsResult = await pool.query(
-        'SELECT * FROM settings WHERE isActive = 1 ORDER BY key'
+        'SELECT * FROM settings WHERE is_active = true ORDER BY key'
       )
       const settings = settingsResult.rows
       
@@ -254,46 +256,47 @@ export const resolvers = {
   User: {
     tasks: async (user: any, _: any, { loaders }: any) => {
       const result = await pool.query(
-        'SELECT * FROM tasks WHERE assignedTo = $1 AND deletedAt IS NULL',
-        [user.employeeId]
+        'SELECT * FROM tasks WHERE assigned_to = $1 AND deleted_at IS NULL',
+        [user.employee_id]
       )
       return result.rows
     },
-    
+
     bugs: async (user: any, _: any, { loaders }: any) => {
       const result = await pool.query(
-        'SELECT * FROM bugs WHERE assignedTo = $1 AND deletedAt IS NULL',
-        [user.employeeId]
+        'SELECT * FROM bugs WHERE assigned_to = $1 AND deleted_at IS NULL',
+        [user.employee_id]
       )
       return result.rows
     }
   },
-  
+
   // Field resolvers for Task
   Task: {
     assignedToUser: (task: any, _: any, { loaders }: any) => {
-      return loaders.user.load(task.assignedTo)
+      return loaders.user.load(task.assigned_to)
     },
-    
+
     assignedByUser: (task: any, _: any, { loaders }: any) => {
-      return loaders.user.load(task.assignedBy)
+      return loaders.user.load(task.assigned_by)
     },
-    
+
     supportUsers: async (task: any, _: any, { loaders }: any) => {
       if (!task.support) return []
-      const supportIds = task.support.split(',').filter(Boolean)
+      // Support is stored as JSONB array in PostgreSQL
+      const supportIds = Array.isArray(task.support) ? task.support : []
       return Promise.all(supportIds.map((id: string) => loaders.user.load(id)))
     },
-    
+
     subtasks: (task: any, _: any, { loaders }: any) => {
-      return loaders.subtasks.load(task.taskId)
+      return loaders.subtasks.load(task.task_id)
     },
-    
+
     project: async (task: any) => {
-      if (!task.projectId) return null
+      if (!task.project_id) return null
       const result = await pool.query(
-        'SELECT * FROM projects WHERE projectId = $1 AND deletedAt IS NULL',
-        [task.projectId]
+        'SELECT * FROM projects WHERE project_id = $1 AND deleted_at IS NULL',
+        [task.project_id]
       )
       return result.rows[0] || null
     }
@@ -302,58 +305,55 @@ export const resolvers = {
   // Field resolvers for SubTask
   SubTask: {
     assignedToUser: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.user.load(subtask.assignedTo)
+      return loaders.user.load(subtask.assigned_to)
     },
 
     assignedByUser: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.user.load(subtask.assignedBy)
+      return loaders.user.load(subtask.assigned_by)
     },
 
     parentTask: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.task.load(subtask.parentTaskId)
+      return loaders.task.load(subtask.parent_task_id)
     }
   },
 
   // Field resolvers for Bug
   Bug: {
     assignedToUser: (bug: any, _: any, { loaders }: any) => {
-      return loaders.user.load(bug.assignedTo)
+      return loaders.user.load(bug.assigned_to)
     },
 
     assignedByUser: (bug: any, _: any, { loaders }: any) => {
-      return loaders.user.load(bug.assignedBy)
+      return loaders.user.load(bug.assigned_by)
     },
 
     reportedByUser: (bug: any, _: any, { loaders }: any) => {
-      return loaders.user.load(bug.reportedBy)
+      return loaders.user.load(bug.reported_by)
     },
 
     subtasks: (bug: any, _: any, { loaders }: any) => {
-      return loaders.bugSubtasks.load(bug.bugId)
+      return loaders.bugSubtasks.load(bug.bug_id)
     },
 
     attachments: (bug: any) => {
       if (!bug.attachments) return []
-      try {
-        return JSON.parse(bug.attachments)
-      } catch {
-        return []
-      }
+      // Attachments is stored as JSONB in PostgreSQL
+      return Array.isArray(bug.attachments) ? bug.attachments : []
     }
   },
 
   // Field resolvers for BugSubTask
   BugSubTask: {
     assignedToUser: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.user.load(subtask.assignedTo)
+      return loaders.user.load(subtask.assigned_to)
     },
 
     assignedByUser: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.user.load(subtask.assignedBy)
+      return loaders.user.load(subtask.assigned_by)
     },
 
     parentBug: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.bug.load(subtask.parentBugId)
+      return loaders.bug.load(subtask.parent_bug_id)
     }
   },
 
@@ -361,8 +361,8 @@ export const resolvers = {
   Project: {
     tasks: async (project: any) => {
       const result = await pool.query(
-        'SELECT * FROM tasks WHERE projectId = $1 AND deletedAt IS NULL',
-        [project.projectId]
+        'SELECT * FROM tasks WHERE project_id = $1 AND deleted_at IS NULL',
+        [project.project_id]
       )
       return result.rows
     }

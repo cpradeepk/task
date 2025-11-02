@@ -57,7 +57,7 @@ export async function getAllUsers(): Promise<User[]> {
 }
 
 // Get user by employee ID
-export async function getUserByEmployeeId(employeeId: string): Promise<User | null> {
+export async function getUserByEmployeeId(employee_id: string): Promise<User | null> {
   return withRetry(async () => {
     const row = await queryOne<UserRow>(
       'SELECT * FROM users WHERE employee_id = $1',
@@ -108,10 +108,10 @@ export async function getUsersByEmployeeIds(employeeIds: string[]): Promise<User
     const ids = Array.from(new Set(employeeIds)).filter(Boolean)
     if (ids.length === 0) return []
 
-    const placeholders = ids.map(() => '$1').join(',')
+    // Use PostgreSQL's = ANY($1) syntax with array parameter
     const rows = await query<UserRow[]>(
-      `SELECT * FROM users WHERE employee_id IN (${placeholders}) AND status = $1 ORDER BY name`,
-      [...ids, 'active']
+      `SELECT * FROM users WHERE employee_id = ANY($1) AND status = $2 ORDER BY name`,
+      [ids, 'active']
     )
     return rows.map(rowToUser)
   })
@@ -127,7 +127,7 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
         password, status, hours_log
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        user.employeeId,
+        user.employee_id,
         user.name,
         user.email,
         user.phone,
@@ -144,7 +144,7 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
       ]
     )
 
-    const createdUser = await getUserByEmployeeId(user.employeeId)
+    const createdUser = await getUserByEmployeeId(user.employee_id)
     if (!createdUser) {
       throw new Error('Failed to retrieve created user')
     }
@@ -153,11 +153,11 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
 }
 
 // Update user
-export async function updateUser(employeeId: string, updates: Partial<User>): Promise<User> {
+export async function updateUser(employee_id: string, updates: Partial<User>): Promise<User> {
   return withRetry(async () => {
     // Check if user is system admin
-    const user = await getUserByEmployeeId(employeeId)
-    if (user && user.employeeId === 'admin-001') {
+    const user = await getUserByEmployeeId(employee_id)
+    if (user && user.employee_id === 'admin-001') {
       // System admin can only update certain fields (not role or status)
       if (updates.role !== undefined && updates.role !== 'admin') {
         throw new Error('Cannot change system admin role')
@@ -224,18 +224,18 @@ export async function updateUser(employeeId: string, updates: Partial<User>): Pr
     }
 
     if (fields.length === 0) {
-      const user = await getUserByEmployeeId(employeeId)
+      const user = await getUserByEmployeeId(employee_id)
       if (!user) throw new Error('User not found')
       return user
     }
 
-    values.push(employeeId)
+    values.push(employee_id)
     await query(
       `UPDATE users SET ${fields.join(', ')} WHERE employee_id = $1`,
       values
     )
 
-    const updatedUser = await getUserByEmployeeId(employeeId)
+    const updatedUser = await getUserByEmployeeId(employee_id)
     if (!updatedUser) {
       throw new Error('Failed to retrieve updated user')
     }
@@ -244,10 +244,10 @@ export async function updateUser(employeeId: string, updates: Partial<User>): Pr
 }
 
 // Delete user (soft delete by setting status to inactive)
-export async function deleteUser(employeeId: string): Promise<boolean> {
+export async function deleteUser(employee_id: string): Promise<boolean> {
   return withRetry(async () => {
     // Prevent deletion of system admin
-    if (employeeId === 'admin-001') {
+    if (employee_id === 'admin-001') {
       throw new Error('Cannot delete system admin user')
     }
 
@@ -260,37 +260,37 @@ export async function deleteUser(employeeId: string): Promise<boolean> {
 }
 
 // Increment warning count
-export async function incrementWarningCount(employeeId: string): Promise<User> {
+export async function incrementWarningCount(employee_id: string): Promise<User> {
   return withRetry(async () => {
     await query(
       'UPDATE users SET warning_count = warning_count + 1 WHERE employee_id = $1',
       [employeeId]
     )
-    const user = await getUserByEmployeeId(employeeId)
+    const user = await getUserByEmployeeId(employee_id)
     if (!user) throw new Error('User not found')
     return user
   })
 }
 
 // Reset warning count
-export async function resetWarningCount(employeeId: string): Promise<User> {
+export async function resetWarningCount(employee_id: string): Promise<User> {
   return withRetry(async () => {
     await query(
       'UPDATE users SET warning_count = 0 WHERE employee_id = $1',
       [employeeId]
     )
-    const user = await getUserByEmployeeId(employeeId)
+    const user = await getUserByEmployeeId(employee_id)
     if (!user) throw new Error('User not found')
     return user
   })
 }
 
 // Authenticate user by employee ID
-export async function authenticateUser(employeeId: string, password: string): Promise<User | null> {
+export async function authenticateUser(employee_id: string, password: string): Promise<User | null> {
   return withRetry(async () => {
     const row = await queryOne<UserRow>(
       'SELECT * FROM users WHERE employee_id = $1 AND password = $2 AND status = $3',
-      [employeeId, password, 'active']
+      [employee_id, password, 'active']
     )
     return row ? rowToUser(row) : null
   })
