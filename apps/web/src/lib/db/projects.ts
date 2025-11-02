@@ -95,8 +95,8 @@ export async function getProjectById(project_id: string, includeDeleted = false)
     const sql = includeDeleted
       ? 'SELECT * FROM projects WHERE project_id = $1'
       : 'SELECT * FROM projects WHERE project_id = $1 AND status != $2'
-    
-    const params = includeDeleted ? [projectId] : [project_id, 'Deleted']
+
+    const params = includeDeleted ? [project_id] : [project_id, 'Deleted']
     const row = await queryOne<ProjectRow>(sql, params)
     return row ? rowToProject(row) : null
   })
