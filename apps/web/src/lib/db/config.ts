@@ -13,16 +13,19 @@ export const DB_CONFIG = {
   ssl: {
     rejectUnauthorized: false // AWS RDS requires SSL
   },
-  // Connection pool settings
+  // Connection pool settings - OPTIMIZED FOR SERVERLESS
+  // CRITICAL: On Vercel serverless, each function instance creates its own pool
+  // With 150 connections per instance, just 3-4 instances = 450-600 connections!
+  // AWS RDS free tier max_connections is typically 66-100
   waitForConnections: true,
-  connectionLimit: 150, // Increased to handle more concurrent requests (Vercel serverless + local dev)
-  queueLimit: 0, // Unlimited queue
-  maxIdle: 10, // Maximum idle connections to keep
-  idleTimeout: 60000, // Close idle connections after 60 seconds
+  connectionLimit: 3, // REDUCED: 3 connections per serverless instance (was 150)
+  queueLimit: 10, // REDUCED: Limit queue to 10 (was unlimited) - fail fast instead of piling up
+  maxIdle: 1, // REDUCED: Keep only 1 idle connection (was 10)
+  idleTimeout: 10000, // REDUCED: Close idle connections after 10 seconds (was 60 seconds)
 
   // Timeout settings to prevent hanging (mysql2 valid options)
-  connectTimeout: 10000, // 10 seconds to establish connection
-  acquireTimeout: 10000, // 10 seconds to acquire connection from pool
+  connectTimeout: 5000, // REDUCED: 5 seconds to establish connection (was 10 seconds)
+  acquireTimeout: 5000, // REDUCED: 5 seconds to acquire connection from pool (was 10 seconds)
 
   // Keep-alive settings
   enableKeepAlive: true,
@@ -35,6 +38,39 @@ let pool: mysql.Pool | null = null
 export function getPool(): mysql.Pool {
   if (!pool) {
     pool = mysql.createPool(DB_CONFIG)
+
+    // Log connection pool creation (helps debug serverless instances)
+    console.log('🔵 [DB] New connection pool created', {
+      connectionLimit: DB_CONFIG.connectionLimit,
+      queueLimit: DB_CONFIG.queueLimit,
+      maxIdle: DB_CONFIG.maxIdle,
+      idleTimeout: DB_CONFIG.idleTimeout
+    })
+
+    // Monitor connection pool events
+    pool.on('acquire', (connection) => {
+      console.log('🔵 [DB] Connection acquired from pool', {
+        threadId: connection.threadId,
+        poolSize: (pool as any)._allConnections?.length || 0,
+        freeConnections: (pool as any)._freeConnections?.length || 0
+      })
+    })
+
+    pool.on('release', (connection) => {
+      console.log('🟢 [DB] Connection released to pool', {
+        threadId: connection.threadId,
+        poolSize: (pool as any)._allConnections?.length || 0,
+        freeConnections: (pool as any)._freeConnections?.length || 0
+      })
+    })
+
+    pool.on('enqueue', () => {
+      console.log('⚠️ [DB] Connection request queued (pool exhausted)', {
+        poolSize: (pool as any)._allConnections?.length || 0,
+        freeConnections: (pool as any)._freeConnections?.length || 0,
+        queueLength: (pool as any)._connectionQueue?.length || 0
+      })
+    })
   }
   return pool
 }

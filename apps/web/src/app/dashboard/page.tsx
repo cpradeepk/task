@@ -722,15 +722,7 @@ export default function Dashboard() {
 
           {/* Statistics Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <StatsCard
-              title="All Tasks"
-              value={allTasksCount}
-              icon={ListTodo}
-              color="purple"
-              subtitle="Total tasks in system"
-              onClick={() => handleFilterClick('all-system')}
-              isActive={activeFilter === 'all-system'}
-            />
+            
             <StatsCard
               title="My Tasks"
               value={totalTasks}
@@ -760,7 +752,6 @@ export default function Dashboard() {
               value={completedTasks}
               icon={CheckCircle}
               color="green"
-              subtitle={`${totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% completion rate`}
               onClick={() => handleFilterClick('completed')}
               isActive={activeFilter === 'completed'}
             />

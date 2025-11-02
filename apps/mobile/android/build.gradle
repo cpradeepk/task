@@ -15,12 +15,13 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('com.android.tools.build:gradle:8.1.1')
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath('com.android.tools.build:gradle')
+        classpath('com.facebook.react:react-native-gradle-plugin')
+        classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
     }
 }
 
-// React Native 0.73 doesn't use com.facebook.react.rootproject plugin
+apply plugin: "com.facebook.react.rootproject"
 
 allprojects {
     repositories {
