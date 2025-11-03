@@ -70,6 +70,7 @@ export default function Dashboard() {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [activeFilter, setActiveFilter] = useState<string>('all')
+  const [myTasksOnly, setMyTasksOnly] = useState(true) // Default: checked (show only my tasks)
   const [isHydrated, setIsHydrated] = useState(false)
   const router = useRouter()
   const currentUser = getCurrentUser()
@@ -572,50 +573,41 @@ export default function Dashboard() {
   const getFilteredTasks = () => {
     let filteredTasks: typeof tasks = []
 
+    // Apply "My Tasks Only" filter first
+    let baseTasks = tasks
+    if (myTasksOnly) {
+      baseTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId)
+    }
+
     switch (activeFilter) {
       case 'all-system':
         // Show ALL tasks from ALL employees (no employee filter)
-        filteredTasks = tasks
+        // When "My Tasks Only" is checked, still filter by assignee
+        filteredTasks = baseTasks
         break
       case 'all':
-        // Show all tasks assigned to OR created by current user
-        filteredTasks = tasks.filter(task =>
-          task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId
-        )
+        // Show all tasks (filtered by "My Tasks Only" if checked)
+        filteredTasks = baseTasks
         break
       case 'completed':
-        // Show completed tasks assigned to OR created by current user
-        filteredTasks = tasks.filter(task =>
-          (task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId) &&
-          task.status === 'Done'
-        )
+        // Show completed tasks (filtered by "My Tasks Only" if checked)
+        filteredTasks = baseTasks.filter(task => task.status === 'Done')
         break
       case 'in-progress':
-        // Show in-progress tasks assigned to OR created by current user
-        filteredTasks = tasks.filter(task =>
-          (task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId) &&
-          task.status === 'In Progress'
-        )
+        // Show in-progress tasks (filtered by "My Tasks Only" if checked)
+        filteredTasks = baseTasks.filter(task => task.status === 'In Progress')
         break
       case 'delayed':
-        // Show delayed tasks assigned to OR created by current user
-        filteredTasks = tasks.filter(task =>
-          (task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId) &&
-          task.status === 'Delayed'
-        )
+        // Show delayed tasks (filtered by "My Tasks Only" if checked)
+        filteredTasks = baseTasks.filter(task => task.status === 'Delayed')
         break
       case 'pending':
-        // Show pending tasks assigned to OR created by current user
-        filteredTasks = tasks.filter(task =>
-          (task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId) &&
-          task.status === 'Yet to Start'
-        )
+        // Show pending tasks (filtered by "My Tasks Only" if checked)
+        filteredTasks = baseTasks.filter(task => task.status === 'Yet to Start')
         break
       default:
-        // Default to showing current user's tasks
-        filteredTasks = tasks.filter(task =>
-          task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId
-        )
+        // Default to showing tasks (filtered by "My Tasks Only" if checked)
+        filteredTasks = baseTasks
         break
     }
 
@@ -720,9 +712,27 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* My Tasks Checkbox */}
+          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-4">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={myTasksOnly}
+                onChange={(e) => setMyTasksOnly(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                My Tasks Only
+              </span>
+              <span className="text-xs text-gray-500">
+                (Show only tasks assigned to me)
+              </span>
+            </label>
+          </div>
+
           {/* Statistics Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            
+
             <StatsCard
               title="My Tasks"
               value={totalTasks}

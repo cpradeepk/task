@@ -90,6 +90,7 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
+  const [myTasksOnly, setMyTasksOnly] = useState(true) // Default: checked (show only my tasks)
   const [statistics, setStatistics] = useState<any>(null)
   const [isHydrated, setIsHydrated] = useState(false)
   const [initialized, setInitialized] = useState(false)
@@ -301,6 +302,11 @@ export default function TasksPage() {
   const filteredTasks = useMemo(() => {
     let filtered = tasks
 
+    // My Tasks filter (default: checked)
+    if (myTasksOnly && currentUser) {
+      filtered = filtered.filter(task => task.assignedTo === currentUser.employeeId)
+    }
+
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
@@ -343,7 +349,7 @@ export default function TasksPage() {
     })
 
     return filtered
-  }, [tasks, searchTerm, statusFilter, priorityFilter, assigneeFilter, currentUser])
+  }, [tasks, searchTerm, statusFilter, priorityFilter, assigneeFilter, myTasksOnly, currentUser])
 
   const getPriorityColor = (priority: string) => {
     if (priority.includes('IU&I')) return 'text-red-600 bg-red-100'
@@ -589,6 +595,24 @@ export default function TasksPage() {
             <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
           </div>
 
+          {/* My Tasks Checkbox */}
+          <div className="mb-4">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={myTasksOnly}
+                onChange={(e) => setMyTasksOnly(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                My Tasks Only
+              </span>
+              <span className="text-xs text-gray-500">
+                (Show only tasks assigned to me)
+              </span>
+            </label>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Search */}
             <div className="relative">
@@ -652,6 +676,7 @@ export default function TasksPage() {
                 setStatusFilter('all')
                 setPriorityFilter('all')
                 setAssigneeFilter('all')
+                setMyTasksOnly(true) // Reset to default (checked)
               }}
               className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium"
             >
