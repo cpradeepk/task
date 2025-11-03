@@ -155,8 +155,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [projectName, setProjectName] = useState<string>('')
   const [subprojectName, setSubprojectName] = useState<string>('')
 
-  // Activity log filter state - default to showing both activities and comments
-  const [showActivity, setShowActivity] = useState(true)
+  // Activity log filter state - default to showing only comments
+  const [showActivity, setShowActivity] = useState(false)
   const [showComments, setShowComments] = useState(true)
 
   // Related bugs state
@@ -1013,8 +1013,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   <span>Time Tracking</span>
                 </h3>
 
-                {/* Log Hours Button */}
-                {canEdit && (
+                {/* Log Hours Button - Disabled for Closed/Resolved bugs */}
+                {canEdit && bug.status !== 'Closed' && bug.status !== 'Resolved' && (
                   <div className="relative">
                     <button
                       onClick={() => {
@@ -1224,8 +1224,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                     </span>
                   </div>
 
-                  {/* Timer Play/Pause Button */}
-                  {canEdit && (
+                  {/* Timer Play/Pause Button - 20% larger and disabled for Closed/Resolved */}
+                  {canEdit && bug.status !== 'Closed' && bug.status !== 'Resolved' && (
                     <TimerButton
                       entityType="bug"
                       entityId={bug.bugId}

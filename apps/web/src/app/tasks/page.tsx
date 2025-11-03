@@ -311,8 +311,8 @@ export default function TasksPage() {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(task =>
-        task.description.toLowerCase().includes(searchLower) ||
-        task.taskId.toLowerCase().includes(searchLower)
+        (task.description && task.description.toLowerCase().includes(searchLower)) ||
+        (task.taskId && task.taskId.toLowerCase().includes(searchLower))
       )
     }
 
@@ -352,6 +352,8 @@ export default function TasksPage() {
   }, [tasks, searchTerm, statusFilter, priorityFilter, assigneeFilter, myTasksOnly, currentUser])
 
   const getPriorityColor = (priority: string) => {
+    // Add null/undefined check to prevent TypeError
+    if (!priority) return 'text-gray-600 bg-gray-100'
     if (priority.includes('IU&I')) return 'text-red-600 bg-red-100'
     if (priority.includes('IU&NI')) return 'text-orange-600 bg-orange-100'
     if (priority.includes('NU&I')) return 'text-blue-600 bg-blue-100'

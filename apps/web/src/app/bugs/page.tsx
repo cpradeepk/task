@@ -340,9 +340,9 @@ export default function BugsPage() {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(bug =>
-        bug.title.toLowerCase().includes(searchLower) ||
-        bug.description.toLowerCase().includes(searchLower) ||
-        bug.bugId.toLowerCase().includes(searchLower)
+        (bug.title && bug.title.toLowerCase().includes(searchLower)) ||
+        (bug.description && bug.description.toLowerCase().includes(searchLower)) ||
+        (bug.bugId && bug.bugId.toLowerCase().includes(searchLower))
       )
     }
 
@@ -805,13 +805,13 @@ export default function BugsPage() {
                     </div>
 
                     <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                      <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer break-words overflow-wrap-anywhere"
                           onClick={() => router.push(`/bugs/${bug.bugId}`)}>
                         {bug.title}
                       </h3>
                       <ProjectDisplay projectId={bug.projectId} subprojectId={bug.subprojectId} />
                     </div>
-                    <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed">{bug.description}</p>
+                    <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed break-words overflow-wrap-anywhere">{bug.description}</p>
 
                     <div className="flex items-center flex-wrap gap-4 text-sm text-gray-500">
                       <div className="flex items-center space-x-1">
