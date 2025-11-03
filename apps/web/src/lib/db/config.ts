@@ -12,8 +12,10 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Database connection configuration
+// IMPORTANT: Use Supabase's IPv4-compatible pooler hostname (aws-1-ap-south-1.pooler.supabase.com)
+// The old hostname (db.*.supabase.co) only has IPv6, which Vercel doesn't support
 export const DB_CONFIG: PoolConfig = {
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:W8zTtc%3EqL3%3F@db.rbckjkdohzbclomrufrx.supabase.co:6543/postgres?pgbouncer=true',
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres.rbckjkdohzbclomrufrx:W8zTtc%3EqL3%3F@aws-1-ap-south-1.pooler.supabase.com:6543/postgres',
   ssl: {
     rejectUnauthorized: false // Supabase requires SSL
   },
