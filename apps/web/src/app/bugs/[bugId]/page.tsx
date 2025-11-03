@@ -1013,8 +1013,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   <span>Time Tracking</span>
                 </h3>
 
-                {/* Log Hours Button - Disabled for Closed/Resolved bugs */}
-                {canEdit && bug.status !== 'Closed' && bug.status !== 'Resolved' && (
+                {/* Log Hours Button */}
+                {canEdit && (
                   <div className="relative">
                     <button
                       onClick={() => {
@@ -1224,8 +1224,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                     </span>
                   </div>
 
-                  {/* Timer Play/Pause Button - 20% larger and disabled for Closed/Resolved */}
-                  {canEdit && bug.status !== 'Closed' && bug.status !== 'Resolved' && (
+                  {/* Timer Play/Pause Button */}
+                  {canEdit && (
                     <TimerButton
                       entityType="bug"
                       entityId={bug.bugId}

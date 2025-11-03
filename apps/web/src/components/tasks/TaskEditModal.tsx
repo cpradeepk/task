@@ -48,8 +48,8 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
   const modalContentRef = useRef<HTMLDivElement>(null)
 
   // Get options from settings (using correct keys from database)
-  const taskStatusOptions = settings?.task_statuses || []
-  const priorityOptions = settings?.task_priorities || []
+  const taskStatusOptions = settings?.task_status || []
+  const priorityOptions = settings?.task_priority || []
   const taskTypeOptions = ['Normal', 'Recursive']
   const recursiveTypeOptions = ['Daily', 'Weekly', 'Monthly', 'Annually']
 

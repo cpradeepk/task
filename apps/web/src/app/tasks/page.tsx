@@ -779,7 +779,7 @@ export default function TasksPage() {
                     </div>
 
                     <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                      <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer break-words overflow-wrap-anywhere"
                           onClick={() => router.push(`/tasks/${task.taskId}`)}>
                         {task.description}
                       </h3>
