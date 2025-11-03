@@ -85,7 +85,8 @@ export const executeGraphQLWithFallback = async <T = any>(
       data: data as T,
     }
   } catch (graphqlError) {
-    console.warn(`⚠️ [${componentName}] GraphQL failed, falling back to REST:`, graphqlError)
+    const errorMessage = graphqlError instanceof Error ? graphqlError.message : String(graphqlError)
+    console.warn(`⚠️ [${componentName}] GraphQL failed, falling back to REST:`, errorMessage)
     
     // Fallback to REST API
     const restResult = await restFallback()

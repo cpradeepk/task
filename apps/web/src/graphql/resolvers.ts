@@ -378,7 +378,7 @@ export const resolvers = {
       await pool.query(
         `INSERT INTO tasks (taskId, description, assignedTo, assignedBy, support, startDate, endDate,
          priority, estimatedHours, selectType, recursiveType, projectId, status, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW(), NOW())`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'Pending', NOW(), NOW())`,
         [taskId, input.description, input.assignedTo, input.assignedBy, support, input.startDate,
          input.endDate, input.priority, input.estimatedHours, input.selectType, input.recursiveType, input.projectId]
       )
@@ -438,7 +438,7 @@ export const resolvers = {
       await pool.query(
         `INSERT INTO bugs (bugId, description, category, severity, status, assignedTo, assignedBy,
          reportedBy, reportedDate, estimatedHours, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, 'Open', ?, ?, ?, ?, ?, NOW(), NOW())`,
+         VALUES ($1, $2, $3, $4, 'Open', $5, $6, $7, $8, $9, NOW(), NOW())`,
         [bugId, input.description, input.category, input.severity, input.assignedTo, input.assignedBy,
          input.reportedBy, input.reportedDate, input.estimatedHours]
       )
@@ -495,7 +495,7 @@ export const resolvers = {
 
       await pool.query(
         `INSERT INTO users (employeeId, name, email, phone, department, role, password, status, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'active', NOW(), NOW())`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', NOW(), NOW())`,
         [input.employeeId, input.name, input.email, input.phone, input.department, input.role, hashedPassword]
       )
 

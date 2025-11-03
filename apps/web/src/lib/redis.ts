@@ -48,6 +48,11 @@ class RedisCache {
           port: redisPort,
           password: redisPassword,
           retryStrategy: (times: number) => {
+            // Stop retrying after 3 attempts to avoid log spam
+            if (times > 3) {
+              console.log('⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache')
+              return null // Stop retrying
+            }
             // Retry connection with exponential backoff
             const delay = Math.min(times * 50, 2000)
             return delay
@@ -58,14 +63,19 @@ class RedisCache {
           connectTimeout: 10000,
           // TLS configuration for Redis Cloud
           tls: {
-            rejectUnauthorized: false
+            rejectUnauthorized: false,
+            // Suppress SSL handshake errors in logs
+            checkServerIdentity: () => undefined
           }
         })
 
         // Handle connection events
         if (this.redis) {
+          let errorLogged = false // Prevent duplicate error logs
+
           this.redis.on('connect', () => {
             console.log('🔵 Connecting to Redis Cloud...')
+            errorLogged = false // Reset error flag on new connection attempt
           })
 
           this.redis.on('ready', () => {
@@ -76,18 +86,28 @@ class RedisCache {
           })
 
           this.redis.on('error', (error: Error) => {
-            console.error('❌ Redis Cloud connection error:', error.message)
+            // Only log the first error to avoid spam
+            if (!errorLogged) {
+              console.error('❌ Redis Cloud connection error:', error.message)
+              console.log('   Falling back to in-memory cache')
+              errorLogged = true
+            }
             this.isRedisAvailable = false
             this.connectionAttempted = true
           })
 
           this.redis.on('close', () => {
-            console.log('⚠️ Redis Cloud connection closed')
+            if (this.isRedisAvailable) {
+              console.log('⚠️ Redis Cloud connection closed, using in-memory cache')
+            }
             this.isRedisAvailable = false
           })
 
           this.redis.on('reconnecting', () => {
-            console.log('🔄 Reconnecting to Redis Cloud...')
+            // Only log reconnection attempts if we were previously connected
+            if (this.connectionAttempted && !errorLogged) {
+              console.log('🔄 Reconnecting to Redis Cloud...')
+            }
           })
         }
 
