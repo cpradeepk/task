@@ -75,3 +75,11 @@ export function generateBugAttachmentKey(filename: string): string {
   return `bugs/${timestamp}-${randomString}-${sanitizedFilename}`
 }
 
+// Generate S3 key for ID card photo
+export function generateIdCardPhotoKey(employeeId: string, filename: string): string {
+  const timestamp = Date.now()
+  const randomString = Math.random().toString(36).substring(2, 15)
+  const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_')
+  return `id-cards/${employeeId}-${timestamp}-${randomString}-${sanitizedFilename}`
+}
+

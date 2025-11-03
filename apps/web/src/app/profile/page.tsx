@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import IDCard from '@/components/profile/IDCard'
+import IdCardPhotoUpload from '@/components/profile/IdCardPhotoUpload'
 
 // Helper function to execute GraphQL queries
 async function executeGraphQLQuery(query: string, variables: any) {
@@ -306,6 +307,16 @@ export default function Profile() {
     setSuccess('')
   }
 
+  const handleIdCardPhotoUploadSuccess = (photoUrl: string) => {
+    // Update user state with new photo URL
+    if (user) {
+      setUser({
+        ...user,
+        idCardPhoto: photoUrl
+      })
+    }
+  }
+
   if (!user) {
     return (
       <div>
@@ -400,6 +411,17 @@ export default function Profile() {
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-black mb-3">Employee ID Card</h3>
           <IDCard user={user} />
+        </div>
+
+        {/* ID Card Photo Upload Section */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-black mb-3">ID Card Photo</h3>
+          <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+            <IdCardPhotoUpload
+              currentPhotoUrl={user.idCardPhoto}
+              onUploadSuccess={handleIdCardPhotoUploadSuccess}
+            />
+          </div>
         </div>
 
         {/* Profile Form */}

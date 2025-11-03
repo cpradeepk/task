@@ -213,49 +213,104 @@ export default function IDCard({ user }: IDCardProps) {
 
             {/* Modal Content */}
             <div className="p-6">
-              {/* ID Card Preview */}
+              {/* Modern ID Card Preview */}
               <div className="flex justify-center mb-6">
-                <div 
+                <div
                   id="id-card-print"
-                  className="id-card-print w-80 h-48 border-2 border-primary rounded-xl p-4 bg-gradient-to-br from-white to-gray-50 shadow-lg relative overflow-hidden"
+                  className="id-card-print w-full max-w-md bg-gradient-to-br from-orange-50 via-white to-orange-50 rounded-2xl shadow-2xl overflow-hidden border border-orange-200"
                 >
-                  {/* Company Header */}
-                  <div className="flex items-center justify-center mb-3 border-b border-gray-200 pb-2">
-                    <Image
-                      src="/images/logos/amtariksha_logo.png"
-                      alt="Amtariksha Logo"
-                      width={120}
-                      height={30}
-                      className="object-contain"
-                    />
+                  {/* Card Header with Company Branding */}
+                  <div className="bg-gradient-to-r from-primary to-orange-500 px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                          <Building className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-bold text-lg">Amtariksha</h3>
+                          <p className="text-orange-100 text-xs">Employee ID Card</p>
+                        </div>
+                      </div>
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                        <QrCode className="h-8 w-8 text-white" />
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Employee Info */}
-                  <div className="flex items-center space-x-3">
-                    {/* Avatar */}
-                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-black font-bold text-lg flex-shrink-0">
-                      {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </div>
+                  {/* Employee Information Section */}
+                  <div className="p-6">
+                    <div className="flex items-start space-x-4 mb-6">
+                      {/* Employee Photo or Avatar */}
+                      <div className="flex-shrink-0">
+                        {user.idCardPhoto ? (
+                          <div className="w-24 h-24 rounded-xl overflow-hidden border-4 border-primary shadow-lg">
+                            <Image
+                              src={user.idCardPhoto}
+                              alt={user.name}
+                              width={96}
+                              height={96}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-24 h-24 bg-gradient-to-br from-primary to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-3xl shadow-lg border-4 border-white">
+                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Details */}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold text-black truncate">{user.name}</div>
-                      <div className="text-xs text-gray-600 font-mono">{user.employeeId}</div>
-                      <div className="text-xs text-gray-700 truncate">{user.department}</div>
-                      <div className="inline-block text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded mt-1">
-                        {getRoleDisplayName(user.role)}
+                      {/* Employee Details */}
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-1 truncate">{user.name}</h2>
+                        <p className="text-sm font-mono text-primary font-semibold mb-2">{user.employeeId}</p>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Building className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-700 truncate">{user.department}</span>
+                        </div>
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-primary to-orange-400 text-black shadow-sm">
+                          <Shield className="h-3 w-3 mr-1" />
+                          {getRoleDisplayName(user.role)}
+                        </div>
                       </div>
                     </div>
 
-                    {/* QR Code Placeholder */}
-                    <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center bg-white flex-shrink-0">
-                      <QrCode className="h-4 w-4 text-gray-400" />
+                    {/* Contact Information Grid */}
+                    <div className="grid grid-cols-1 gap-3 bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Mail className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-gray-500 font-medium">Email</p>
+                          <p className="text-sm text-gray-900 truncate">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Phone className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-gray-500 font-medium">Phone</p>
+                          <p className="text-sm text-gray-900">{user.phone}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Calendar className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-gray-500 font-medium">Member Since</p>
+                          <p className="text-sm text-gray-900">{formatDate(user.createdAt)}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Footer */}
-                  <div className="absolute bottom-2 left-4 right-4 text-center text-xs text-gray-400">
-                    Valid from {formatDate(user.createdAt)}
+                  {/* Card Footer */}
+                  <div className="bg-gradient-to-r from-gray-50 to-orange-50 px-6 py-3 border-t border-gray-200">
+                    <p className="text-xs text-center text-gray-500">
+                      This card is property of Amtariksha • Valid from {formatDate(user.createdAt)}
+                    </p>
                   </div>
                 </div>
               </div>

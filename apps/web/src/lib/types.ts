@@ -43,6 +43,7 @@ export interface User {
   password: string          // Hashed password (never store plain text!)
   status: 'active' | 'inactive'  // Account status
   hoursLog?: string         // Optional: Hours worked log (format: 'DD/MM/YYYY - X Hours worked today')
+  idCardPhoto?: string      // Optional: AWS S3 URL for employee ID card photo
   createdAt: string         // Timestamp when user was created
   updatedAt: string         // Timestamp when user was last updated
 }

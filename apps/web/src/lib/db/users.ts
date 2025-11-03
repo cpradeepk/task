@@ -19,6 +19,7 @@ interface UserRow  {
   password: string
   status: string
   hours_log: string | null
+  id_card_photo: string | null
   created_at: string
   updated_at: string
 }
@@ -40,6 +41,7 @@ function rowToUser(row: UserRow): User {
     password: row.password,
     status: row.status as User['status'],
     hoursLog: row.hours_log || undefined,
+    idCardPhoto: row.id_card_photo || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }
@@ -221,6 +223,10 @@ export async function updateUser(employee_id: string, updates: Partial<User>): P
     if (updates.hoursLog !== undefined) {
       fields.push('hours_log = ?')
       values.push(updates.hoursLog || null)
+    }
+    if (updates.idCardPhoto !== undefined) {
+      fields.push('id_card_photo = ?')
+      values.push(updates.idCardPhoto || null)
     }
 
     if (fields.length === 0) {

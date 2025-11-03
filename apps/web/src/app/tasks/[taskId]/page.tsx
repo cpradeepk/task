@@ -544,7 +544,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                     </>
                   )}
                 </h1>
-                <p className="text-lg text-gray-900 mt-1">{task.description}</p>
+                <p className="text-lg text-gray-900 mt-1 break-words overflow-wrap-anywhere whitespace-pre-wrap max-w-full">{task.description}</p>
               </div>
             </div>
           </div>
