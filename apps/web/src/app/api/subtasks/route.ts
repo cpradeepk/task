@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   getSubTasksByParentTaskId,
+  getSubTasksByAssignedTo,
   createSubTask,
   getSubTaskCount,
   getAllDeletedSubTasks
@@ -9,9 +10,10 @@ import { withTimeout } from '@/lib/db/config'
 
 /**
  * GET /api/subtasks
- * Get subtasks by parent task ID or get all deleted subtasks
+ * Get subtasks by parent task ID, assigned user, or get all deleted subtasks
  * Query params:
- * - parentTaskId: string (required for normal subtasks)
+ * - parentTaskId: string (optional, for subtasks of a specific task)
+ * - assignedTo: string (optional, for subtasks assigned to a specific user)
  * - includeDeleted: boolean (optional, for admin)
  */
 export async function GET(request: NextRequest) {
@@ -20,9 +22,10 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const parentTaskId = searchParams.get('parentTaskId')
+    const assignedTo = searchParams.get('assignedTo')
     const includeDeleted = searchParams.get('includeDeleted') === 'true'
 
-    console.log('🔵 [SUBTASKS-GET] Params:', { parentTaskId, includeDeleted })
+    console.log('🔵 [SUBTASKS-GET] Params:', { parentTaskId, assignedTo, includeDeleted })
 
     // Get all deleted subtasks (for admin "Deleted Items" page)
     if (includeDeleted && !parentTaskId) {
@@ -36,13 +39,29 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Get subtasks assigned to a specific user
+    if (assignedTo) {
+      console.log('🔵 [SUBTASKS-GET] Fetching subtasks by assignedTo...')
+      const subtasks = await withTimeout(
+        getSubTasksByAssignedTo(assignedTo),
+        10000,
+        'Failed to fetch subtasks by assignedTo - database timeout'
+      )
+      console.log(`✅ [SUBTASKS-GET] Found ${subtasks.length} subtasks assigned to ${assignedTo}`)
+      return NextResponse.json({
+        success: true,
+        data: subtasks,
+        count: subtasks.length
+      })
+    }
+
     // Get subtasks for a specific parent task
     if (!parentTaskId) {
-      console.log('❌ [SUBTASKS-GET] Missing parentTaskId')
+      console.log('❌ [SUBTASKS-GET] Missing parentTaskId or assignedTo')
       return NextResponse.json(
         {
           success: false,
-          error: 'parentTaskId is required'
+          error: 'Either parentTaskId or assignedTo is required'
         },
         { status: 400 }
       )

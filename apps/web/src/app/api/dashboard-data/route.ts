@@ -4,6 +4,8 @@ import { getTasksByEmployeeId, getAllTasks } from '@/lib/db/tasks'
 import { getBugsByEmployeeId, getAllBugs } from '@/lib/db/bugs'
 import { getUsersByEmployeeIds, getAllUsers } from '@/lib/db/users'
 import { getDropdownSettings } from '@/lib/db/settings'
+import { getSubTasksByAssignedTo } from '@/lib/db/subtasks'
+import { getBugSubTasksByAssignedTo } from '@/lib/db/bugSubtasks'
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,6 +18,8 @@ export async function GET(request: NextRequest) {
     let tasksPromise: Promise<any[]> | null = null
     let bugsPromise: Promise<any[]> | null = null
     let usersPromise: Promise<any[]> | null = null
+    let subtasksPromise: Promise<any[]> | null = null
+    let bugSubtasksPromise: Promise<any[]> | null = null
 
     if (includeUsers) {
       usersPromise = withTimeout(getAllUsers(), 10000, 'Failed to fetch users')
@@ -24,15 +28,20 @@ export async function GET(request: NextRequest) {
     } else {
       tasksPromise = withTimeout(getTasksByEmployeeId(employeeId), 10000, 'Failed to fetch tasks for user')
       bugsPromise = withTimeout(getBugsByEmployeeId(employeeId), 10000, 'Failed to fetch bugs for user')
+      // Fetch subtasks assigned to the user
+      subtasksPromise = withTimeout(getSubTasksByAssignedTo(employeeId), 10000, 'Failed to fetch subtasks for user')
+      bugSubtasksPromise = withTimeout(getBugSubTasksByAssignedTo(employeeId), 10000, 'Failed to fetch bug subtasks for user')
     }
 
     const settingsPromise = withTimeout(getDropdownSettings(), 8000, 'Failed to fetch settings')
 
-    const [tasks, bugs, settings, users] = await Promise.all([
+    const [tasks, bugs, settings, users, subtasks, bugSubtasks] = await Promise.all([
       tasksPromise!,
       bugsPromise!,
       settingsPromise,
-      usersPromise || Promise.resolve([])
+      usersPromise || Promise.resolve([]),
+      subtasksPromise || Promise.resolve([]),
+      bugSubtasksPromise || Promise.resolve([])
     ])
 
     // Build user map from referenced IDs
@@ -47,6 +56,19 @@ export async function GET(request: NextRequest) {
       if (b.assignedBy) idSet.add(b.assignedBy)
       if (b.reportedBy) idSet.add(b.reportedBy)
     })
+    // Add users from subtasks
+    if (subtasks) {
+      subtasks.forEach((st: any) => {
+        if (st.assignedTo) idSet.add(st.assignedTo)
+        if (st.createdBy) idSet.add(st.createdBy)
+      })
+    }
+    if (bugSubtasks) {
+      bugSubtasks.forEach((bst: any) => {
+        if (bst.assignedTo) idSet.add(bst.assignedTo)
+        if (bst.createdBy) idSet.add(bst.createdBy)
+      })
+    }
     // Always include current user
     if (employeeId) idSet.add(employeeId)
 
@@ -65,10 +87,18 @@ export async function GET(request: NextRequest) {
       data: {
         tasks,
         bugs,
+        subtasks: subtasks || [],
+        bugSubtasks: bugSubtasks || [],
         settings,
         users: includeUsers ? (users || []) : undefined,
         userMap,
-        counts: { tasks: tasks.length, bugs: bugs.length, users: includeUsers ? (users?.length || 0) : Object.keys(userMap).length }
+        counts: {
+          tasks: tasks.length,
+          bugs: bugs.length,
+          subtasks: subtasks?.length || 0,
+          bugSubtasks: bugSubtasks?.length || 0,
+          users: includeUsers ? (users?.length || 0) : Object.keys(userMap).length
+        }
       },
       source: 'database'
     }

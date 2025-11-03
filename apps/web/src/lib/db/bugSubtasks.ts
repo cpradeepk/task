@@ -69,6 +69,19 @@ export async function getBugSubTasksByParentBugId(parentBugId: string): Promise<
 }
 
 /**
+ * Get all bug subtasks assigned to a specific user (excluding soft-deleted)
+ */
+export async function getBugSubTasksByAssignedTo(assigned_to: string): Promise<BugSubTask[]> {
+  const rows = await query<BugSubTaskRow[]>(
+    `SELECT * FROM bug_subtasks
+     WHERE assigned_to = $1 AND deleted_at IS NULL
+     ORDER BY created_at DESC`,
+    [assigned_to]
+  )
+  return rows.map(rowToBugSubTask)
+}
+
+/**
  * Get a single bug subtask by ID
  */
 export async function getBugSubTaskById(id: number): Promise<BugSubTask | null> {

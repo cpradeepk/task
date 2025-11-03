@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   getBugSubTasksByParentBugId,
+  getBugSubTasksByAssignedTo,
   createBugSubTask,
   getBugSubTaskCount,
   getAllDeletedBugSubTasks
@@ -9,9 +10,10 @@ import { withTimeout } from '@/lib/db/config'
 
 /**
  * GET /api/bug-subtasks
- * Get bug subtasks by parent bug ID or get all deleted bug subtasks
+ * Get bug subtasks by parent bug ID, assigned user, or get all deleted bug subtasks
  * Query params:
- * - parentBugId: string (required for normal subtasks)
+ * - parentBugId: string (optional, for subtasks of a specific bug)
+ * - assignedTo: string (optional, for subtasks assigned to a specific user)
  * - includeDeleted: boolean (optional, for admin)
  */
 export async function GET(request: NextRequest) {
@@ -20,9 +22,10 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const parentBugId = searchParams.get('parentBugId')
+    const assignedTo = searchParams.get('assignedTo')
     const includeDeleted = searchParams.get('includeDeleted') === 'true'
 
-    console.log('🔵 [BUG-SUBTASKS-GET] Params:', { parentBugId, includeDeleted })
+    console.log('🔵 [BUG-SUBTASKS-GET] Params:', { parentBugId, assignedTo, includeDeleted })
 
     // Get all deleted bug subtasks (for admin "Deleted Items" page)
     if (includeDeleted && !parentBugId) {
@@ -36,13 +39,29 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Get bug subtasks assigned to a specific user
+    if (assignedTo) {
+      console.log('🔵 [BUG-SUBTASKS-GET] Fetching bug subtasks by assignedTo...')
+      const subtasks = await withTimeout(
+        getBugSubTasksByAssignedTo(assignedTo),
+        10000,
+        'Failed to fetch bug subtasks by assignedTo - database timeout'
+      )
+      console.log(`✅ [BUG-SUBTASKS-GET] Found ${subtasks.length} bug subtasks assigned to ${assignedTo}`)
+      return NextResponse.json({
+        success: true,
+        data: subtasks,
+        count: subtasks.length
+      })
+    }
+
     // Get subtasks for a specific parent bug
     if (!parentBugId) {
-      console.log('❌ [BUG-SUBTASKS-GET] Missing parentBugId')
+      console.log('❌ [BUG-SUBTASKS-GET] Missing parentBugId or assignedTo')
       return NextResponse.json(
         {
           success: false,
-          error: 'parentBugId is required'
+          error: 'Either parentBugId or assignedTo is required'
         },
         { status: 400 }
       )

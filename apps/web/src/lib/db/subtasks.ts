@@ -54,6 +54,19 @@ export async function getSubTasksByParentTaskId(parent_task_id: string): Promise
 }
 
 /**
+ * Get all subtasks assigned to a specific user (excluding soft-deleted)
+ */
+export async function getSubTasksByAssignedTo(assigned_to: string): Promise<SubTask[]> {
+  const rows = await query<SubTaskRow[]>(
+    `SELECT * FROM subtasks
+     WHERE assigned_to = $1 AND deleted_at IS NULL
+     ORDER BY created_at DESC`,
+    [assigned_to]
+  )
+  return rows.map(rowToSubTask)
+}
+
+/**
  * Get all subtasks including soft-deleted (for admin "Deleted Items" page)
  */
 export async function getAllSubTasksIncludingDeleted(parent_task_id: string): Promise<SubTask[]> {
