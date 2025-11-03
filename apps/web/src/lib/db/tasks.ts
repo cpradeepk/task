@@ -96,11 +96,11 @@ function rowToTask(row: TaskRow): Task {
   }
 }
 
-// Get all tasks
+// Get all tasks (excluding soft-deleted)
 export async function getAllTasks(): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks ORDER BY created_at DESC'
+      'SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY created_at DESC'
     )
     return rows.map(rowToTask)
   })
@@ -117,66 +117,66 @@ export async function getTaskById(id: string): Promise<Task | null> {
   })
 }
 
-// Get tasks by employee ID
+// Get tasks by employee ID (excluding soft-deleted)
 export async function getTasksByEmployeeId(employee_id: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE assigned_to = $1 ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE assigned_to = $1 AND deleted_at IS NULL ORDER BY created_at DESC',
       [employee_id]
     )
     return rows.map(rowToTask)
   })
 }
 
-// Get tasks assigned by employee ID
+// Get tasks assigned by employee ID (excluding soft-deleted)
 export async function getTasksAssignedBy(employee_id: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE assigned_by = $1 ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE assigned_by = $1 AND deleted_at IS NULL ORDER BY created_at DESC',
       [employee_id]
     )
     return rows.map(rowToTask)
   })
 }
 
-// Get tasks by status
+// Get tasks by status (excluding soft-deleted)
 export async function getTasksByStatus(status: Task['status']): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE status = $1 ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE status = $1 AND deleted_at IS NULL ORDER BY created_at DESC',
       [status]
     )
     return rows.map(rowToTask)
   })
 }
 
-// Get tasks by date range
+// Get tasks by date range (excluding soft-deleted)
 export async function getTasksByDateRange(start_date: string, endDate: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE start_date >= $1 AND end_date <= $2 ORDER BY start_date',
+      'SELECT * FROM tasks WHERE start_date >= $1 AND end_date <= $2 AND deleted_at IS NULL ORDER BY start_date',
       [start_date, endDate]
     )
     return rows.map(rowToTask)
   })
 }
 
-// Get support tasks for employee
+// Get support tasks for employee (excluding soft-deleted)
 export async function getSupportTasksForEmployee(employee_id: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE JSON_CONTAINS(support, $1) ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE JSON_CONTAINS(support, $1) AND deleted_at IS NULL ORDER BY created_at DESC',
       [JSON.stringify(employee_id)]
     )
     return rows.map(rowToTask)
   })
 }
 
-// Get tasks by project ID
+// Get tasks by project ID (excluding soft-deleted)
 export async function getTasksByProject(project_id: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE project_id = $1 ORDER BY created_at DESC',
+      'SELECT * FROM tasks WHERE project_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC',
       [project_id]
     )
     return rows.map(rowToTask)
@@ -344,13 +344,14 @@ export async function deleteTask(id: string): Promise<boolean> {
   })
 }
 
-// Get delayed tasks
+// Get delayed tasks (excluding soft-deleted)
 export async function getDelayedTasks(): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
       `SELECT * FROM tasks
-       WHERE status = 'Delayed'
-       OR (status IN ('Yet to Start', 'In Progress') AND end_date < CURRENT_DATE)
+       WHERE deleted_at IS NULL
+       AND (status = 'Delayed'
+       OR (status IN ('Yet to Start', 'In Progress') AND end_date < CURRENT_DATE))
        ORDER BY end_date`
     )
     return rows.map(rowToTask)
