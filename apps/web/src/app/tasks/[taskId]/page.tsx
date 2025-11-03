@@ -132,7 +132,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
   const [taskPriorityOptions, setTaskPriorityOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
 
-  // Project names
+  // Project name
   const [projectName, setProjectName] = useState<string>('')
 
   // Activity log filter state - default to showing only comments
@@ -246,7 +246,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     return () => document.removeEventListener('keydown', handleEscape)
   }, [showHoursModal])
 
-  // Load project names
+  // Load project name
   const loadProjectNames = useCallback(async () => {
     if (!task?.projectId) return
 
@@ -259,7 +259,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
         }
       }
     } catch (error) {
-      console.error('Failed to load project names:', error)
+      console.error('Failed to load project name:', error)
     }
   }, [task?.projectId])
 
@@ -531,8 +531,16 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                 <Target className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{task.description}</h1>
-                <p className="text-sm text-gray-600 font-mono">{task.taskId}</p>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+                  <span className="font-mono">{task.taskId}</span>
+                  {projectName && (
+                    <>
+                      <span className="text-gray-400">-</span>
+                      <span className="text-sm text-gray-700">{projectName}</span>
+                    </>
+                  )}
+                </h1>
+                <p className="text-lg text-gray-900 mt-1">{task.description}</p>
               </div>
             </div>
           </div>
