@@ -11,6 +11,7 @@ import {
   permanentlyDeleteSetting,
   type UpdateSettingData
 } from '@/lib/db/settings'
+import { cache } from '@/lib/cache'
 
 /**
  * GET /api/settings/[id]
@@ -124,6 +125,12 @@ export async function PATCH(
 
     const updatedSetting = await updateSetting(settingId, updateData)
 
+    // Invalidate all settings caches
+    await cache.delete('settings_grouped')
+    await cache.delete('settings_dropdowns')
+    await cache.delete('settings_all_active_1')
+    await cache.delete('settings_all_active_0')
+
     return NextResponse.json({
       success: true,
       data: updatedSetting,
@@ -184,6 +191,12 @@ export async function DELETE(
     } else {
       await deleteSetting(settingId)
     }
+
+    // Invalidate all settings caches
+    await cache.delete('settings_grouped')
+    await cache.delete('settings_dropdowns')
+    await cache.delete('settings_all_active_1')
+    await cache.delete('settings_all_active_0')
 
     return NextResponse.json({
       success: true,

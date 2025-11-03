@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cache } from '@/lib/cache'
 import { withTimeout } from '@/lib/db/config'
 import { getTasksByEmployeeId, getAllTasks } from '@/lib/db/tasks'
 import { getBugsByEmployeeId, getAllBugs } from '@/lib/db/bugs'
@@ -12,14 +11,6 @@ export async function GET(request: NextRequest) {
     const employeeId = sp.get('employeeId') || ''
     const role = (sp.get('role') || 'employee').toLowerCase()
     const includeUsers = sp.get('includeUsers') === 'true' || ['admin', 'top_management'].includes(role)
-
-    const cacheKey = `dashboard_${employeeId}_${role}_${includeUsers ? '1' : '0'}`
-    if (await cache.has(cacheKey)) {
-      const cached = await cache.get<any>(cacheKey)
-      const res = NextResponse.json({ success: true, ...cached, source: 'cache' })
-      res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')
-      return res
-    }
 
     // Load core data in parallel based on role
     let tasksPromise: Promise<any[]> | null = null
@@ -79,10 +70,8 @@ export async function GET(request: NextRequest) {
         userMap,
         counts: { tasks: tasks.length, bugs: bugs.length, users: includeUsers ? (users?.length || 0) : Object.keys(userMap).length }
       },
-      source: 'mysql'
+      source: 'database'
     }
-
-    await cache.set(cacheKey, payload, 2) // 2 minutes TTL for dashboard snapshot
 
     const res = NextResponse.json(payload)
     res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')

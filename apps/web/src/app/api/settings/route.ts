@@ -51,23 +51,31 @@ export async function GET(request: NextRequest) {
     if (grouped) {
       const cacheKey = 'settings_grouped'
       if (await cache.has(cacheKey)) {
-        const res = NextResponse.json({ success: true, data: await cache.get<any>(cacheKey) })
-        res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
+        const res = NextResponse.json({ success: true, data: await cache.get<any>(cacheKey), source: 'cache' })
+        res.headers.set('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=3600')
         return res
       }
       const settingsByType = await getSettingsByType()
-      await cache.set(cacheKey, settingsByType, 10)
-      const res = NextResponse.json({ success: true, data: settingsByType })
-      res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
+      await cache.set(cacheKey, settingsByType, 1440) // 24 hours
+      const res = NextResponse.json({ success: true, data: settingsByType, source: 'database' })
+      res.headers.set('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=3600')
       return res
     }
 
     // Get dropdown settings only
     if (dropdowns) {
+      const cacheKey = 'settings_dropdowns'
+      if (await cache.has(cacheKey)) {
+        const res = NextResponse.json({ success: true, data: await cache.get<any>(cacheKey), source: 'cache' })
+        res.headers.set('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=3600')
+        return res
+      }
       const dropdownSettings = await getDropdownSettings()
+      await cache.set(cacheKey, dropdownSettings, 1440) // 24 hours
       return NextResponse.json({
         success: true,
-        data: dropdownSettings
+        data: dropdownSettings,
+        source: 'database'
       })
     }
 
@@ -103,21 +111,22 @@ export async function GET(request: NextRequest) {
     const cacheKeyAll = `settings_all_active_${activeOnly ? '1' : '0'}`
     if (await cache.has(cacheKeyAll)) {
       const cached = await cache.get<any[]>(cacheKeyAll) || []
-      const res = NextResponse.json({ success: true, data: cached, count: cached.length })
-      res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
+      const res = NextResponse.json({ success: true, data: cached, count: cached.length, source: 'cache' })
+      res.headers.set('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=3600')
       return res
     }
 
     const settings = await getAllSettings(activeOnly)
 
-    await cache.set(cacheKeyAll, settings, 10)
+    await cache.set(cacheKeyAll, settings, 1440) // 24 hours
 
     const res = NextResponse.json({
       success: true,
       data: settings,
-      count: settings.length
+      count: settings.length,
+      source: 'database'
     })
-    res.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300')
+    res.headers.set('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=3600')
     return res
   } catch (error) {
     console.error('Settings API GET error:', error)
@@ -195,6 +204,12 @@ export async function POST(request: NextRequest) {
     }
 
     const newSetting = await createSetting(settingData)
+
+    // Invalidate all settings caches
+    await cache.delete('settings_grouped')
+    await cache.delete('settings_dropdowns')
+    await cache.delete('settings_all_active_1')
+    await cache.delete('settings_all_active_0')
 
     return NextResponse.json({
       success: true,
