@@ -3,6 +3,14 @@
 
 import { Pool, PoolConfig } from 'pg'
 
+// Log environment variable status for debugging
+if (!process.env.DATABASE_URL) {
+  console.warn('⚠️ [DB] DATABASE_URL environment variable not set, using fallback connection string')
+  console.warn('⚠️ [DB] This may cause connection issues on Vercel. Please set DATABASE_URL in Vercel environment variables.')
+} else {
+  console.log('✅ [DB] DATABASE_URL environment variable found')
+}
+
 // Database connection configuration
 export const DB_CONFIG: PoolConfig = {
   connectionString: process.env.DATABASE_URL || 'postgresql://postgres:W8zTtc%3EqL3%3F@db.rbckjkdohzbclomrufrx.supabase.co:6543/postgres?pgbouncer=true',
@@ -22,40 +30,57 @@ let pool: Pool | null = null
 
 export function getPool(): Pool {
   if (!pool) {
-    pool = new Pool(DB_CONFIG)
+    try {
+      pool = new Pool(DB_CONFIG)
 
-    // Log connection pool creation (helps debug serverless instances)
-    console.log('🔵 [DB] New PostgreSQL connection pool created', {
-      max: DB_CONFIG.max,
-      idleTimeoutMillis: DB_CONFIG.idleTimeoutMillis,
-      connectionTimeoutMillis: DB_CONFIG.connectionTimeoutMillis
-    })
+      // Log connection pool creation (helps debug serverless instances)
+      const connectionString = DB_CONFIG.connectionString || ''
+      const maskedConnectionString = connectionString.replace(/:[^:@]+@/, ':****@')
 
-    // Monitor connection pool events
-    pool.on('connect', (client) => {
-      console.log('🔵 [DB] New client connected to pool', {
-        totalCount: (pool as any).totalCount || 0,
-        idleCount: (pool as any).idleCount || 0
+      console.log('🔵 [DB] New PostgreSQL connection pool created', {
+        max: DB_CONFIG.max,
+        idleTimeoutMillis: DB_CONFIG.idleTimeoutMillis,
+        connectionTimeoutMillis: DB_CONFIG.connectionTimeoutMillis,
+        connectionString: maskedConnectionString,
+        usingEnvVar: !!process.env.DATABASE_URL
       })
-    })
 
-    pool.on('acquire', (client) => {
-      console.log('🔵 [DB] Client acquired from pool', {
-        totalCount: (pool as any).totalCount || 0,
-        idleCount: (pool as any).idleCount || 0
+      // Monitor connection pool events
+      pool.on('connect', (client) => {
+        console.log('🔵 [DB] New client connected to pool', {
+          totalCount: (pool as any).totalCount || 0,
+          idleCount: (pool as any).idleCount || 0
+        })
       })
-    })
 
-    pool.on('remove', (client) => {
-      console.log('🔴 [DB] Client removed from pool', {
-        totalCount: (pool as any).totalCount || 0,
-        idleCount: (pool as any).idleCount || 0
+      pool.on('acquire', (client) => {
+        console.log('🔵 [DB] Client acquired from pool', {
+          totalCount: (pool as any).totalCount || 0,
+          idleCount: (pool as any).idleCount || 0
+        })
       })
-    })
 
-    pool.on('error', (err, client) => {
-      console.error('❌ [DB] Unexpected error on idle client', err)
-    })
+      pool.on('remove', (client) => {
+        console.log('🔴 [DB] Client removed from pool', {
+          totalCount: (pool as any).totalCount || 0,
+          idleCount: (pool as any).idleCount || 0
+        })
+      })
+
+      pool.on('error', (err, client) => {
+        console.error('❌ [DB] Unexpected error on idle client', err)
+        console.error('❌ [DB] Error details:', {
+          message: err.message,
+          code: (err as any).code,
+          errno: (err as any).errno,
+          syscall: (err as any).syscall,
+          hostname: (err as any).hostname
+        })
+      })
+    } catch (error) {
+      console.error('❌ [DB] Failed to create connection pool:', error)
+      throw error
+    }
   }
   return pool
 }
