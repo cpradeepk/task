@@ -32,6 +32,7 @@ export default function CreateTask() {
     estimatedHours: '', // Format: hh:mm:ss
     projectId: undefined as string | undefined,
     subprojectId: undefined as string | undefined,
+    department: '', // Department field (mandatory)
     assignToSomeoneElse: false,
     assignedTo: '',
     multiUserAssignment: false, // Enable multi-user assignment
@@ -48,6 +49,7 @@ export default function CreateTask() {
   // Settings state
   const [taskStatusOptions, setTaskStatusOptions] = useState<string[]>([])
   const [taskPriorityOptions, setTaskPriorityOptions] = useState<string[]>([])
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
   const [settingsLoaded, setSettingsLoaded] = useState(false)
 
@@ -105,12 +107,18 @@ export default function CreateTask() {
         const priorities = prioritiesSetting?.value || ['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)']
         setTaskPriorityOptions(priorities)
 
-        console.log('Task settings loaded successfully:', { statuses, priorities })
+        // Process departments
+        const departmentsSetting = settings.find((s: any) => s.key === 'departments')
+        const departments = departmentsSetting?.value || []
+        setDepartmentOptions(departments)
+
+        console.log('Task settings loaded successfully:', { statuses, priorities, departments })
       } else {
         console.warn('Settings API returned empty data, using defaults:', data)
         // Use default options if API returns empty
         setTaskStatusOptions(['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'])
         setTaskPriorityOptions(['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)'])
+        setDepartmentOptions([])
       }
 
       setSettingsLoaded(true)
@@ -119,6 +127,7 @@ export default function CreateTask() {
       // Use default options on error
       setTaskStatusOptions(['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'])
       setTaskPriorityOptions(['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)'])
+      setDepartmentOptions([])
       setError('Using default dropdown options. Database settings may be unavailable.')
       setSettingsLoaded(true)
     } finally {
@@ -293,6 +302,20 @@ export default function CreateTask() {
         throw new Error('Please fill in all required fields')
       }
 
+      // Validate mandatory project fields
+      if (!formData.projectId) {
+        throw new Error('Please select a Project')
+      }
+
+      if (!formData.subprojectId) {
+        throw new Error('Please select a Sub Project')
+      }
+
+      // Validate mandatory department field
+      if (!formData.department) {
+        throw new Error('Please select a Department')
+      }
+
       if (formData.selectType === 'Recursive' && !formData.recursiveType) {
         throw new Error('Please select recursive type')
       }
@@ -410,6 +433,7 @@ export default function CreateTask() {
             estimatedHours: estimatedHours,
             projectId: formData.projectId,
             subprojectId: formData.subprojectId,
+            department: formData.department,
             status: formData.status || 'Open',
             attachments: attachmentUrls.length > 0 ? attachmentUrls.join(',') : undefined,
             relatedTasks: createdTaskIds.length > 0 ? createdTaskIds.join(',') : undefined
@@ -468,6 +492,7 @@ export default function CreateTask() {
           estimatedHours: estimatedHours,
           projectId: formData.projectId,
           subprojectId: formData.subprojectId,
+          department: formData.department,
           status: formData.status || 'Open',
           attachments: attachmentUrls.length > 0 ? attachmentUrls.join(',') : undefined
         }
@@ -661,7 +686,7 @@ export default function CreateTask() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Project (Optional)
+                Project *
               </label>
               <select
                 value={formData.projectId || ''}
@@ -671,8 +696,9 @@ export default function CreateTask() {
                 }}
                 className="input-field"
                 disabled={isLoadingProjects}
+                required
               >
-                <option value="">No Project</option>
+                <option value="">Select Project...</option>
                 {!projectsLoaded ? (
                   <option disabled>Loading projects...</option>
                 ) : (
@@ -687,7 +713,7 @@ export default function CreateTask() {
 
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Subproject (Optional)
+                Sub Project *
               </label>
               <select
                 value={formData.subprojectId || ''}
@@ -697,8 +723,9 @@ export default function CreateTask() {
                 }}
                 className="input-field"
                 disabled={!formData.projectId || isLoadingSubprojects}
+                required
               >
-                <option value="">No Subproject</option>
+                <option value="">Select Sub Project...</option>
                 {isLoadingSubprojects ? (
                   <option disabled>Loading subprojects...</option>
                 ) : (
@@ -710,6 +737,32 @@ export default function CreateTask() {
                 )}
               </select>
             </div>
+          </div>
+
+          {/* Department Field */}
+          <div>
+            <label className="block text-sm font-medium text-secondary-700 mb-2">
+              Department *
+            </label>
+            <select
+              name="department"
+              value={formData.department}
+              onChange={handleInputChange}
+              required
+              disabled={isLoadingSettings}
+              className="input-field"
+            >
+              <option value="">Select Department...</option>
+              {isLoadingSettings ? (
+                <option>Loading...</option>
+              ) : (
+                departmentOptions.map(option => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))
+              )}
+            </select>
           </div>
 
           {/* Status and Priority */}
@@ -884,7 +937,7 @@ export default function CreateTask() {
                   <span className="text-sm font-medium text-blue-800">Auto-Assignment</span>
                 </div>
                 <p className="text-sm text-blue-700">
-                  This task will be automatically assigned to you ({currentUser.name} - {currentUser.employeeId})
+                  Auto-Assignment: This task will be automatically assigned to you ({currentUser.name} - {currentUser.employeeId})
                 </p>
               </div>
             )}

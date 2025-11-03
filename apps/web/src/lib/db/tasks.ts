@@ -204,8 +204,8 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         internal_id, task_id, select_type, recursive_type, description,
         assigned_to, assigned_by, support, start_date, end_date, priority,
         estimated_hours, actual_hours, daily_hours, status, remarks,
-        difficulties, project_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+        difficulties, project_id, department
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
       [
         task.taskId, // internal_id is same as task_id
         task.taskId,
@@ -224,7 +224,8 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         task.status,
         task.remarks || null,
         task.difficulties || null,
-        task.projectId || null
+        task.projectId || null,
+        (task as any).department || null
       ]
     )
 
@@ -306,6 +307,10 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     if (updates.timerSessions !== undefined) {
       fields.push(`timer_sessions = $${paramIndex++}`)
       values.push(updates.timerSessions)
+    }
+    if ((updates as any).department !== undefined) {
+      fields.push(`department = $${paramIndex++}`)
+      values.push((updates as any).department || null)
     }
 
     if (fields.length === 0) {
