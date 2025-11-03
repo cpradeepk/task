@@ -216,7 +216,7 @@ export async function updateNotificationPreferences(
 
   Object.keys(preferences).forEach(key => {
     if (key in fieldMap && preferences[key as keyof NotificationPreferences] !== undefined) {
-      updates.push(`${fieldMap[key]} = ?`)
+      updates.push(`${fieldMap[key]} = $${values.length + 1}`)
       values.push(preferences[key as keyof NotificationPreferences])
     }
   })
@@ -224,7 +224,7 @@ export async function updateNotificationPreferences(
   if (updates.length > 0) {
     values.push(employeeId)
     await query(
-      `UPDATE user_notification_preferences SET ${updates.join(', ')} WHERE employee_id = $1`,
+      `UPDATE user_notification_preferences SET ${updates.join(', ')} WHERE employee_id = $${values.length}`,
       values
     )
   }

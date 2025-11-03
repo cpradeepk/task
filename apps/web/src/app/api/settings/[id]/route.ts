@@ -150,6 +150,14 @@ export async function PATCH(
  * Query params:
  * - permanent: boolean (optional) - Permanently delete the setting
  */
+// PUT handler (alias for PATCH to support both methods)
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  return PATCH(request, context)
+}
+
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }

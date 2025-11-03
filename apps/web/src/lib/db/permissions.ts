@@ -200,23 +200,23 @@ export async function updateRolePermission(
   const values: any[] = []
 
   if (permissions.canView !== undefined) {
-    updates.push('can_view = ?')
+    updates.push(`can_view = $${values.length + 1}`)
     values.push(permissions.canView)
   }
   if (permissions.canCreate !== undefined) {
-    updates.push('can_create = ?')
+    updates.push(`can_create = $${values.length + 1}`)
     values.push(permissions.canCreate)
   }
   if (permissions.canEdit !== undefined) {
-    updates.push('can_edit = ?')
+    updates.push(`can_edit = $${values.length + 1}`)
     values.push(permissions.canEdit)
   }
   if (permissions.canDelete !== undefined) {
-    updates.push('can_delete = ?')
+    updates.push(`can_delete = $${values.length + 1}`)
     values.push(permissions.canDelete)
   }
   if (permissions.canApprove !== undefined) {
-    updates.push('can_approve = ?')
+    updates.push(`can_approve = $${values.length + 1}`)
     values.push(permissions.canApprove)
   }
 
@@ -225,7 +225,7 @@ export async function updateRolePermission(
   values.push(role, featureKey)
 
   await query(
-    `UPDATE role_permissions SET ${updates.join(', ')} WHERE role = $1 AND feature_key = $2`,
+    `UPDATE role_permissions SET ${updates.join(', ')} WHERE role = $${values.length - 1} AND feature_key = $${values.length}`,
     values
   )
 }
@@ -250,23 +250,23 @@ export async function setUserPermission(
     const values: any[] = []
 
     if (permissions.canView !== undefined) {
-      updates.push('can_view = ?')
+      updates.push(`can_view = $${values.length + 1}`)
       values.push(permissions.canView)
     }
     if (permissions.canCreate !== undefined) {
-      updates.push('can_create = ?')
+      updates.push(`can_create = $${values.length + 1}`)
       values.push(permissions.canCreate)
     }
     if (permissions.canEdit !== undefined) {
-      updates.push('can_edit = ?')
+      updates.push(`can_edit = $${values.length + 1}`)
       values.push(permissions.canEdit)
     }
     if (permissions.canDelete !== undefined) {
-      updates.push('can_delete = ?')
+      updates.push(`can_delete = $${values.length + 1}`)
       values.push(permissions.canDelete)
     }
     if (permissions.canApprove !== undefined) {
-      updates.push('can_approve = ?')
+      updates.push(`can_approve = $${values.length + 1}`)
       values.push(permissions.canApprove)
     }
 
@@ -275,14 +275,14 @@ export async function setUserPermission(
     values.push(employeeId, featureKey)
 
     await query(
-      `UPDATE user_permissions SET ${updates.join(', ')} WHERE employee_id = $1 AND feature_key = $2`,
+      `UPDATE user_permissions SET ${updates.join(', ')} WHERE employee_id = $${values.length - 1} AND feature_key = $${values.length}`,
       values
     )
   } else {
     // Insert new override
     await query(
       `INSERT INTO user_permissions (employee_id, feature_key, can_view, can_create, can_edit, can_delete, can_approve)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         employeeId,
         featureKey,

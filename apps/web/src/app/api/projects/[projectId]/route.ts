@@ -148,6 +148,14 @@ export async function PUT(
  * 
  * Note: Cannot delete projects with sub-projects
  */
+// PATCH handler (alias for PUT to support both methods)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
+  return PUT(request, { params })
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }

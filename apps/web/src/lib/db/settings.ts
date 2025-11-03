@@ -165,7 +165,7 @@ export async function getSettingByKey(key: string): Promise<Setting | null> {
         created_at as created_at,
         updated_at as updatedAt
       FROM settings
-      WHERE key = $1 AND is_active = TRUE
+      WHERE key = $1 AND is_active = 1
     `
 
     const results = await query<any[]>(sql, [key])
@@ -257,7 +257,7 @@ export async function getAllSettings(activeOnly: boolean = true): Promise<Settin
     const params: any[] = []
 
     if (activeOnly) {
-      sql += ' AND is_active = TRUE'
+      sql += ' AND is_active = 1'
     }
 
     sql += ' ORDER BY key'
@@ -324,7 +324,7 @@ export async function getSettingsByKeys(keys: string[]): Promise<Record<string, 
         key,
         value
       FROM settings
-      WHERE key IN (${placeholders}) AND is_active = TRUE
+      WHERE key IN (${placeholders}) AND is_active = 1
     `
 
     const results = await query<any[]>(sql, keys)
@@ -352,7 +352,7 @@ export async function getDropdownSettings(): Promise<Record<string, string[]>> {
         key,
         value
       FROM settings
-      WHERE is_active = TRUE
+      WHERE is_active = 1
         AND jsonb_typeof(value) = 'array'
       ORDER BY key
     `
@@ -503,7 +503,7 @@ export async function deleteSetting(id: number): Promise<boolean> {
   try {
     const sql = `
       UPDATE settings
-      SET is_active = FALSE
+      SET is_active = 0
       WHERE id = $1
     `
 
@@ -522,7 +522,7 @@ export async function deleteSettingByKey(key: string): Promise<boolean> {
   try {
     const sql = `
       UPDATE settings
-      SET is_active = FALSE
+      SET is_active = 0
       WHERE key = $1
     `
 

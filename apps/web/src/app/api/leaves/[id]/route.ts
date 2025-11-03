@@ -31,3 +31,11 @@ export async function PUT(
     }, { status: 500 })
   }
 }
+
+// PATCH handler (alias for PUT to support both methods)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return PUT(request, { params })
+}

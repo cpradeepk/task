@@ -120,6 +120,14 @@ export async function PATCH(
  * - deletedBy: string (required - employee ID)
  * - restore: boolean (optional - restore a deleted subtask)
  */
+// PUT handler (alias for PATCH to support both methods)
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  return PATCH(request, context)
+}
+
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }

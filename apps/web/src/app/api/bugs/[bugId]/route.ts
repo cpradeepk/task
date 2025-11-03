@@ -153,6 +153,14 @@ export async function PUT(
   }
 }
 
+// PATCH handler (alias for PUT to support both methods)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ bugId: string }> }
+) {
+  return PUT(request, { params })
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ bugId: string }> }
