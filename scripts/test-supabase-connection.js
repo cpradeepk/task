@@ -17,8 +17,8 @@ const SUPABASE_PASSWORD = 'W8zTtc>qL3?'
 const CONNECTION_STRINGS = {
   'Transaction Pooler (Port 6543)': `postgresql://postgres:${SUPABASE_PASSWORD}@${SUPABASE_HOST}:6543/postgres?pgbouncer=true`,
   'Session Pooler (Port 5432)': `postgresql://postgres:${SUPABASE_PASSWORD}@${SUPABASE_HOST}:5432/postgres`,
-  'Direct Connection (Port 5432)': `postgresql://postgres.rbckjkdohzbclomrufrx:${SUPABASE_PASSWORD}@aws-0-ap-south-1.pooler.supabase.com:5432/postgres`,
-  'IPv6 Pooler (Port 6543)': `postgresql://postgres:${SUPABASE_PASSWORD}@${SUPABASE_HOST}:6543/postgres`,
+  'Alternative IPv4 Pooler (Port 6543) - RECOMMENDED FOR VERCEL': `postgresql://postgres.rbckjkdohzbclomrufrx:${SUPABASE_PASSWORD}@aws-0-ap-south-1.pooler.supabase.com:6543/postgres`,
+  'Alternative IPv4 Pooler (Port 5432)': `postgresql://postgres.rbckjkdohzbclomrufrx:${SUPABASE_PASSWORD}@aws-0-ap-south-1.pooler.supabase.com:5432/postgres`,
 }
 
 async function testDNS() {
