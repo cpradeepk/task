@@ -68,20 +68,17 @@ export async function POST(request: NextRequest) {
   try {
     const userData = await request.json()
 
-    // Add user to MySQL with timeout
+    // Add user to database with timeout
     const user = await withTimeout(
       createUser(userData),
       15000, // 15 second timeout for create operations
       'Failed to create user - database timeout'
     )
 
-    // Invalidate users cache after mutation
-    await cache.delete(CACHE_KEYS.USERS)
-
     return NextResponse.json({
       success: true,
       data: user,
-      source: 'mysql'
+      source: 'database'
     })
   } catch (error) {
     console.error('Failed to add user to MySQL:', error)
