@@ -444,7 +444,7 @@ export async function updateSetting(id: number, data: UpdateSettingData): Promis
     }
 
     if (data.isActive !== undefined) {
-      params.push(data.isActive)
+      params.push(data.isActive ? 1 : 0)
       updates.push(`is_active = $${params.length}`)
     }
 
