@@ -75,8 +75,9 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
     const istTime = new Date(now.getTime() + istOffset)
     const istTimestamp = istTime.toISOString().slice(0, 19).replace('T', ' ') // Format: YYYY-MM-DD HH:MM:SS
 
-    const result = await withTimeout(
-      query<any>(
+    // PostgreSQL uses RETURNING clause instead of insertId
+    const rows = await withTimeout(
+      query<any[]>(
         `INSERT INTO activity_log (
           entity_type, entity_id, user_id, action_type,
           field_name, old_value, new_value, description, is_comment, created_at
@@ -98,8 +99,15 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
       'Failed to create activity log entry'
     )
 
+    // PostgreSQL RETURNING clause returns the row directly
+    if (!rows || rows.length === 0 || !rows[0].id) {
+      throw new Error('Failed to create activity log entry - no ID returned')
+    }
+
+    const insertedId = rows[0].id
+
     // Fetch the created entry
-    const created = await getActivityLogById(result.insertId)
+    const created = await getActivityLogById(insertedId)
     if (!created) {
       throw new Error('Failed to retrieve created activity log entry')
     }

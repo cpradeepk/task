@@ -140,19 +140,25 @@ export async function updateBugSubTask(
     updates.push(`assigned_to = $${paramIndex++}`)
     values.push(data.assignedTo)
   }
-  if (data.status !== undefined) {
-    updates.push(`status = $${paramIndex++}`)
-    values.push(data.status)
-  }
+
+  // Handle status update - avoid duplicate column assignment
+  // If isCompleted is being set to true, it will override any explicit status value
+  let statusValue: string | undefined = data.status
   if (data.isCompleted !== undefined) {
     updates.push(`is_completed = $${paramIndex++}`)
     values.push(data.isCompleted ? 1 : 0)
     // Auto-update status based on completion
     if (data.isCompleted) {
-      updates.push(`status = $${paramIndex++}`)
-      values.push('Completed')
+      statusValue = 'Completed'
     }
   }
+
+  // Only add status update once, using the determined value
+  if (statusValue !== undefined) {
+    updates.push(`status = $${paramIndex++}`)
+    values.push(statusValue)
+  }
+
   if (data.displayOrder !== undefined) {
     updates.push(`display_order = $${paramIndex++}`)
     values.push(data.displayOrder)
