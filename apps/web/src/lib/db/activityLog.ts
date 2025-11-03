@@ -125,7 +125,7 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
 export async function getActivityLogById(id: number): Promise<ActivityLog | null> {
   return withRetry(async () => {
     const rows = await withTimeout(
-      query<ActivityLog[]>(
+      query<any[]>(
         `SELECT
           al.id,
           al.entity_type as entityType,
@@ -148,7 +148,14 @@ export async function getActivityLogById(id: number): Promise<ActivityLog | null
       'Failed to fetch activity log entry'
     )
 
-    return rows.length > 0 ? rows[0] : null
+    if (rows.length === 0) return null
+
+    // Convert is_comment from INTEGER (0/1) to boolean
+    const row = rows[0]
+    return {
+      ...row,
+      isComment: Boolean(row.isComment)
+    } as ActivityLog
   })
 }
 
@@ -172,9 +179,9 @@ export async function getActivityLogByEntity(
 ): Promise<ActivityLog[]> {
   return withRetry(async () => {
     const order = sortOrder === 'asc' ? 'ASC' : 'DESC'
-    
+
     const rows = await withTimeout(
-      query<ActivityLog[]>(
+      query<any[]>(
         `SELECT
           al.id,
           al.entity_type as entityType,
@@ -198,7 +205,11 @@ export async function getActivityLogByEntity(
       'Failed to fetch activity log entries'
     )
 
-    return rows
+    // Convert is_comment from INTEGER (0/1) to boolean
+    return rows.map(row => ({
+      ...row,
+      isComment: Boolean(row.isComment)
+    })) as ActivityLog[]
   })
 }
 
@@ -217,9 +228,9 @@ export async function getCommentsByEntity(
 ): Promise<ActivityLog[]> {
   return withRetry(async () => {
     const order = sortOrder === 'asc' ? 'ASC' : 'DESC'
-    
+
     const rows = await withTimeout(
-      query<ActivityLog[]>(
+      query<any[]>(
         `SELECT
           al.id,
           al.entity_type as entityType,
@@ -243,7 +254,11 @@ export async function getCommentsByEntity(
       'Failed to fetch comments'
     )
 
-    return rows
+    // Convert is_comment from INTEGER (0/1) to boolean
+    return rows.map(row => ({
+      ...row,
+      isComment: Boolean(row.isComment)
+    })) as ActivityLog[]
   })
 }
 
@@ -262,9 +277,9 @@ export async function getSystemActivitiesByEntity(
 ): Promise<ActivityLog[]> {
   return withRetry(async () => {
     const order = sortOrder === 'asc' ? 'ASC' : 'DESC'
-    
+
     const rows = await withTimeout(
-      query<ActivityLog[]>(
+      query<any[]>(
         `SELECT
           al.id,
           al.entity_type as entityType,
@@ -288,7 +303,11 @@ export async function getSystemActivitiesByEntity(
       'Failed to fetch system activities'
     )
 
-    return rows
+    // Convert is_comment from INTEGER (0/1) to boolean
+    return rows.map(row => ({
+      ...row,
+      isComment: Boolean(row.isComment)
+    })) as ActivityLog[]
   })
 }
 

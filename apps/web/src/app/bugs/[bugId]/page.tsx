@@ -905,6 +905,20 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                     <p className="text-gray-700 whitespace-pre-wrap">{bug.actualBehavior}</p>
                   </div>
                 )}
+
+                {bug.serverLogs && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Server Logs</h3>
+                    <pre className="text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border border-gray-200 font-mono text-sm overflow-x-auto">{bug.serverLogs}</pre>
+                  </div>
+                )}
+
+                {bug.frontendLogs && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Frontend Logs</h3>
+                    <pre className="text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border border-gray-200 font-mono text-sm overflow-x-auto">{bug.frontendLogs}</pre>
+                  </div>
+                )}
                 {/* Browser and Device Information */}
             {(bug.browserInfo || bug.deviceInfo) && (
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">

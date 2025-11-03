@@ -24,7 +24,8 @@ export default function CreateBugPage() {
     environment: 'Production',
     browserInfo: '',
     deviceInfo: '',
-    stepsToReproduce: '',
+    serverLogs: '',
+    frontendLogs: '',
     expectedBehavior: '',
     actualBehavior: '',
     attachments: '',
@@ -786,6 +787,36 @@ export default function CreateBugPage() {
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
                       placeholder="What actually happened? Describe what went wrong..."
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Server Logs
+                    </label>
+                    <textarea
+                      name="serverLogs"
+                      value={formData.serverLogs}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical font-mono text-sm"
+                      placeholder="Paste server-side error logs, stack traces, or API responses..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Frontend Logs
+                    </label>
+                    <textarea
+                      name="frontendLogs"
+                      value={formData.frontendLogs}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical font-mono text-sm"
+                      placeholder="Paste browser console errors, warnings, or network logs..."
                     />
                   </div>
                 </div>
