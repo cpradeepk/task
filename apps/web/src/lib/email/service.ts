@@ -97,7 +97,7 @@ export class EmailService {
     }
   }
 
-  private async sendEmail(options: {
+  public async sendEmail(options: {
     to: string | string[]
     cc?: string | string[]
     subject: string
