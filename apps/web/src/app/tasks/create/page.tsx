@@ -554,6 +554,7 @@ export default function CreateTask() {
       estimatedHours: '',
       projectId: undefined,
       subprojectId: undefined,
+      department: '', // Department field (mandatory)
       assignToSomeoneElse: false,
       assignedTo: '',
       multiUserAssignment: false,

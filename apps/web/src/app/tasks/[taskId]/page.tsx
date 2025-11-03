@@ -5,7 +5,7 @@
  */
 'use client'
 
-import React, { useState, useEffect, use, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, use, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
@@ -19,20 +19,13 @@ import LoadingButton from '@/components/ui/LoadingButton'
 import TimerButton from '@/components/TimerButton'
 import { QUERIES } from '@/lib/graphql-queries'
 import {
-  CheckSquare,
   MessageSquare,
-  Send,
   Calendar,
   User as UserIcon,
   AlertTriangle,
-  CheckCircle,
-  Clock,
   ArrowLeft,
-  UserCheck,
-  X,
   ExternalLink,
   Timer,
-  Settings,
   Pencil,
   Target
 } from 'lucide-react'
@@ -397,8 +390,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     }
   }
 
-  // Handle log hours
-  const handleLogHours = async () => {
+  // Handle add hours (renamed from handleLogHours to match bug page)
+  const handleAddHours = async () => {
     if (!task || !canEdit) return
 
     let finalHours = ''
@@ -423,9 +416,20 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
       const currentActualHours = task.actualHours || 0
       const newActualHours = currentActualHours + hours
 
-      await updateTask(task.taskId, {
+      // If using timer hours, reset the timer
+      const updates: any = {
         actualHours: newActualHours
-      })
+      }
+
+      if (useTimerHours && task.timerTotalTime) {
+        updates.timerTotalTime = 0
+        updates.timerState = 'stopped'
+        updates.timerStartTime = null
+        updates.timerPausedTime = null
+        updates.timerSessions = '[]'
+      }
+
+      await updateTask(task.taskId, updates)
 
       // Log activity
       await fetch('/api/activity', {
@@ -551,261 +555,117 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
           <div className="lg:col-span-2 space-y-6">
             {/* Task Info Card */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <CheckSquare className="h-5 w-5 text-blue-600" />
-                <span>Task Information</span>
-              </h2>
+              <div className="flex items-center space-x-3 mb-4">
+                {/* Status - Inline Dropdown */}
+                {canEdit ? (
+                  <div className="relative inline-block">
+                    <select
+                      value={task.status}
+                      onChange={(e) => handleStatusUpdate(e.target.value)}
+                      disabled={isUpdating}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)} hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer`}
+                    >
+                      {taskStatusOptions.map(status => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                    {task.status}
+                  </span>
+                )}
+
+                {/* Priority - Inline Dropdown */}
+                {canEdit ? (
+                  <div className="relative inline-block">
+                    <select
+                      value={task.priority}
+                      onChange={(e) => handlePriorityUpdate(e.target.value)}
+                      disabled={isUpdating}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)} hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer`}
+                    >
+                      {taskPriorityOptions.map(priority => (
+                        <option key={priority} value={priority}>{priority}</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                    {task.priority}
+                  </span>
+                )}
+
+                {/* Task Type */}
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                  {task.selectType}
+                </span>
+
+                {/* Recurrence Type */}
+                {task.recursiveType && (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                    {task.recursiveType}
+                  </span>
+                )}
+
+                {/* Department */}
+                {(task as any).department && (
+                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                    {(task as any).department}
+                  </span>
+                )}
+              </div>
+
+              {/* Task Description with Edit Button */}
+              <div className="mb-4">
+                <button
+                  onClick={() => setTaskEditModalOpen(true)}
+                  className="text-xl font-semibold text-black hover:text-primary transition-colors cursor-pointer text-left w-full flex items-center space-x-2 group"
+                >
+                  <span>{task.description}</span>
+                  <Pencil className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              </div>
 
               <div className="space-y-4">
-                {/* Status and Priority */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    {canEdit ? (
-                      <select
-                        value={task.status}
-                        onChange={(e) => handleStatusUpdate(e.target.value)}
-                        disabled={isUpdating}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      >
-                        {taskStatusOptions.map(status => (
-                          <option key={status} value={status}>{status}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(task.status)}`}>
-                        {task.status}
-                      </span>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                    {canEdit ? (
-                      <select
-                        value={task.priority}
-                        onChange={(e) => handlePriorityUpdate(e.target.value)}
-                        disabled={isUpdating}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      >
-                        {taskPriorityOptions.map(priority => (
-                          <option key={priority} value={priority}>{priority}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${getPriorityColor(task.priority)}`}>
-                        {task.priority}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
                 {/* Dates */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                    <div className="flex items-center space-x-2 text-gray-900">
-                      <Calendar className="h-4 w-4 text-gray-400" />
-                      <span>{new Date(task.startDate).toLocaleDateString()}</span>
-                    </div>
+                    <span className="text-sm font-medium text-gray-600">Start Date:</span>
+                    <span className="ml-2 text-sm text-gray-900">{new Date(task.startDate).toLocaleDateString()}</span>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                    <div className="flex items-center space-x-2 text-gray-900">
-                      <Calendar className="h-4 w-4 text-gray-400" />
-                      <span>{new Date(task.endDate).toLocaleDateString()}</span>
-                    </div>
+                    <span className="text-sm font-medium text-gray-600">End Date:</span>
+                    <span className="ml-2 text-sm text-gray-900">{new Date(task.endDate).toLocaleDateString()}</span>
                   </div>
                 </div>
-
-                {/* Hours */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Hours</label>
-                    {canEdit && isEditingEstimatedHours ? (
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={tempEstimatedHours}
-                          onChange={(e) => setTempEstimatedHours(e.target.value)}
-                          placeholder="hh:mm:ss"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <button
-                          onClick={handleEstimatedHoursUpdate}
-                          disabled={isUpdating}
-                          className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setIsEditingEstimatedHours(false)
-                            setTempEstimatedHours('')
-                          }}
-                          className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div
-                        onClick={() => {
-                          if (canEdit) {
-                            setIsEditingEstimatedHours(true)
-                            setTempEstimatedHours(formatHoursToTime(task.estimatedHours))
-                          }
-                        }}
-                        className={`flex items-center space-x-2 text-gray-900 ${canEdit ? 'cursor-pointer hover:bg-gray-50 p-2 rounded-lg' : ''}`}
-                      >
-                        <Clock className="h-4 w-4 text-gray-400" />
-                        <span>{formatHoursToTime(task.estimatedHours)}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Actual Hours</label>
-                    <div className="flex items-center space-x-2 text-gray-900">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      <span>{formatHoursToTime(task.actualHours || 0)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Assignee */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To</label>
-                  {canAssign && isEditingAssignee ? (
-                    <div className="flex items-center space-x-2">
-                      <select
-                        value={task.assignedTo}
-                        onChange={(e) => handleAssigneeUpdate(e.target.value)}
-                        disabled={isUpdating}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        {users.map(user => (
-                          <option key={user.employeeId} value={user.employeeId}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        onClick={() => setIsEditingAssignee(false)}
-                        className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => canAssign && setIsEditingAssignee(true)}
-                      className={`flex items-center space-x-2 text-gray-900 ${canAssign ? 'cursor-pointer hover:bg-gray-50 p-2 rounded-lg' : ''}`}
-                    >
-                      <UserIcon className="h-4 w-4 text-gray-400" />
-                      <span><UserName employeeId={task.assignedTo} /></span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Assigned By */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Assigned By</label>
-                  <div className="flex items-center space-x-2 text-gray-900">
-                    <UserCheck className="h-4 w-4 text-gray-400" />
-                    <span><UserName employeeId={task.assignedBy} /></span>
-                  </div>
-                </div>
-
-                {/* Support Team */}
-                {task.support && task.support.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Support Team</label>
-                    <div className="flex flex-wrap gap-2">
-                      {task.support.map((employeeId) => (
-                        <span key={employeeId} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
-                          <UserIcon className="h-3 w-3 mr-1" />
-                          <UserName employeeId={employeeId} />
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Project */}
                 {task.projectId && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
-                    <div className="text-gray-900">
-                      {projectName || task.projectId}
-                    </div>
+                    <span className="text-sm font-medium text-gray-600">Project:</span>
+                    <span className="ml-2 text-sm text-gray-900">{projectName || task.projectId}</span>
                   </div>
                 )}
-
-                {/* Task Type */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Task Type</label>
-                    <span className="inline-flex px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-800">
-                      {task.selectType}
-                    </span>
-                  </div>
-                  {task.recursiveType && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Recurrence</label>
-                      <span className="inline-flex px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                        {task.recursiveType}
-                      </span>
-                    </div>
-                  )}
-                </div>
 
                 {/* Remarks */}
                 {task.remarks && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
-                    <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">{task.remarks}</p>
+                    <h3 className="font-medium text-gray-900 mb-2">Remarks</h3>
+                    <p className="text-gray-700 whitespace-pre-wrap">{task.remarks}</p>
                   </div>
                 )}
 
                 {/* Difficulties */}
                 {task.difficulties && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Difficulties</label>
-                    <p className="text-gray-900 bg-yellow-50 p-3 rounded-lg border border-yellow-200">{task.difficulties}</p>
+                    <h3 className="font-medium text-gray-900 mb-2">Difficulties</h3>
+                    <p className="text-gray-700 whitespace-pre-wrap bg-yellow-50 p-3 rounded-lg border border-yellow-200">{task.difficulties}</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Subtasks */}
-            <TaskSubTaskManager taskId={task.taskId} canEdit={canEdit} />
-
-            {/* Related Tasks */}
-            {relatedTasksData.length > 0 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Related Tasks</h2>
-                <div className="space-y-3">
-                  {relatedTasksData.map((relatedTask) => (
-                    <div
-                      key={relatedTask.taskId}
-                      onClick={() => router.push(`/tasks/${relatedTask.taskId}`)}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="font-mono text-sm text-gray-600">{relatedTask.taskId}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(relatedTask.status)}`}>
-                            {relatedTask.status}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-900">{relatedTask.description}</p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-gray-400" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Activity Timeline (includes comments and system activities) */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
@@ -843,138 +703,411 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
             </div>
           </div>
 
-          {/* Right Column - Actions & Timer */}
+          {/* Right Sidebar */}
           <div className="space-y-6">
-            {/* Timer Card */}
+            {/* Time Tracking - Moved above subtasks */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                <Timer className="h-5 w-5 text-blue-600" />
-                <span>Timer</span>
-              </h3>
-              <TimerButton
-                entityType="task"
-                entityId={task.taskId}
-                entityTitle={task.description}
-                status={task.status}
-              />
-              {task.timerTotalTime && task.timerTotalTime > 0 && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Total Timer Time</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {formatMillisecondsToTime(task.timerTotalTime)}
-                  </p>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center space-x-2">
+                  <Timer className="h-5 w-5" />
+                  <span>Time Tracking</span>
+                </h3>
+
+                {/* Log Hours Button - Disabled for Done/Cancel/Stop tasks */}
+                {canEdit && task.status !== 'Done' && task.status !== 'Cancel' && task.status !== 'Stop' && (
+                  <div className="relative">
+                    <button
+                      onClick={() => {
+                        // If there are no timer hours, default to manual entry mode
+                        if (!task?.timerTotalTime || task.timerTotalTime === 0) {
+                          setUseTimerHours(false)
+                        } else {
+                          setUseTimerHours(true)
+                        }
+                        setShowHoursModal(!showHoursModal)
+                      }}
+                      className="inline-flex items-center px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white font-medium rounded shadow-sm hover:shadow transition-all focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    >
+                      <Timer className="h-3 w-3 mr-1" />
+                      <span>Log Hours</span>
+                    </button>
+
+                    {/* Log Hours Dropdown */}
+                    {showHoursModal && (
+                      <>
+                        {/* Backdrop to close dropdown when clicking outside */}
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setShowHoursModal(false)}
+                        />
+
+                        {/* Dropdown Content */}
+                        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4">
+                          <div className="space-y-3">
+                            {/* Timer Info */}
+                            {task.timerTotalTime && task.timerTotalTime > 0 && (
+                              <div className="bg-purple-50 border border-purple-200 rounded-lg p-2">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <Timer className="h-3 w-3 text-purple-600" />
+                                  <span className="text-xs font-medium text-purple-900">Timer Data Available</span>
+                                </div>
+                                <p className="text-xs text-purple-700">
+                                  <strong>Timer Hours:</strong> {formatMillisecondsToTime(task.timerTotalTime)}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Source Selection - Always show if timer hours exist */}
+                            {task.timerTotalTime && task.timerTotalTime > 0 && (
+                              <div className="space-y-1">
+                                <label className="block text-xs font-medium text-gray-700">
+                                  Hours Source:
+                                </label>
+                                <div className="flex space-x-3">
+                                  <label className="flex items-center space-x-1 cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      checked={useTimerHours}
+                                      onChange={() => setUseTimerHours(true)}
+                                      className="text-purple-600 focus:ring-purple-500"
+                                    />
+                                    <span className="text-xs text-gray-700">Use Timer</span>
+                                  </label>
+                                  <label className="flex items-center space-x-1 cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      checked={!useTimerHours}
+                                      onChange={() => setUseTimerHours(false)}
+                                      className="text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-xs text-gray-700">Manual</span>
+                                  </label>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Manual Hours Input (hh:mm:ss format) - Show when no timer OR manual mode selected */}
+                            {(!task.timerTotalTime || task.timerTotalTime === 0 || !useTimerHours) && (
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Hours Worked (hh:mm:ss):
+                                </label>
+                                <input
+                                  type="text"
+                                  value={hoursWorked}
+                                  onChange={(e) => setHoursWorked(e.target.value)}
+                                  placeholder="e.g., 02:30:00"
+                                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                                />
+                                <p className="mt-0.5 text-xs text-gray-500">Format: hh:mm:ss</p>
+                              </div>
+                            )}
+
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Work Description (Optional):
+                              </label>
+                              <textarea
+                                value={workDescription}
+                                onChange={(e) => setWorkDescription(e.target.value)}
+                                placeholder="Describe what you worked on..."
+                                rows={2}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+
+                            {/* Summary */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                              <div className="text-xs text-blue-700 space-y-0.5">
+                                <p><strong>Current:</strong> {formatHoursToTime(task.actualHours || 0)}</p>
+                                {task.estimatedHours && (
+                                  <p><strong>Estimated:</strong> {formatHoursToTime(task.estimatedHours)}</p>
+                                )}
+                                {useTimerHours && task.timerTotalTime && task.timerTotalTime > 0 ? (
+                                  <p><strong>New Total:</strong> {formatHoursToTime((task.actualHours || 0) + (task.timerTotalTime / (1000 * 60 * 60)))}</p>
+                                ) : (
+                                  hoursWorked && isValidTimeFormat(hoursWorked) && (
+                                    <p><strong>New Total:</strong> {formatHoursToTime((task.actualHours || 0) + timeToHours(hoursWorked))}</p>
+                                  )
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Warning if using timer hours */}
+                            {useTimerHours && task.timerTotalTime && task.timerTotalTime > 0 && (
+                              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
+                                <p className="text-xs text-yellow-800">
+                                  ⚠️ Logging timer hours will reset the timer.
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="flex space-x-2">
+                              <LoadingButton
+                                onClick={handleAddHours}
+                                isLoading={isUpdating}
+                                disabled={!useTimerHours && (!hoursWorked || !isValidTimeFormat(hoursWorked) || timeToHours(hoursWorked) <= 0)}
+                                className="btn-primary flex-1 text-xs py-1.5"
+                              >
+                                <Timer className="h-3 w-3 mr-1" />
+                                Log Hours
+                              </LoadingButton>
+                              <button
+                                onClick={() => {
+                                  setShowHoursModal(false)
+                                  setHoursWorked('')
+                                  setWorkDescription('')
+                                  setUseTimerHours(true)
+                                }}
+                                className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {/* Estimated Hours - Inline Input (hh:mm:ss format) */}
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Estimated:</span>
+                  {canEdit ? (
+                    isEditingEstimatedHours ? (
+                      <div className="inline-flex items-center ml-2">
+                        <input
+                          type="text"
+                          value={tempEstimatedHours}
+                          onChange={(e) => setTempEstimatedHours(e.target.value)}
+                          onBlur={handleEstimatedHoursUpdate}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleEstimatedHoursUpdate()
+                            } else if (e.key === 'Escape') {
+                              setIsEditingEstimatedHours(false)
+                              setTempEstimatedHours('')
+                            }
+                          }}
+                          autoFocus
+                          disabled={isUpdating}
+                          placeholder="hh:mm:ss"
+                          className="w-28 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setTempEstimatedHours(task.estimatedHours ? formatHoursToTime(task.estimatedHours) : '00:00:00')
+                          setIsEditingEstimatedHours(true)
+                        }}
+                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline font-mono"
+                      >
+                        {task.estimatedHours ? formatHoursToTime(task.estimatedHours) : 'Set hours'}
+                      </button>
+                    )
+                  ) : (
+                    <span className="ml-2 text-sm text-gray-900 font-mono">
+                      {task.estimatedHours ? formatHoursToTime(task.estimatedHours) : 'Not set'}
+                    </span>
+                  )}
                 </div>
-              )}
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-600">Actual:</span>
+                    <span className="text-sm text-gray-900 font-mono">
+                      {task.actualHours ? formatHoursToTime(task.actualHours) : '00:00:00'}
+                    </span>
+                  </div>
+
+                  {/* Timer Play/Pause Button - Disabled for Done/Cancel/Stop */}
+                  {canEdit && task.status !== 'Done' && task.status !== 'Cancel' && task.status !== 'Stop' && (
+                    <TimerButton
+                      entityType="task"
+                      entityId={task.taskId}
+                      entityTitle={task.description}
+                      status={task.status}
+                      size="md"
+                      showLabel={false}
+                    />
+                  )}
+                </div>
+
+                {task.estimatedHours && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Progress:</span>
+                    <div className="ml-2 mt-1">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${
+                            (task.actualHours || 0) > task.estimatedHours
+                              ? 'bg-red-500'
+                              : 'bg-blue-500'
+                          }`}
+                          style={{
+                            width: `${Math.min(((task.actualHours || 0) / task.estimatedHours) * 100, 100)}%`
+                          }}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-gray-500 mt-1">
+                        {task.estimatedHours ? Math.round(((task.actualHours || 0) / task.estimatedHours) * 100) : 0}% complete
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Actions Card */}
-            {canEdit && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setShowHoursModal(true)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Clock className="h-4 w-4" />
-                    <span>Log Hours</span>
-                  </button>
+            {/* Task Subtasks - Moved from bottom */}
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <TaskSubTaskManager
+                taskId={task.taskId}
+                canEdit={canEdit}
+              />
+            </div>
+
+            {/* People */}
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <h3 className="text-lg font-semibold mb-4">People</h3>
+
+              <div className="space-y-3">
+                {/* Assigned To - Inline Dropdown */}
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Assigned to:</span>
+                  {canAssign ? (
+                    isEditingAssignee ? (
+                      <select
+                        value={task.assignedTo || ''}
+                        onChange={(e) => handleAssigneeUpdate(e.target.value)}
+                        onBlur={() => setIsEditingAssignee(false)}
+                        autoFocus
+                        disabled={isUpdating}
+                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {users.map((user) => (
+                          <option key={user.employeeId} value={user.employeeId}>
+                            {user.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingAssignee(true)}
+                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
+                      >
+                        <UserName employeeId={task.assignedTo} />
+                      </button>
+                    )
+                  ) : (
+                    <span className="ml-2 text-sm text-gray-900">
+                      <UserName employeeId={task.assignedTo} />
+                    </span>
+                  )}
                 </div>
+
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Assigned by:</span>
+                  <span className="ml-2 text-sm text-gray-900">
+                    <UserName employeeId={task.assignedBy} />
+                  </span>
+                </div>
+
+                {/* Support Team */}
+                {task.support && task.support.length > 0 && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Support Team:</span>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {task.support.map((employeeId) => (
+                        <span key={employeeId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
+                          <UserIcon className="h-3 w-3 mr-1" />
+                          <UserName employeeId={employeeId} />
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Timeline */}
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <h3 className="text-lg font-semibold mb-4">Timeline</h3>
+
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Created:</span>
+                    <span className="ml-2 text-sm text-gray-900">
+                      {new Date(task.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Updated:</span>
+                    <span className="ml-2 text-sm text-gray-900">
+                      {new Date(task.updatedAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Related Tasks */}
+            {relatedTasksData.length > 0 && (
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
+                  <ExternalLink className="h-5 w-5" />
+                  <span>Related Tasks</span>
+                </h3>
+
+                {isLoadingRelatedTasks ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-sm text-gray-600">Loading related tasks...</span>
+                  </div>
+                ) : relatedTasksData.length > 0 ? (
+                  <div className="space-y-2">
+                    {relatedTasksData.map((relatedTask) => (
+                      <a
+                        key={relatedTask.taskId}
+                        href={`/tasks/${relatedTask.taskId}`}
+                        className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium text-blue-600">{relatedTask.taskId}</span>
+                              <span className={`px-2 py-0.5 text-xs rounded-full ${getStatusColor(relatedTask.status)}`}>
+                                {relatedTask.status}
+                              </span>
+                              <span className={`px-2 py-0.5 text-xs rounded-full ${getPriorityColor(relatedTask.priority)}`}>
+                                {relatedTask.priority}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-900 mt-1">{relatedTask.description}</p>
+                          </div>
+                          <ExternalLink className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No related tasks found</p>
+                )}
               </div>
             )}
-
-            {/* Metadata Card */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Metadata</h3>
-              <div className="space-y-3 text-sm">
-                <div>
-                  <p className="text-gray-600">Created</p>
-                  <p className="text-gray-900">{new Date(task.createdAt).toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Last Updated</p>
-                  <p className="text-gray-900">{new Date(task.updatedAt).toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Log Hours Modal */}
-      {showHoursModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Log Hours Worked</h3>
-
-            <div className="space-y-4">
-              {task.timerTotalTime && task.timerTotalTime > 0 && (
-                <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
-                  <input
-                    type="checkbox"
-                    id="useTimer"
-                    checked={useTimerHours}
-                    onChange={(e) => setUseTimerHours(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="useTimer" className="flex-1 text-sm text-gray-900">
-                    Use timer hours: <span className="font-semibold">{formatMillisecondsToTime(task.timerTotalTime)}</span>
-                  </label>
-                </div>
-              )}
-
-              {!useTimerHours && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hours Worked (hh:mm:ss)
-                  </label>
-                  <input
-                    type="text"
-                    value={hoursWorked}
-                    onChange={(e) => setHoursWorked(e.target.value)}
-                    placeholder="02:30:00"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Work Description (Optional)
-                </label>
-                <textarea
-                  value={workDescription}
-                  onChange={(e) => setWorkDescription(e.target.value)}
-                  placeholder="Describe what you worked on..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowHoursModal(false)
-                  setHoursWorked('')
-                  setWorkDescription('')
-                  setUseTimerHours(true)
-                }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <LoadingButton
-                onClick={handleLogHours}
-                isLoading={isUpdating}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Log Hours
-              </LoadingButton>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Task Edit Modal */}
       <TaskEditModal
