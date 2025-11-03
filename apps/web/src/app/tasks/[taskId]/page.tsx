@@ -432,17 +432,21 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
       await updateTask(task.taskId, updates)
 
       // Log activity
-      await fetch('/api/activity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entityType: 'task',
-          entityId: task.taskId,
-          action: 'hours_logged',
-          details: `Logged ${finalHours} hours${workDescription ? `: ${workDescription}` : ''}`,
-          employeeId: currentUser?.employeeId
+      try {
+        await fetch('/api/activity-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            entityType: 'task',
+            entityId: task.taskId,
+            actionType: 'time_logged',
+            description: `Logged ${finalHours} hours${workDescription ? `: ${workDescription}` : ''}`,
+            isComment: false
+          })
         })
-      })
+      } catch (error) {
+        console.error('Failed to log activity:', error)
+      }
 
       await loadTaskData()
       setShowHoursModal(false)
