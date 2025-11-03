@@ -89,11 +89,13 @@ export async function createSubTask(data: {
   displayOrder?: number
   createdBy: string
 }): Promise<SubTask> {
-  const result = await query(
+  // PostgreSQL uses RETURNING clause instead of insertId
+  const rows = await query<SubTaskRow[]>(
     `INSERT INTO subtasks (
       parent_task_id, description, assigned_to, status,
       is_completed, display_order, created_by
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING *`,
     [
       data.parentTaskId,
       data.description,
@@ -105,12 +107,11 @@ export async function createSubTask(data: {
     ]
   )
 
-  const insertId = (result as any).insertId
-  const newSubTask = await getSubTaskById(insertId)
-  if (!newSubTask) {
-    throw new Error('Failed to retrieve created subtask')
+  if (!rows || rows.length === 0) {
+    throw new Error('Failed to create subtask')
   }
-  return newSubTask
+
+  return rowToSubTask(rows[0])
 }
 
 /**

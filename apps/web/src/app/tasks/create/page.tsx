@@ -302,14 +302,12 @@ export default function CreateTask() {
         throw new Error('Please fill in all required fields')
       }
 
-      // Validate mandatory project fields
+      // Validate mandatory project field
       if (!formData.projectId) {
         throw new Error('Please select a Project')
       }
 
-      if (!formData.subprojectId) {
-        throw new Error('Please select a Sub Project')
-      }
+      // Sub Project is now optional - no validation needed
 
       // Validate mandatory department field
       if (!formData.department) {
@@ -531,7 +529,15 @@ export default function CreateTask() {
       // Clear task cache to ensure fresh data is loaded
       optimizedDataService.clearTaskCache()
 
-      router.push('/dashboard')
+      // Redirect to the newly created task's detail page
+      // Use the first created task ID (mainTaskData.taskId) for navigation
+      const createdTaskId = mainTaskData?.taskId
+      if (createdTaskId) {
+        router.push(`/tasks/${createdTaskId}`)
+      } else {
+        // Fallback to dashboard if no task ID available
+        router.push('/dashboard')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -714,7 +720,7 @@ export default function CreateTask() {
 
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Sub Project *
+                Sub Project <span className="text-gray-400 text-xs">(Optional)</span>
               </label>
               <select
                 value={formData.subprojectId || ''}
@@ -724,7 +730,6 @@ export default function CreateTask() {
                 }}
                 className="input-field"
                 disabled={!formData.projectId || isLoadingSubprojects}
-                required
               >
                 <option value="">Select Sub Project...</option>
                 {isLoadingSubprojects ? (
