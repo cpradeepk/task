@@ -76,7 +76,7 @@ export default function Navbar() {
         return [
           ...baseItems,
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-          { href: '/bugs', label: 'Bugs', icon: Bug },
+          { href: '/bugs', label: 'Development', icon: Bug },
           { href: '/my-applications', label: 'Applications', icon: FileText },
           { href: '/profile', label: 'Profile', icon: User }
         ]
@@ -85,7 +85,7 @@ export default function Navbar() {
         return [
           ...baseItems,
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-          { href: '/bugs', label: 'Bugs', icon: Bug },
+          { href: '/bugs', label: 'Development', icon: Bug },
           { href: '/my-applications', label: 'Applications', icon: FileText },
           { href: '/reports', label: 'Reports', icon: BarChart3 },
           { href: '/profile', label: 'Profile', icon: User }
@@ -95,10 +95,10 @@ export default function Navbar() {
         return [
           ...baseItems,
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-          { href: '/bugs', label: 'Bugs', icon: Bug },
+          { href: '/bugs', label: 'Development', icon: Bug },
           { href: '/projects', label: 'Projects', icon: Briefcase },
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
-          { href: '/master-bugs', label: 'Master Bugs', icon: Bug },
+          { href: '/master-bugs', label: 'Master Development', icon: Bug },
           { href: '/users', label: 'User Management', icon: Users },
           { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 },
           { href: '/settings', label: 'Settings', icon: Settings },
@@ -110,10 +110,10 @@ export default function Navbar() {
       case 'admin':
         return [
           ...baseItems,
-          { href: '/bugs', label: 'Bugs', icon: Bug },
+          { href: '/bugs', label: 'Development', icon: Bug },
           { href: '/projects', label: 'Projects', icon: Briefcase },
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
-          { href: '/master-bugs', label: 'Master Bugs', icon: Bug },
+          { href: '/master-bugs', label: 'Master Development', icon: Bug },
           { href: '/users', label: 'User Management', icon: Users },
           { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 },
           { href: '/settings', label: 'Settings', icon: Settings }

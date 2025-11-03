@@ -504,8 +504,8 @@ export default function BugsPage() {
               <Sparkles className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Bug Tracking</h1>
-              <p className="text-gray-600 mt-1">Track, manage, and resolve bug reports</p>
+              <h1 className="text-3xl font-bold text-gray-900">Development</h1>
+              <p className="text-gray-600 mt-1">Track, manage, and resolve development issues</p>
             </div>
           </div>
           <div className="flex items-center space-x-3 mt-6 sm:mt-0">
