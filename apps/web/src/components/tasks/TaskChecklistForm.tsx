@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Plus, Loader2 } from 'lucide-react'
-import { getAllUsers } from '@/lib/auth'
 
 interface TaskChecklistFormProps {
   taskId: string
@@ -12,43 +11,14 @@ interface TaskChecklistFormProps {
 
 export default function TaskChecklistForm({ taskId, onSuccess, compact = false }: TaskChecklistFormProps) {
   const [description, setDescription] = useState('')
-  const [assignedTo, setAssignedTo] = useState('')
-  const [users, setUsers] = useState<any[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    loadUsers()
-  }, [])
-
-  const loadUsers = async () => {
-    try {
-      const allUsers = await getAllUsers()
-      const activeUsers = allUsers.filter(user => user.status === 'active')
-      setUsers(activeUsers)
-      
-      // Set current user as default assignee
-      const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
-      if (currentUser.employeeId) {
-        setAssignedTo(currentUser.employeeId)
-      } else if (activeUsers.length > 0) {
-        setAssignedTo(activeUsers[0].employeeId)
-      }
-    } catch (err) {
-      console.error('Failed to load users:', err)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!description.trim()) {
       setError('Description is required')
-      return
-    }
-
-    if (!assignedTo) {
-      setError('Please select an assignee')
       return
     }
 
@@ -56,9 +26,10 @@ export default function TaskChecklistForm({ taskId, onSuccess, compact = false }
       setIsSubmitting(true)
       setError('')
 
-      // Get current user for createdBy
+      // Get current user for createdBy and assignedTo
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
       const createdBy = currentUser.employeeId || 'unknown'
+      const assignedTo = currentUser.employeeId || 'unknown'
 
       const response = await fetch('/api/task-checklists', {
         method: 'POST',
@@ -106,18 +77,6 @@ export default function TaskChecklistForm({ taskId, onSuccess, compact = false }
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
             disabled={isSubmitting}
           />
-          <select
-            value={assignedTo}
-            onChange={(e) => setAssignedTo(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-            disabled={isSubmitting}
-          >
-            {users.map(user => (
-              <option key={user.employeeId} value={user.employeeId}>
-                {user.name}
-              </option>
-            ))}
-          </select>
           <button
             type="submit"
             disabled={isSubmitting || !description.trim()}
@@ -159,28 +118,9 @@ export default function TaskChecklistForm({ taskId, onSuccess, compact = false }
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Assign To *
-        </label>
-        <select
-          value={assignedTo}
-          onChange={(e) => setAssignedTo(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          disabled={isSubmitting}
-        >
-          <option value="">Select assignee...</option>
-          {users.map(user => (
-            <option key={user.employeeId} value={user.employeeId}>
-              {user.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
       <button
         type="submit"
-        disabled={isSubmitting || !description.trim() || !assignedTo}
+        disabled={isSubmitting || !description.trim()}
         className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
       >
         {isSubmitting ? (

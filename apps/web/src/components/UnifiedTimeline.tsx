@@ -57,7 +57,10 @@ export default function UnifiedTimeline({
       setError(null)
       const response = await fetch(
         `/api/activity-log?entityType=${entityType}&entityId=${entityId}&sortOrder=${sortOrder}`,
-        { credentials: 'include' }
+        {
+          credentials: 'include',
+          cache: 'no-store' // Prevent caching to ensure fresh data
+        }
       )
       const data = await response.json()
 

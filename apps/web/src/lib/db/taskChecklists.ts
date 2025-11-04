@@ -45,7 +45,7 @@ function rowToSubTask(row: SubTaskRow): SubTask {
  */
 export async function getSubTasksByParentTaskId(parent_task_id: string): Promise<SubTask[]> {
   const rows = await query<SubTaskRow[]>(
-    `SELECT * FROM subtasks
+    `SELECT * FROM task_checklists
      WHERE parent_task_id = $1 AND deleted_at IS NULL
      ORDER BY display_order ASC, created_at ASC`,
     [parent_task_id]
@@ -58,7 +58,7 @@ export async function getSubTasksByParentTaskId(parent_task_id: string): Promise
  */
 export async function getSubTasksByAssignedTo(assigned_to: string): Promise<SubTask[]> {
   const rows = await query<SubTaskRow[]>(
-    `SELECT * FROM subtasks
+    `SELECT * FROM task_checklists
      WHERE assigned_to = $1 AND deleted_at IS NULL
      ORDER BY created_at DESC`,
     [assigned_to]
@@ -71,7 +71,7 @@ export async function getSubTasksByAssignedTo(assigned_to: string): Promise<SubT
  */
 export async function getAllSubTasksIncludingDeleted(parent_task_id: string): Promise<SubTask[]> {
   const rows = await query<SubTaskRow[]>(
-    `SELECT * FROM subtasks
+    `SELECT * FROM task_checklists
      WHERE parent_task_id = $1
      ORDER BY display_order ASC, created_at ASC`,
     [parent_task_id]
@@ -84,7 +84,7 @@ export async function getAllSubTasksIncludingDeleted(parent_task_id: string): Pr
  */
 export async function getSubTaskById(id: number): Promise<SubTask | null> {
   const row = await queryOne<SubTaskRow>(
-    'SELECT * FROM subtasks WHERE id = $1 AND deleted_at IS NULL',
+    'SELECT * FROM task_checklists WHERE id = $1 AND deleted_at IS NULL',
     [id]
   )
   return row ? rowToSubTask(row) : null
@@ -104,7 +104,7 @@ export async function createSubTask(data: {
 }): Promise<SubTask> {
   // PostgreSQL uses RETURNING clause instead of insertId
   const rows = await query<SubTaskRow[]>(
-    `INSERT INTO subtasks (
+    `INSERT INTO task_checklists (
       parent_task_id, description, assigned_to, status,
       is_completed, display_order, created_by
     ) VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -183,7 +183,7 @@ export async function updateSubTask(
   values.push(id)
 
   await query(
-    `UPDATE subtasks SET ${updates.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL`,
+    `UPDATE task_checklists SET ${updates.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL`,
     values
   )
 
@@ -199,7 +199,7 @@ export async function updateSubTask(
  */
 export async function softDeleteSubTask(id: number, deletedBy: string): Promise<void> {
   await query(
-    'UPDATE subtasks SET deleted_at = NOW(), deleted_by = $1 WHERE id = $2',
+    'UPDATE task_checklists SET deleted_at = NOW(), deleted_by = $1 WHERE id = $2',
     [deletedBy, id]
   )
 }
@@ -209,7 +209,7 @@ export async function softDeleteSubTask(id: number, deletedBy: string): Promise<
  */
 export async function restoreSubTask(id: number): Promise<SubTask> {
   await query(
-    'UPDATE subtasks SET deleted_at = NULL, deleted_by = NULL WHERE id = $1',
+    'UPDATE task_checklists SET deleted_at = NULL, deleted_by = NULL WHERE id = $1',
     [id]
   )
 
@@ -224,7 +224,7 @@ export async function restoreSubTask(id: number): Promise<SubTask> {
  * Hard delete a subtask (permanent deletion - use with caution!)
  */
 export async function hardDeleteSubTask(id: number): Promise<void> {
-  await query('DELETE FROM subtasks WHERE id = $1', [id])
+  await query('DELETE FROM task_checklists WHERE id = $1', [id])
 }
 
 /**
@@ -237,7 +237,7 @@ export async function reorderSubTasks(
   // Update display_order for each subtask
   for (let i = 0; i < subtaskIds.length; i++) {
     await query(
-      'UPDATE subtasks SET display_order = $1 WHERE id = $2 AND parent_task_id = $3',
+      'UPDATE task_checklists SET display_order = $1 WHERE id = $2 AND parent_task_id = $3',
       [i, subtaskIds[i], parentTaskId]
     )
   }
@@ -263,7 +263,7 @@ export async function getSubTaskCount(parent_task_id: string): Promise<{
       SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as completed,
       SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress,
       SUM(CASE WHEN status = 'Not Started' THEN 1 ELSE 0 END) as not_started
-    FROM subtasks
+    FROM task_checklists
     WHERE parent_task_id = $1 AND deleted_at IS NULL`,
     [parent_task_id]
   )
@@ -281,7 +281,7 @@ export async function getSubTaskCount(parent_task_id: string): Promise<{
  */
 export async function getAllDeletedSubTasks(): Promise<SubTask[]> {
   const rows = await query<SubTaskRow[]>(
-    `SELECT * FROM subtasks
+    `SELECT * FROM task_checklists
      WHERE deleted_at IS NOT NULL
      ORDER BY deleted_at DESC`,
     []
@@ -298,7 +298,7 @@ export async function deleteSubTasksByParentTaskId(
   deletedBy: string
 ): Promise<void> {
   await query(
-    'UPDATE subtasks SET deleted_at = NOW(), deleted_by = $1 WHERE parent_task_id = $2',
+    'UPDATE task_checklists SET deleted_at = NOW(), deleted_by = $1 WHERE parent_task_id = $2',
     [deletedBy, parentTaskId]
   )
 }

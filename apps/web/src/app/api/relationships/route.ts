@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         `SELECT tr.*, t.task_id, t.name, t.description, t.status, t.priority
          FROM task_relationships tr
          JOIN tasks t ON tr.target_task_id = t.task_id
-         WHERE tr.source_task_id = $1 AND tr.deleted_at IS NULL`,
+         WHERE tr.source_task_id = $1`,
         [id]
       )
 
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         `SELECT tdr.*, b.bug_id, b.title as name, b.description, b.status, b.priority
          FROM task_development_relationships tdr
          JOIN bugs b ON tdr.target_dev_id = b.bug_id
-         WHERE tdr.source_task_id = $1 AND tdr.deleted_at IS NULL`,
+         WHERE tdr.source_task_id = $1`,
         [id]
       )
 
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         `SELECT dr.*, b.bug_id, b.title as name, b.description, b.status, b.priority
          FROM development_relationships dr
          JOIN bugs b ON dr.target_dev_id = b.bug_id
-         WHERE dr.source_dev_id = $1 AND dr.deleted_at IS NULL`,
+         WHERE dr.source_dev_id = $1`,
         [id]
       )
 
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         `SELECT tdr.*, t.task_id, t.name, t.description, t.status, t.priority
          FROM task_development_relationships tdr
          JOIN tasks t ON tdr.source_task_id = t.task_id
-         WHERE tdr.target_dev_id = $1 AND tdr.deleted_at IS NULL`,
+         WHERE tdr.target_dev_id = $1`,
         [id]
       )
 
