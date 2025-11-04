@@ -44,8 +44,8 @@ export async function GET(request: NextRequest) {
       const taskToDev = await query(
         `SELECT tdr.*, b.bug_id, b.title as name, b.description, b.status, b.priority
          FROM task_development_relationships tdr
-         JOIN bugs b ON tdr.target_dev_id = b.bug_id
-         WHERE tdr.source_task_id = $1`,
+         JOIN bugs b ON tdr.development_id = b.bug_id
+         WHERE tdr.task_id = $1`,
         [id]
       )
 
@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
       const devToTask = await query(
         `SELECT tdr.*, t.task_id, t.name, t.description, t.status, t.priority
          FROM task_development_relationships tdr
-         JOIN tasks t ON tdr.source_task_id = t.task_id
-         WHERE tdr.target_dev_id = $1`,
+         JOIN tasks t ON tdr.task_id = t.task_id
+         WHERE tdr.development_id = $1`,
         [id]
       )
 
@@ -144,8 +144,8 @@ export async function POST(request: NextRequest) {
       targetCol = 'target_task_id'
     } else if (sourceType === 'task' && targetType === 'development') {
       tableName = 'task_development_relationships'
-      sourceCol = 'source_task_id'
-      targetCol = 'target_dev_id'
+      sourceCol = 'task_id'
+      targetCol = 'development_id'
     } else if (sourceType === 'development' && targetType === 'development') {
       tableName = 'development_relationships'
       sourceCol = 'source_dev_id'

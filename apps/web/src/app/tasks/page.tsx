@@ -308,12 +308,15 @@ export default function TasksPage() {
     filtered = filtered.filter(task => !task.parentTaskId)
 
     // My Tasks filter (default: checked)
+    // Include tasks where user is assigned OR in support team
     if (myTasksOnly && currentUser) {
-      filtered = filtered.filter(task =>
-        Array.isArray(task.assignedTo)
+      filtered = filtered.filter(task => {
+        const isAssignee = Array.isArray(task.assignedTo)
           ? task.assignedTo.includes(currentUser.employeeId)
           : task.assignedTo === currentUser.employeeId
-      )
+        const isSupport = task.support && task.support.includes(currentUser.employeeId)
+        return isAssignee || isSupport
+      })
     }
 
     // Search filter

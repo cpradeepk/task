@@ -689,6 +689,13 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               </div>
             </div>
 
+            {/* Subtasks */}
+            <SubtasksList
+              key={subtasksKey}
+              parentId={task.taskId}
+              parentType="task"
+              onAddSubtask={() => setShowAddSubtaskModal(true)}
+            />
 
             {/* Activity Timeline (includes comments and system activities) */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
@@ -992,14 +999,6 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                 canEdit={canEdit}
               />
             </div>
-
-            {/* Subtasks */}
-            <SubtasksList
-              key={subtasksKey}
-              parentId={task.taskId}
-              parentType="task"
-              onAddSubtask={() => setShowAddSubtaskModal(true)}
-            />
 
             {/* Related Items */}
             <RelatedItemsManager

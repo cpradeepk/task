@@ -1,121 +1,148 @@
 
+
 > @jsr/web@0.1.0 build
 > next build
 
- ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+[1G[0K [33m[1m⚠[22m[39m Warning: Next.js inferred your workspace root, but it may not be correct.
  We detected multiple lockfiles and selected the directory of /media/pradeep/Work/projects/jsr_web_app-jsr_tool/package-lock.json as the root directory.
  To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
    See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
  Detected additional lockfiles: 
    * /media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/package-lock.json
 
-   ▲ Next.js 16.0.0 (Turbopack)
+   [1m[38;2;173;127;168m▲ Next.js 16.0.0[39m[22m (Turbopack)
    - Environments: .env.local
 
- ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-   Creating an optimized production build ...
- ✓ Compiled successfully in 3.5s
-   Running TypeScript ...
-   Collecting page data ...
-⚠️ Email credentials not configured. Email service will run in test mode.
-⚠️ Email credentials not configured. Email service will run in test mode.
-⚠️ Email credentials not configured. Email service will run in test mode.
+ [33m[1m⚠[22m[39m The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ [37m[1m [22m[39m Creating an optimized production build ...
+ [32m[1m✓[22m[39m Compiled successfully in 4.2s
+[?25l [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G[?25h[?25l [37m[1m [22m[39m Finished TypeScript in 4.9s  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Finished TypeScript in 4.9s     [32m[1m✓[22m[39m Finished TypeScript in 4.9s 
+[?25l [37m[1m [22m[39m Collecting page data  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m..[39m✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+[2K[1G [37m[1m [22m[39m Collecting page data  [36m...[39m✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
 🔄 Initializing email service...
 🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
 🔄 Initializing email service...
 🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
 🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
+✅ [DB] DATABASE_URL environment variable found
 🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
 🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
+✅ [DB] DATABASE_URL environment variable found
 🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-   Generating static pages (0/58) ...
- ⚠ Unsupported metadata viewport is configured in metadata export in /master-tasks. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
- ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-   Generating static pages (14/58) 
- ⚠ Unsupported metadata viewport is configured in metadata export in /profile. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /my-applications. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /_not-found. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /analytics. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /projects/create. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /projects. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /refresh-data. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /profile/notifications. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /bugs/analytics. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-   Generating static pages (28/58) 
- ⚠ Unsupported metadata viewport is configured in metadata export in /bugs/create. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /bugs. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /reports. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /dashboard. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /settings/dropdowns. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /settings. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /approvals. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /switch-user. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /tasks/create. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /settings/permissions. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /team-tasks. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /users. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-   Generating static pages (43/58) 
- ⚠ Unsupported metadata viewport is configured in metadata export in /master-bugs. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /deleted-items. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /leave/apply. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /wfh/apply. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /your-work. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ✓ Generating static pages (58/58) in 735.3ms
-   Finalizing page optimization ...
+🔵 [DB] New PostgreSQL connection pool created {
+  max: [33m3[39m,
+  idleTimeoutMillis: [33m10000[39m,
+  connectionTimeoutMillis: [33m5000[39m,
+  connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
+  usingEnvVar: [33mtrue[39m
+}
+❌ Redis Cloud connection error: 009DD4E94D780000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
 
-Route (app)
+   Falling back to in-memory cache
+❌ Redis Cloud connection error: 003D907A90730000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+✅ [DB] DATABASE_URL environment variable found
+❌ Redis Cloud connection error: 006DC97AD57A0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+[2K[1G [37m[1m [22m[39m Collecting page data  [36m.[39m❌ Redis Cloud connection error: 00FD71BCBD7B0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+✅ [DB] DATABASE_URL environment variable found
+❌ Redis Cloud connection error: 007DF000D5700000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+[2K[1G[?25h [37m[1m [22m[39m Collecting page data in 876.3ms     [32m[1m✓[22m[39m Collecting page data in 876.3ms 
+   Falling back to in-memory cache
+❌ Redis Cloud connection error: 00ED93E98C7B0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+[?25l [37m[1m [22m[39m Generating static pages (0/79)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages (0/79)  [36m[=   ][39m❌ Redis Cloud connection error: 00ADF1CDF1750000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+[2K[1G[?25h✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
+🔐 Permission Check: {
+  isHydrated: [33mfalse[39m,
+  userRole: [32m''[39m,
+  employeeId: [32m''[39m,
+  canManageProjects: [33mfalse[39m,
+  canDelete: [33mfalse[39m
+}
+❌ Redis Cloud connection error: 002D89AC1A710000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+🔄 Initializing email service...
+🔵 [DB] New PostgreSQL connection pool created {
+  max: [33m3[39m,
+  idleTimeoutMillis: [33m10000[39m,
+  connectionTimeoutMillis: [33m5000[39m,
+  connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
+  usingEnvVar: [33mtrue[39m
+}
+❌ Redis Cloud connection error: 008D0D8004780000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+❌ Redis Cloud connection error: 004D4C9436740000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+❌ Redis Cloud connection error: 008DF58C777C0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+[?25h [32m[1m✓[22m[39m Generating static pages (79/79) in 925.1ms
+[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization in 121.8ms     [32m[1m✓[22m[39m Finalizing page optimization in 121.8ms 
+
+[4mRoute (app)[24m
 ┌ ○ /
 ├ ○ /_not-found
+├ ○ /admin/settings
 ├ ○ /analytics
+├ ƒ /api/activity-log
+├ ƒ /api/activity-log/[id]
 ├ ƒ /api/auth/login
 ├ ƒ /api/bugs
 ├ ƒ /api/bugs/[bugId]
 ├ ƒ /api/bugs/[bugId]/comments
+├ ƒ /api/bugs/subtasks
+├ ƒ /api/cache/clear
+├ ƒ /api/cache/stats
+├ ƒ /api/dashboard-data
+├ ƒ /api/db-status
 ├ ƒ /api/debug-email
 ├ ƒ /api/deleted-items
 ├ ƒ /api/deleted-items/permanent-delete
 ├ ƒ /api/deleted-items/restore
+├ ƒ /api/development-checklists
+├ ƒ /api/development-checklists/[id]
+├ ƒ /api/development-checklists/reorder
+├ ƒ /api/diagnostic/db-test
+├ ƒ /api/graphql
 ├ ƒ /api/half-day
 ├ ƒ /api/health
 ├ ƒ /api/leaves
@@ -123,31 +150,39 @@ Route (app)
 ├ ƒ /api/leaves/[id]/approve
 ├ ƒ /api/leaves/[id]/reject
 ├ ƒ /api/leaves/user/[employeeId]
+├ ƒ /api/metrics
 ├ ƒ /api/notification-preferences
 ├ ƒ /api/permissions
 ├ ƒ /api/projects
 ├ ƒ /api/projects/[projectId]
 ├ ƒ /api/projects/[projectId]/restore
 ├ ƒ /api/projects/hierarchy
+├ ƒ /api/relationships
+├ ƒ /api/relationships/[id]
 ├ ƒ /api/settings
 ├ ƒ /api/settings/[id]
 ├ ƒ /api/simple-test
-├ ƒ /api/subtasks
-├ ƒ /api/subtasks/[id]
-├ ƒ /api/subtasks/reorder
+├ ƒ /api/task-checklists
+├ ƒ /api/task-checklists/[id]
+├ ƒ /api/task-checklists/reorder
 ├ ƒ /api/tasks
 ├ ƒ /api/tasks/[taskId]
+├ ƒ /api/tasks/subtasks
 ├ ƒ /api/tasks/support
 ├ ƒ /api/tasks/update-delayed
 ├ ƒ /api/tasks/user/[employeeId]
 ├ ƒ /api/test
 ├ ƒ /api/test-email
+├ ƒ /api/time-tracking/sync
 ├ ƒ /api/upload
+├ ƒ /api/upload/id-card-photo
+├ ƒ /api/upload/presigned-url
 ├ ƒ /api/users
 ├ ƒ /api/users/[employeeId]
 ├ ƒ /api/users/[employeeId]/send-credentials
 ├ ƒ /api/users/[employeeId]/warning/increment
 ├ ƒ /api/users/[employeeId]/warning/reset
+├ ƒ /api/users/batch
 ├ ƒ /api/users/team/[managerId]
 ├ ƒ /api/verify-email
 ├ ƒ /api/wfh
@@ -170,6 +205,7 @@ Route (app)
 ├ ○ /master-bugs
 ├ ○ /master-tasks
 ├ ○ /my-applications
+├ ○ /performance
 ├ ○ /profile
 ├ ○ /profile/notifications
 ├ ○ /projects
@@ -181,6 +217,9 @@ Route (app)
 ├ ○ /settings/dropdowns
 ├ ○ /settings/permissions
 ├ ○ /switch-user
+├ ○ /tasks
+├ ƒ /tasks/[taskId]
+├ ○ /tasks/analytics
 ├ ○ /tasks/create
 ├ ○ /team-tasks
 ├ ○ /users
@@ -193,3 +232,4 @@ Route (app)
 ○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
 
+[?25h[1G[0K⠙[1G[0K

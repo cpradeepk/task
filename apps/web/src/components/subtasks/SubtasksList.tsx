@@ -84,7 +84,7 @@ export default function SubtasksList({ parentId, parentType, onAddSubtask }: Sub
 
   if (subtasks.length === 0) {
     return (
-      <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Subtasks</h3>
           {onAddSubtask && (
@@ -105,9 +105,9 @@ export default function SubtasksList({ parentId, parentType, onAddSubtask }: Sub
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg bg-white">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <button
           onClick={() => setExpanded(!expanded)}
           className="flex items-center gap-2 text-lg font-semibold text-gray-900 hover:text-primary transition-colors"
@@ -132,7 +132,7 @@ export default function SubtasksList({ parentId, parentType, onAddSubtask }: Sub
 
       {/* Subtasks List */}
       {expanded && (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 p-2">
           {subtasks.map((subtask) => {
             const isTask = 'taskId' in subtask
             const id = isTask ? (subtask as Task).taskId : (subtask as Bug).bugId

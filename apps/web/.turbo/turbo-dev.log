@@ -12,10 +12,8 @@
    [1m[38;2;173;127;168m▲ Next.js 16.0.0[39m[22m (Turbopack)
    - Local:        http://localhost:3000
    - Network:      http://192.168.0.13:3000
+   - Environments: .env.local
 
  [32m[1m✓[22m[39m Starting...
- [32m[1m✓[22m[39m Ready in 286ms
- [33m[1m⚠[22m[39m Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- GET / [32m200[39m in 1828ms[2m (compile: 1740ms, render: 88ms)[22m
+ [33m[1m⚠[22m[39m The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
 [?25h
