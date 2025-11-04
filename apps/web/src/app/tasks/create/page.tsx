@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import React from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
 // Removed: import { generateTaskId } from '@/lib/data'
 // Task IDs are now generated server-side in the API route for consistency
@@ -20,7 +20,7 @@ import ProjectSelector from '@/components/ProjectSelector'
 import FileUpload from '@/components/bugs/FileUpload'
 import { useSettingsIcons } from '@/hooks/useSettingsIcons'
 
-export default function CreateTask() {
+function CreateTaskContent() {
   const [formData, setFormData] = useState({
     selectType: 'Normal',
     recursiveType: '',
@@ -39,7 +39,8 @@ export default function CreateTask() {
     assignedTo: '',
     multiUserAssignment: false, // Enable multi-user assignment
     assignees: [] as string[], // Array of employee IDs for multi-user assignment
-    attachments: '' // File attachments
+    attachments: '', // File attachments
+    parentTaskId: undefined as string | undefined // Parent task ID for subtasks
   })
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -67,16 +68,23 @@ export default function CreateTask() {
   const [projectsLoaded, setProjectsLoaded] = useState(false)
 
   const router = useRouter()
+  const searchParams = useSearchParams()
   const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
 
   // Load icons from settings metadata
   const { getIcon, isLoading: isLoadingIcons } = useSettingsIcons()
 
-  // Handle hydration
+  // Handle hydration and read parent task ID from URL
   useEffect(() => {
     setIsHydrated(true)
-  }, [])
+
+    // Check for parentTaskId in URL query parameters
+    const parentTaskId = searchParams.get('parentTaskId')
+    if (parentTaskId) {
+      setFormData(prev => ({ ...prev, parentTaskId }))
+    }
+  }, [searchParams])
 
   // Authentication check
   useEffect(() => {
@@ -525,7 +533,8 @@ export default function CreateTask() {
       assignedTo: '',
       multiUserAssignment: false,
       assignees: [],
-      attachments: ''
+      attachments: '',
+      parentTaskId: undefined
     })
     setUploadedFiles([])
     setError('')
@@ -1086,5 +1095,20 @@ export default function CreateTask() {
       </div>
       </div>
     </div>
+  )
+}
+
+export default function CreateTask() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto p-6">
+          <LoadingSpinner />
+        </div>
+      </div>
+    }>
+      <CreateTaskContent />
+    </Suspense>
   )
 }

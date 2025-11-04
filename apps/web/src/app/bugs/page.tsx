@@ -13,6 +13,7 @@ import { getAllBugs, getBugStatistics } from '@/lib/bugService'
 import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth'
 import { useLoading } from '@/contexts/LoadingContext'
 import { QUERIES } from '@/lib/graphql-queries'
+import HierarchicalBugRow from '@/components/bugs/HierarchicalBugRow'
 import {
   Bug as BugIcon,
   Plus,
@@ -336,6 +337,9 @@ export default function BugsPage() {
   const filteredBugs = useMemo(() => {
     let filtered = bugs
 
+    // Filter out subtasks - only show root bugs (bugs without parent_dev_id)
+    filtered = filtered.filter(bug => !bug.parentDevId)
+
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
@@ -387,6 +391,16 @@ export default function BugsPage() {
 
     return filtered
   }, [bugs, searchTerm, statusFilter, severityFilter, categoryFilter, assigneeFilter, currentUser])
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'Critical': return 'text-red-600 bg-red-100'
+      case 'High': return 'text-orange-600 bg-orange-100'
+      case 'Medium': return 'text-yellow-600 bg-yellow-100'
+      case 'Low': return 'text-green-600 bg-green-100'
+      default: return 'text-gray-600 bg-gray-100'
+    }
+  }
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -781,69 +795,16 @@ export default function BugsPage() {
         ) : (
           <div className="space-y-4">
             {filteredBugs.map((bug) => (
-              <div key={bug.bugId} className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <span className="font-mono text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-lg font-medium">
-                        {bug.bugId}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getSeverityColor(bug.severity)}`}>
-                        {bug.severity === 'Critical' ? '🔴' : bug.severity === 'Major' ? '🟠' : '🟡'} {bug.severity}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 ${getStatusColor(bug.status)}`}>
-                        {getStatusIcon(bug.status)}
-                        <span>{bug.status}</span>
-                      </span>
-                       <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {bug.platform === 'Web' ? '🌐' : bug.platform === 'iOS' ? '📱' : bug.platform === 'Android' ? '🤖' : '🔄'} {bug.platform}
-                      </span>
-                      {/* Environment */}
-                      <span className="px-2 py-1 bg-teal-100 text-teal-700 rounded text-xs font-medium">
-                        {bug.environment}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer break-words overflow-wrap-anywhere"
-                          onClick={() => router.push(`/bugs/${bug.bugId}`)}>
-                        {bug.title}
-                      </h3>
-                      <ProjectDisplay projectId={bug.projectId} subprojectId={bug.subprojectId} />
-                    </div>
-                    <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed break-words overflow-wrap-anywhere">{bug.description}</p>
-
-                    <div className="flex items-center flex-wrap gap-4 text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <span className="font-medium">Category:</span>
-                        <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs">
-                          {bug.category === 'UI' ? '🎨' : bug.category === 'API' ? '🔌' : bug.category === 'Backend' ? '⚙️' : '📋'} {bug.category}
-                        </span>
-                      </div>
-                       <div className="flex items-center space-x-1">
-                        <span className="font-medium">Reported:</span>
-                        <span>{new Date(bug.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      {bug.assignedTo && (
-                        <div className="flex items-center space-x-1">
-                          <span className="font-medium">Assigned to:</span>
-                          <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs">👤 <UserName employeeId={bug.assignedTo} /></span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 ml-6">
-                    <button
-                      onClick={() => router.push(`/bugs/${bug.bugId}`)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center space-x-2 font-medium"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>View Details</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <HierarchicalBugRow
+                key={bug.bugId}
+                bug={bug}
+                getStatusColor={getStatusColor}
+                getPriorityColor={getPriorityColor}
+                getSeverityColor={getSeverityColor}
+                getStatusIcon={getStatusIcon}
+                UserName={UserName}
+                ProjectDisplay={ProjectDisplay}
+              />
             ))}
           </div>
         )}

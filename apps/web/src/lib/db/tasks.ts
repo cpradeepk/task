@@ -25,6 +25,7 @@ interface TaskRow  {
   difficulties: string | null
   related_tasks: string | null
   project_id: string | null
+  parent_task_id: string | null
   deleted_at: string | null
   deleted_by: string | null
   timer_state: string | null
@@ -119,6 +120,7 @@ function rowToTask(row: TaskRow): Task {
     difficulties: row.difficulties || undefined,
     relatedTasks: row.related_tasks || undefined,
     projectId: row.project_id || undefined,
+    parentTaskId: row.parent_task_id || undefined,
     deletedAt: row.deleted_at || undefined,
     deletedBy: row.deleted_by || undefined,
     createdAt: row.created_at,
@@ -213,6 +215,17 @@ export async function getTasksByProject(project_id: string): Promise<Task[]> {
   })
 }
 
+// Get subtasks by parent task ID (excluding soft-deleted)
+export async function getSubtasksByParentId(parent_task_id: string): Promise<Task[]> {
+  return withRetry(async () => {
+    const rows = await query<TaskRow[]>(
+      'SELECT * FROM tasks WHERE parent_task_id = $1 AND deleted_at IS NULL ORDER BY created_at ASC',
+      [parent_task_id]
+    )
+    return rows.map(rowToTask)
+  })
+}
+
 // Get the latest task ID for sequential ID generation
 export async function getLatestTaskId(): Promise<string | undefined> {
   return withRetry(async () => {
@@ -234,8 +247,8 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         internal_id, task_id, select_type, recursive_type, name, description,
         assigned_to, assigned_by, support, start_date, end_date, priority,
         estimated_hours, actual_hours, daily_hours, status, remarks,
-        difficulties, project_id, department
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
+        difficulties, project_id, parent_task_id, department
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
       [
         task.taskId, // internal_id is same as task_id
         task.taskId,
@@ -256,6 +269,7 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         task.remarks || null,
         task.difficulties || null,
         task.projectId || null,
+        task.parentTaskId || null,
         (task as any).department || null
       ]
     )
@@ -346,6 +360,10 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     if (updates.timerSessions !== undefined) {
       fields.push(`timer_sessions = $${paramIndex++}`)
       values.push(updates.timerSessions)
+    }
+    if (updates.parentTaskId !== undefined) {
+      fields.push(`parent_task_id = $${paramIndex++}`)
+      values.push(updates.parentTaskId || null)
     }
     if ((updates as any).department !== undefined) {
       fields.push(`department = $${paramIndex++}`)

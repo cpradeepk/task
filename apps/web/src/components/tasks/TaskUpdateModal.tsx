@@ -240,7 +240,7 @@ export default function TaskUpdateModal({ task, isOpen, onClose, onUpdate }: Tas
         </div>
 
         <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-          <p className="font-medium text-black">{task.description}</p>
+          <p className="font-medium text-black">{task.name}</p>
           <p className="text-sm text-gray-600 mt-1">
             Task ID: {task.taskId} • Assigned to: <AssigneeList assignedTo={task.assignedTo} showIcon={false} />
           </p>

@@ -459,7 +459,7 @@ export default function MasterTasksPage() {
                           </div>
 
                           <h4 className="font-medium text-black mb-2">
-                            {task.description}
+                            {task.name}
                           </h4>
 
                           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">

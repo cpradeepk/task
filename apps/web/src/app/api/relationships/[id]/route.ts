@@ -3,7 +3,7 @@ import { query } from '@/lib/db/config'
 
 /**
  * DELETE /api/relationships/[id]
- * Soft delete a relationship
+ * Delete a relationship (hard delete - relationships tables don't support soft delete)
  * Query params:
  * - type: 'task' | 'task-development' | 'development' (which table to delete from)
  */
@@ -37,9 +37,9 @@ export async function DELETE(
       )
     }
 
-    // Soft delete the relationship
+    // Hard delete the relationship (relationships tables don't have deleted_at column)
     await query(
-      `UPDATE ${tableName} SET deleted_at = NOW() WHERE id = $1`,
+      `DELETE FROM ${tableName} WHERE id = $1`,
       [parseInt(id)]
     )
 

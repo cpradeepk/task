@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect, useCallback, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { BugFormData, User } from '@/lib/types'
 import { createBug } from '@/lib/bugService'
@@ -13,7 +13,7 @@ import ProjectSelector from '@/components/ProjectSelector'
 import FileUpload from '@/components/bugs/FileUpload'
 import { useSettingsIcons } from '@/hooks/useSettingsIcons'
 
-export default function CreateBugPage() {
+function CreateBugPageContent() {
   const [formData, setFormData] = useState<BugFormData>({
     title: '',
     description: '',
@@ -34,7 +34,8 @@ export default function CreateBugPage() {
     projectId: undefined,
     subprojectId: undefined,
     feature: '',
-    type: undefined
+    type: undefined,
+    parentDevId: undefined
   })
 
   const [projects, setProjects] = useState<any[]>([])
@@ -67,16 +68,23 @@ export default function CreateBugPage() {
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined)
 
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Load icons from settings metadata
   const { getIcon, isLoading: isLoadingIcons } = useSettingsIcons()
 
-  // Handle hydration and get current user
+  // Handle hydration, get current user, and read parent bug ID from URL
   useEffect(() => {
     setIsHydrated(true)
     const user = getCurrentUser()
     setCurrentUser(user)
-  }, [])
+
+    // Check for parentDevId in URL query parameters
+    const parentDevId = searchParams.get('parentDevId')
+    if (parentDevId) {
+      setFormData(prev => ({ ...prev, parentDevId }))
+    }
+  }, [searchParams])
 
   const loadUsers = useCallback(async () => {
     if (usersLoaded) return
@@ -899,5 +907,20 @@ export default function CreateBugPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CreateBugPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-4xl mx-auto p-6">
+          <LoadingSpinner />
+        </div>
+      </div>
+    }>
+      <CreateBugPageContent />
+    </Suspense>
   )
 }

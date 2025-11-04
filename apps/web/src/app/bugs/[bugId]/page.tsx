@@ -21,6 +21,9 @@ import LoadingButton from '@/components/ui/LoadingButton'
 import ImageLightbox from '@/components/bugs/ImageLightbox'
 import TimerButton from '@/components/TimerButton'
 import RelatedItemsManager from '@/components/relationships/RelatedItemsManager'
+import SubtasksList from '@/components/subtasks/SubtasksList'
+import AddSubtaskModal from '@/components/subtasks/AddSubtaskModal'
+import SubtaskBreadcrumb from '@/components/subtasks/SubtaskBreadcrumb'
 import { QUERIES } from '@/lib/graphql-queries'
 import {
   Bug as BugIcon,
@@ -171,6 +174,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
   // Edit modal state
   const [bugEditModalOpen, setBugEditModalOpen] = useState(false)
+
+  // Subtask modal state
+  const [showAddSubtaskModal, setShowAddSubtaskModal] = useState(false)
+  const [subtasksKey, setSubtasksKey] = useState(0) // For refreshing subtasks list
 
   const hasLoadedData = useRef(false)
   const router = useRouter()
@@ -778,6 +785,15 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     <div>
       <Navbar />
       <div className="max-w-6xl mx-auto p-6 space-y-6">
+        {/* Breadcrumb Navigation */}
+        {bug.parentDevId && (
+          <SubtaskBreadcrumb
+            currentId={bug.bugId}
+            currentType="bug"
+            currentName={bug.title}
+          />
+        )}
+
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex items-center space-x-4">
@@ -1289,6 +1305,14 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               />
             </div>
 
+            {/* Subtasks */}
+            <SubtasksList
+              key={subtasksKey}
+              parentId={bug.bugId}
+              parentType="bug"
+              onAddSubtask={() => setShowAddSubtaskModal(true)}
+            />
+
             {/* Related Items */}
             <RelatedItemsManager
               itemId={bug.bugId}
@@ -1561,6 +1585,20 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             loadBugData()
           }}
         />
+
+        {/* Add Subtask Modal */}
+        {showAddSubtaskModal && (
+          <AddSubtaskModal
+            parentId={bug.bugId}
+            parentType="bug"
+            parentName={bug.title}
+            onClose={() => setShowAddSubtaskModal(false)}
+            onSuccess={() => {
+              setShowAddSubtaskModal(false)
+              setSubtasksKey(prev => prev + 1) // Refresh subtasks list
+            }}
+          />
+        )}
       </div>
     </div>
   )

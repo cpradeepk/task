@@ -123,7 +123,7 @@ export default function TaskListScreen({ navigation }: any) {
       </View>
       
       <Text style={styles.taskDescription} numberOfLines={2}>
-        {item.description}
+        {item.name || item.description}
       </Text>
       
       <View style={styles.taskMeta}>

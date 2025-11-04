@@ -130,7 +130,7 @@ export default function DashboardScreen() {
         <Text style={styles.sectionTitle}>Recent Tasks</Text>
         {tasks.slice(0, 5).map((task) => (
           <View key={task.taskId} style={styles.taskCard}>
-            <Text style={styles.taskTitle}>{task.description}</Text>
+            <Text style={styles.taskTitle}>{task.name || task.description}</Text>
             <Text style={styles.taskStatus}>{task.status}</Text>
           </View>
         ))}

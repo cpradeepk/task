@@ -109,10 +109,10 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Fetch deleted subtasks
+    // Fetch deleted subtasks (task checklists)
     if (!itemType || itemType === 'all' || itemType === 'subtask') {
       const deletedSubTasks = await query<any[]>(
-        `SELECT 
+        `SELECT
           id,
           parent_task_id as parentTaskId,
           description,
@@ -120,8 +120,8 @@ export async function GET(request: NextRequest) {
           status,
           deleted_at as deletedAt,
           deleted_by as deletedBy
-         FROM subtasks 
-         WHERE deleted_at IS NOT NULL 
+         FROM task_checklists
+         WHERE deleted_at IS NOT NULL
          ORDER BY deleted_at DESC`
       )
 

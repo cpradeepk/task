@@ -94,6 +94,7 @@ export interface Task {
   difficulties?: string     // Optional: Challenges faced during task execution
   relatedTasks?: string | null // Optional: Comma-separated task IDs for multi-user assignments
   projectId?: string | null // Optional: Project ID this task belongs to (e.g., "PRJ-001")
+  parentTaskId?: string | null // Optional: Parent task ID for subtasks (e.g., "JSR-0001")
   timerState?: string | null // Optional: Timer state (stopped, running, paused)
   timerStartTime?: string | null // Optional: Timer start timestamp
   timerPausedTime?: number | null // Optional: Total paused time in milliseconds
@@ -269,6 +270,7 @@ export interface Bug {
   relatedBugs?: string      // Optional: Comma-separated related bug IDs
   projectId?: string | null // Optional: Project ID this bug belongs to (e.g., "PRJ-001")
   subprojectId?: string | null // Optional: Subproject ID this bug belongs to
+  parentDevId?: string | null // Optional: Parent bug ID for subtasks (e.g., "BUG-0001")
   feature?: string | null   // Optional: Feature name this bug is related to
   type?: 'testcase' | 'feature' | 'other' | null  // Optional: Bug type categorization
   timerState?: string | null // Optional: Timer state (stopped, running, paused)
@@ -313,6 +315,7 @@ export interface BugFormData {
   subprojectId?: string | null
   feature?: string | null
   type?: 'testcase' | 'feature' | 'other' | null
+  parentDevId?: string | null
 }
 
 // ============================================================================

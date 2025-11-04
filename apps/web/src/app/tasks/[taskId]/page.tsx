@@ -19,6 +19,9 @@ import LoadingButton from '@/components/ui/LoadingButton'
 import TimerButton from '@/components/TimerButton'
 import AssigneeList from '@/components/tasks/AssigneeList'
 import RelatedItemsManager from '@/components/relationships/RelatedItemsManager'
+import SubtasksList from '@/components/subtasks/SubtasksList'
+import AddSubtaskModal from '@/components/subtasks/AddSubtaskModal'
+import SubtaskBreadcrumb from '@/components/subtasks/SubtaskBreadcrumb'
 import { QUERIES } from '@/lib/graphql-queries'
 import {
   MessageSquare,
@@ -144,6 +147,10 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
   // Related tasks state
   const [relatedTasksData, setRelatedTasksData] = useState<Task[]>([])
   const [isLoadingRelatedTasks, setIsLoadingRelatedTasks] = useState(false)
+
+  // Subtask modal state
+  const [showAddSubtaskModal, setShowAddSubtaskModal] = useState(false)
+  const [subtasksKey, setSubtasksKey] = useState(0) // For refreshing subtasks list
 
   // Edit modal state
   const [taskEditModalOpen, setTaskEditModalOpen] = useState(false)
@@ -509,6 +516,15 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Breadcrumb Navigation */}
+        {task.parentTaskId && (
+          <SubtaskBreadcrumb
+            currentId={task.taskId}
+            currentType="task"
+            currentName={task.name}
+          />
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center space-x-4 min-w-0 flex-1">
@@ -977,6 +993,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               />
             </div>
 
+            {/* Subtasks */}
+            <SubtasksList
+              key={subtasksKey}
+              parentId={task.taskId}
+              parentType="task"
+              onAddSubtask={() => setShowAddSubtaskModal(true)}
+            />
+
             {/* Related Items */}
             <RelatedItemsManager
               itemId={task.taskId}
@@ -1115,6 +1139,20 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
           loadTaskData()
         }}
       />
+
+      {/* Add Subtask Modal */}
+      {showAddSubtaskModal && (
+        <AddSubtaskModal
+          parentId={task.taskId}
+          parentType="task"
+          parentName={task.name}
+          onClose={() => setShowAddSubtaskModal(false)}
+          onSuccess={() => {
+            setShowAddSubtaskModal(false)
+            setSubtasksKey(prev => prev + 1) // Refresh subtasks list
+          }}
+        />
+      )}
     </div>
   )
 }

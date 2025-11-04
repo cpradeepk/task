@@ -13,6 +13,7 @@ import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth
 import { useLoading } from '@/contexts/LoadingContext'
 import { QUERIES } from '@/lib/graphql-queries'
 import AssigneeList from '@/components/tasks/AssigneeList'
+import HierarchicalTaskRow from '@/components/tasks/HierarchicalTaskRow'
 import {
   CheckSquare,
   Plus,
@@ -302,6 +303,9 @@ export default function TasksPage() {
   // Memoized filtered tasks
   const filteredTasks = useMemo(() => {
     let filtered = tasks
+
+    // Filter out subtasks - only show root tasks (tasks without parent_task_id)
+    filtered = filtered.filter(task => !task.parentTaskId)
 
     // My Tasks filter (default: checked)
     if (myTasksOnly && currentUser) {
@@ -778,67 +782,15 @@ export default function TasksPage() {
         ) : (
           <div className="space-y-4">
             {filteredTasks.map((task) => (
-              <div key={task.taskId} className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <span className="font-mono text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-lg font-medium">
-                        {task.taskId}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(task.priority)}`}>
-                        {task.priority}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 ${getStatusColor(task.status)}`}>
-                        {getStatusIcon(task.status)}
-                        <span>{task.status}</span>
-                      </span>
-                    </div>
-
-                    <div className="mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
-                          onClick={() => router.push(`/tasks/${task.taskId}`)}>
-                        {task.name || task.description}
-                      </h3>
-                      <ProjectDisplay projectId={task.projectId} />
-                    </div>
-
-                    <div className="flex items-center flex-wrap gap-4 text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <span className="font-medium">Start:</span>
-                        <span>{new Date(task.startDate).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <span className="font-medium">End:</span>
-                        <span>{new Date(task.endDate).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <span className="font-medium">Estimated:</span>
-                        <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs">
-                          ⏱️ {formatHours(task.estimatedHours)}
-                        </span>
-                      </div>
-                      {task.assignedTo && (
-                        <div className="flex items-center space-x-1">
-                          <span className="font-medium">Assigned to:</span>
-                          <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs">
-                            <AssigneeList assignedTo={task.assignedTo} showIcon={true} maxDisplay={2} />
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 ml-6">
-                    <button
-                      onClick={() => router.push(`/tasks/${task.taskId}`)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center space-x-2 font-medium"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>View Details</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <HierarchicalTaskRow
+                key={task.taskId}
+                task={task}
+                currentUserId={currentUser.employeeId}
+                getStatusColor={getStatusColor}
+                getPriorityColor={getPriorityColor}
+                getStatusIcon={getStatusIcon}
+                ProjectDisplay={ProjectDisplay}
+              />
             ))}
           </div>
         )}
