@@ -128,17 +128,17 @@ export async function getActivityLogById(id: number): Promise<ActivityLog | null
       query<any[]>(
         `SELECT
           al.id,
-          al.entity_type as entityType,
-          al.entity_id as entityId,
-          al.user_id as userId,
-          u.name as userName,
-          al.action_type as actionType,
-          al.field_name as fieldName,
-          al.old_value as oldValue,
-          al.new_value as newValue,
+          al.entity_type as "entityType",
+          al.entity_id as "entityId",
+          al.user_id as "userId",
+          u.name as "userName",
+          al.action_type as "actionType",
+          al.field_name as "fieldName",
+          al.old_value as "oldValue",
+          al.new_value as "newValue",
           al.description,
-          al.is_comment as isComment,
-          al.created_at as createdAt
+          al.is_comment as "isComment",
+          al.created_at as "createdAt"
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
         WHERE al.id = $1`,
@@ -184,17 +184,17 @@ export async function getActivityLogByEntity(
       query<any[]>(
         `SELECT
           al.id,
-          al.entity_type as entityType,
-          al.entity_id as entityId,
-          al.user_id as userId,
-          u.name as userName,
-          al.action_type as actionType,
-          al.field_name as fieldName,
-          al.old_value as oldValue,
-          al.new_value as newValue,
+          al.entity_type as "entityType",
+          al.entity_id as "entityId",
+          al.user_id as "userId",
+          u.name as "userName",
+          al.action_type as "actionType",
+          al.field_name as "fieldName",
+          al.old_value as "oldValue",
+          al.new_value as "newValue",
           al.description,
-          al.is_comment as isComment,
-          al.created_at as createdAt
+          al.is_comment as "isComment",
+          al.created_at as "createdAt"
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
         WHERE al.entity_type = $1 AND al.entity_id = $2
@@ -247,17 +247,17 @@ export async function getCommentsByEntity(
       query<any[]>(
         `SELECT
           al.id,
-          al.entity_type as entityType,
-          al.entity_id as entityId,
-          al.user_id as userId,
-          u.name as userName,
-          al.action_type as actionType,
-          al.field_name as fieldName,
-          al.old_value as oldValue,
-          al.new_value as newValue,
+          al.entity_type as "entityType",
+          al.entity_id as "entityId",
+          al.user_id as "userId",
+          u.name as "userName",
+          al.action_type as "actionType",
+          al.field_name as "fieldName",
+          al.old_value as "oldValue",
+          al.new_value as "newValue",
           al.description,
-          al.is_comment as isComment,
-          al.created_at as createdAt
+          al.is_comment as "isComment",
+          al.created_at as "createdAt"
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
         WHERE al.entity_type = $1 AND al.entity_id = $2 AND al.is_comment = 1
@@ -300,17 +300,17 @@ export async function getSystemActivitiesByEntity(
       query<any[]>(
         `SELECT
           al.id,
-          al.entity_type as entityType,
-          al.entity_id as entityId,
-          al.user_id as userId,
-          u.name as userName,
-          al.action_type as actionType,
-          al.field_name as fieldName,
-          al.old_value as oldValue,
-          al.new_value as newValue,
+          al.entity_type as "entityType",
+          al.entity_id as "entityId",
+          al.user_id as "userId",
+          u.name as "userName",
+          al.action_type as "actionType",
+          al.field_name as "fieldName",
+          al.old_value as "oldValue",
+          al.new_value as "newValue",
           al.description,
-          al.is_comment as isComment,
-          al.created_at as createdAt
+          al.is_comment as "isComment",
+          al.created_at as "createdAt"
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
         WHERE al.entity_type = $1 AND al.entity_id = $2 AND al.is_comment = 0
