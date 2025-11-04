@@ -22,7 +22,6 @@ import ImageLightbox from '@/components/bugs/ImageLightbox'
 import TimerButton from '@/components/TimerButton'
 import RelatedItemsManager from '@/components/relationships/RelatedItemsManager'
 import SubtasksList from '@/components/subtasks/SubtasksList'
-import AddSubtaskModal from '@/components/subtasks/AddSubtaskModal'
 import SubtaskBreadcrumb from '@/components/subtasks/SubtaskBreadcrumb'
 import { QUERIES } from '@/lib/graphql-queries'
 import {
@@ -175,8 +174,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   // Edit modal state
   const [bugEditModalOpen, setBugEditModalOpen] = useState(false)
 
-  // Subtask modal state
-  const [showAddSubtaskModal, setShowAddSubtaskModal] = useState(false)
+  // Subtask state
   const [subtasksKey, setSubtasksKey] = useState(0) // For refreshing subtasks list
 
   const hasLoadedData = useRef(false)
@@ -1317,7 +1315,12 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               key={subtasksKey}
               parentId={bug.bugId}
               parentType="bug"
-              onAddSubtask={() => setShowAddSubtaskModal(true)}
+              parentData={{
+                projectId: bug.projectId,
+                subprojectId: bug.subprojectId,
+                department: null,
+                assignedBy: bug.assignedBy || bug.reportedBy
+              }}
             />
 
             {/* Related Items */}
@@ -1592,20 +1595,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             loadBugData()
           }}
         />
-
-        {/* Add Subtask Modal */}
-        {showAddSubtaskModal && (
-          <AddSubtaskModal
-            parentId={bug.bugId}
-            parentType="bug"
-            parentName={bug.title}
-            onClose={() => setShowAddSubtaskModal(false)}
-            onSuccess={() => {
-              setShowAddSubtaskModal(false)
-              setSubtasksKey(prev => prev + 1) // Refresh subtasks list
-            }}
-          />
-        )}
       </div>
     </div>
   )

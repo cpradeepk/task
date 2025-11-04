@@ -20,7 +20,6 @@ import TimerButton from '@/components/TimerButton'
 import AssigneeList from '@/components/tasks/AssigneeList'
 import RelatedItemsManager from '@/components/relationships/RelatedItemsManager'
 import SubtasksList from '@/components/subtasks/SubtasksList'
-import AddSubtaskModal from '@/components/subtasks/AddSubtaskModal'
 import SubtaskBreadcrumb from '@/components/subtasks/SubtaskBreadcrumb'
 import { QUERIES } from '@/lib/graphql-queries'
 import {
@@ -148,8 +147,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
   const [relatedTasksData, setRelatedTasksData] = useState<Task[]>([])
   const [isLoadingRelatedTasks, setIsLoadingRelatedTasks] = useState(false)
 
-  // Subtask modal state
-  const [showAddSubtaskModal, setShowAddSubtaskModal] = useState(false)
+  // Subtask state
   const [subtasksKey, setSubtasksKey] = useState(0) // For refreshing subtasks list
 
   // Edit modal state
@@ -697,7 +695,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               key={subtasksKey}
               parentId={task.taskId}
               parentType="task"
-              onAddSubtask={() => setShowAddSubtaskModal(true)}
+              parentData={{
+                projectId: task.projectId,
+                subprojectId: null,
+                department: null,
+                assignedBy: task.assignedBy
+              }}
             />
 
             {/* Activity Timeline (includes comments and system activities) */}
@@ -1141,20 +1144,6 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
           loadTaskData()
         }}
       />
-
-      {/* Add Subtask Modal */}
-      {showAddSubtaskModal && (
-        <AddSubtaskModal
-          parentId={task.taskId}
-          parentType="task"
-          parentName={task.name}
-          onClose={() => setShowAddSubtaskModal(false)}
-          onSuccess={() => {
-            setShowAddSubtaskModal(false)
-            setSubtasksKey(prev => prev + 1) // Refresh subtasks list
-          }}
-        />
-      )}
     </div>
   )
 }

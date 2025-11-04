@@ -4,18 +4,25 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Task, Bug } from '@/lib/types'
 import { ChevronRight, ChevronDown, Plus, Circle, CheckCircle2 } from 'lucide-react'
+import InlineSubtaskCreate from './InlineSubtaskCreate'
 
 interface SubtasksListProps {
   parentId: string
   parentType: 'task' | 'bug'
-  onAddSubtask?: () => void
+  parentData: {
+    projectId?: string | null
+    subprojectId?: string | null
+    department?: string | null
+    assignedBy: string
+  }
 }
 
-export default function SubtasksList({ parentId, parentType, onAddSubtask }: SubtasksListProps) {
+export default function SubtasksList({ parentId, parentType, parentData }: SubtasksListProps) {
   const router = useRouter()
   const [subtasks, setSubtasks] = useState<(Task | Bug)[]>([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(true)
+  const [showInlineCreate, setShowInlineCreate] = useState(false)
 
   useEffect(() => {
     fetchSubtasks()
@@ -82,24 +89,42 @@ export default function SubtasksList({ parentId, parentType, onAddSubtask }: Sub
     )
   }
 
-  if (subtasks.length === 0) {
+  if (subtasks.length === 0 && !showInlineCreate) {
     return (
       <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Subtasks</h3>
-          {onAddSubtask && (
-            <button
-              onClick={onAddSubtask}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              Add Subtask
-            </button>
-          )}
+          <button
+            onClick={() => setShowInlineCreate(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Add Subtask
+          </button>
         </div>
         <p className="text-sm text-gray-500 text-center py-4">
           No subtasks yet. Click "Add Subtask" to create one.
         </p>
+      </div>
+    )
+  }
+
+  if (subtasks.length === 0 && showInlineCreate) {
+    return (
+      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Subtasks</h3>
+        </div>
+        <InlineSubtaskCreate
+          parentId={parentId}
+          parentType={parentType}
+          parentData={parentData}
+          onCancel={() => setShowInlineCreate(false)}
+          onSuccess={() => {
+            setShowInlineCreate(false)
+            fetchSubtasks()
+          }}
+        />
       </div>
     )
   }
@@ -119,16 +144,30 @@ export default function SubtasksList({ parentId, parentType, onAddSubtask }: Sub
           )}
           Subtasks ({subtasks.length})
         </button>
-        {onAddSubtask && (
-          <button
-            onClick={onAddSubtask}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Add Subtask
-          </button>
-        )}
+        <button
+          onClick={() => setShowInlineCreate(!showInlineCreate)}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          Add Subtask
+        </button>
       </div>
+
+      {/* Inline Create Form */}
+      {expanded && showInlineCreate && (
+        <div className="p-4 border-b border-gray-200">
+          <InlineSubtaskCreate
+            parentId={parentId}
+            parentType={parentType}
+            parentData={parentData}
+            onCancel={() => setShowInlineCreate(false)}
+            onSuccess={() => {
+              setShowInlineCreate(false)
+              fetchSubtasks()
+            }}
+          />
+        </div>
+      )}
 
       {/* Subtasks List */}
       {expanded && (
