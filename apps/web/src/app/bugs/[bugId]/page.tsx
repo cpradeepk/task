@@ -159,8 +159,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [projectName, setProjectName] = useState<string>('')
   const [subprojectName, setSubprojectName] = useState<string>('')
 
-  // Activity log filter state - default to showing both activity and comments
-  const [showActivity, setShowActivity] = useState(true)
+  // Activity log filter state - default to showing only comments
+  const [showActivity, setShowActivity] = useState(false)
   const [showComments, setShowComments] = useState(true)
 
   // Related bugs state
@@ -313,7 +313,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
   // Load related bugs
   const loadRelatedBugs = useCallback(async () => {
-    if (!bug || !bug.relatedBugs) {
+    if (!bug || !bug.relatedBugs || typeof bug.relatedBugs !== 'string') {
       setRelatedBugsData([])
       return
     }
@@ -957,42 +957,49 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 )}
 
                 {/* Attachments */}
-                {bug.attachments && bug.attachments.trim() && (
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
-                      <ImageIcon className="h-5 w-5" />
-                      <span>Attachments</span>
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {bug.attachments.split(',').map((url, index) => {
-                        const trimmedUrl = url.trim()
-                        if (!trimmedUrl) return null
+                {(() => {
+                  // Handle both string (from REST API) and array (from GraphQL) formats
+                  const attachmentUrls = Array.isArray(bug.attachments)
+                    ? bug.attachments
+                    : (bug.attachments && typeof bug.attachments === 'string' && bug.attachments.trim())
+                      ? bug.attachments.split(',').map(u => u.trim()).filter(u => u)
+                      : []
 
-                        return (
-                          <button
-                            key={index}
-                            onClick={() => {
-                              const allImages = bug.attachments!.split(',').map(u => u.trim()).filter(u => u)
-                              setLightboxImages(allImages)
-                              setLightboxIndex(index)
-                              setShowLightbox(true)
-                            }}
-                            className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-500 transition-all hover:shadow-lg"
-                          >
-                            <img
-                              src={trimmedUrl}
-                              alt={`Attachment ${index + 1}`}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
-                              <ExternalLink className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                          </button>
+                  return attachmentUrls.length > 0 && (
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
+                        <ImageIcon className="h-5 w-5" />
+                        <span>Attachments</span>
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {attachmentUrls.map((url, index) => {
+                          const trimmedUrl = typeof url === 'string' ? url.trim() : url
+                          if (!trimmedUrl) return null
+
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                setLightboxImages(attachmentUrls)
+                                setLightboxIndex(index)
+                                setShowLightbox(true)
+                              }}
+                              className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-500 transition-all hover:shadow-lg"
+                            >
+                              <img
+                                src={trimmedUrl}
+                                alt={`Attachment ${index + 1}`}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                              />
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
+                                <ExternalLink className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </div>
+                            </button>
                         )
                       })}
                     </div>
                   </div>
-                )}
+                )})()}
               </div>
             </div>
 

@@ -86,6 +86,19 @@ export const typeDefs = `#graphql
     actualHours: Float
     remarks: String
     attachments: [String!]
+    projectId: String
+    subprojectId: String
+    relatedBugs: String
+    platform: String
+    environment: String
+    bugType: String
+    criticality: String
+    parentDevId: String
+    timerState: String
+    timerStartTime: String
+    timerPausedTime: Int
+    timerTotalTime: Int
+    timerSessions: String
     deletedAt: String
     deletedBy: String
     createdAt: String!

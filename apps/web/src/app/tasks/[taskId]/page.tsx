@@ -140,8 +140,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
   // Project name
   const [projectName, setProjectName] = useState<string>('')
 
-  // Activity log filter state - default to showing both activity and comments
-  const [showActivity, setShowActivity] = useState(true)
+  // Activity log filter state - default to showing only comments
+  const [showActivity, setShowActivity] = useState(false)
   const [showComments, setShowComments] = useState(true)
 
   // Related tasks state
