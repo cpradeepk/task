@@ -9,6 +9,7 @@ import TaskUpdateModal from '@/components/tasks/TaskUpdateModal'
 import SupportTaskIndicator from '@/components/tasks/SupportTaskIndicator'
 import SupportTaskBadge from '@/components/tasks/SupportTaskBadge'
 import SupportTaskService from '@/lib/supportTaskService'
+import AssigneeList from '@/components/tasks/AssigneeList'
 
 // Helper function to check if task is overdue
 function isTaskOverdue(task: Task): boolean {
@@ -198,18 +199,18 @@ export default function TaskList({
                     </div>
 
                     <h4 className="font-medium text-black mb-2">
-                      {task.description}
+                      {task.name || task.description}
                     </h4>
 
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                       {showAssignee && (
                         <div className="flex items-center space-x-1">
                           <User className="h-4 w-4" />
-                          <span>Assigned to: <UserName employeeId={task.assignedTo} /></span>
+                          <span>Assigned to: <AssigneeList assignedTo={task.assignedTo} showIcon={false} maxDisplay={2} /></span>
                         </div>
                       )}
 
-                      {task.assignedBy && task.assignedBy !== task.assignedTo && (
+                      {task.assignedBy && (Array.isArray(task.assignedTo) ? !task.assignedTo.includes(task.assignedBy) : task.assignedBy !== task.assignedTo) && (
                         <div className="flex items-center space-x-1">
                           <User className="h-4 w-4 text-blue-500" />
                           <span>Assigned by: <UserName employeeId={task.assignedBy} /></span>

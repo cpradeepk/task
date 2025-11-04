@@ -5,7 +5,7 @@ import {
   createSubTask,
   getSubTaskCount,
   getAllDeletedSubTasks
-} from '@/lib/db/subtasks'
+} from '@/lib/db/taskChecklists'
 import { withTimeout } from '@/lib/db/config'
 
 /**

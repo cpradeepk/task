@@ -13,6 +13,7 @@ import {
   getTodayDate,
   formatDateForTracking
 } from '@/lib/dailyHours'
+import AssigneeList from '@/components/tasks/AssigneeList'
 
 // Component to handle async user name fetching
 function UserName({ employeeId }: { employeeId: string }) {
@@ -241,7 +242,7 @@ export default function TaskUpdateModal({ task, isOpen, onClose, onUpdate }: Tas
         <div className="mb-4 p-3 bg-gray-50 rounded-lg">
           <p className="font-medium text-black">{task.description}</p>
           <p className="text-sm text-gray-600 mt-1">
-            Task ID: {task.taskId} • Assigned to: <UserName employeeId={task.assignedTo} />
+            Task ID: {task.taskId} • Assigned to: <AssigneeList assignedTo={task.assignedTo} showIcon={false} />
           </p>
           {task.support && task.support.length > 0 && (
             <p className="text-sm text-gray-600 mt-1">

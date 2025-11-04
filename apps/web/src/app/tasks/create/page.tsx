@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
-import { generateTaskId } from '@/lib/data'
+// Removed: import { generateTaskId } from '@/lib/data'
+// Task IDs are now generated server-side in the API route for consistency
 
 import { optimizedDataService } from '@/lib/optimizedDataService'
 import SupportTaskService from '@/lib/supportTaskService'
@@ -23,7 +24,8 @@ export default function CreateTask() {
   const [formData, setFormData] = useState({
     selectType: 'Normal',
     recursiveType: '',
-    description: '',
+    name: '', // Task name/title (short, for list display)
+    description: '', // Task description/details (full details)
     support: [] as string[], // Array of employee IDs for support
     startDate: '',
     endDate: '',
@@ -297,9 +299,17 @@ export default function CreateTask() {
       }
 
       // Validation
-      if (!formData.selectType || !formData.description ||
+      if (!formData.selectType || !formData.name || !formData.description ||
           !formData.startDate || !formData.endDate || !formData.priority || !formData.estimatedHours) {
         throw new Error('Please fill in all required fields')
+      }
+
+      // Validate name length
+      if (formData.name.trim().length < 3) {
+        throw new Error('Task name must be at least 3 characters long')
+      }
+      if (formData.name.length > 150) {
+        throw new Error('Task name must not exceed 150 characters')
       }
 
       // Validate mandatory project field
@@ -407,112 +417,61 @@ export default function CreateTask() {
         }
       }
 
-      // Create task(s)
+      // Create task
       let mainTaskData: any = null // Store main task data for support task creation
 
-      // Check if multi-user assignment is enabled
+      // Determine assignees based on multi-user assignment or single assignment
+      let assignedToUsers: string[] = []
+
       if (formData.multiUserAssignment && formData.assignees.length > 0) {
-        // Multi-user assignment: Create separate task for each assignee
-        const createdTaskIds: string[] = []
-
-        for (const assigneeId of formData.assignees) {
-          const taskId = generateTaskId()
-          const taskData = {
-            taskId,
-            selectType: formData.selectType as 'Normal' | 'Recursive',
-            recursiveType: formData.recursiveType as 'Daily' | 'Weekly' | 'Monthly' | 'Annually' | undefined,
-            description: formData.description,
-            assignedTo: assigneeId,
-            assignedBy: currentUser.employeeId,
-            support: formData.support,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            priority: formData.priority,
-            estimatedHours: estimatedHours,
-            projectId: formData.projectId,
-            subprojectId: formData.subprojectId,
-            department: formData.department,
-            status: formData.status || 'Open',
-            attachments: attachmentUrls.length > 0 ? attachmentUrls.join(',') : undefined,
-            relatedTasks: createdTaskIds.length > 0 ? createdTaskIds.join(',') : undefined
-          }
-
-          // Store first task as main task for support task creation
-          if (!mainTaskData) {
-            mainTaskData = taskData
-          }
-
-          const response = await fetch('/api/tasks', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(taskData)
-          })
-
-          if (!response.ok) {
-            throw new Error(`Failed to create task for ${assigneeId}`)
-          }
-
-          createdTaskIds.push(taskId)
-        }
-
-        // Update all created tasks with complete related_tasks list
-        if (createdTaskIds.length > 1) {
-          const relatedTasksStr = createdTaskIds.join(',')
-          for (const taskId of createdTaskIds) {
-            await fetch(`/api/tasks/${taskId}`, {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ relatedTasks: relatedTasksStr })
-            })
-          }
-        }
+        // Multi-user assignment: Use all selected assignees in a single task
+        assignedToUsers = formData.assignees
       } else {
-        // Single user assignment (original behavior)
+        // Single user assignment
         const assignedToUser = formData.assignToSomeoneElse && formData.assignedTo
           ? formData.assignedTo
           : currentUser.employeeId
-
-        const taskData = {
-          taskId: generateTaskId(),
-          selectType: formData.selectType as 'Normal' | 'Recursive',
-          recursiveType: formData.recursiveType as 'Daily' | 'Weekly' | 'Monthly' | 'Annually' | undefined,
-          description: formData.description,
-          assignedTo: assignedToUser,
-          assignedBy: currentUser.employeeId,
-          support: formData.support, // Array of support employee IDs
-          startDate: formData.startDate,
-          endDate: formData.endDate,
-          priority: formData.priority,
-          estimatedHours: estimatedHours,
-          projectId: formData.projectId,
-          subprojectId: formData.subprojectId,
-          department: formData.department,
-          status: formData.status || 'Open',
-          attachments: attachmentUrls.length > 0 ? attachmentUrls.join(',') : undefined
-        }
-
-        mainTaskData = taskData
-
-        // Create the main task via API
-        const response = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(taskData)
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to create task')
-        }
+        assignedToUsers = [assignedToUser]
       }
 
-      // Create support tasks for each support team member (only for single assignment mode)
-      if (formData.support.length > 0 && mainTaskData && !formData.multiUserAssignment) {
+      // Task ID will be generated server-side in the API route
+      const taskData = {
+        selectType: formData.selectType as 'Normal' | 'Recursive',
+        recursiveType: formData.recursiveType as 'Daily' | 'Weekly' | 'Monthly' | 'Annually' | undefined,
+        name: formData.name,
+        description: formData.description,
+        assignedTo: assignedToUsers, // Now an array of employee IDs
+        assignedBy: currentUser.employeeId,
+        support: formData.support, // Array of support employee IDs
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        priority: formData.priority,
+        estimatedHours: estimatedHours,
+        projectId: formData.projectId,
+        subprojectId: formData.subprojectId,
+        department: formData.department,
+        status: formData.status || 'Open',
+        attachments: attachmentUrls.length > 0 ? attachmentUrls.join(',') : undefined
+      }
+
+      mainTaskData = taskData
+
+      // Create the task via API
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(taskData)
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create task')
+      }
+
+      // Support tasks are no longer needed - removed as per user requirement
+      // (Multiple assignees are now supported in a single task)
+      if (false) {
         try {
           const supportTaskIds = await SupportTaskService.createSupportTasks(
             mainTaskData,
@@ -551,6 +510,7 @@ export default function CreateTask() {
     setFormData({
       selectType: 'Normal',
       recursiveType: '',
+      name: '',
       description: '',
       support: [],
       startDate: today,
@@ -673,6 +633,26 @@ export default function CreateTask() {
             </div>
           )}
 
+          {/* Task Name */}
+          <div>
+            <label className="block text-sm font-medium text-secondary-700 mb-2">
+              Task Name *
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              maxLength={150}
+              className="input-field"
+              placeholder="Enter a short, descriptive task name (max 150 characters)"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {formData.name.length}/150 characters
+            </p>
+          </div>
+
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-2">
@@ -685,7 +665,7 @@ export default function CreateTask() {
               required
               rows={3}
               className="input-field"
-              placeholder="Describe the task objectives and requirements..."
+              placeholder="Describe the task objectives and requirements in detail..."
             />
           </div>
 
@@ -912,7 +892,7 @@ export default function CreateTask() {
                 )}
                 {formData.assignees.length > 0 && (
                   <p className="text-sm text-purple-600 mt-2">
-                    {formData.assignees.length} user(s) selected - {formData.assignees.length} task(s) will be created
+                    {formData.assignees.length} user(s) selected - 1 task will be created with multiple assignees
                   </p>
                 )}
               </div>

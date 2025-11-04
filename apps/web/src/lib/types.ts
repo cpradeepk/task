@@ -75,11 +75,12 @@ export interface User {
  */
 export interface Task {
   id: string                // Internal database ID (auto-increment)
-  taskId: string            // Unique task ID (e.g., "JSR-1735123456789001234")
+  taskId: string            // Unique task ID (e.g., "JSR-0016")
   selectType: 'Normal' | 'Recursive'  // Normal = one-time, Recursive = repeating
   recursiveType?: 'Daily' | 'Weekly' | 'Monthly' | 'Annually'  // Only for recursive tasks
-  description: string       // Task description/details
-  assignedTo: string        // Employee ID of task owner (who will do the task)
+  name: string              // Task name/title (short, for list display) - VARCHAR(150)
+  description: string       // Task description/details (full details)
+  assignedTo: string[]      // Array of employee IDs who are assigned to this task (multiple assignees supported)
   assignedBy: string        // Employee ID of task creator (who assigned the task)
   support: string[]         // Array of employee IDs who can help with this task
   startDate: string         // Task start date (ISO format: YYYY-MM-DD)
@@ -132,6 +133,9 @@ export interface SubTask {
   deletedAt?: string | null // Optional: Soft delete timestamp
   deletedBy?: string | null // Optional: Employee ID who deleted the subtask
 }
+
+// Alias for backward compatibility with renamed components
+export type Checklist = SubTask
 
 
 
@@ -361,7 +365,7 @@ export interface WorkItem {
   title: string             // description for tasks, title for bugs
   status: string            // Task status or Bug status
   priority: string          // Task priority or Bug priority
-  assignedTo: string        // Employee ID of assignee
+  assignedTo: string | string[]  // Employee ID(s) of assignee(s) - supports multiple assignees
   dueDate: string           // endDate for tasks, createdAt for bugs
   projectId?: string | null // Project ID if assigned
   projectName?: string | null  // Project name for display

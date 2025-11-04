@@ -1,5 +1,6 @@
 'use client'
-import { generateTaskId } from './data'
+// Removed: import { generateTaskId } from './data'
+// Task IDs are now generated server-side in the API route for consistency
 import { Task, User } from './types'
 
 /**
@@ -9,9 +10,12 @@ import { Task, User } from './types'
 export class SupportTaskService {
   /**
    * Create support tasks for each support team member
+   * @param mainTask - The main task object (must have taskId already set by API)
+   * @param supportMembers - Array of support member employee IDs
+   * @param users - Array of all users for lookup
    */
   static async createSupportTasks(
-    mainTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>,
+    mainTask: Task, // Changed from Omit<Task, 'id' | 'createdAt' | 'updatedAt'> to Task
     supportMembers: string[],
     users: User[]
   ): Promise<string[]> {
@@ -26,8 +30,9 @@ export class SupportTaskService {
         }
 
         // Create a support task for this team member
-        const supportTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> = {
-          taskId: generateTaskId(),
+        // Task ID will be generated server-side in the API route
+        const supportTask = {
+          // No taskId - will be generated server-side
           selectType: mainTask.selectType,
           recursiveType: mainTask.recursiveType,
           description: `[SUPPORT] ${mainTask.description}`,
@@ -40,7 +45,7 @@ export class SupportTaskService {
           estimatedHours: 0, // Support members will estimate their own hours
           actualHours: 0,
           status: 'Yet to Start',
-          remarks: `Support task for main task: ${mainTask.taskId}`,
+          remarks: `Support task for main task: ${mainTask.taskId}`, // Use main task's server-generated ID
           dailyHours: '{}'
         }
 
@@ -58,10 +63,10 @@ export class SupportTaskService {
         }
 
         const result = await response.json()
-        const taskId = result.data?.id || result.data
-        createdTaskIds.push(taskId)
+        const createdTask = result.data
+        createdTaskIds.push(createdTask.taskId)
 
-        console.log(`Created support task ${supportTask.taskId} for ${supportUser.name}`)
+        console.log(`Created support task ${createdTask.taskId} for ${supportUser.name}`)
       }
 
       return createdTaskIds
@@ -179,10 +184,12 @@ export class SupportTaskService {
       const users = result.data || []
 
       const supportMembers = supportTasks.map(task => {
-        const user = users.find((u: any) => u.employeeId === task.assignedTo)
+        // Handle both old (string) and new (array) format
+        const assignee = Array.isArray(task.assignedTo) ? task.assignedTo[0] : task.assignedTo
+        const user = users.find((u: any) => u.employeeId === assignee)
         return {
-          employeeId: task.assignedTo,
-          name: user?.name || task.assignedTo,
+          employeeId: assignee,
+          name: user?.name || assignee,
           taskId: task.taskId,
           status: task.status,
           hours: task.actualHours || 0

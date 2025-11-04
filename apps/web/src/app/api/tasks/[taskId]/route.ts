@@ -76,6 +76,7 @@ export async function PUT(
     if (currentTask) {
       try {
         await logEntityChanges('task', taskId, userId, currentTask, updates, {
+          name: 'Task Name',
           status: 'Status',
           assignedTo: 'Assigned To',
           priority: 'Priority',
@@ -109,16 +110,24 @@ export async function PUT(
             const mainTask = await getTaskById(mainTaskId)
             if (mainTask) {
               // Get support member and main task assignee details
-              const supportMember = await getUserByEmployeeId(currentTask.assignedTo)
-              const mainTaskAssignee = await getUserByEmployeeId(mainTask.assignedTo)
+              // Handle both old (string) and new (array) assignedTo format
+              const currentAssignee = Array.isArray(currentTask.assignedTo)
+                ? currentTask.assignedTo[0]
+                : currentTask.assignedTo
+              const mainAssignee = Array.isArray(mainTask.assignedTo)
+                ? mainTask.assignedTo[0]
+                : mainTask.assignedTo
+
+              const supportMember = await getUserByEmployeeId(currentAssignee)
+              const mainTaskAssignee = await getUserByEmployeeId(mainAssignee)
 
               // Add activity log to main task
               await createActivityLog({
                 entityType: 'task',
                 entityId: mainTaskId,
-                userId: currentTask.assignedTo,
+                userId: currentAssignee,
                 actionType: 'support_task_closed',
-                description: `Support task ${currentTask.taskId} completed by ${supportMember?.name || currentTask.assignedTo}`,
+                description: `Support task ${currentTask.taskId} completed by ${supportMember?.name || currentAssignee}`,
                 isComment: false
               })
 
@@ -126,9 +135,9 @@ export async function PUT(
               await createActivityLog({
                 entityType: 'task',
                 entityId: mainTaskId,
-                userId: currentTask.assignedTo,
+                userId: currentAssignee,
                 actionType: 'comment',
-                description: `Support task ${currentTask.taskId} has been ${updates.status.toLowerCase()}. ${supportMember?.name || currentTask.assignedTo} has completed their support work.`,
+                description: `Support task ${currentTask.taskId} has been ${updates.status.toLowerCase()}. ${supportMember?.name || currentAssignee} has completed their support work.`,
                 isComment: true
               })
 
@@ -142,7 +151,7 @@ export async function PUT(
                       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2 style="color: #10b981;">Support Task Completed</h2>
                         <p>Hi ${mainTaskAssignee.name},</p>
-                        <p><strong>${supportMember?.name || currentTask.assignedTo}</strong> has completed their support work on your task:</p>
+                        <p><strong>${supportMember?.name || currentAssignee}</strong> has completed their support work on your task:</p>
                         <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
                           <p style="margin: 5px 0;"><strong>Main Task:</strong> ${mainTask.description}</p>
                           <p style="margin: 5px 0;"><strong>Task ID:</strong> ${mainTaskId}</p>

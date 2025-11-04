@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react'
 import { Plus, Loader2 } from 'lucide-react'
 import { getAllUsers } from '@/lib/auth'
 
-interface TaskSubTaskFormProps {
+interface TaskChecklistFormProps {
   taskId: string
   onSuccess?: () => void
   compact?: boolean
 }
 
-export default function TaskSubTaskForm({ taskId, onSuccess, compact = false }: TaskSubTaskFormProps) {
+export default function TaskChecklistForm({ taskId, onSuccess, compact = false }: TaskChecklistFormProps) {
   const [description, setDescription] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
   const [users, setUsers] = useState<any[]>([])
@@ -60,7 +60,7 @@ export default function TaskSubTaskForm({ taskId, onSuccess, compact = false }: 
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
       const createdBy = currentUser.employeeId || 'unknown'
 
-      const response = await fetch('/api/subtasks', {
+      const response = await fetch('/api/task-checklists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -79,11 +79,11 @@ export default function TaskSubTaskForm({ taskId, onSuccess, compact = false }: 
         setDescription('')
         onSuccess?.()
       } else {
-        setError(data.error || 'Failed to create subtask')
+        setError(data.error || 'Failed to create checklist item')
       }
     } catch (err) {
-      console.error('Failed to create subtask:', err)
-      setError('Failed to create subtask')
+      console.error('Failed to create checklist item:', err)
+      setError('Failed to create checklist item')
     } finally {
       setIsSubmitting(false)
     }
@@ -102,7 +102,7 @@ export default function TaskSubTaskForm({ taskId, onSuccess, compact = false }: 
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add a subtask..."
+            placeholder="Add a checklist item..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
             disabled={isSubmitting}
           />
@@ -137,7 +137,7 @@ export default function TaskSubTaskForm({ taskId, onSuccess, compact = false }: 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="text-sm font-medium text-gray-900">Add New Subtask</h3>
+      <h3 className="text-sm font-medium text-gray-900">Add New Checklist Item</h3>
       
       {error && (
         <div className="text-red-600 text-sm p-3 bg-red-50 rounded-lg">
@@ -153,7 +153,7 @@ export default function TaskSubTaskForm({ taskId, onSuccess, compact = false }: 
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter subtask description..."
+          placeholder="Enter checklist item description..."
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           disabled={isSubmitting}
         />
@@ -191,7 +191,7 @@ export default function TaskSubTaskForm({ taskId, onSuccess, compact = false }: 
         ) : (
           <>
             <Plus className="h-4 w-4" />
-            <span>Add Subtask</span>
+            <span>Add Checklist Item</span>
           </>
         )}
       </button>

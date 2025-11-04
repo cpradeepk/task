@@ -15,11 +15,12 @@ import { Bug, User } from '@/lib/types'
 import { getBugById, updateBug, canEditBug, canCommentOnBug } from '@/lib/bugService'
 import UnifiedTimeline from '@/components/UnifiedTimeline'
 import BugEditModal from '@/components/bugs/BugEditModal'
-import BugSubTaskManager from '@/components/bugs/BugSubTaskManager'
+import BugChecklistManager from '@/components/bugs/BugChecklistManager'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import ImageLightbox from '@/components/bugs/ImageLightbox'
 import TimerButton from '@/components/TimerButton'
+import RelatedItemsManager from '@/components/relationships/RelatedItemsManager'
 import { QUERIES } from '@/lib/graphql-queries'
 import {
   Bug as BugIcon,
@@ -1276,9 +1277,9 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </div>
             </div>
 
-            {/* Bug Subtasks - Moved from bottom */}
+            {/* Bug Checklists - Moved from bottom */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <BugSubTaskManager
+              <BugChecklistManager
                 parentBugId={bug.bugId}
                 createdBy={currentUser.employeeId}
                 editable={canEdit}
@@ -1287,6 +1288,13 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 compact={false}
               />
             </div>
+
+            {/* Related Items */}
+            <RelatedItemsManager
+              itemId={bug.bugId}
+              itemType="development"
+              canEdit={canEdit}
+            />
 
             {/* People */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">

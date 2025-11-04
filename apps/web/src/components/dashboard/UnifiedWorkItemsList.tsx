@@ -13,8 +13,9 @@ import TaskUpdateModal from '@/components/tasks/TaskUpdateModal'
 import TaskEditModal from '@/components/tasks/TaskEditModal'
 import BugEditModal from '@/components/bugs/BugEditModal'
 import SupportTaskBadge from '@/components/tasks/SupportTaskBadge'
-import SubTaskManager from '@/components/subtasks/SubTaskManager'
+import ChecklistManager from '@/components/checklists/ChecklistManager'
 import TimerButton from '@/components/TimerButton'
+import AssigneeList from '@/components/tasks/AssigneeList'
 
 // Helper function to check if task is overdue
 function isTaskOverdue(task: Task): boolean {
@@ -407,12 +408,12 @@ export default function UnifiedWorkItemsList({
                       <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
                         {showAssignee && (
                           <div className="flex items-center space-x-1">
-                            <User className="h-4 w-4" />
-                            <span>Assigned to: <UserName employeeId={task.assignedTo} /></span>
+                            <span>Assigned to: </span>
+                            <AssigneeList assignedTo={task.assignedTo} showIcon={false} />
                           </div>
                         )}
 
-                        {task.assignedBy && task.assignedBy !== task.assignedTo && (
+                        {task.assignedBy && (
                           <div className="flex items-center space-x-1">
                             <User className="h-4 w-4 text-blue-500" />
                             <span>Assigned by: <UserName employeeId={task.assignedBy} /></span>
@@ -442,9 +443,9 @@ export default function UnifiedWorkItemsList({
                         </div>
                       </div>
 
-                      {/* Subtasks Section */}
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <SubTaskManager
+                      {/* Checklists Section */}
+                      <div className="mt-4 pt-4 border-gray-200">
+                        <ChecklistManager
                           parentTaskId={task.taskId}
                           createdBy={currentUser.employeeId}
                           editable={allowEdit && isOwner}

@@ -55,7 +55,7 @@ export default function BugSubTaskForm({
     setError('')
 
     try {
-      const response = await fetch('/api/bug-subtasks', {
+      const response = await fetch('/api/development-checklists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -75,11 +75,11 @@ export default function BugSubTaskForm({
         setAssignedTo(createdBy)
         onSuccess?.()
       } else {
-        setError(data.error || 'Failed to create subtask')
+        setError(data.error || 'Failed to create checklist item')
       }
     } catch (err) {
       console.error('Failed to create subtask:', err)
-      setError('Failed to create subtask')
+      setError('Failed to create checklist item')
     } finally {
       setIsSubmitting(false)
     }
@@ -92,7 +92,7 @@ export default function BugSubTaskForm({
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add a subtask..."
+          placeholder="Add a checklist item..."
           className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           disabled={isSubmitting}
         />
@@ -126,13 +126,13 @@ export default function BugSubTaskForm({
         <div className="flex-1 space-y-3">
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Subtask Description
+              Checklist Item Description
             </label>
             <textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter subtask description..."
+              placeholder="Enter checklist item description..."
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isSubmitting}
@@ -169,7 +169,7 @@ export default function BugSubTaskForm({
             disabled={isSubmitting || !description.trim()}
             className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Adding...' : 'Add Subtask'}
+            {isSubmitting ? 'Adding...' : 'Add Checklist Item'}
           </button>
         </div>
       </div>

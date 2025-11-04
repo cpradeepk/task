@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { reorderSubTasks } from '@/lib/db/subtasks'
+import { reorderSubTasks } from '@/lib/db/taskChecklists'
 
 /**
  * POST /api/subtasks/reorder

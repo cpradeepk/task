@@ -9,6 +9,7 @@ interface TaskRow  {
   internal_id: string
   select_type: string
   recursive_type: string | null
+  name: string
   description: string
   assigned_to: string
   assigned_by: string
@@ -38,8 +39,8 @@ interface TaskRow  {
 // Convert database row to Task object
 function rowToTask(row: TaskRow): Task {
   // Safely parse support field
-  // MySQL2 auto-parses JSON fields, so row.support might be:
-  // - Already an array (MySQL2 auto-parsed)
+  // PostgreSQL auto-parses JSONB fields, so row.support might be:
+  // - Already an array (PostgreSQL auto-parsed)
   // - A JSON string (needs parsing)
   // - null/undefined (needs default)
   let support: string[] = []
@@ -49,7 +50,7 @@ function rowToTask(row: TaskRow): Task {
       // null or undefined
       support = []
     } else if (Array.isArray(row.support)) {
-      // Already parsed by MySQL2
+      // Already parsed by PostgreSQL
       support = row.support
     } else if (typeof row.support === 'string') {
       // String that needs parsing
@@ -69,13 +70,42 @@ function rowToTask(row: TaskRow): Task {
     support = []
   }
 
+  // Safely parse assigned_to field (now JSONB array)
+  let assignedTo: string[] = []
+
+  try {
+    if (!row.assigned_to) {
+      // null or undefined
+      assignedTo = []
+    } else if (Array.isArray(row.assigned_to)) {
+      // Already parsed by PostgreSQL
+      assignedTo = row.assigned_to
+    } else if (typeof row.assigned_to === 'string') {
+      // String that needs parsing
+      const trimmed = row.assigned_to.trim()
+      if (trimmed === '' || trimmed === 'null') {
+        assignedTo = []
+      } else {
+        assignedTo = JSON.parse(trimmed)
+      }
+    } else {
+      // Unknown type, log and default to empty
+      console.warn('Unexpected assigned_to field type for task:', row.task_id, 'Type:', typeof row.assigned_to, 'Value:', row.assigned_to)
+      assignedTo = []
+    }
+  } catch (error) {
+    console.error('Failed to parse assigned_to field for task:', row.task_id, 'Value:', row.assigned_to, 'Error:', error)
+    assignedTo = []
+  }
+
   return {
     id: row.internal_id,
     taskId: row.task_id,
     selectType: row.select_type as Task['selectType'],
     recursiveType: row.recursive_type as Task['recursiveType'],
+    name: row.name,
     description: row.description,
-    assignedTo: row.assigned_to,
+    assignedTo: assignedTo,
     assignedBy: row.assigned_by,
     support: support,
     startDate: row.start_date,
@@ -201,18 +231,19 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
   return withRetry(async () => {
     await query<any>(
       `INSERT INTO tasks (
-        internal_id, task_id, select_type, recursive_type, description,
+        internal_id, task_id, select_type, recursive_type, name, description,
         assigned_to, assigned_by, support, start_date, end_date, priority,
         estimated_hours, actual_hours, daily_hours, status, remarks,
         difficulties, project_id, department
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
       [
         task.taskId, // internal_id is same as task_id
         task.taskId,
         task.selectType,
         task.recursiveType || null,
+        task.name,
         task.description,
-        task.assignedTo,
+        JSON.stringify(task.assignedTo || []), // JSONB array
         task.assignedBy,
         JSON.stringify(task.support || []),
         task.startDate,
@@ -244,6 +275,10 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     const values: any[] = []
     let paramIndex = 1
 
+    if (updates.name !== undefined) {
+      fields.push(`name = $${paramIndex++}`)
+      values.push(updates.name)
+    }
     if (updates.description !== undefined) {
       fields.push(`description = $${paramIndex++}`)
       values.push(updates.description)
@@ -275,6 +310,10 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     if (updates.difficulties !== undefined) {
       fields.push(`difficulties = $${paramIndex++}`)
       values.push(updates.difficulties || null)
+    }
+    if (updates.assignedTo !== undefined) {
+      fields.push(`assigned_to = $${paramIndex++}`)
+      values.push(JSON.stringify(updates.assignedTo))
     }
     if (updates.support !== undefined) {
       fields.push(`support = $${paramIndex++}`)

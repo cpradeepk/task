@@ -228,7 +228,11 @@ export async function deleteTask(taskId: string): Promise<void> {
  */
 export function canEditTask(task: Task, employeeId: string, isAdminOrTopManagement: boolean): boolean {
   if (isAdminOrTopManagement) return true
-  if (task.assignedTo === employeeId) return true
+  // Handle both old (string) and new (array) format
+  const isAssignedTo = Array.isArray(task.assignedTo)
+    ? task.assignedTo.includes(employeeId)
+    : task.assignedTo === employeeId
+  if (isAssignedTo) return true
   if (task.assignedBy === employeeId) return true
   if (task.support && task.support.includes(employeeId)) return true
   return false
@@ -239,7 +243,11 @@ export function canEditTask(task: Task, employeeId: string, isAdminOrTopManageme
  */
 export function canCommentOnTask(task: Task, employeeId: string, isAdminOrTopManagement: boolean): boolean {
   if (isAdminOrTopManagement) return true
-  if (task.assignedTo === employeeId) return true
+  // Handle both old (string) and new (array) format
+  const isAssignedTo = Array.isArray(task.assignedTo)
+    ? task.assignedTo.includes(employeeId)
+    : task.assignedTo === employeeId
+  if (isAssignedTo) return true
   if (task.assignedBy === employeeId) return true
   if (task.support && task.support.includes(employeeId)) return true
   return false

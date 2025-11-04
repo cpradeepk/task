@@ -96,7 +96,8 @@ export async function POST(request: NextRequest) {
     const createdTaskIds: string[] = []
 
     // Create support tasks for each support member
-    const { createTask } = await import('@/lib/db/tasks')
+    const { createTask, getLatestTaskId } = await import('@/lib/db/tasks')
+    const { generateSequentialTaskId } = await import('@/lib/data')
 
     for (const supportMemberId of supportMembers) {
       const supportUser = users.find((user: any) => user.employeeId === supportMemberId)
@@ -105,19 +106,18 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      // Generate unique task ID with better uniqueness guarantee
-      const timestamp = Date.now()
-      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-      const microRandom = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-      const supportTaskId = `JSR-${timestamp}${random}${microRandom}`
+      // Generate sequential task ID (same as main task creation)
+      const latestTaskId = await getLatestTaskId()
+      const supportTaskId = generateSequentialTaskId(latestTaskId)
 
       // Create support task
       const supportTask = {
         taskId: supportTaskId,
+        name: `[SUPPORT] ${mainTask.name || mainTask.description}`,
         selectType: mainTask.selectType,
         recursiveType: mainTask.recursiveType,
         description: `[SUPPORT] ${mainTask.description}`,
-        assignedTo: supportMemberId,
+        assignedTo: [supportMemberId], // Array for multiple assignees
         assignedBy: mainTask.assignedBy,
         support: [],
         startDate: mainTask.startDate,

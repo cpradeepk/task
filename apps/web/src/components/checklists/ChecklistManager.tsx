@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import BugSubTaskList from './BugSubTaskList'
-import BugSubTaskForm from './BugSubTaskForm'
+import ChecklistList from './ChecklistList'
+import ChecklistForm from './ChecklistForm'
 import { ChevronDown, ChevronRight, ListTodo } from 'lucide-react'
 
-interface BugSubTaskManagerProps {
-  parentBugId: string
+interface ChecklistManagerProps {
+  parentTaskId: string
   createdBy: string
   editable?: boolean
   showAssignee?: boolean
@@ -14,35 +14,35 @@ interface BugSubTaskManagerProps {
   compact?: boolean
 }
 
-export default function BugSubTaskManager({
-  parentBugId,
+export default function ChecklistManager({
+  parentTaskId,
   createdBy,
   editable = false,
   showAssignee = true,
   defaultExpanded = true,
   compact = false
-}: BugSubTaskManagerProps) {
+}: ChecklistManagerProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [refreshKey, setRefreshKey] = useState(0)
 
   const handleUpdate = () => {
-    // Trigger refresh of subtask list
+    // Trigger refresh of checklist
     setRefreshKey(prev => prev + 1)
   }
 
   if (compact) {
     return (
       <div className="space-y-3">
-        <BugSubTaskList
+        <ChecklistList
           key={refreshKey}
-          parentBugId={parentBugId}
+          parentTaskId={parentTaskId}
           onUpdate={handleUpdate}
           editable={editable}
           showAssignee={showAssignee}
         />
         {editable && (
-          <BugSubTaskForm
-            parentBugId={parentBugId}
+          <ChecklistForm
+            parentTaskId={parentTaskId}
             createdBy={createdBy}
             onSuccess={handleUpdate}
             compact={true}
@@ -61,7 +61,7 @@ export default function BugSubTaskManager({
       >
         <div className="flex items-center space-x-2">
           <ListTodo className="h-5 w-5 text-gray-600" />
-          <span className="font-medium text-gray-900">Subtasks</span>
+          <span className="font-medium text-gray-900">Checklists</span>
         </div>
         {isExpanded ? (
           <ChevronDown className="h-5 w-5 text-gray-600" />
@@ -73,18 +73,18 @@ export default function BugSubTaskManager({
       {/* Content */}
       {isExpanded && (
         <div className="p-4 space-y-4 bg-white">
-          <BugSubTaskList
+          <ChecklistList
             key={refreshKey}
-            parentBugId={parentBugId}
+            parentTaskId={parentTaskId}
             onUpdate={handleUpdate}
             editable={editable}
             showAssignee={showAssignee}
           />
-          
+
           {editable && (
             <div className="pt-4 border-t border-gray-200">
-              <BugSubTaskForm
-                parentBugId={parentBugId}
+              <ChecklistForm
+                parentTaskId={parentTaskId}
                 createdBy={createdBy}
                 onSuccess={handleUpdate}
                 compact={false}

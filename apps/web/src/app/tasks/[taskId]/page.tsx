@@ -13,10 +13,12 @@ import { Task, User } from '@/lib/types'
 import { getTaskById, updateTask, canEditTask, canCommentOnTask } from '@/lib/taskService'
 import UnifiedTimeline from '@/components/UnifiedTimeline'
 import TaskEditModal from '@/components/tasks/TaskEditModal'
-import TaskSubTaskManager from '@/components/tasks/TaskSubTaskManager'
+import TaskChecklistManager from '@/components/tasks/TaskChecklistManager'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import TimerButton from '@/components/TimerButton'
+import AssigneeList from '@/components/tasks/AssigneeList'
+import RelatedItemsManager from '@/components/relationships/RelatedItemsManager'
 import { QUERIES } from '@/lib/graphql-queries'
 import {
   MessageSquare,
@@ -315,7 +317,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
   const isAdminOrTopManagement = currentUser?.role === 'admin' || currentUser?.role === 'top_management'
   const canEdit = task ? canEditTask(task, currentUser?.employeeId || '', isAdminOrTopManagement) : false
   const canComment = task ? canCommentOnTask(task, currentUser?.employeeId || '', isAdminOrTopManagement) : false
-  const canAssign = isAdminOrTopManagement || task?.assignedBy === currentUser?.employeeId || task?.assignedTo === currentUser?.employeeId
+  const canAssign = isAdminOrTopManagement || task?.assignedBy === currentUser?.employeeId ||
+    (task?.assignedTo && (Array.isArray(task.assignedTo) ? task.assignedTo.includes(currentUser?.employeeId || '') : task.assignedTo === currentUser?.employeeId))
 
   // Handle status update
   const handleStatusUpdate = async (newStatus: string) => {
@@ -349,22 +352,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     }
   }
 
-  // Handle assignee update
-  const handleAssigneeUpdate = async (newAssignee: string) => {
-    if (!task || !canAssign) return
 
-    try {
-      setIsUpdating(true)
-      await updateTask(task.taskId, { assignedTo: newAssignee })
-      await loadTaskData()
-      setIsEditingAssignee(false)
-    } catch (error) {
-      console.error('Failed to update assignee:', error)
-      alert('Failed to update assignee. Please try again.')
-    } finally {
-      setIsUpdating(false)
-    }
-  }
 
   // Handle estimated hours update
   const handleEstimatedHoursUpdate = async () => {
@@ -544,7 +532,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                     </>
                   )}
                 </h1>
-                <p className="text-lg text-gray-900 mt-1 break-words max-w-full overflow-hidden">{task.description}</p>
+                <p className="text-lg text-gray-900 mt-1 break-words max-w-full overflow-hidden">{task.name || task.description}</p>
               </div>
             </div>
           </div>
@@ -628,16 +616,23 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                 )}
               </div>
 
-              {/* Task Description with Edit Button */}
+              {/* Task Name/Title with Edit Button */}
               <div className="mb-4">
                 <button
                   onClick={() => setTaskEditModalOpen(true)}
                   className="text-xl font-semibold text-black hover:text-primary transition-colors cursor-pointer text-left w-full flex items-center space-x-2 group"
                 >
-                  <span>{task.description}</span>
+                  <span>{task.name || task.description}</span>
                   <Pencil className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               </div>
+
+              {/* Task Description */}
+              {task.description && task.name && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{task.description}</p>
+                </div>
+              )}
 
               <div className="space-y-4">
                 {/* Dates */}
@@ -941,7 +936,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                     <TimerButton
                       entityType="task"
                       entityId={task.taskId}
-                      entityTitle={task.description}
+                      entityTitle={task.name || task.description}
                       status={task.status}
                       size="md"
                       showLabel={false}
@@ -974,50 +969,39 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               </div>
             </div>
 
-            {/* Task Subtasks - Moved from bottom */}
+            {/* Task Checklists - Moved from bottom */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <TaskSubTaskManager
+              <TaskChecklistManager
                 taskId={task.taskId}
                 canEdit={canEdit}
               />
             </div>
+
+            {/* Related Items */}
+            <RelatedItemsManager
+              itemId={task.taskId}
+              itemType="task"
+              canEdit={canEdit}
+            />
 
             {/* People */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <h3 className="text-lg font-semibold mb-4">People</h3>
 
               <div className="space-y-3">
-                {/* Assigned To - Inline Dropdown */}
+                {/* Assigned To - Display multiple assignees */}
                 <div>
                   <span className="text-sm font-medium text-gray-600">Assigned to:</span>
-                  {canAssign ? (
-                    isEditingAssignee ? (
-                      <select
-                        value={task.assignedTo || ''}
-                        onChange={(e) => handleAssigneeUpdate(e.target.value)}
-                        onBlur={() => setIsEditingAssignee(false)}
-                        autoFocus
-                        disabled={isUpdating}
-                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {users.map((user) => (
-                          <option key={user.employeeId} value={user.employeeId}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <button
-                        onClick={() => setIsEditingAssignee(true)}
-                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
-                      >
-                        <UserName employeeId={task.assignedTo} />
-                      </button>
-                    )
-                  ) : (
-                    <span className="ml-2 text-sm text-gray-900">
-                      <UserName employeeId={task.assignedTo} />
-                    </span>
+                  <span className="ml-2 text-sm text-gray-900">
+                    <AssigneeList assignedTo={task.assignedTo} showIcon={true} maxDisplay={5} />
+                  </span>
+                  {canAssign && (
+                    <button
+                      onClick={() => setTaskEditModalOpen(true)}
+                      className="ml-2 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      Edit
+                    </button>
                   )}
                 </div>
 
@@ -1104,7 +1088,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                                 {relatedTask.priority}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-900 mt-1">{relatedTask.description}</p>
+                            <p className="text-sm text-gray-900 mt-1">{relatedTask.name || relatedTask.description}</p>
                           </div>
                           <ExternalLink className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
                         </div>

@@ -58,14 +58,14 @@ export default function SubTaskForm({
 
     try {
       if (!formData.description.trim()) {
-        throw new Error('Please enter a subtask description')
+        throw new Error('Please enter a checklist item description')
       }
 
       if (!formData.assignedTo) {
         throw new Error('Please select an assignee')
       }
 
-      const response = await fetch('/api/subtasks', {
+      const response = await fetch('/api/task-checklists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -93,10 +93,10 @@ export default function SubTaskForm({
         // Notify parent
         onSuccess?.()
       } else {
-        setError(data.error || 'Failed to create subtask')
+        setError(data.error || 'Failed to create checklist item')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create subtask')
+      setError(err instanceof Error ? err.message : 'Failed to create checklist item')
     } finally {
       setIsLoading(false)
     }
@@ -120,7 +120,7 @@ export default function SubTaskForm({
         className="flex items-center space-x-2 text-sm text-primary hover:text-primary-dark transition-colors"
       >
         <Plus className="h-4 w-4" />
-        <span>Add Subtask</span>
+        <span>Add Checklist Item</span>
       </button>
     )
   }
@@ -137,7 +137,7 @@ export default function SubTaskForm({
         {/* Description */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Subtask Description *
+            Checklist Item Description *
           </label>
           <textarea
             value={formData.description}
@@ -195,7 +195,7 @@ export default function SubTaskForm({
             className="flex items-center space-x-2 text-sm"
           >
             <Plus className="h-4 w-4" />
-            <span>Add Subtask</span>
+            <span>Add Checklist Item</span>
           </LoadingButton>
         </div>
       </form>

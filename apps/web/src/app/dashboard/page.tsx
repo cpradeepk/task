@@ -560,9 +560,12 @@ export default function Dashboard() {
   const allTasksCount = tasks.length
 
   // Calculate statistics for current user's tasks (assigned to OR created by current user)
-  const myTasks = tasks.filter(task =>
-    task.assignedTo === currentUser.employeeId || task.assignedBy === currentUser.employeeId
-  )
+  const myTasks = tasks.filter(task => {
+    const isAssignedTo = Array.isArray(task.assignedTo)
+      ? task.assignedTo.includes(currentUser.employeeId)
+      : task.assignedTo === currentUser.employeeId
+    return isAssignedTo || task.assignedBy === currentUser.employeeId
+  })
   const totalTasks = myTasks.length
   const completedTasks = myTasks.filter(task => task.status === 'Done').length
   const inProgressTasks = myTasks.filter(task => task.status === 'In Progress').length
@@ -576,7 +579,11 @@ export default function Dashboard() {
     // Apply "My Tasks Only" filter first
     let baseTasks = tasks
     if (myTasksOnly) {
-      baseTasks = tasks.filter(task => task.assignedTo === currentUser.employeeId)
+      baseTasks = tasks.filter(task => {
+        return Array.isArray(task.assignedTo)
+          ? task.assignedTo.includes(currentUser.employeeId)
+          : task.assignedTo === currentUser.employeeId
+      })
     }
 
     switch (activeFilter) {

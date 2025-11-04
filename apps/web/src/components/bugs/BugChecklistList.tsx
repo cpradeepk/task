@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BugSubTask } from '@/lib/db/bugSubtasks'
+import { BugChecklist } from '@/lib/db/bugSubtasks'
 import { getUserNameByEmployeeId } from '@/lib/auth'
 import { CheckCircle2, Circle, Trash2, User } from 'lucide-react'
 
-interface BugSubTaskListProps {
+interface BugChecklistListProps {
   parentBugId: string
   onUpdate?: () => void
   editable?: boolean
@@ -23,13 +23,13 @@ function UserName({ employeeId }: { employeeId: string }) {
   return <span>{name}</span>
 }
 
-export default function BugSubTaskList({ 
+export default function BugChecklistList({ 
   parentBugId, 
   onUpdate, 
   editable = false,
   showAssignee = true 
-}: BugSubTaskListProps) {
-  const [subtasks, setSubtasks] = useState<BugSubTask[]>([])
+}: BugChecklistListProps) {
+  const [checklists, setChecklists] = useState<BugChecklist[]>([])
   const [stats, setStats] = useState({ total: 0, completed: 0, inProgress: 0, notStarted: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -41,29 +41,29 @@ export default function BugSubTaskList({
   const loadSubTasks = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/bug-subtasks?parentBugId=${parentBugId}`)
+      const response = await fetch(`/api/development-checklists?parentBugId=${parentBugId}`)
       const data = await response.json()
 
       if (data.success) {
-        setSubtasks(data.data || [])
+        setChecklists(data.data || [])
         setStats(data.stats || { total: 0, completed: 0, inProgress: 0, notStarted: 0 })
       } else {
-        setError(data.error || 'Failed to load bug subtasks')
+        setError(data.error || 'Failed to load bug checklists')
       }
     } catch (err) {
-      console.error('Failed to load bug subtasks:', err)
-      setError('Failed to load bug subtasks')
+      console.error('Failed to load bug checklists:', err)
+      setError('Failed to load bug checklists')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleToggleComplete = async (subtask: BugSubTask) => {
+  const handleToggleComplete = async (checklist: BugChecklist) => {
     try {
-      const newIsCompleted = !subtask.isCompleted
+      const newIsCompleted = !checklist.isCompleted
       const newStatus = newIsCompleted ? 'Completed' : 'Not Started'
 
-      const response = await fetch(`/api/bug-subtasks/${subtask.id}`, {
+      const response = await fetch(`/api/development-checklists/${checklist.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -77,16 +77,16 @@ export default function BugSubTaskList({
         await loadSubTasks()
         onUpdate?.()
       } else {
-        setError(data.error || 'Failed to update bug subtask')
+        setError(data.error || 'Failed to update bug checklist item')
       }
     } catch (err) {
-      console.error('Failed to toggle bug subtask:', err)
-      setError('Failed to update bug subtask')
+      console.error('Failed to toggle bug checklist item:', err)
+      setError('Failed to update bug checklist item')
     }
   }
 
-  const handleDelete = async (subtaskId: number) => {
-    if (!confirm('Are you sure you want to delete this subtask?')) {
+  const handleDelete = async (checklistId: number) => {
+    if (!confirm('Are you sure you want to delete this checklist item?')) {
       return
     }
 
@@ -95,7 +95,7 @@ export default function BugSubTaskList({
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
       const deletedBy = currentUser.employeeId || 'unknown'
 
-      const response = await fetch(`/api/bug-subtasks/${subtaskId}?deletedBy=${deletedBy}`, {
+      const response = await fetch(`/api/development-checklists/${checklistId}?deletedBy=${deletedBy}`, {
         method: 'DELETE'
       })
 
@@ -104,11 +104,11 @@ export default function BugSubTaskList({
         await loadSubTasks()
         onUpdate?.()
       } else {
-        setError(data.error || 'Failed to delete bug subtask')
+        setError(data.error || 'Failed to delete bug checklist item')
       }
     } catch (err) {
-      console.error('Failed to delete bug subtask:', err)
-      setError('Failed to delete bug subtask')
+      console.error('Failed to delete bug checklist item:', err)
+      setError('Failed to delete bug checklist item')
     }
   }
 
@@ -128,10 +128,10 @@ export default function BugSubTaskList({
     )
   }
 
-  if (subtasks.length === 0) {
+  if (checklists.length === 0) {
     return (
       <div className="text-gray-500 text-sm text-center py-8">
-        No subtasks yet. {editable && 'Add one below to get started.'}
+        No checklist items yet. {editable && 'Add one below to get started.'}
       </div>
     )
   }
@@ -152,24 +152,24 @@ export default function BugSubTaskList({
         </div>
       )}
 
-      {/* Subtask List */}
+      {/* Checklist Items */}
       <div className="space-y-2">
-        {subtasks.map((subtask) => (
+        {checklists.map((checklist) => (
           <div
-            key={subtask.id}
+            key={checklist.id}
             className={`flex items-start space-x-3 p-3 rounded-lg border transition-colors ${
-              subtask.isCompleted
+              checklist.isCompleted
                 ? 'bg-gray-50 border-gray-200'
                 : 'bg-white border-gray-300 hover:border-blue-300'
             }`}
           >
             {/* Checkbox */}
             <button
-              onClick={() => handleToggleComplete(subtask)}
+              onClick={() => handleToggleComplete(checklist)}
               className="flex-shrink-0 mt-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
               disabled={!editable}
             >
-              {subtask.isCompleted ? (
+              {checklist.isCompleted ? (
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
               ) : (
                 <Circle className="h-5 w-5 text-gray-400 hover:text-blue-600" />
@@ -180,19 +180,19 @@ export default function BugSubTaskList({
             <div className="flex-1 min-w-0">
               <p
                 className={`text-sm ${
-                  subtask.isCompleted
+                  checklist.isCompleted
                     ? 'text-gray-500 line-through'
                     : 'text-gray-900'
                 }`}
               >
-                {subtask.description}
+                {checklist.description}
               </p>
 
               {/* Assignee */}
               {showAssignee && (
                 <div className="flex items-center space-x-1 mt-1 text-xs text-gray-500">
                   <User className="h-3 w-3" />
-                  <UserName employeeId={subtask.assignedTo} />
+                  <UserName employeeId={checklist.assignedTo} />
                 </div>
               )}
 
@@ -200,14 +200,14 @@ export default function BugSubTaskList({
               <div className="mt-1">
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                    subtask.status === 'Completed'
+                    checklist.status === 'Completed'
                       ? 'bg-green-100 text-green-800'
-                      : subtask.status === 'In Progress'
+                      : checklist.status === 'In Progress'
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-gray-100 text-gray-800'
                   }`}
                 >
-                  {subtask.status}
+                  {checklist.status}
                 </span>
               </div>
             </div>
@@ -215,9 +215,9 @@ export default function BugSubTaskList({
             {/* Delete Button */}
             {editable && (
               <button
-                onClick={() => handleDelete(subtask.id)}
+                onClick={() => handleDelete(checklist.id)}
                 className="flex-shrink-0 p-1 text-gray-400 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
-                title="Delete subtask"
+                title="Delete checklist item"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

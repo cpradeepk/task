@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { getUserNameByEmployeeId } from '@/lib/auth'
 import { CheckCircle2, Circle, Trash2, User } from 'lucide-react'
 
-interface TaskSubTask {
+interface TaskChecklist {
   id: number
   parentTaskId: string
   description: string
@@ -17,10 +17,11 @@ interface TaskSubTask {
   createdBy: string
 }
 
-interface TaskSubTaskListProps {
+interface TaskChecklistListProps {
   taskId: string
   onUpdate?: () => void
   editable?: boolean
+  canEdit?: boolean
   showAssignee?: boolean
 }
 
@@ -35,47 +36,48 @@ function UserName({ employeeId }: { employeeId: string }) {
   return <span>{name}</span>
 }
 
-export default function TaskSubTaskList({ 
-  taskId, 
-  onUpdate, 
+export default function TaskChecklistList({
+  taskId,
+  onUpdate,
   editable = false,
-  showAssignee = true 
-}: TaskSubTaskListProps) {
-  const [subtasks, setSubtasks] = useState<TaskSubTask[]>([])
+  canEdit = false,
+  showAssignee = true
+}: TaskChecklistListProps) {
+  const [checklists, setChecklists] = useState<TaskChecklist[]>([])
   const [stats, setStats] = useState({ total: 0, completed: 0, inProgress: 0, notStarted: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    loadSubTasks()
+    loadChecklists()
   }, [taskId])
 
-  const loadSubTasks = async () => {
+  const loadChecklists = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/subtasks?parentTaskId=${taskId}`)
+      const response = await fetch(`/api/task-checklists?parentTaskId=${taskId}`)
       const data = await response.json()
 
       if (data.success) {
-        setSubtasks(data.data || [])
+        setChecklists(data.data || [])
         setStats(data.stats || { total: 0, completed: 0, inProgress: 0, notStarted: 0 })
       } else {
-        setError(data.error || 'Failed to load subtasks')
+        setError(data.error || 'Failed to load checklists')
       }
     } catch (err) {
-      console.error('Failed to load subtasks:', err)
-      setError('Failed to load subtasks')
+      console.error('Failed to load checklists:', err)
+      setError('Failed to load checklists')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleToggleComplete = async (subtask: TaskSubTask) => {
+  const handleToggleComplete = async (checklist: TaskChecklist) => {
     try {
-      const newIsCompleted = !subtask.isCompleted
+      const newIsCompleted = !checklist.isCompleted
       const newStatus = newIsCompleted ? 'Completed' : 'Not Started'
 
-      const response = await fetch(`/api/subtasks/${subtask.id}`, {
+      const response = await fetch(`/api/task-checklists/${checklist.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,19 +88,19 @@ export default function TaskSubTaskList({
 
       const data = await response.json()
       if (data.success) {
-        await loadSubTasks()
+        await loadChecklists()
         onUpdate?.()
       } else {
-        setError(data.error || 'Failed to update subtask')
+        setError(data.error || 'Failed to update checklist item')
       }
     } catch (err) {
-      console.error('Failed to toggle subtask:', err)
-      setError('Failed to update subtask')
+      console.error('Failed to toggle checklist item:', err)
+      setError('Failed to update checklist item')
     }
   }
 
-  const handleDelete = async (subtaskId: number) => {
-    if (!confirm('Are you sure you want to delete this subtask?')) {
+  const handleDelete = async (checklistId: number) => {
+    if (!confirm('Are you sure you want to delete this checklist item?')) {
       return
     }
 
@@ -107,20 +109,20 @@ export default function TaskSubTaskList({
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
       const deletedBy = currentUser.employeeId || 'unknown'
 
-      const response = await fetch(`/api/subtasks/${subtaskId}?deletedBy=${deletedBy}`, {
+      const response = await fetch(`/api/task-checklists/${checklistId}?deletedBy=${deletedBy}`, {
         method: 'DELETE'
       })
 
       const data = await response.json()
       if (data.success) {
-        await loadSubTasks()
+        await loadChecklists()
         onUpdate?.()
       } else {
-        setError(data.error || 'Failed to delete subtask')
+        setError(data.error || 'Failed to delete checklist item')
       }
     } catch (err) {
-      console.error('Failed to delete subtask:', err)
-      setError('Failed to delete subtask')
+      console.error('Failed to delete checklist item:', err)
+      setError('Failed to delete checklist item')
     }
   }
 
@@ -140,10 +142,10 @@ export default function TaskSubTaskList({
     )
   }
 
-  if (subtasks.length === 0) {
+  if (checklists.length === 0) {
     return (
       <div className="text-gray-500 text-sm text-center py-8">
-        No subtasks yet. {editable && 'Add one below to get started.'}
+        No checklist items yet. {editable && 'Add one below to get started.'}
       </div>
     )
   }
@@ -164,20 +166,20 @@ export default function TaskSubTaskList({
         </div>
       )}
 
-      {/* Subtask List */}
+      {/* Checklist Items */}
       <div className="space-y-2">
-        {subtasks.map((subtask) => (
+        {checklists.map((checklist) => (
           <div
-            key={subtask.id}
+            key={checklist.id}
             className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
           >
             {/* Checkbox */}
             <button
-              onClick={() => editable && handleToggleComplete(subtask)}
+              onClick={() => editable && handleToggleComplete(checklist)}
               disabled={!editable}
               className={`mt-0.5 ${editable ? 'cursor-pointer' : 'cursor-default'}`}
             >
-              {subtask.isCompleted ? (
+              {checklist.isCompleted ? (
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
               ) : (
                 <Circle className="h-5 w-5 text-gray-400" />
@@ -186,22 +188,22 @@ export default function TaskSubTaskList({
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <p className={`text-sm ${subtask.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                {subtask.description}
+              <p className={`text-sm ${checklist.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                {checklist.description}
               </p>
               {showAssignee && (
                 <div className="flex items-center space-x-1 mt-1 text-xs text-gray-500">
                   <User className="h-3 w-3" />
-                  <span><UserName employeeId={subtask.assignedTo} /></span>
+                  <span><UserName employeeId={checklist.assignedTo} /></span>
                 </div>
               )}
               <div className="flex items-center space-x-3 mt-1">
                 <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  subtask.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                  subtask.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                  checklist.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                  checklist.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
                   'bg-gray-100 text-gray-800'
                 }`}>
-                  {subtask.status}
+                  {checklist.status}
                 </span>
               </div>
             </div>
@@ -209,9 +211,9 @@ export default function TaskSubTaskList({
             {/* Delete Button */}
             {editable && (
               <button
-                onClick={() => handleDelete(subtask.id)}
+                onClick={() => handleDelete(checklist.id)}
                 className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded text-red-600"
-                title="Delete subtask"
+                title="Delete checklist item"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

@@ -99,10 +99,14 @@ export default function TaskAnalyticsPage() {
 
   const getTopAssignees = () => {
     const assigneeCounts: Record<string, number> = {}
-    
+
     tasks.forEach(task => {
       if (task.assignedTo) {
-        assigneeCounts[task.assignedTo] = (assigneeCounts[task.assignedTo] || 0) + 1
+        // Handle both old (string) and new (array) format
+        const assignees = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo]
+        assignees.forEach(assignee => {
+          assigneeCounts[assignee] = (assigneeCounts[assignee] || 0) + 1
+        })
       }
     })
 

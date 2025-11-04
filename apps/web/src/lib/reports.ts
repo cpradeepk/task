@@ -47,7 +47,11 @@ export async function generateDailyReport(date: string): Promise<DailyReport[]> 
   users.forEach(user => {
     if (user.status !== 'active') return
 
-    const userTasks = tasks.filter(task => task.assignedTo === user.employeeId)
+    const userTasks = tasks.filter(task => {
+      return Array.isArray(task.assignedTo)
+        ? task.assignedTo.includes(user.employeeId)
+        : task.assignedTo === user.employeeId
+    })
     
     // Filter tasks for the specific date
     const dateTasks = userTasks.filter(task => {
@@ -173,12 +177,16 @@ export async function generateTeamTaskReport(date: string, managerId?: string): 
 
   // Group tasks by employee
   const teamTasks: { [key: string]: Task[] } = {}
-  
+
   dateTasks.forEach(task => {
-    if (!teamTasks[task.assignedTo]) {
-      teamTasks[task.assignedTo] = []
-    }
-    teamTasks[task.assignedTo].push(task)
+    // Handle both old (string) and new (array) format
+    const assignees = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo]
+    assignees.forEach(assignee => {
+      if (!teamTasks[assignee]) {
+        teamTasks[assignee] = []
+      }
+      teamTasks[assignee].push(task)
+    })
   })
 
   // Convert to array format with employee details

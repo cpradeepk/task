@@ -4,7 +4,7 @@ import { getTasksByEmployeeId, getAllTasks } from '@/lib/db/tasks'
 import { getBugsByEmployeeId, getAllBugs } from '@/lib/db/bugs'
 import { getUsersByEmployeeIds, getAllUsers } from '@/lib/db/users'
 import { getDropdownSettings } from '@/lib/db/settings'
-import { getSubTasksByAssignedTo } from '@/lib/db/subtasks'
+import { getSubTasksByAssignedTo } from '@/lib/db/taskChecklists'
 import { getBugSubTasksByAssignedTo } from '@/lib/db/bugSubtasks'
 
 export async function GET(request: NextRequest) {

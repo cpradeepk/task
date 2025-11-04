@@ -111,6 +111,7 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
         taskId: task.taskId,
         selectType: task.selectType,
         recursiveType: task.recursiveType,
+        name: task.name || '',
         description: task.description,
         assignedTo: task.assignedTo,
         assignedBy: task.assignedBy,
@@ -172,12 +173,25 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
     e.preventDefault()
     if (!task) return
 
+    // Validate assignees
+    const assignedToArray = Array.isArray(formData.assignedTo)
+      ? formData.assignedTo
+      : formData.assignedTo
+        ? [formData.assignedTo]
+        : []
+
+    if (assignedToArray.length === 0) {
+      setError('Please select at least one assignee')
+      return
+    }
+
     setIsLoading(true)
     setError('')
 
     try {
       const updates = {
         ...formData,
+        assignedTo: assignedToArray, // Ensure it's always an array
         updatedAt: new Date().toISOString()
       }
 
@@ -281,6 +295,26 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
             </div>
           )}
 
+          {/* Task Name */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              <FileText className="h-4 w-4 inline mr-2" />
+              Task Name *
+            </label>
+            <input
+              type="text"
+              value={formData.name || ''}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+              maxLength={150}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="Enter a short, descriptive task name (max 150 characters)"
+            />
+            <p className="text-xs text-gray-500">
+              {(formData.name || '').length}/150 characters
+            </p>
+          </div>
+
           {/* Description */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -293,29 +327,67 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
               rows={3}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Enter task description..."
+              placeholder="Enter detailed task description..."
             />
           </div>
 
-          {/* Assigned To */}
+          {/* Assigned To - Multiple Selection */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               <User className="h-4 w-4 inline mr-2" />
-              Assigned To *
+              Assigned To * (Select one or more)
             </label>
-            <select
-              value={formData.assignedTo || ''}
-              onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-              <option value="">Select assignee...</option>
-              {users.map((user) => (
-                <option key={user.employeeId} value={user.employeeId}>
-                  {user.name} ({user.employeeId})
-                </option>
-              ))}
-            </select>
+            <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto bg-white">
+              {users.length === 0 ? (
+                <p className="text-sm text-gray-500">Loading users...</p>
+              ) : (
+                <div className="space-y-2">
+                  {users.map((user) => {
+                    const assignedToArray = Array.isArray(formData.assignedTo)
+                      ? formData.assignedTo
+                      : formData.assignedTo
+                        ? [formData.assignedTo]
+                        : []
+                    const isChecked = assignedToArray.includes(user.employeeId)
+
+                    return (
+                      <label
+                        key={user.employeeId}
+                        className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const currentAssignees = Array.isArray(formData.assignedTo)
+                              ? formData.assignedTo
+                              : formData.assignedTo
+                                ? [formData.assignedTo]
+                                : []
+
+                            let newAssignees: string[]
+                            if (e.target.checked) {
+                              newAssignees = [...currentAssignees, user.employeeId]
+                            } else {
+                              newAssignees = currentAssignees.filter(id => id !== user.employeeId)
+                            }
+
+                            setFormData({ ...formData, assignedTo: newAssignees })
+                          }}
+                          className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                        />
+                        <span className="text-sm text-gray-900">
+                          {user.name} <span className="text-gray-500">({user.employeeId})</span>
+                        </span>
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            {Array.isArray(formData.assignedTo) && formData.assignedTo.length === 0 && (
+              <p className="text-xs text-red-600">Please select at least one assignee</p>
+            )}
           </div>
 
           {/* Support Team */}

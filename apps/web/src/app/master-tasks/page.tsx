@@ -27,7 +27,8 @@ import {
   Heart
 } from 'lucide-react'
 import { formatDate, getStatusColor, getPriorityColor } from '@/lib/data'
-import SubTaskManager from '@/components/subtasks/SubTaskManager'
+import ChecklistManager from '@/components/checklists/ChecklistManager'
+import AssigneeList from '@/components/tasks/AssigneeList'
 
 // Helper function to check if task is overdue
 function isTaskOverdue(task: Task): boolean {
@@ -135,11 +136,16 @@ export default function MasterTasksPage() {
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
-      filtered = filtered.filter(task =>
-        task.taskId.toLowerCase().includes(searchLower) ||
-        task.description.toLowerCase().includes(searchLower) ||
-        task.assignedTo.toLowerCase().includes(searchLower)
-      )
+      filtered = filtered.filter(task => {
+        const assignedToStr = Array.isArray(task.assignedTo)
+          ? task.assignedTo.join(' ')
+          : task.assignedTo
+        return (
+          task.taskId.toLowerCase().includes(searchLower) ||
+          task.description.toLowerCase().includes(searchLower) ||
+          assignedToStr.toLowerCase().includes(searchLower)
+        )
+      })
     }
 
     // Status filter
@@ -154,7 +160,11 @@ export default function MasterTasksPage() {
 
     // Assignee filter
     if (assigneeFilter !== 'all') {
-      filtered = filtered.filter(task => task.assignedTo === assigneeFilter)
+      filtered = filtered.filter(task => {
+        return Array.isArray(task.assignedTo)
+          ? task.assignedTo.includes(assigneeFilter)
+          : task.assignedTo === assigneeFilter
+      })
     }
 
     // Project filter
@@ -419,7 +429,6 @@ export default function MasterTasksPage() {
             ) : (
               <div className="space-y-4">
                 {filteredTasks.map((task) => {
-                  const assignee = users.find(u => u.employeeId === task.assignedTo)
                   const assignedBy = users.find(u => u.employeeId === task.assignedBy)
                   const isOverdue = isTaskOverdue(task)
 
@@ -455,11 +464,11 @@ export default function MasterTasksPage() {
 
                           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                             <div className="flex items-center space-x-1">
-                              <UserIcon className="h-4 w-4" />
-                              <span>Assigned to: {assignee?.name || task.assignedTo}</span>
+                              <span>Assigned to: </span>
+                              <AssigneeList assignedTo={task.assignedTo} showIcon={false} />
                             </div>
 
-                            {task.assignedBy && task.assignedBy !== task.assignedTo && (
+                            {task.assignedBy && (
                               <div className="flex items-center space-x-1">
                                 <UserIcon className="h-4 w-4 text-blue-500" />
                                 <span>Assigned by: {assignedBy?.name || task.assignedBy}</span>
@@ -496,9 +505,9 @@ export default function MasterTasksPage() {
                             )}
                           </div>
 
-                          {/* Subtasks Section */}
+                          {/* Checklists Section */}
                           <div className="mt-4 pt-4 border-t border-gray-200">
-                            <SubTaskManager
+                            <ChecklistManager
                               parentTaskId={task.taskId}
                               createdBy={currentUser?.employeeId || ''}
                               editable={false}

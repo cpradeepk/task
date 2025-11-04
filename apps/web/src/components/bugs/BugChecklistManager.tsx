@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import SubTaskList from './SubTaskList'
-import SubTaskForm from './SubTaskForm'
+import BugChecklistList from './BugChecklistList'
+import BugChecklistForm from './BugChecklistForm'
 import { ChevronDown, ChevronRight, ListTodo } from 'lucide-react'
 
-interface SubTaskManagerProps {
-  parentTaskId: string
+interface BugChecklistManagerProps {
+  parentBugId: string
   createdBy: string
   editable?: boolean
   showAssignee?: boolean
@@ -14,14 +14,14 @@ interface SubTaskManagerProps {
   compact?: boolean
 }
 
-export default function SubTaskManager({
-  parentTaskId,
+export default function BugChecklistManager({
+  parentBugId,
   createdBy,
   editable = false,
   showAssignee = true,
   defaultExpanded = true,
   compact = false
-}: SubTaskManagerProps) {
+}: BugChecklistManagerProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -33,16 +33,16 @@ export default function SubTaskManager({
   if (compact) {
     return (
       <div className="space-y-3">
-        <SubTaskList
+        <BugChecklistList
           key={refreshKey}
-          parentTaskId={parentTaskId}
+          parentBugId={parentBugId}
           onUpdate={handleUpdate}
           editable={editable}
           showAssignee={showAssignee}
         />
         {editable && (
-          <SubTaskForm
-            parentTaskId={parentTaskId}
+          <BugChecklistForm
+            parentBugId={parentBugId}
             createdBy={createdBy}
             onSuccess={handleUpdate}
             compact={true}
@@ -73,18 +73,18 @@ export default function SubTaskManager({
       {/* Content */}
       {isExpanded && (
         <div className="p-4 space-y-4 bg-white">
-          <SubTaskList
+          <BugChecklistList
             key={refreshKey}
-            parentTaskId={parentTaskId}
+            parentBugId={parentBugId}
             onUpdate={handleUpdate}
             editable={editable}
             showAssignee={showAssignee}
           />
-          
+
           {editable && (
             <div className="pt-4 border-t border-gray-200">
-              <SubTaskForm
-                parentTaskId={parentTaskId}
+              <BugChecklistForm
+                parentBugId={parentBugId}
                 createdBy={createdBy}
                 onSuccess={handleUpdate}
                 compact={false}

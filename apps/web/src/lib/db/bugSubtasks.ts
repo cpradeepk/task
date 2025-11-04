@@ -37,6 +37,9 @@ export interface BugSubTask {
   deletedBy: string | null
 }
 
+// Alias for backward compatibility with renamed components
+export type BugChecklist = BugSubTask
+
 // Convert database row to BugSubTask object (snake_case → camelCase)
 function rowToBugSubTask(row: BugSubTaskRow): BugSubTask {
   return {

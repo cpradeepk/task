@@ -12,6 +12,7 @@ import { Task } from '@/lib/types'
 import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth'
 import { useLoading } from '@/contexts/LoadingContext'
 import { QUERIES } from '@/lib/graphql-queries'
+import AssigneeList from '@/components/tasks/AssigneeList'
 import {
   CheckSquare,
   Plus,
@@ -199,14 +200,14 @@ export default function TasksPage() {
           // Employees can only see tasks they created or are assigned to
           tasksData = tasksData.filter((task: Task) =>
             task.assignedBy === currentUser.employeeId ||
-            task.assignedTo === currentUser.employeeId ||
+            (Array.isArray(task.assignedTo) ? task.assignedTo.includes(currentUser.employeeId) : task.assignedTo === currentUser.employeeId) ||
             (task.support && task.support.includes(currentUser.employeeId))
           )
         } else if (currentUser.role === 'management') {
           // Management can see tasks they're involved in
           tasksData = tasksData.filter((task: Task) =>
             task.assignedBy === currentUser.employeeId ||
-            task.assignedTo === currentUser.employeeId ||
+            (Array.isArray(task.assignedTo) ? task.assignedTo.includes(currentUser.employeeId) : task.assignedTo === currentUser.employeeId) ||
             (task.support && task.support.includes(currentUser.employeeId))
           )
         }
@@ -304,13 +305,18 @@ export default function TasksPage() {
 
     // My Tasks filter (default: checked)
     if (myTasksOnly && currentUser) {
-      filtered = filtered.filter(task => task.assignedTo === currentUser.employeeId)
+      filtered = filtered.filter(task =>
+        Array.isArray(task.assignedTo)
+          ? task.assignedTo.includes(currentUser.employeeId)
+          : task.assignedTo === currentUser.employeeId
+      )
     }
 
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(task =>
+        (task.name && task.name.toLowerCase().includes(searchLower)) ||
         (task.description && task.description.toLowerCase().includes(searchLower)) ||
         (task.taskId && task.taskId.toLowerCase().includes(searchLower))
       )
@@ -329,9 +335,17 @@ export default function TasksPage() {
     // Assignee filter
     if (assigneeFilter !== 'all') {
       if (assigneeFilter === 'me') {
-        filtered = filtered.filter(task => task.assignedTo === currentUser?.employeeId)
+        filtered = filtered.filter(task =>
+          Array.isArray(task.assignedTo)
+            ? task.assignedTo.includes(currentUser?.employeeId || '')
+            : task.assignedTo === currentUser?.employeeId
+        )
       } else {
-        filtered = filtered.filter(task => task.assignedTo === assigneeFilter)
+        filtered = filtered.filter(task =>
+          Array.isArray(task.assignedTo)
+            ? task.assignedTo.includes(assigneeFilter)
+            : task.assignedTo === assigneeFilter
+        )
       }
     }
 
@@ -781,9 +795,9 @@ export default function TasksPage() {
                     </div>
 
                     <div className="mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer break-words overflow-wrap-anywhere word-break-break-all max-w-full"
+                      <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
                           onClick={() => router.push(`/tasks/${task.taskId}`)}>
-                        {task.description}
+                        {task.name || task.description}
                       </h3>
                       <ProjectDisplay projectId={task.projectId} />
                     </div>
@@ -806,7 +820,9 @@ export default function TasksPage() {
                       {task.assignedTo && (
                         <div className="flex items-center space-x-1">
                           <span className="font-medium">Assigned to:</span>
-                          <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs">👤 <UserName employeeId={task.assignedTo} /></span>
+                          <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs">
+                            <AssigneeList assignedTo={task.assignedTo} showIcon={true} maxDisplay={2} />
+                          </span>
                         </div>
                       )}
                     </div>

@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import TaskSubTaskList from './TaskSubTaskList'
-import TaskSubTaskForm from './TaskSubTaskForm'
+import TaskChecklistList from './TaskChecklistList'
+import TaskChecklistForm from './TaskChecklistForm'
 import { ChevronDown, ChevronRight, ListTodo } from 'lucide-react'
 
-interface TaskSubTaskManagerProps {
+interface TaskChecklistManagerProps {
   taskId: string
   canEdit?: boolean
   showAssignee?: boolean
@@ -13,25 +13,25 @@ interface TaskSubTaskManagerProps {
   compact?: boolean
 }
 
-export default function TaskSubTaskManager({
+export default function TaskChecklistManager({
   taskId,
   canEdit = false,
   showAssignee = true,
   defaultExpanded = true,
   compact = false
-}: TaskSubTaskManagerProps) {
+}: TaskChecklistManagerProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [refreshKey, setRefreshKey] = useState(0)
 
   const handleUpdate = () => {
-    // Trigger refresh of subtask list
+    // Trigger refresh of checklist
     setRefreshKey(prev => prev + 1)
   }
 
   if (compact) {
     return (
       <div className="space-y-3">
-        <TaskSubTaskList
+        <TaskChecklistList
           key={refreshKey}
           taskId={taskId}
           onUpdate={handleUpdate}
@@ -39,7 +39,7 @@ export default function TaskSubTaskManager({
           showAssignee={showAssignee}
         />
         {canEdit && (
-          <TaskSubTaskForm
+          <TaskChecklistForm
             taskId={taskId}
             onSuccess={handleUpdate}
             compact={true}
@@ -58,7 +58,7 @@ export default function TaskSubTaskManager({
       >
         <div className="flex items-center space-x-3">
           <ListTodo className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Subtasks</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Checklists</h2>
         </div>
         {isExpanded ? (
           <ChevronDown className="h-5 w-5 text-gray-400" />
@@ -70,17 +70,17 @@ export default function TaskSubTaskManager({
       {/* Content */}
       {isExpanded && (
         <div className="p-6 space-y-4 bg-white border-t border-gray-200">
-          <TaskSubTaskList
+          <TaskChecklistList
             key={refreshKey}
             taskId={taskId}
             onUpdate={handleUpdate}
             editable={canEdit}
             showAssignee={showAssignee}
           />
-          
+
           {canEdit && (
             <div className="pt-4 border-t border-gray-200">
-              <TaskSubTaskForm
+              <TaskChecklistForm
                 taskId={taskId}
                 onSuccess={handleUpdate}
                 compact={false}

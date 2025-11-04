@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
               creatorName: creator.name,
               creatorEmail: creator.email,
               managerEmail: creator.managerId ? (await getUserByEmployeeId(creator.managerId))?.email : undefined,
-              taskTitle: taskData.description || 'New Task',
+              taskTitle: taskData.name || taskData.description || 'New Task',
               taskDescription: taskData.description || 'No description provided',
               priority: taskData.priority || 'Medium',
               dueDate: taskData.endDate || 'Not specified',
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
               await emailService.sendTaskAssignedEmail({
                 assigneeName: assignedUser.name,
                 assigneeEmail: assignedUser.email,
-                taskTitle: taskData.description || 'New Task',
+                taskTitle: taskData.name || taskData.description || 'New Task',
                 taskDescription: taskData.description || 'No description provided',
                 priority: taskData.priority || 'Medium',
                 dueDate: taskData.endDate || 'Not specified',
