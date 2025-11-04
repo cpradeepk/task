@@ -140,8 +140,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
   // Project name
   const [projectName, setProjectName] = useState<string>('')
 
-  // Activity log filter state - default to showing only comments
-  const [showActivity, setShowActivity] = useState(false)
+  // Activity log filter state - default to showing both activity and comments
+  const [showActivity, setShowActivity] = useState(true)
   const [showComments, setShowComments] = useState(true)
 
   // Related tasks state
@@ -373,7 +373,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
 
     try {
       setIsUpdating(true)
-      const hours = timeToHours(tempEstimatedHours)
+      const hours = Number(timeToHours(tempEstimatedHours).toFixed(2))
       await updateTask(task.taskId, { estimatedHours: hours })
       await loadTaskData()
       setIsEditingEstimatedHours(false)
@@ -409,8 +409,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     try {
       setIsUpdating(true)
       const hours = timeToHours(finalHours)
-      const currentActualHours = task.actualHours || 0
-      const newActualHours = currentActualHours + hours
+      const currentActualHours = Number(task.actualHours) || 0
+      const newActualHours = Number((currentActualHours + hours).toFixed(2))
 
       // If using timer hours, reset the timer
       const updates: any = {

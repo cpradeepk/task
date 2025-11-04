@@ -329,6 +329,62 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
             />
           </div>
 
+          {/* Project and Subproject - Cascading Dropdowns */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Main Project */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Project *
+              </label>
+              <select
+                value={selectedMainProject}
+                onChange={(e) => {
+                  const mainProjectId = e.target.value
+                  setSelectedMainProject(mainProjectId)
+                  // If main project selected and no subprojects, set projectId to main project
+                  // Otherwise, clear projectId until subproject is selected
+                  setFormData({ ...formData, projectId: mainProjectId })
+                }}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="">Select project...</option>
+                {projects.map((project) => (
+                  <option key={project.projectId} value={project.projectId}>
+                    {project.projectName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Subproject (only shown if main project has subprojects) */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Subproject {subprojects.length > 0 ? '*' : '(Optional)'}
+              </label>
+              <select
+                value={formData.projectId || selectedMainProject}
+                onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
+                disabled={!selectedMainProject || subprojects.length === 0}
+                required={subprojects.length > 0}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                {subprojects.length === 0 ? (
+                  <option value={selectedMainProject}>No subprojects</option>
+                ) : (
+                  <>
+                    <option value="">Select subproject...</option>
+                    {subprojects.map((subproject) => (
+                      <option key={subproject.projectId} value={subproject.projectId}>
+                        {subproject.projectName}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
+            </div>
+          </div>
+
           {/* Assigned To - Multiple Selection */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -494,24 +550,6 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
             </div>
           </div>
 
-          {/* Comments (merged Remarks and Difficulties) */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Comments
-            </label>
-            <textarea
-              value={formData.remarks || ''}
-              onChange={(e) => {
-                // Store in remarks field for backward compatibility
-                // Both remarks and difficulties will be stored in the same field
-                setFormData({ ...formData, remarks: e.target.value, difficulties: e.target.value })
-              }}
-              rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Additional notes, comments, or challenges faced during task execution..."
-            />
-          </div>
-
           {/* Related Tasks/Bugs */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -527,58 +565,6 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
             <p className="text-xs text-gray-500">
               Enter comma-separated task or bug IDs to link related work items
             </p>
-          </div>
-
-          {/* Project and Subproject - Cascading Dropdowns */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Main Project */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Project *
-              </label>
-              <select
-                value={selectedMainProject}
-                onChange={(e) => {
-                  const mainProjectId = e.target.value
-                  setSelectedMainProject(mainProjectId)
-                  // If main project selected and no subprojects, set projectId to main project
-                  // Otherwise, clear projectId until subproject is selected
-                  setFormData({ ...formData, projectId: mainProjectId })
-                }}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="">Select project...</option>
-                {projects.map((project) => (
-                  <option key={project.projectId} value={project.projectId}>
-                    {project.projectName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Subproject (only shown if main project has subprojects) */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Subproject {subprojects.length > 0 ? '*' : '(Optional)'}
-              </label>
-              <select
-                value={formData.projectId || ''}
-                onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
-                disabled={!selectedMainProject || subprojects.length === 0}
-                required={subprojects.length > 0}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              >
-                <option value={selectedMainProject}>
-                  {subprojects.length === 0 ? 'No subprojects' : 'Select subproject...'}
-                </option>
-                {subprojects.map((subproject) => (
-                  <option key={subproject.projectId} value={subproject.projectId}>
-                    {subproject.projectName}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
           {/* Action Buttons */}

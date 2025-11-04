@@ -35,7 +35,6 @@ function CreateTaskContent() {
     projectId: undefined as string | undefined,
     subprojectId: undefined as string | undefined,
     department: '', // Department field (mandatory)
-    assignToSomeoneElse: false,
     assignedTo: '',
     multiUserAssignment: false, // Enable multi-user assignment
     assignees: [] as string[], // Array of employee IDs for multi-user assignment
@@ -435,11 +434,14 @@ function CreateTaskContent() {
         // Multi-user assignment: Use all selected assignees in a single task
         assignedToUsers = formData.assignees
       } else {
-        // Single user assignment
-        const assignedToUser = formData.assignToSomeoneElse && formData.assignedTo
-          ? formData.assignedTo
-          : currentUser.employeeId
-        assignedToUsers = [assignedToUser]
+        // Single user assignment - must select a user
+        if (!formData.assignedTo) {
+          setError('Please select a user to assign the task to')
+          setIsLoading(false)
+          hideGlobalLoading()
+          return
+        }
+        assignedToUsers = [formData.assignedTo]
       }
 
       // Task ID will be generated server-side in the API route
@@ -529,7 +531,6 @@ function CreateTaskContent() {
       projectId: undefined,
       subprojectId: undefined,
       department: '', // Department field (mandatory)
-      assignToSomeoneElse: false,
       assignedTo: '',
       multiUserAssignment: false,
       assignees: [],
@@ -824,41 +825,20 @@ function CreateTaskContent() {
               <label className="block text-sm font-medium text-secondary-700">
                 Task Assignment
               </label>
-              {(currentUser.role === 'admin' || currentUser.role === 'top_management') && (
-                <>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.assignToSomeoneElse}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        assignToSomeoneElse: e.target.checked,
-                        assignedTo: e.target.checked ? formData.assignedTo : '',
-                        multiUserAssignment: false,
-                        assignees: []
-                      })}
-                      disabled={formData.multiUserAssignment}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                    />
-                    <span className="text-sm text-gray-700">Assign to someone else</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.multiUserAssignment}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        multiUserAssignment: e.target.checked,
-                        assignees: e.target.checked ? formData.assignees : [],
-                        assignToSomeoneElse: false,
-                        assignedTo: ''
-                      })}
-                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                    />
-                    <span className="text-sm text-gray-700">Assign to multiple users</span>
-                  </label>
-                </>
-              )}
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.multiUserAssignment}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    multiUserAssignment: e.target.checked,
+                    assignees: e.target.checked ? formData.assignees : [],
+                    assignedTo: ''
+                  })}
+                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                />
+                <span className="text-sm text-gray-700">Assign to multiple users</span>
+              </label>
             </div>
 
             {formData.multiUserAssignment ? (
@@ -905,7 +885,7 @@ function CreateTaskContent() {
                   </p>
                 )}
               </div>
-            ) : formData.assignToSomeoneElse ? (
+            ) : (
               <div>
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
                   Assign To *
@@ -924,16 +904,6 @@ function CreateTaskContent() {
                     </option>
                   ))}
                 </select>
-              </div>
-            ) : (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-blue-800">Auto-Assignment</span>
-                </div>
-                <p className="text-sm text-blue-700">
-                  Auto-Assignment: This task will be automatically assigned to you ({currentUser.name} - {currentUser.employeeId})
-                </p>
               </div>
             )}
           </div>
