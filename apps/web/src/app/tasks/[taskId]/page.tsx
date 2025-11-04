@@ -257,20 +257,21 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
 
   // Load project name
   const loadProjectNames = useCallback(async () => {
-    if (!task?.projectId) return
+    if (!task) return
 
     try {
-      const response = await fetch(`/api/projects/${task.projectId}`)
-      if (response.ok) {
-        const result = await response.json()
-        if (result.success && result.data) {
-          setProjectName(result.data.name || '')
+      if (task.projectId) {
+        const response = await fetch(`/api/projects/${task.projectId}`)
+        const data = await response.json()
+        // API returns project data directly, not wrapped in { success, data }
+        if (data && data.projectName) {
+          setProjectName(data.projectName)
         }
       }
     } catch (error) {
       console.error('Failed to load project name:', error)
     }
-  }, [task?.projectId])
+  }, [task])
 
   // Load related tasks
   const loadRelatedTasks = useCallback(async () => {
@@ -541,12 +542,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               <div className="min-w-0 flex-1">
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
                   <span className="font-mono">{task.taskId}</span>
-                  {projectName && (
-                    <>
-                      <span className="text-gray-400">-</span>
-                      <span className="text-sm text-gray-700">{projectName}</span>
-                    </>
-                  )}
+                  <div className="flex items-center space-x-2 mb-2">
+                    {projectName && (
+                      <>
+                        <span className="text-gray-400">-</span>
+                        <span className="text-sm text-gray-700">{projectName}</span>
+                      </>
+                    )}
+                  </div>
                 </h1>
                 <p className="text-lg text-gray-900 mt-1 break-words max-w-full overflow-hidden">{task.name || task.description}</p>
               </div>

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     if (type === 'task') {
       // Get task-to-task relationships
-      const taskToTask = await query(
+      const taskToTask = await query<any[]>(
         `SELECT tr.*, t.task_id, t.name, t.description, t.status, t.priority
          FROM task_relationships tr
          JOIN tasks t ON tr.target_task_id = t.task_id
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       )
 
       // Get task-to-development relationships
-      const taskToDev = await query(
+      const taskToDev = await query<any[]>(
         `SELECT tdr.*, b.bug_id, b.title as name, b.description, b.status, b.priority
          FROM task_development_relationships tdr
          JOIN bugs b ON tdr.development_id = b.bug_id
@@ -50,12 +50,12 @@ export async function GET(request: NextRequest) {
       )
 
       relationships = [
-        ...taskToTask.rows.map((r: any) => ({ ...r, targetType: 'task' })),
-        ...taskToDev.rows.map((r: any) => ({ ...r, targetType: 'development' }))
+        ...(taskToTask || []).map((r: any) => ({ ...r, targetType: 'task' })),
+        ...(taskToDev || []).map((r: any) => ({ ...r, targetType: 'development' }))
       ]
     } else {
       // Get development-to-development relationships
-      const devToDev = await query(
+      const devToDev = await query<any[]>(
         `SELECT dr.*, b.bug_id, b.title as name, b.description, b.status, b.priority
          FROM development_relationships dr
          JOIN bugs b ON dr.target_dev_id = b.bug_id
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       )
 
       // Get development-to-task relationships (reverse of task-to-development)
-      const devToTask = await query(
+      const devToTask = await query<any[]>(
         `SELECT tdr.*, t.task_id, t.name, t.description, t.status, t.priority
          FROM task_development_relationships tdr
          JOIN tasks t ON tdr.task_id = t.task_id
@@ -73,8 +73,8 @@ export async function GET(request: NextRequest) {
       )
 
       relationships = [
-        ...devToDev.rows.map((r: any) => ({ ...r, targetType: 'development' })),
-        ...devToTask.rows.map((r: any) => ({ ...r, targetType: 'task', relationshipType: reverseRelationshipType(r.relationship_type) }))
+        ...(devToDev || []).map((r: any) => ({ ...r, targetType: 'development' })),
+        ...(devToTask || []).map((r: any) => ({ ...r, targetType: 'task', relationshipType: reverseRelationshipType(r.relationship_type) }))
       ]
     }
 
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert the relationship
-    const result = await query(
+    const result = await query<any[]>(
       `INSERT INTO ${tableName} (${sourceCol}, ${targetCol}, relationship_type, created_by, created_at)
        VALUES ($1, $2, $3, $4, NOW())
        RETURNING *`,
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: result[0]
     })
   } catch (error) {
     console.error('Error creating relationship:', error)
