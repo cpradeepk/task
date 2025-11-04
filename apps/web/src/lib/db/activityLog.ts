@@ -150,11 +150,11 @@ export async function getActivityLogById(id: number): Promise<ActivityLog | null
 
     if (rows.length === 0) return null
 
-    // Convert is_comment from INTEGER (0/1) to boolean
+    // Convert is_comment from INTEGER (0/1) or BOOLEAN to boolean
     const row = rows[0]
     return {
       ...row,
-      isComment: Boolean(row.isComment)
+      isComment: row.isComment === true || row.isComment === 1 || row.isComment === '1'
     } as ActivityLog
   })
 }
@@ -205,11 +205,25 @@ export async function getActivityLogByEntity(
       'Failed to fetch activity log entries'
     )
 
-    // Convert is_comment from INTEGER (0/1) to boolean
-    return rows.map(row => ({
-      ...row,
-      isComment: Boolean(row.isComment)
-    })) as ActivityLog[]
+    // Convert is_comment from INTEGER (0/1) or BOOLEAN to boolean
+    const result = rows.map(row => {
+      const isCommentValue = row.isComment
+      // PostgreSQL returns boolean as true/false, MySQL returns as 1/0
+      // Ensure we always get a proper boolean
+      const isCommentBoolean = isCommentValue === true || isCommentValue === 1 || isCommentValue === '1'
+
+      console.log(`🔍 [ActivityLog] Row ${row.id}: isComment raw=${isCommentValue} (type: ${typeof isCommentValue}), converted=${isCommentBoolean}`)
+
+      return {
+        ...row,
+        isComment: isCommentBoolean
+      }
+    }) as ActivityLog[]
+
+    console.log(`✅ [ActivityLog] Fetched ${result.length} activities for ${entityType}:${entityId}`)
+    console.log(`   Comments: ${result.filter(r => r.isComment).length}, Activities: ${result.filter(r => !r.isComment).length}`)
+
+    return result
   })
 }
 
@@ -254,11 +268,15 @@ export async function getCommentsByEntity(
       'Failed to fetch comments'
     )
 
-    // Convert is_comment from INTEGER (0/1) to boolean
-    return rows.map(row => ({
+    // Convert is_comment from INTEGER (0/1) or BOOLEAN to boolean
+    const result = rows.map(row => ({
       ...row,
-      isComment: Boolean(row.isComment)
+      isComment: row.isComment === true || row.isComment === 1 || row.isComment === '1'
     })) as ActivityLog[]
+
+    console.log(`✅ [ActivityLog] getCommentsByEntity: Fetched ${result.length} comments for ${entityType}:${entityId}`)
+
+    return result
   })
 }
 
@@ -303,11 +321,15 @@ export async function getSystemActivitiesByEntity(
       'Failed to fetch system activities'
     )
 
-    // Convert is_comment from INTEGER (0/1) to boolean
-    return rows.map(row => ({
+    // Convert is_comment from INTEGER (0/1) or BOOLEAN to boolean
+    const result = rows.map(row => ({
       ...row,
-      isComment: Boolean(row.isComment)
+      isComment: row.isComment === true || row.isComment === 1 || row.isComment === '1'
     })) as ActivityLog[]
+
+    console.log(`✅ [ActivityLog] getSystemActivitiesByEntity: Fetched ${result.length} system activities for ${entityType}:${entityId}`)
+
+    return result
   })
 }
 
