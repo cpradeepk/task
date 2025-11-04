@@ -74,15 +74,26 @@ function CreateTaskContent() {
   // Load icons from settings metadata
   const { getIcon, isLoading: isLoadingIcons } = useSettingsIcons()
 
-  // Handle hydration and read parent task ID from URL
+  // Handle hydration and read query parameters from URL
   useEffect(() => {
     setIsHydrated(true)
 
-    // Check for parentTaskId in URL query parameters
+    // Read all query parameters for prefilling form
     const parentTaskId = searchParams.get('parentTaskId')
-    if (parentTaskId) {
-      setFormData(prev => ({ ...prev, parentTaskId }))
-    }
+    const projectId = searchParams.get('projectId')
+    const subprojectId = searchParams.get('subprojectId')
+    const department = searchParams.get('department')
+    const status = searchParams.get('status')
+
+    // Update form data with query parameters
+    setFormData(prev => ({
+      ...prev,
+      ...(parentTaskId && { parentTaskId }),
+      ...(projectId && { projectId }),
+      ...(subprojectId && { subprojectId }),
+      ...(department && { department }),
+      ...(status && { status })
+    }))
   }, [searchParams])
 
   // Authentication check

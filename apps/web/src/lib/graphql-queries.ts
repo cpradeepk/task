@@ -203,7 +203,7 @@ export const QUERIES = {
   // Get single task by ID
   GET_TASK: `
     query GetTask($taskId: String!) {
-      tasks(taskId: $taskId) {
+      task(taskId: $taskId) {
         id
         taskId
         selectType

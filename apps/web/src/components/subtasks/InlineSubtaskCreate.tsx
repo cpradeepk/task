@@ -42,7 +42,8 @@ export default function InlineSubtaskCreate({
       const response = await fetch('/api/users')
       const data = await response.json()
       if (data.success) {
-        setUsers(data.data.filter((u: any) => u.status === 'Active'))
+        // Filter for active users (status is lowercase 'active' in PostgreSQL)
+        setUsers(data.data.filter((u: any) => u.status === 'active'))
       }
     } catch (error) {
       console.error('Failed to fetch users:', error)
@@ -115,10 +116,23 @@ export default function InlineSubtaskCreate({
   }
 
   const handleExpandToFullForm = () => {
-    const url = parentType === 'task' 
-      ? `/tasks/create?parentTaskId=${parentId}`
-      : `/bugs/create?parentDevId=${parentId}`
-    router.push(url)
+    // Navigate to full creation page with parent context and prefilled data
+    const params = new URLSearchParams()
+
+    if (parentType === 'task') {
+      params.set('parentTaskId', parentId)
+      if (parentData.projectId) params.set('projectId', parentData.projectId)
+      if (parentData.subprojectId) params.set('subprojectId', parentData.subprojectId)
+      if (parentData.department) params.set('department', parentData.department)
+      params.set('status', 'Yet to Start')
+      router.push(`/tasks/create?${params.toString()}`)
+    } else {
+      params.set('parentDevId', parentId)
+      if (parentData.projectId) params.set('projectId', parentData.projectId)
+      if (parentData.subprojectId) params.set('subprojectId', parentData.subprojectId)
+      params.set('status', 'Open')
+      router.push(`/bugs/create?${params.toString()}`)
+    }
   }
 
   return (
