@@ -522,19 +522,19 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
       <Navbar />
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-4 min-w-0 flex-1">
             <button
               onClick={() => router.push('/tasks')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-blue-100 rounded-lg">
+            <div className="flex items-center space-x-3 min-w-0 flex-1">
+              <div className="p-3 bg-blue-100 rounded-lg flex-shrink-0">
                 <Target className="h-6 w-6 text-blue-600" />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
                   <span className="font-mono">{task.taskId}</span>
                   {projectName && (
@@ -544,7 +544,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                     </>
                   )}
                 </h1>
-                <p className="text-lg text-gray-900 mt-1 break-words overflow-wrap-anywhere whitespace-pre-wrap max-w-full">{task.description}</p>
+                <p className="text-lg text-gray-900 mt-1 break-words max-w-full overflow-hidden">{task.description}</p>
               </div>
             </div>
           </div>

@@ -36,7 +36,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user
-    const user = await getAuthUser()
+    const user = await getAuthUser(request)
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Authenticate user
-    const user = await getAuthUser()
+    const user = await getAuthUser(request)
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
