@@ -897,7 +897,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   className="text-xl font-semibold text-black hover:text-primary transition-colors cursor-pointer text-left w-full flex items-center space-x-2 group"
                 >
                   <span>{bug.title}</span>
-                  <Pencil className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Pencil className="h-4 w-4 text-gray-400 group-hover:text-primary transition-colors" />
                 </button>
               </div>
 
@@ -1292,7 +1292,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 parentBugId={bug.bugId}
                 createdBy={currentUser.employeeId}
                 editable={canEdit}
-                showAssignee={true}
                 defaultExpanded={true}
                 compact={false}
               />

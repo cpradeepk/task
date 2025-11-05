@@ -2,32 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { BugChecklist } from '@/lib/db/bugSubtasks'
-import { getUserNameByEmployeeId } from '@/lib/auth'
-import { CheckCircle2, Circle, Trash2, User } from 'lucide-react'
+import { CheckCircle2, Circle, Trash2 } from 'lucide-react'
 
 interface BugChecklistListProps {
   parentBugId: string
   onUpdate?: () => void
   editable?: boolean
-  showAssignee?: boolean
 }
 
-// Component to handle async user name fetching
-function UserName({ employeeId }: { employeeId: string }) {
-  const [name, setName] = useState<string>(employeeId)
-
-  useEffect(() => {
-    getUserNameByEmployeeId(employeeId).then(setName)
-  }, [employeeId])
-
-  return <span>{name}</span>
-}
-
-export default function BugChecklistList({ 
-  parentBugId, 
-  onUpdate, 
-  editable = false,
-  showAssignee = true 
+export default function BugChecklistList({
+  parentBugId,
+  onUpdate,
+  editable = false
 }: BugChecklistListProps) {
   const [checklists, setChecklists] = useState<BugChecklist[]>([])
   const [stats, setStats] = useState({ total: 0, completed: 0, inProgress: 0, notStarted: 0 })
@@ -187,29 +173,6 @@ export default function BugChecklistList({
               >
                 {checklist.description}
               </p>
-
-              {/* Assignee */}
-              {showAssignee && (
-                <div className="flex items-center space-x-1 mt-1 text-xs text-gray-500">
-                  <User className="h-3 w-3" />
-                  <UserName employeeId={checklist.assignedTo} />
-                </div>
-              )}
-
-              {/* Status Badge */}
-              <div className="mt-1">
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                    checklist.status === 'Completed'
-                      ? 'bg-green-100 text-green-800'
-                      : checklist.status === 'In Progress'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {checklist.status}
-                </span>
-              </div>
             </div>
 
             {/* Delete Button */}

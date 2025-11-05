@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Plus } from 'lucide-react'
 
 interface BugSubTaskFormProps {
@@ -10,11 +10,6 @@ interface BugSubTaskFormProps {
   compact?: boolean
 }
 
-interface User {
-  employeeId: string
-  name: string
-}
-
 export default function BugSubTaskForm({
   parentBugId,
   createdBy,
@@ -22,30 +17,12 @@ export default function BugSubTaskForm({
   compact = false
 }: BugSubTaskFormProps) {
   const [description, setDescription] = useState('')
-  const [assignedTo, setAssignedTo] = useState(createdBy)
-  const [users, setUsers] = useState<User[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    loadUsers()
-  }, [])
-
-  const loadUsers = async () => {
-    try {
-      const response = await fetch('/api/users')
-      const data = await response.json()
-      if (data.success) {
-        setUsers(data.data || [])
-      }
-    } catch (err) {
-      console.error('Failed to load users:', err)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!description.trim()) {
       setError('Description is required')
       return
@@ -61,7 +38,7 @@ export default function BugSubTaskForm({
         body: JSON.stringify({
           parentBugId,
           description: description.trim(),
-          assignedTo,
+          assignedTo: createdBy, // Default to creator
           status: 'Not Started',
           isCompleted: false,
           createdBy
@@ -72,7 +49,6 @@ export default function BugSubTaskForm({
 
       if (data.success) {
         setDescription('')
-        setAssignedTo(createdBy)
         onSuccess?.()
       } else {
         setError(data.error || 'Failed to create checklist item')
@@ -96,18 +72,6 @@ export default function BugSubTaskForm({
           className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           disabled={isSubmitting}
         />
-        <select
-          value={assignedTo}
-          onChange={(e) => setAssignedTo(e.target.value)}
-          className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          disabled={isSubmitting}
-        >
-          {users.map((user) => (
-            <option key={user.employeeId} value={user.employeeId}>
-              {user.name}
-            </option>
-          ))}
-        </select>
         <button
           type="submit"
           disabled={isSubmitting || !description.trim()}
@@ -137,25 +101,6 @@ export default function BugSubTaskForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={isSubmitting}
             />
-          </div>
-
-          <div>
-            <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700 mb-1">
-              Assign To
-            </label>
-            <select
-              id="assignedTo"
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={isSubmitting}
-            >
-              {users.map((user) => (
-                <option key={user.employeeId} value={user.employeeId}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
           </div>
 
           {error && (

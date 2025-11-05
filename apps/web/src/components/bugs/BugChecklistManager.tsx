@@ -9,7 +9,6 @@ interface BugChecklistManagerProps {
   parentBugId: string
   createdBy: string
   editable?: boolean
-  showAssignee?: boolean
   defaultExpanded?: boolean
   compact?: boolean
 }
@@ -18,7 +17,6 @@ export default function BugChecklistManager({
   parentBugId,
   createdBy,
   editable = false,
-  showAssignee = false,
   defaultExpanded = true,
   compact = false
 }: BugChecklistManagerProps) {
@@ -38,7 +36,6 @@ export default function BugChecklistManager({
           parentBugId={parentBugId}
           onUpdate={handleUpdate}
           editable={editable}
-          showAssignee={showAssignee}
         />
         {editable && (
           <BugChecklistForm
@@ -78,7 +75,6 @@ export default function BugChecklistManager({
             parentBugId={parentBugId}
             onUpdate={handleUpdate}
             editable={editable}
-            showAssignee={showAssignee}
           />
 
           {editable && (
