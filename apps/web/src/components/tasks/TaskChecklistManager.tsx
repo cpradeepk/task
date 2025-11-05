@@ -58,7 +58,10 @@ export default function TaskChecklistManager({
       >
         <div className="flex items-center space-x-3">
           <ListTodo className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Checklists</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Checklists</h2>
+            <p className="text-sm text-gray-600">2. Begin with the end in mind</p>
+          </div>
         </div>
         {isExpanded ? (
           <ChevronDown className="h-5 w-5 text-gray-400" />

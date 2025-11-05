@@ -171,7 +171,7 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
   }
 
   const taskStatuses = settings.task_statuses || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed']
-  const taskPriorities = settings.task_priorities || ['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)']
+  const taskPriorities = settings.task_priorities || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)']
 
   if (loading) {
     return (

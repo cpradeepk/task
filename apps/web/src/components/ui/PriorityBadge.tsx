@@ -8,8 +8,8 @@ interface PriorityBadgeProps {
 export default function PriorityBadge({ priority, className = '' }: PriorityBadgeProps) {
   const priorityLabels = {
     'U&I': 'Urgent & Important',
-    'NU&I': 'Not Urgent but Important', 
-    'U&NI': 'Urgent but Not Important',
+    'NU&I': 'Not Urgent & Important',
+    'NI&U': 'Not Important & Urgent',
     'NU&NI': 'Not Urgent & Not Important'
   }
 

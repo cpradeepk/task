@@ -183,7 +183,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
           console.error('Failed to load settings:', data.error)
           // Use defaults
           setTaskStatusOptions(['Open', 'In Progress', 'Completed', 'Delayed', 'On Hold', 'Cancelled'])
-          setTaskPriorityOptions(['IU&I', 'IU&NI', 'NU&I', 'NU&NI'])
+          setTaskPriorityOptions(['U&I', 'NU&I', 'NI&U', 'NU&NI'])
         }
       } catch (error) {
         console.error('Failed to load settings:', error)

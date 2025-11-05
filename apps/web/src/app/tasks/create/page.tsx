@@ -124,7 +124,7 @@ function CreateTaskContent() {
 
         // Process task priorities
         const prioritiesSetting = settings.find((s: any) => s.key === 'task_priorities')
-        const priorities = prioritiesSetting?.value || ['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)']
+        const priorities = prioritiesSetting?.value || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)']
         setTaskPriorityOptions(priorities)
 
         // Process departments

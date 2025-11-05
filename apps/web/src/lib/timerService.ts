@@ -25,6 +25,7 @@ interface TimerData {
 /**
  * Start a timer for a task or bug
  * If another timer is running, it will be stopped first
+ * Auto-updates task status from "Open" to "In Progress" when timer starts
  */
 export async function startTimer(
   entityType: 'task' | 'bug',
@@ -33,10 +34,31 @@ export async function startTimer(
 ): Promise<void> {
   // Check if there's an active timer
   const existingTimer = getActiveTimer()
-  
+
   if (existingTimer) {
     // Stop the existing timer first
     await stopTimer()
+  }
+
+  // Auto-update task status from "Open" to "In Progress" when timer starts
+  if (entityType === 'task') {
+    try {
+      // Fetch current task status
+      const response = await fetch(`/api/tasks/${entityId}`)
+      const data = await response.json()
+
+      if (data.success && data.data && data.data.status === 'Open') {
+        // Update status to "In Progress"
+        await fetch(`/api/tasks/${entityId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'In Progress' })
+        })
+      }
+    } catch (error) {
+      console.error('Failed to auto-update task status:', error)
+      // Continue with timer start even if status update fails
+    }
   }
 
   // Create new timer

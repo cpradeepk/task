@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Task } from '@/lib/types'
 import { ChevronRight, ChevronDown, Circle, CheckCircle2 } from 'lucide-react'
 import AssigneeList from './AssigneeList'
+import SupportTeam from './SupportTeam'
 
 interface HierarchicalTaskRowProps {
   task: Task
@@ -138,9 +139,17 @@ export default function HierarchicalTaskRow({
               </h3>
             </div>
 
-            <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-              <AssigneeList assignedTo={task.assignedTo} />
-              <ProjectDisplay projectId={task.projectId} />
+            <div className="flex flex-col space-y-1 text-sm text-gray-600 mb-3">
+              <div className="flex items-center space-x-4">
+                <AssigneeList assignedTo={task.assignedTo} />
+                <ProjectDisplay projectId={task.projectId} />
+              </div>
+              {task.support && task.support.length > 0 && (
+                <div className="flex items-center">
+                  <span className="text-gray-500 mr-1">Support:</span>
+                  <SupportTeam supportIds={task.support} showIcon={false} />
+                </div>
+              )}
             </div>
           </div>
 

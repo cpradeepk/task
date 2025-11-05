@@ -138,6 +138,11 @@ export default function BugsPage() {
   useEffect(() => {
     setIsHydrated(true)
 
+    // Set default assignee filter to current user
+    if (currentUser?.employeeId) {
+      setAssigneeFilter(currentUser.employeeId)
+    }
+
     // Monitor network status
     const handleOnline = () => setIsOnline(true)
     const handleOffline = () => setIsOnline(false)

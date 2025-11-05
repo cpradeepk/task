@@ -171,9 +171,9 @@ export function getIconForSettingValueSync(
       'Reopened': '🔄'
     },
     task_priorities: {
-      'IU&I (Important & Urgent)': '🔴',
-      'IU&NI (Important & Not Urgent)': '🟠',
-      'NU&I (Not Urgent & Important)': '🟡',
+      'U&I (Urgent & Important)': '🔴',
+      'NU&I (Not Urgent & Important)': '🟠',
+      'NI&U (Not Important & Urgent)': '🟡',
       'NU&NI (Not Urgent & Not Important)': '⚪'
     }
   }
@@ -241,9 +241,9 @@ export function getIconsForSettingSync(settingKey: string): Record<string, strin
       'Reopened': '🔄'
     },
     task_priorities: {
-      'IU&I (Important & Urgent)': '🔴',
-      'IU&NI (Important & Not Urgent)': '🟠',
-      'NU&I (Not Urgent & Important)': '🟡',
+      'U&I (Urgent & Important)': '🔴',
+      'NU&I (Not Urgent & Important)': '🟠',
+      'NI&U (Not Important & Urgent)': '🟡',
       'NU&NI (Not Urgent & Not Important)': '⚪'
     }
   }

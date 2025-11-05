@@ -49,7 +49,7 @@ export const TASK_PRIORITIES = [
 export const PRIORITY_DISPLAY_NAMES: Record<string, string> = {
   'U&I': 'Urgent & Important',
   'NU&I': 'Not Urgent & Important',
-  'U&NI': 'Urgent & Not Important',
+  'NI&U': 'Not Important & Urgent',
   'NU&NI': 'Not Urgent & Not Important'
 }
 

@@ -58,7 +58,7 @@ export default function BugChecklistManager({
       >
         <div className="flex items-center space-x-2">
           <ListTodo className="h-5 w-5 text-gray-600" />
-          <span className="font-medium text-gray-900">Checklists</span>
+          <span className="font-medium text-gray-900">2. Begin with the end in mind</span>
         </div>
         {isExpanded ? (
           <ChevronDown className="h-5 w-5 text-gray-600" />

@@ -92,7 +92,6 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
-  const [myTasksOnly, setMyTasksOnly] = useState(true) // Default: checked (show only my tasks)
   const [statistics, setStatistics] = useState<any>(null)
   const [isHydrated, setIsHydrated] = useState(false)
   const [initialized, setInitialized] = useState(false)
@@ -117,6 +116,11 @@ export default function TasksPage() {
   // Handle hydration
   useEffect(() => {
     setIsHydrated(true)
+
+    // Set default assignee filter to current user
+    if (currentUser?.employeeId) {
+      setAssigneeFilter(currentUser.employeeId)
+    }
 
     // Monitor network status
     const handleOnline = () => setIsOnline(true)
@@ -307,18 +311,6 @@ export default function TasksPage() {
     // Filter out subtasks - only show root tasks (tasks without parent_task_id)
     filtered = filtered.filter(task => !task.parentTaskId)
 
-    // My Tasks filter (default: checked)
-    // Include tasks where user is assigned OR in support team
-    if (myTasksOnly && currentUser) {
-      filtered = filtered.filter(task => {
-        const isAssignee = Array.isArray(task.assignedTo)
-          ? task.assignedTo.includes(currentUser.employeeId)
-          : task.assignedTo === currentUser.employeeId
-        const isSupport = task.support && task.support.includes(currentUser.employeeId)
-        return isAssignee || isSupport
-      })
-    }
-
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
@@ -370,14 +362,14 @@ export default function TasksPage() {
     })
 
     return filtered
-  }, [tasks, searchTerm, statusFilter, priorityFilter, assigneeFilter, myTasksOnly, currentUser])
+  }, [tasks, searchTerm, statusFilter, priorityFilter, assigneeFilter, currentUser])
 
   const getPriorityColor = (priority: string) => {
     // Add null/undefined check to prevent TypeError
     if (!priority) return 'text-gray-600 bg-gray-100'
-    if (priority.includes('IU&I')) return 'text-red-600 bg-red-100'
-    if (priority.includes('IU&NI')) return 'text-orange-600 bg-orange-100'
-    if (priority.includes('NU&I')) return 'text-blue-600 bg-blue-100'
+    if (priority.includes('U&I') && !priority.includes('N')) return 'text-red-600 bg-red-100' // U&I only
+    if (priority.includes('NU&I')) return 'text-orange-600 bg-orange-100'
+    if (priority.includes('NI&U')) return 'text-blue-600 bg-blue-100'
     return 'text-gray-600 bg-gray-100'
   }
 
@@ -501,7 +493,7 @@ export default function TasksPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Task Management</h1>
-              <p className="text-gray-600 mt-1">Track, manage, and complete your tasks</p>
+              <p className="text-gray-600 mt-1">Plan weekly, Execute daily</p>
             </div>
           </div>
           <div className="flex items-center space-x-3 mt-6 sm:mt-0">
@@ -618,23 +610,7 @@ export default function TasksPage() {
             <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
           </div>
 
-          {/* My Tasks Checkbox */}
-          <div className="mb-4">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={myTasksOnly}
-                onChange={(e) => setMyTasksOnly(e.target.checked)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-              />
-              <span className="text-sm font-medium text-gray-700">
-                My Tasks Only
-              </span>
-              <span className="text-xs text-gray-500">
-                (Show only tasks assigned to me)
-              </span>
-            </label>
-          </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Search */}
@@ -698,8 +674,7 @@ export default function TasksPage() {
                 setSearchTerm('')
                 setStatusFilter('all')
                 setPriorityFilter('all')
-                setAssigneeFilter('all')
-                setMyTasksOnly(true) // Reset to default (checked)
+                setAssigneeFilter(currentUser?.employeeId || 'all')
               }}
               className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium"
             >
