@@ -172,6 +172,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   // Subtask state
   const [subtasksKey, setSubtasksKey] = useState(0) // For refreshing subtasks list
 
+  // Project/Subproject names
+  const [projectName, setProjectName] = useState<string>('')
+  const [subprojectName, setSubprojectName] = useState<string>('')
+
   const hasLoadedData = useRef(false)
   const router = useRouter()
   const currentUser = getCurrentUser()
@@ -354,6 +358,35 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
       loadRelatedBugs()
     }
   }, [bug, loadRelatedBugs])
+
+  // Load project and subproject names
+  useEffect(() => {
+    const loadProjectNames = async () => {
+      if (!bug) return
+
+      try {
+        if (bug.projectId) {
+          const response = await fetch(`/api/projects/${bug.projectId}`)
+          const data = await response.json()
+          if (data && data.projectName) {
+            setProjectName(data.projectName)
+          }
+        }
+
+        if (bug.subprojectId) {
+          const response = await fetch(`/api/projects/${bug.subprojectId}`)
+          const data = await response.json()
+          if (data && data.projectName) {
+            setSubprojectName(data.projectName)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load project names:', error)
+      }
+    }
+
+    loadProjectNames()
+  }, [bug])
 
   const handleAssigneeChange = async (newAssignee: string) => {
     if (!bug || !newAssignee || !currentUser) return
@@ -771,6 +804,18 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               <h1 className="text-2xl font-bold text-black flex items-center space-x-2">
                 <BugIcon className="h-6 w-6" />
                 <span>{bug.bugId}</span>
+                {projectName && (
+                  <>
+                    <span className="text-gray-400">-</span>
+                    <span className="text-lg text-gray-700">Project: {projectName}</span>
+                    {subprojectName && (
+                      <>
+                        <span className="text-gray-400">&gt;</span>
+                        <span className="text-lg text-gray-700">Sub Project: {subprojectName}</span>
+                      </>
+                    )}
+                  </>
+                )}
               </h1>
               </div>
             </div>

@@ -135,8 +135,9 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
   const [taskPriorityOptions, setTaskPriorityOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
 
-  // Project name
+  // Project and subproject names
   const [projectName, setProjectName] = useState<string>('')
+  const [subprojectName, setSubprojectName] = useState<string>('')
 
   // Activity log filter state - default to showing only comments
   const [showActivity, setShowActivity] = useState(false)
@@ -252,7 +253,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     return () => document.removeEventListener('keydown', handleEscape)
   }, [showHoursModal])
 
-  // Load project name
+  // Load project and subproject names
   const loadProjectNames = useCallback(async () => {
     if (!task) return
 
@@ -265,8 +266,17 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
           setProjectName(data.projectName)
         }
       }
+
+      // Check if task has subprojectId (tasks table might have this field)
+      if ((task as any).subprojectId) {
+        const response = await fetch(`/api/projects/${(task as any).subprojectId}`)
+        const data = await response.json()
+        if (data && data.projectName) {
+          setSubprojectName(data.projectName)
+        }
+      }
     } catch (error) {
-      console.error('Failed to load project name:', error)
+      console.error('Failed to load project names:', error)
     }
   }, [task])
 
@@ -544,6 +554,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                       <>
                         <span className="text-gray-400">-</span>
                         <span className="text-sm text-gray-700">Project: {projectName}</span>
+                        {subprojectName && (
+                          <>
+                            <span className="text-gray-400">&gt;</span>
+                            <span className="text-sm text-gray-700">Sub Project: {subprojectName}</span>
+                          </>
+                        )}
                       </>
                     )}
                   </div>
