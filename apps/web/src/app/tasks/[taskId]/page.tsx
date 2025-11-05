@@ -24,7 +24,6 @@ import SubtaskBreadcrumb from '@/components/subtasks/SubtaskBreadcrumb'
 import { QUERIES } from '@/lib/graphql-queries'
 import {
   MessageSquare,
-  Calendar,
   User as UserIcon,
   AlertTriangle,
   ArrowLeft,
@@ -538,13 +537,13 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                 <Target className="h-6 w-6 text-blue-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
-                  <span className="font-mono">{task.taskId}</span>
-                  <div className="flex items-center space-x-2 mb-2">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-mono">{task.taskId}</span>
                     {projectName && (
                       <>
                         <span className="text-gray-400">-</span>
-                        <span className="text-sm text-gray-700">{projectName}</span>
+                        <span className="text-sm text-gray-700">Project: {projectName}</span>
                       </>
                     )}
                   </div>
@@ -1059,32 +1058,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               </div>
             </div>
 
-            {/* Timeline */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Timeline</h3>
 
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Created:</span>
-                    <span className="ml-2 text-sm text-gray-900">
-                      {new Date(task.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Updated:</span>
-                    <span className="ml-2 text-sm text-gray-900">
-                      {new Date(task.updatedAt).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* Related Tasks */}
             {relatedTasksData.length > 0 && (
