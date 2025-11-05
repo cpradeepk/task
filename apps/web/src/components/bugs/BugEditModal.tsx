@@ -177,6 +177,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
         subprojectId: bug.subprojectId || '',
         feature: bug.feature || '',
         type: bug.type || null,
+        developmentPrompt: bug.developmentPrompt || '',
       })
 
       // Load subprojects for the bug's project when modal opens
@@ -536,7 +537,20 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
             </div>
           </div>
 
-
+          {/* Development Prompt */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              <FileText className="h-4 w-4 inline mr-2" />
+              Development Prompt
+            </label>
+            <textarea
+              value={formData.developmentPrompt || ''}
+              onChange={(e) => setFormData({ ...formData, developmentPrompt: e.target.value })}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="Optional: Add development instructions or prompts for fixing this bug..."
+            />
+          </div>
 
           {/* Tags */}
           <div className="space-y-2">

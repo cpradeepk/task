@@ -921,6 +921,13 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   </div>
                 )}
 
+                {bug.developmentPrompt && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Development Prompt</h3>
+                    <p className="text-gray-700 whitespace-pre-wrap">{bug.developmentPrompt}</p>
+                  </div>
+                )}
+
 
                 {/* Browser and Device Information */}
             {(bug.browserInfo || bug.deviceInfo) && (
@@ -1306,7 +1313,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 projectId: bug.projectId,
                 subprojectId: bug.subprojectId,
                 department: null,
-                assignedBy: bug.assignedBy || bug.reportedBy
+                assignedBy: bug.assignedBy || bug.reportedBy,
+                priority: bug.priority
               }}
             />
 

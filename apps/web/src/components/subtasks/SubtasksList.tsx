@@ -14,6 +14,7 @@ interface SubtasksListProps {
     subprojectId?: string | null
     department?: string | null
     assignedBy: string
+    priority?: string
   }
 }
 

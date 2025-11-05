@@ -262,6 +262,7 @@ CREATE TABLE bugs (
     attachments JSONB,
     related_bugs TEXT,
     resolution_notes TEXT,
+    development_prompt TEXT,
     resolved_at TIMESTAMP NULL,
     deleted_at TIMESTAMP NULL DEFAULT NULL,
     deleted_by VARCHAR(50) NULL DEFAULT NULL,

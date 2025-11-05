@@ -26,6 +26,7 @@ function CreateBugPageContent() {
     deviceInfo: '',
     expectedBehavior: '',
     actualBehavior: '',
+    developmentPrompt: '',
     attachments: '',
     tags: '',
     relatedBugs: '',
@@ -797,6 +798,20 @@ function CreateBugPageContent() {
                   </div>
                 </div>
 
+                {/* Development Prompt */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Development Prompt
+                  </label>
+                  <textarea
+                    name="developmentPrompt"
+                    value={formData.developmentPrompt || ''}
+                    onChange={handleInputChange}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
+                    placeholder="Optional: Add development instructions or prompts for fixing this bug..."
+                  />
+                </div>
 
               </div>
             </div>

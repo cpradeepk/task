@@ -12,6 +12,7 @@ interface InlineSubtaskCreateProps {
     subprojectId?: string | null
     department?: string | null
     assignedBy: string
+    priority?: string // Parent task/bug priority to inherit
   }
   onCancel: () => void
   onSuccess: () => void
@@ -70,7 +71,7 @@ export default function InlineSubtaskCreate({
         support: [],
         startDate: today,
         endDate: formData.endDate,
-        priority: 'NU&I', // Default priority
+        priority: parentData.priority || 'NU&NI', // Inherit from parent or use default
         estimatedHours: 0,
         selectType: 'Normal',
         status: 'Yet to Start',
@@ -85,7 +86,7 @@ export default function InlineSubtaskCreate({
         reportedBy: parentData.assignedBy,
         reportedDate: today,
         severity: 'Minor', // Default severity
-        priority: 'Low', // Default priority
+        priority: parentData.priority || 'Low', // Inherit from parent or use default
         category: 'Bug', // Default category
         status: 'New',
         projectId: parentData.projectId,
@@ -124,12 +125,14 @@ export default function InlineSubtaskCreate({
       if (parentData.projectId) params.set('projectId', parentData.projectId)
       if (parentData.subprojectId) params.set('subprojectId', parentData.subprojectId)
       if (parentData.department) params.set('department', parentData.department)
+      if (parentData.priority) params.set('priority', parentData.priority)
       params.set('status', 'Yet to Start')
       router.push(`/tasks/create?${params.toString()}`)
     } else {
       params.set('parentDevId', parentId)
       if (parentData.projectId) params.set('projectId', parentData.projectId)
       if (parentData.subprojectId) params.set('subprojectId', parentData.subprojectId)
+      if (parentData.priority) params.set('priority', parentData.priority)
       params.set('status', 'Open')
       router.push(`/bugs/create?${params.toString()}`)
     }

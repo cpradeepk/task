@@ -271,6 +271,7 @@ export interface Bug {
   parentDevId?: string | null // Optional: Parent bug ID for subtasks (e.g., "BUG-0001")
   feature?: string | null   // Optional: Feature name this bug is related to
   type?: 'testcase' | 'feature' | 'other' | null  // Optional: Bug type categorization
+  developmentPrompt?: string | null // Optional: Development prompt or instructions for fixing the bug
   timerState?: string | null // Optional: Timer state (stopped, running, paused)
   timerStartTime?: string | null // Optional: Timer start timestamp
   timerPausedTime?: number | null // Optional: Total paused time in milliseconds
@@ -312,6 +313,7 @@ export interface BugFormData {
   feature?: string | null
   type?: 'testcase' | 'feature' | 'other' | null
   parentDevId?: string | null
+  developmentPrompt?: string | null
 }
 
 // ============================================================================

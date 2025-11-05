@@ -939,9 +939,7 @@ function CreateTaskContent() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
-                {users
-                  .filter(user => user.employeeId !== currentUser.employeeId) // Exclude current user
-                  .map(user => (
+                {users.map(user => (
                 <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
                   <input
                     type="checkbox"

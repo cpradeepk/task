@@ -699,7 +699,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                 projectId: task.projectId,
                 subprojectId: null,
                 department: null,
-                assignedBy: task.assignedBy
+                assignedBy: task.assignedBy,
+                priority: task.priority
               }}
             />
 
