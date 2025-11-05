@@ -5,6 +5,30 @@ import { useRouter } from 'next/navigation'
 import { Task, Bug } from '@/lib/types'
 import { ChevronRight, ChevronDown, Plus, Circle, CheckCircle2 } from 'lucide-react'
 import InlineSubtaskCreate from './InlineSubtaskCreate'
+import { getUserNameByEmployeeId } from '@/lib/auth'
+
+// Component to display assignee name(s)
+function AssigneeName({ employeeId }: { employeeId?: string | string[] }) {
+  const [names, setNames] = useState<string[]>([])
+
+  useEffect(() => {
+    const loadNames = async () => {
+      if (!employeeId) return
+
+      // Handle both single string and array of strings
+      const ids = Array.isArray(employeeId) ? employeeId : [employeeId]
+      const loadedNames = await Promise.all(
+        ids.map(id => getUserNameByEmployeeId(id))
+      )
+      setNames(loadedNames)
+    }
+
+    loadNames()
+  }, [employeeId])
+
+  if (names.length === 0) return null
+  return <span> - {names.join(', ')}</span>
+}
 
 interface SubtasksListProps {
   parentId: string
@@ -178,6 +202,7 @@ export default function SubtasksList({ parentId, parentType, parentData }: Subta
             const id = isTask ? (subtask as Task).taskId : (subtask as Bug).bugId
             const name = isTask ? (subtask as Task).name : (subtask as Bug).title
             const status = subtask.status
+            const assignedTo = subtask.assignedTo
 
             return (
               <div
@@ -192,7 +217,10 @@ export default function SubtasksList({ parentId, parentType, parentData }: Subta
                   <p className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors truncate">
                     {name}
                   </p>
-                  <p className="text-xs text-gray-500">{id}</p>
+                  <p className="text-xs text-gray-500">
+                    {id}
+                    <AssigneeName employeeId={assignedTo} />
+                  </p>
                 </div>
                 <span className={`text-xs px-2 py-1 rounded-full ${
                   status === 'Done' || status === 'Resolved' || status === 'Closed'

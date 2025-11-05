@@ -28,7 +28,6 @@ import {
   Bug as BugIcon,
   MessageSquare,
   Send,
-  Calendar,
   User as UserIcon,
   AlertTriangle,
   CheckCircle,
@@ -154,10 +153,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [environmentOptions, setEnvironmentOptions] = useState<string[]>([])
   const [isLoadingSettings, setIsLoadingSettings] = useState(true)
 
-  // Project/Subproject names
-  const [projectName, setProjectName] = useState<string>('')
-  const [subprojectName, setSubprojectName] = useState<string>('')
-
   // Activity log filter state - default to showing only comments
   const [showActivity, setShowActivity] = useState(false)
   const [showComments, setShowComments] = useState(true)
@@ -282,32 +277,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     return () => document.removeEventListener('keydown', handleEscape)
   }, [showHoursModal])
 
-  // Load project and subproject names
-  const loadProjectNames = useCallback(async () => {
-    if (!bug) return
 
-    try {
-      if (bug.projectId) {
-        const response = await fetch(`/api/projects/${bug.projectId}`)
-        const data = await response.json()
-        // API returns project data directly, not wrapped in { success, data }
-        if (data && data.projectName) {
-          setProjectName(data.projectName)
-        }
-      }
-
-      if (bug.subprojectId) {
-        const response = await fetch(`/api/projects/${bug.subprojectId}`)
-        const data = await response.json()
-        // API returns project data directly, not wrapped in { success, data }
-        if (data && data.projectName) {
-          setSubprojectName(data.projectName)
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load project names:', error)
-    }
-  }, [bug])
 
   // Load related bugs
   const loadRelatedBugs = useCallback(async () => {
@@ -376,12 +346,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     })
   }, [currentUser, router, isHydrated, bugId])
 
-  // Load project names when bug data is available
-  useEffect(() => {
-    if (bug && (bug.projectId || bug.subprojectId)) {
-      loadProjectNames()
-    }
-  }, [bug, loadProjectNames])
+
 
   // Load related bugs when bug data is available
   useEffect(() => {
@@ -806,23 +771,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               <h1 className="text-2xl font-bold text-black flex items-center space-x-2">
                 <BugIcon className="h-6 w-6" />
                 <span>{bug.bugId}</span>
-                <div className="flex items-center space-x-2 mb-2">
-                  {projectName && (
-                    <>
-                      <span className="text-gray-400">-</span>
-                      <span className="text-sm text-gray-700">{projectName}</span>
-                      {subprojectName && (
-                        <>
-                          <span className="text-gray-400">&gt;</span>
-                          <span className="text-sm text-gray-700">{subprojectName}</span>
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
               </h1>
-              
-               
               </div>
             </div>
 
@@ -1329,17 +1278,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <h3 className="text-lg font-semibold mb-4">People</h3>
 
-              <div className="space-y-3">
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Reported by:</span>
-                  <span className="ml-2 text-sm text-gray-900">
-                    <UserName employeeId={bug.reportedBy} />
-                  </span>
-                </div>
-
+              <div className="space-y-2 text-sm">
                 {/* Assigned To - Inline Dropdown */}
                 <div>
-                  <span className="text-sm font-medium text-gray-600">Assigned to:</span>
+                  <span className="font-medium text-gray-600">Assigned to: </span>
                   {canAssign ? (
                     isEditingAssignee ? (
                       <select
@@ -1348,7 +1290,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                         onBlur={() => setIsEditingAssignee(false)}
                         autoFocus
                         disabled={isUpdating}
-                        className="ml-2 text-sm border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Unassigned</option>
                         {users.map((user) => (
@@ -1360,13 +1302,13 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                     ) : (
                       <button
                         onClick={() => setIsEditingAssignee(true)}
-                        className="ml-2 text-sm text-gray-900 hover:text-blue-600 hover:underline"
+                        className="text-gray-900 hover:text-blue-600 hover:underline"
                       >
                         {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
                       </button>
                     )
                   ) : (
-                    <span className="ml-2 text-sm text-gray-900">
+                    <span className="text-gray-900">
                       {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
                     </span>
                   )}
@@ -1374,49 +1316,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
                 {bug.assignedBy && (
                   <div>
-                    <span className="text-sm font-medium text-gray-600">Assigned by:</span>
-                    <span className="ml-2 text-sm text-gray-900">
+                    <span className="font-medium text-gray-600">Assigned by: </span>
+                    <span className="text-gray-900">
                       <UserName employeeId={bug.assignedBy} />
                     </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Timeline</h3>
-
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Created:</span>
-                    <span className="ml-2 text-sm text-gray-900">
-                      {new Date(bug.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Updated:</span>
-                    <span className="ml-2 text-sm text-gray-900">
-                      {new Date(bug.updatedAt).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                {bug.resolvedDate && (
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Resolved:</span>
-                      <span className="ml-2 text-sm text-gray-900">
-                        {new Date(bug.resolvedDate).toLocaleString()}
-                      </span>
-                    </div>
                   </div>
                 )}
 
