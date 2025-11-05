@@ -350,26 +350,30 @@ function CreateTaskContent() {
         throw new Error('Please select at least one user for multi-user assignment')
       }
 
-      // Convert hh:mm:ss to decimal hours
-      const timeRegex = /^(\d{1,2}):(\d{2}):(\d{2})$/
-      const timeMatch = formData.estimatedHours.match(timeRegex)
+      // Convert hh:mm:ss to decimal hours (optional field)
+      let estimatedHours = 0
 
-      if (!timeMatch) {
-        throw new Error('Please enter estimated hours in hh:mm:ss format (e.g., 02:30:00)')
-      }
+      if (formData.estimatedHours && formData.estimatedHours.trim() !== '') {
+        const timeRegex = /^(\d{1,2}):(\d{2}):(\d{2})$/
+        const timeMatch = formData.estimatedHours.match(timeRegex)
 
-      const hours = parseInt(timeMatch[1], 10)
-      const minutes = parseInt(timeMatch[2], 10)
-      const seconds = parseInt(timeMatch[3], 10)
+        if (!timeMatch) {
+          throw new Error('Please enter estimated hours in hh:mm:ss format (e.g., 02:30:00)')
+        }
 
-      if (minutes >= 60 || seconds >= 60) {
-        throw new Error('Invalid time format: minutes and seconds must be less than 60')
-      }
+        const hours = parseInt(timeMatch[1], 10)
+        const minutes = parseInt(timeMatch[2], 10)
+        const seconds = parseInt(timeMatch[3], 10)
 
-      const estimatedHours = hours + (minutes / 60) + (seconds / 3600)
+        if (minutes >= 60 || seconds >= 60) {
+          throw new Error('Invalid time format: minutes and seconds must be less than 60')
+        }
 
-      if (estimatedHours <= 0) {
-        throw new Error('Estimated hours must be greater than 0')
+        estimatedHours = hours + (minutes / 60) + (seconds / 3600)
+
+        if (estimatedHours <= 0) {
+          throw new Error('Estimated hours must be greater than 0')
+        }
       }
 
       let attachmentUrls: string[] = []
@@ -1012,7 +1016,7 @@ function CreateTaskContent() {
           {/* Estimated Hours */}
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-2">
-              Estimated Hours *
+              Estimated Hours (Optional)
             </label>
             <div className="relative max-w-md">
               <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
@@ -1021,7 +1025,6 @@ function CreateTaskContent() {
                 name="estimatedHours"
                 value={formData.estimatedHours}
                 onChange={handleInputChange}
-                required
                 className="input-field pl-10"
                 placeholder="hh:mm:ss (e.g., 02:30:00)"
                 pattern="^\d{1,2}:\d{2}:\d{2}$"

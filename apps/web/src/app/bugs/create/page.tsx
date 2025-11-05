@@ -26,7 +26,6 @@ function CreateBugPageContent() {
     deviceInfo: '',
     expectedBehavior: '',
     actualBehavior: '',
-    developmentPrompt: '',
     attachments: '',
     tags: '',
     relatedBugs: '',
@@ -441,7 +440,32 @@ function CreateBugPageContent() {
               </div>
 
               <div className="grid grid-cols-1 gap-6">
-                {/* Project and Subproject - MOVED TO TOP */}
+                {/* Bug Type - MANDATORY FIELD */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Bug Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type || ''}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                    disabled={isLoadingSettings}
+                    required
+                  >
+                    <option value="">Select type...</option>
+                    {bugTypeOptions.map(type => {
+                      const icon = getIcon('bug_types', type)
+                      return (
+                        <option key={type} value={type}>
+                          {icon && `${icon} `}{type.charAt(0).toUpperCase() + type.slice(1)}
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+
+                {/* Project and Subproject */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -650,62 +674,37 @@ function CreateBugPageContent() {
                   </div>
                 </div>
 
-                {/* Bug Type and Related Bugs */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Bug Type (Optional)
-                    </label>
-                    <select
-                      name="type"
-                      value={formData.type || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                      disabled={isLoadingSettings}
-                    >
-                      <option value="">Select type...</option>
-                      {bugTypeOptions.map(type => {
-                        const icon = getIcon('bug_types', type)
-                        return (
-                          <option key={type} value={type}>
-                            {icon && `${icon} `}{type.charAt(0).toUpperCase() + type.slice(1)}
-                          </option>
-                        )
-                      })}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
-                      <Bug className="h-4 w-4" />
-                      <span>Related Bugs (Optional)</span>
-                    </label>
-                    <select
-                      multiple
-                      name="relatedBugs"
-                      value={formData.relatedBugs ? formData.relatedBugs.split(',').map(b => b.trim()) : []}
-                      onChange={(e) => {
-                        const selected = Array.from(e.target.selectedOptions).map(opt => opt.value)
-                        setFormData(prev => ({ ...prev, relatedBugs: selected.join(', ') }))
-                      }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                      disabled={isLoadingBugs || !formData.projectId}
-                      size={4}
-                    >
-                      {isLoadingBugs ? (
-                        <option disabled>Loading bugs...</option>
-                      ) : allBugs.length === 0 ? (
-                        <option disabled>No open bugs in this project</option>
-                      ) : (
-                        allBugs.map(bug => (
-                          <option key={bug.bugId} value={bug.bugId}>
-                            {bug.bugId} - {bug.title}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple bugs</p>
-                  </div>
+                {/* Related Bugs */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
+                    <Bug className="h-4 w-4" />
+                    <span>Related Bugs (Optional)</span>
+                  </label>
+                  <select
+                    multiple
+                    name="relatedBugs"
+                    value={formData.relatedBugs ? formData.relatedBugs.split(',').map(b => b.trim()) : []}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions).map(opt => opt.value)
+                      setFormData(prev => ({ ...prev, relatedBugs: selected.join(', ') }))
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                    disabled={isLoadingBugs || !formData.projectId}
+                    size={4}
+                  >
+                    {isLoadingBugs ? (
+                      <option disabled>Loading bugs...</option>
+                    ) : allBugs.length === 0 ? (
+                      <option disabled>No open bugs in this project</option>
+                    ) : (
+                      allBugs.map(bug => (
+                        <option key={bug.bugId} value={bug.bugId}>
+                          {bug.bugId} - {bug.title}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple bugs</p>
                 </div>
 
                 {/* Assign To - Sorted by employee_id */}
@@ -796,21 +795,6 @@ function CreateBugPageContent() {
                       placeholder="What actually happened? Describe what went wrong..."
                     />
                   </div>
-                </div>
-
-                {/* Development Prompt */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Development Prompt
-                  </label>
-                  <textarea
-                    name="developmentPrompt"
-                    value={formData.developmentPrompt || ''}
-                    onChange={handleInputChange}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
-                    placeholder="Optional: Add development instructions or prompts for fixing this bug..."
-                  />
                 </div>
 
               </div>
