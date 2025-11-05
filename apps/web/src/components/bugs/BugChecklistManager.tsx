@@ -18,7 +18,7 @@ export default function BugChecklistManager({
   parentBugId,
   createdBy,
   editable = false,
-  showAssignee = true,
+  showAssignee = false,
   defaultExpanded = true,
   compact = false
 }: BugChecklistManagerProps) {
@@ -61,7 +61,7 @@ export default function BugChecklistManager({
       >
         <div className="flex items-center space-x-2">
           <ListTodo className="h-5 w-5 text-gray-600" />
-          <span className="font-medium text-gray-900">Subtasks</span>
+          <span className="font-medium text-gray-900">Checklists</span>
         </div>
         {isExpanded ? (
           <ChevronDown className="h-5 w-5 text-gray-600" />

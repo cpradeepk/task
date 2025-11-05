@@ -167,8 +167,6 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
         environment: bug.environment,
         browserInfo: bug.browserInfo || '',
         deviceInfo: bug.deviceInfo || '',
-        serverLogs: bug.serverLogs || '',
-        frontendLogs: bug.frontendLogs || '',
         expectedBehavior: bug.expectedBehavior || '',
         actualBehavior: bug.actualBehavior || '',
         estimatedHours: bug.estimatedHours,
@@ -538,33 +536,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
             </div>
           </div>
 
-          {/* Server Logs and Frontend Logs */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Server Logs
-              </label>
-              <textarea
-                value={formData.serverLogs || ''}
-                onChange={(e) => setFormData({ ...formData, serverLogs: e.target.value })}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
-                placeholder="Server-side error logs, stack traces..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Frontend Logs
-              </label>
-              <textarea
-                value={formData.frontendLogs || ''}
-                onChange={(e) => setFormData({ ...formData, frontendLogs: e.target.value })}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
-                placeholder="Browser console errors, warnings..."
-              />
-            </div>
-          </div>
+
 
           {/* Tags */}
           <div className="space-y-2">

@@ -256,8 +256,6 @@ export interface Bug {
   environment: 'Development' | 'Staging' | 'Production'  // Where was the bug found?
   browserInfo?: string      // Optional: Browser details (e.g., "Chrome 120.0.0")
   deviceInfo?: string       // Optional: Device details (e.g., "iPhone 15 Pro, iOS 17.2")
-  serverLogs?: string       // Optional: Server-side logs and error traces
-  frontendLogs?: string     // Optional: Frontend console logs and errors
   expectedBehavior?: string // Optional: What should happen
   actualBehavior?: string   // Optional: What actually happens
   attachments?: string      // Optional: URL or file path to screenshots/videos
@@ -303,8 +301,6 @@ export interface BugFormData {
   environment: Bug['environment']
   browserInfo?: string
   deviceInfo?: string
-  serverLogs?: string
-  frontendLogs?: string
   expectedBehavior?: string
   actualBehavior?: string
   attachments?: string
