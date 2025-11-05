@@ -8,11 +8,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { 
-  s3Client, 
-  S3_BUCKET, 
-  isS3Configured, 
+import {
+  s3Client,
+  S3_BUCKET,
+  isS3Configured,
   generateBugAttachmentKey,
+  generateCommentAttachmentKey,
   ALLOWED_FILE_TYPES,
   MAX_FILE_SIZE,
   getS3FileUrl
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { files } = body
+    const { files, uploadType = 'bug' } = body // uploadType: 'bug' or 'comment'
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return NextResponse.json(
@@ -98,8 +99,10 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // Generate S3 key
-        const key = generateBugAttachmentKey(name)
+        // Generate S3 key based on upload type
+        const key = uploadType === 'comment'
+          ? generateCommentAttachmentKey(name)
+          : generateBugAttachmentKey(name)
 
         // Create PutObject command
         const command = new PutObjectCommand({

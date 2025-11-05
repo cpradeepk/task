@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { ActivityLog } from '@/lib/db/activityLog'
+import { Upload, X, Image as ImageIcon, Video, FileText } from 'lucide-react'
 
 interface UnifiedTimelineProps {
   entityType: 'task' | 'bug' | 'leave' | 'wfh'
@@ -47,6 +48,9 @@ export default function UnifiedTimeline({
   const [error, setError] = useState<string | null>(null)
   const [commentText, setCommentText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Apply filter if provided
   const filteredActivities = filterFn ? activities.filter(filterFn) : activities
@@ -93,6 +97,40 @@ export default function UnifiedTimeline({
     return () => clearInterval(interval)
   }, [autoRefresh, refreshInterval, fetchActivities])
 
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+
+    const newFiles = Array.from(files).filter(file => {
+      // Validate file type
+      const allowedTypes = [
+        'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp',
+        'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'
+      ]
+      if (!allowedTypes.includes(file.type)) {
+        alert(`${file.name}: Invalid file type. Only images and videos are allowed.`)
+        return false
+      }
+
+      // Validate file size (10MB)
+      const maxSize = 10 * 1024 * 1024
+      if (file.size > maxSize) {
+        alert(`${file.name}: File size exceeds 10MB limit.`)
+        return false
+      }
+
+      return true
+    })
+
+    setUploadedFiles(prev => [...prev, ...newFiles])
+  }
+
+  // Remove file
+  const handleRemoveFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
   // Submit comment
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -101,6 +139,61 @@ export default function UnifiedTimeline({
 
     setIsSubmitting(true)
     try {
+      let attachmentUrls: string[] = []
+
+      // Upload files if any
+      if (uploadedFiles.length > 0) {
+        setIsUploading(true)
+        try {
+          // Step 1: Get presigned URLs
+          const presignedResponse = await fetch('/api/upload/presigned-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              uploadType: 'comment',
+              files: uploadedFiles.map(f => ({
+                name: f.name,
+                type: f.type,
+                size: f.size
+              }))
+            })
+          })
+
+          const presignedResult = await presignedResponse.json()
+
+          if (!presignedResult.success) {
+            throw new Error(presignedResult.error || 'Failed to get upload URLs')
+          }
+
+          // Step 2: Upload files directly to S3
+          const uploadPromises = presignedResult.uploads.map(async (upload: any, index: number) => {
+            const file = uploadedFiles[index]
+
+            const s3Response = await fetch(upload.uploadUrl, {
+              method: 'PUT',
+              body: file,
+              headers: {
+                'Content-Type': file.type
+              }
+            })
+
+            if (!s3Response.ok) {
+              throw new Error(`Failed to upload ${file.name} to S3`)
+            }
+
+            return upload.fileUrl
+          })
+
+          attachmentUrls = await Promise.all(uploadPromises)
+        } catch (uploadError) {
+          setIsUploading(false)
+          throw uploadError
+        }
+
+        setIsUploading(false)
+      }
+
       const response = await fetch('/api/activity-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -110,7 +203,8 @@ export default function UnifiedTimeline({
           entityId,
           actionType: 'comment',
           description: commentText.trim(),
-          isComment: true
+          isComment: true,
+          attachments: attachmentUrls.length > 0 ? attachmentUrls.join(', ') : undefined
         })
       })
 
@@ -118,6 +212,7 @@ export default function UnifiedTimeline({
 
       if (data.success) {
         setCommentText('')
+        setUploadedFiles([])
         await fetchActivities() // Refresh timeline
       } else {
         alert(data.error || 'Failed to add comment')
@@ -230,42 +325,94 @@ export default function UnifiedTimeline({
             rows={3}
             disabled={isSubmitting}
           />
+
+          {/* File Upload Section */}
+          {uploadedFiles.length > 0 && (
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {uploadedFiles.map((file, index) => (
+                <div key={index} className="relative group rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+                  <div className="aspect-square bg-gray-100 flex items-center justify-center p-2">
+                    {file.type.startsWith('image/') ? (
+                      <ImageIcon className="h-8 w-8 text-gray-400" />
+                    ) : file.type.startsWith('video/') ? (
+                      <Video className="h-8 w-8 text-gray-400" />
+                    ) : (
+                      <FileText className="h-8 w-8 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="p-2">
+                    <p className="text-xs text-gray-600 truncate">{file.name}</p>
+                    <p className="text-xs text-gray-400">{(file.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFile(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex justify-between items-center mt-2">
-            {/* Filter Toggles - Left aligned */}
-            {onToggleActivity && onToggleComments && (
-              <div className="flex items-center space-x-2">
-                <button
-                  type="button"
-                  onClick={onToggleActivity}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    showActivity
-                      ? 'bg-orange-500 text-white hover:bg-orange-600'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Activity
-                </button>
-                <button
-                  type="button"
-                  onClick={onToggleComments}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    showComments
-                      ? 'bg-orange-500 text-white hover:bg-orange-600'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Comments
-                </button>
-              </div>
-            )}
+            <div className="flex items-center space-x-2">
+              {/* Filter Toggles */}
+              {onToggleActivity && onToggleComments && (
+                <>
+                  <button
+                    type="button"
+                    onClick={onToggleActivity}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      showActivity
+                        ? 'bg-orange-500 text-white hover:bg-orange-600'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Activity
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onToggleComments}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      showComments
+                        ? 'bg-orange-500 text-white hover:bg-orange-600'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Comments
+                  </button>
+                </>
+              )}
+
+              {/* File Upload Button */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isSubmitting || isUploading}
+                className="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1"
+              >
+                <Upload className="h-4 w-4" />
+                <span>Attach</span>
+              </button>
+            </div>
 
             {/* Post Comment Button - Right aligned */}
             <button
               type="submit"
-              disabled={isSubmitting || !commentText.trim()}
+              disabled={isSubmitting || isUploading || !commentText.trim()}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? 'Posting...' : 'Post Comment'}
+              {isUploading ? 'Uploading...' : isSubmitting ? 'Posting...' : 'Post Comment'}
             </button>
           </div>
         </form>
@@ -314,6 +461,42 @@ export default function UnifiedTimeline({
                   <p className="text-gray-700 whitespace-pre-wrap break-words">
                     {activity.description}
                   </p>
+
+                  {/* Attachments */}
+                  {activity.attachments && (
+                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {activity.attachments.split(', ').map((url, index) => {
+                        const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                        const isVideo = url.match(/\.(mp4|mov|avi|webm)$/i)
+
+                        return (
+                          <a
+                            key={index}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                          >
+                            {isImage ? (
+                              <img
+                                src={url}
+                                alt={`Attachment ${index + 1}`}
+                                className="w-full h-32 object-cover"
+                              />
+                            ) : isVideo ? (
+                              <div className="relative w-full h-32 bg-gray-100 flex items-center justify-center">
+                                <Video className="h-12 w-12 text-gray-400" />
+                              </div>
+                            ) : (
+                              <div className="relative w-full h-32 bg-gray-100 flex items-center justify-center">
+                                <FileText className="h-12 w-12 text-gray-400" />
+                              </div>
+                            )}
+                          </a>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Delete button for comments */}

@@ -18,6 +18,7 @@ export interface ActivityLog {
   newValue?: string | null
   description: string
   isComment: boolean
+  attachments?: string | null // Comma-separated S3 URLs for comment attachments
   createdAt: string
 }
 
@@ -34,6 +35,7 @@ export interface CreateActivityLogInput {
   newValue?: string
   description: string
   isComment?: boolean
+  attachments?: string // Comma-separated S3 URLs for comment attachments
 }
 
 /**
@@ -80,8 +82,8 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
       query<any[]>(
         `INSERT INTO activity_log (
           entity_type, entity_id, user_id, action_type,
-          field_name, old_value, new_value, description, is_comment, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+          field_name, old_value, new_value, description, is_comment, attachments, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
         [
           input.entityType,
           input.entityId,
@@ -92,6 +94,7 @@ export async function createActivityLog(input: CreateActivityLogInput): Promise<
           input.newValue || null,
           input.description,
           input.isComment ? 1 : 0,  // Convert boolean to integer (0/1) for PostgreSQL
+          input.attachments || null,
           istTimestamp
         ]
       ),
@@ -138,6 +141,7 @@ export async function getActivityLogById(id: number): Promise<ActivityLog | null
           al.new_value as "newValue",
           al.description,
           al.is_comment as "isComment",
+          al.attachments,
           al.created_at as "createdAt"
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
@@ -194,6 +198,7 @@ export async function getActivityLogByEntity(
           al.new_value as "newValue",
           al.description,
           al.is_comment as "isComment",
+          al.attachments,
           al.created_at as "createdAt"
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
@@ -257,6 +262,7 @@ export async function getCommentsByEntity(
           al.new_value as "newValue",
           al.description,
           al.is_comment as "isComment",
+          al.attachments,
           al.created_at as "createdAt"
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
@@ -310,6 +316,7 @@ export async function getSystemActivitiesByEntity(
           al.new_value as "newValue",
           al.description,
           al.is_comment as "isComment",
+          al.attachments,
           al.created_at as "createdAt"
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
