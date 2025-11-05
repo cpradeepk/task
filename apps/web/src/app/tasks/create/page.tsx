@@ -124,7 +124,7 @@ function CreateTaskContent() {
 
         // Process task priorities
         const prioritiesSetting = settings.find((s: any) => s.key === 'task_priorities')
-        const priorities = prioritiesSetting?.value || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)']
+        const priorities = prioritiesSetting?.value || ['U&I', 'NU&I', 'NI&U', 'NU&NI']
         setTaskPriorityOptions(priorities)
 
         // Process departments
@@ -137,7 +137,7 @@ function CreateTaskContent() {
         console.warn('Settings API returned empty data, using defaults:', data)
         // Use default options if API returns empty
         setTaskStatusOptions(['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'])
-        setTaskPriorityOptions(['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)'])
+        setTaskPriorityOptions(['U&I', 'NU&I', 'NI&U', 'NU&NI'])
         setDepartmentOptions([])
       }
 
@@ -146,7 +146,7 @@ function CreateTaskContent() {
       console.error('Failed to load settings:', error)
       // Use default options on error
       setTaskStatusOptions(['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'])
-      setTaskPriorityOptions(['IU&I (Important & Urgent)', 'IU&NI (Important & Not Urgent)', 'NU&I (Not Urgent & Important)', 'NU&NI (Not Urgent & Not Important)'])
+      setTaskPriorityOptions(['U&I', 'NU&I', 'NI&U', 'NU&NI'])
       setDepartmentOptions([])
       setError('Using default dropdown options. Database settings may be unavailable.')
       setSettingsLoaded(true)
