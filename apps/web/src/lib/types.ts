@@ -259,6 +259,8 @@ export interface Bug {
   deviceInfo?: string       // Optional: Device details (e.g., "iPhone 15 Pro, iOS 17.2")
   expectedBehavior?: string // Optional: What should happen
   actualBehavior?: string   // Optional: What actually happens
+  serverLogs?: string       // Optional: Server-side logs and errors
+  frontendLogs?: string     // Optional: Frontend console logs and errors
   attachments?: string      // Optional: URL or file path to screenshots/videos
   estimatedHours?: number   // Optional: Estimated time to fix (in hours)
   actualHours?: number      // Optional: Actual time spent fixing (in hours)
@@ -305,6 +307,8 @@ export interface BugFormData {
   deviceInfo?: string
   expectedBehavior?: string
   actualBehavior?: string
+  serverLogs?: string
+  frontendLogs?: string
   attachments?: string
   estimatedHours?: number
   tags?: string

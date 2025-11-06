@@ -169,6 +169,8 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
         deviceInfo: bug.deviceInfo || '',
         expectedBehavior: bug.expectedBehavior || '',
         actualBehavior: bug.actualBehavior || '',
+        serverLogs: bug.serverLogs || '',
+        frontendLogs: bug.frontendLogs || '',
         estimatedHours: bug.estimatedHours,
         actualHours: bug.actualHours,
         tags: bug.tags || '',
@@ -533,6 +535,34 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="What actually happens..."
+              />
+            </div>
+          </div>
+
+          {/* Server Logs and Frontend Logs */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Server Logs
+              </label>
+              <textarea
+                value={formData.serverLogs || ''}
+                onChange={(e) => setFormData({ ...formData, serverLogs: e.target.value })}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
+                placeholder="Server-side logs, stack traces, or error messages..."
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Frontend Logs
+              </label>
+              <textarea
+                value={formData.frontendLogs || ''}
+                onChange={(e) => setFormData({ ...formData, frontendLogs: e.target.value })}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
+                placeholder="Browser console logs, JavaScript errors, or network errors..."
               />
             </div>
           </div>

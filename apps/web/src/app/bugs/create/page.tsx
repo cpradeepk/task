@@ -26,6 +26,8 @@ function CreateBugPageContent() {
     deviceInfo: '',
     expectedBehavior: '',
     actualBehavior: '',
+    serverLogs: '',
+    frontendLogs: '',
     attachments: '',
     tags: '',
     relatedBugs: '',
@@ -793,6 +795,37 @@ function CreateBugPageContent() {
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
                       placeholder="What actually happened? Describe what went wrong..."
+                    />
+                  </div>
+                </div>
+
+                {/* Server Logs and Frontend Logs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Server Logs
+                    </label>
+                    <textarea
+                      name="serverLogs"
+                      value={formData.serverLogs}
+                      onChange={handleInputChange}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical font-mono text-sm"
+                      placeholder="Paste server-side logs, stack traces, or error messages..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Frontend Logs
+                    </label>
+                    <textarea
+                      name="frontendLogs"
+                      value={formData.frontendLogs}
+                      onChange={handleInputChange}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical font-mono text-sm"
+                      placeholder="Paste browser console logs, JavaScript errors, or network errors..."
                     />
                   </div>
                 </div>

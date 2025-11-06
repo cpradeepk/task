@@ -915,6 +915,20 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   </div>
                 )}
 
+                {bug.serverLogs && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Server Logs</h3>
+                    <pre className="text-gray-700 whitespace-pre-wrap font-mono text-sm bg-gray-50 p-4 rounded-lg overflow-x-auto">{bug.serverLogs}</pre>
+                  </div>
+                )}
+
+                {bug.frontendLogs && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2">Frontend Logs</h3>
+                    <pre className="text-gray-700 whitespace-pre-wrap font-mono text-sm bg-gray-50 p-4 rounded-lg overflow-x-auto">{bug.frontendLogs}</pre>
+                  </div>
+                )}
+
                 {bug.developmentPrompt && (
                   <div>
                     <h3 className="font-medium text-gray-900 mb-2">Development Prompt</h3>
