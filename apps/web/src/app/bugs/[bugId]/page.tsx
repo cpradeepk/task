@@ -1396,69 +1396,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               canEdit={canEdit}
             />
 
-            {/* People */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">People</h3>
-
-              <div className="space-y-2 text-sm">
-                {/* Assigned To - Inline Dropdown */}
-                <div>
-                  <span className="font-medium text-gray-600">Assigned to: </span>
-                  {canAssign ? (
-                    isEditingAssignee ? (
-                      <select
-                        value={bug.assignedTo || ''}
-                        onChange={(e) => handleAssigneeChange(e.target.value)}
-                        onBlur={() => setIsEditingAssignee(false)}
-                        autoFocus
-                        disabled={isUpdating}
-                        className="border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Unassigned</option>
-                        {users.map((user) => (
-                          <option key={user.employeeId} value={user.employeeId}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <button
-                        onClick={() => setIsEditingAssignee(true)}
-                        className="text-gray-900 hover:text-blue-600 hover:underline"
-                      >
-                        {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
-                      </button>
-                    )
-                  ) : (
-                    <span className="text-gray-900">
-                      {bug.assignedTo ? <UserName employeeId={bug.assignedTo} /> : 'Unassigned'}
-                    </span>
-                  )}
-                </div>
-
-                {bug.assignedBy && (
-                  <div>
-                    <span className="font-medium text-gray-600">Assigned by: </span>
-                    <span className="text-gray-900">
-                      <UserName employeeId={bug.assignedBy} />
-                    </span>
-                  </div>
-                )}
-
-                {bug.closedDate && (
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-gray-400" />
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Closed:</span>
-                      <span className="ml-2 text-sm text-gray-900">
-                        {new Date(bug.closedDate).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Bug Workflow */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <h3 className="text-lg font-semibold mb-4">Bug Tracking Flow</h3>

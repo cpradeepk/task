@@ -1113,53 +1113,6 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               canEdit={canEdit}
             />
 
-            {/* People */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">People</h3>
-
-              <div className="space-y-3">
-                {/* Assigned To - Display multiple assignees */}
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Assigned to:</span>
-                  <span className="ml-2 text-sm text-gray-900">
-                    <AssigneeList assignedTo={task.assignedTo} showIcon={true} maxDisplay={5} />
-                  </span>
-                  {canAssign && (
-                    <button
-                      onClick={() => setTaskEditModalOpen(true)}
-                      className="ml-2 text-xs text-blue-600 hover:text-blue-800 hover:underline"
-                    >
-                      Edit
-                    </button>
-                  )}
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Assigned by:</span>
-                  <span className="ml-2 text-sm text-gray-900">
-                    <UserName employeeId={task.assignedBy} />
-                  </span>
-                </div>
-
-                {/* Support Team */}
-                {task.support && task.support.length > 0 && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Support Team:</span>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {task.support.map((employeeId) => (
-                        <span key={employeeId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
-                          <UserIcon className="h-3 w-3 mr-1" />
-                          <UserName employeeId={employeeId} />
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-
-
             {/* Related Tasks */}
             {relatedTasksData.length > 0 && (
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
