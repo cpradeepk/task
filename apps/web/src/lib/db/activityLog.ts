@@ -452,12 +452,48 @@ export async function logEntityChanges(
     // Skip ignored fields
     if (ignoreFields.includes(key)) continue
 
-    // Skip if value hasn't changed
+    // Get old value
     const oldValue = oldEntity[key]
-    if (oldValue === newValue) continue
 
-    // Skip if both are null/undefined
-    if ((oldValue === null || oldValue === undefined) && (newValue === null || newValue === undefined)) continue
+    // Normalize values for comparison (treat empty strings, null, and undefined as equivalent)
+    const normalizeValue = (val: any): any => {
+      // Handle strings - trim whitespace
+      if (typeof val === 'string') {
+        const trimmed = val.trim()
+        return trimmed === '' ? null : trimmed
+      }
+      // Handle null/undefined
+      if (val === null || val === undefined) {
+        return null
+      }
+      // Handle arrays - deep comparison
+      if (Array.isArray(val)) {
+        return val.length === 0 ? null : val
+      }
+      // Handle objects - deep comparison
+      if (typeof val === 'object') {
+        return Object.keys(val).length === 0 ? null : val
+      }
+      return val
+    }
+
+    const normalizedOldValue = normalizeValue(oldValue)
+    const normalizedNewValue = normalizeValue(newValue)
+
+    // Skip if values are the same after normalization
+    if (normalizedOldValue === normalizedNewValue) continue
+
+    // Skip if both are null after normalization (empty string → null, etc.)
+    if (normalizedOldValue === null && normalizedNewValue === null) continue
+
+    // For arrays and objects, do deep comparison
+    if (Array.isArray(normalizedOldValue) && Array.isArray(normalizedNewValue)) {
+      if (JSON.stringify(normalizedOldValue) === JSON.stringify(normalizedNewValue)) continue
+    }
+    if (typeof normalizedOldValue === 'object' && typeof normalizedNewValue === 'object' &&
+        normalizedOldValue !== null && normalizedNewValue !== null) {
+      if (JSON.stringify(normalizedOldValue) === JSON.stringify(normalizedNewValue)) continue
+    }
 
     // Get human-readable label
     const label = fieldLabels?.[key] || key
@@ -470,9 +506,9 @@ export async function logEntityChanges(
     else if (key === 'estimatedHours' || key === 'estimated_hours') actionType = 'estimated_hours_change'
     else if (key === 'actualHours' || key === 'actual_hours') actionType = 'time_logged'
 
-    // Format values for display
-    const oldValueStr = oldValue !== null && oldValue !== undefined ? String(oldValue) : null
-    const newValueStr = newValue !== null && newValue !== undefined ? String(newValue) : null
+    // Format values for display (use normalized values)
+    const oldValueStr = normalizedOldValue !== null ? String(normalizedOldValue) : null
+    const newValueStr = normalizedNewValue !== null ? String(normalizedNewValue) : null
 
     // Create description
     const description = oldValueStr

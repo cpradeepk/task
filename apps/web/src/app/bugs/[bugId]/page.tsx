@@ -829,7 +829,60 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   </>
                 )}
               </h1>
+
+              {/* Assignee Dropdown */}
+              <div className="mt-2 flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Assigned to:</span>
+                {canEdit ? (
+                  <select
+                    value={bug.assignedTo || ''}
+                    onChange={async (e) => {
+                      const newAssignee = e.target.value
+                      const oldAssignee = bug.assignedTo
+
+                      // Optimistic update
+                      setBug({ ...bug, assignedTo: newAssignee })
+
+                      try {
+                        const response = await fetch(`/api/bugs/${bug.bugId}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ assignedTo: newAssignee })
+                        })
+
+                        if (!response.ok) {
+                          // Revert on error
+                          setBug({ ...bug, assignedTo: oldAssignee })
+                          throw new Error('Failed to update assignee')
+                        }
+
+                        // Reload bug data to get updated activity log
+                        loadBugData()
+                      } catch (error) {
+                        console.error('Error updating assignee:', error)
+                        // Revert on error
+                        setBug({ ...bug, assignedTo: oldAssignee })
+                      }
+                    }}
+                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Unassigned</option>
+                    {users
+                      .filter(u => u.status === 'active')
+                      .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
+                      .map(user => (
+                        <option key={user.employeeId} value={user.employeeId}>
+                          {user.employeeId} - {user.name}
+                        </option>
+                      ))}
+                  </select>
+                ) : (
+                  <span className="text-sm font-medium text-gray-900">
+                    {bug.assignedTo ? `${bug.assignedTo} - ${users.find(u => u.employeeId === bug.assignedTo)?.name || 'Unknown'}` : 'Unassigned'}
+                  </span>
+                )}
               </div>
+            </div>
             </div>
 
           <div className="flex flex-wrap items-center gap-3 lg:justify-end">
@@ -1016,7 +1069,19 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </div>
             </div>
 
-
+            {/* Subtasks */}
+            <SubtasksList
+              key={subtasksKey}
+              parentId={bug.bugId}
+              parentType="bug"
+              parentData={{
+                projectId: bug.projectId,
+                subprojectId: bug.subprojectId,
+                department: null,
+                assignedBy: bug.assignedBy || bug.reportedBy,
+                priority: bug.priority
+              }}
+            />
 
             {/* Activity Timeline (includes comments and system activities) */}
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
@@ -1323,20 +1388,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 compact={false}
               />
             </div>
-
-            {/* Subtasks */}
-            <SubtasksList
-              key={subtasksKey}
-              parentId={bug.bugId}
-              parentType="bug"
-              parentData={{
-                projectId: bug.projectId,
-                subprojectId: bug.subprojectId,
-                department: null,
-                assignedBy: bug.assignedBy || bug.reportedBy,
-                priority: bug.priority
-              }}
-            />
 
             {/* Related Items */}
             <RelatedItemsManager
