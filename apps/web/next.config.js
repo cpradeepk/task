@@ -7,7 +7,14 @@ const nextConfig = {
 
   // Image optimization for Vercel
   images: {
-    domains: [],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'amtariksha.s3.ap-south-1.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
     unoptimized: false,
   },
 

@@ -47,7 +47,12 @@ export async function GET(request: NextRequest) {
     // Build user map from referenced IDs
     const idSet = new Set<string>()
     tasks.forEach((t: any) => {
-      if (t.assignedTo) idSet.add(t.assignedTo)
+      // assignedTo is now a JSONB array
+      if (Array.isArray(t.assignedTo)) {
+        t.assignedTo.forEach((id: string) => idSet.add(id))
+      } else if (t.assignedTo) {
+        idSet.add(t.assignedTo) // Backward compatibility
+      }
       if (t.assignedBy) idSet.add(t.assignedBy)
       if (Array.isArray(t.support)) t.support.forEach((s: string) => idSet.add(s))
     })

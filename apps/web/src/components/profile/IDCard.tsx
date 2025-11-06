@@ -46,120 +46,149 @@ export default function IDCard({ user }: IDCardProps) {
             <head>
               <title>Employee ID Card - ${user.name}</title>
               <style>
-                body { 
-                  margin: 0; 
-                  padding: 20px; 
-                  font-family: Arial, sans-serif; 
+                * { box-sizing: border-box; }
+                body {
+                  margin: 0;
+                  padding: 20px;
+                  font-family: Arial, sans-serif;
                   background: white;
                 }
                 .id-card-print {
-                  width: 3.375in;
-                  height: 2.125in;
-                  border: 2px solid #FFA301;
-                  border-radius: 12px;
-                  padding: 16px;
-                  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                  width: 5.5in;
+                  height: 3.5in;
+                  border: 2px solid #e5e7eb;
+                  border-radius: 24px;
+                  background: white;
                   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                   margin: 0 auto;
-                  position: relative;
                   overflow: hidden;
+                  display: flex;
                 }
-                .header { 
-                  text-align: center; 
-                  margin-bottom: 12px; 
-                  border-bottom: 1px solid #e5e7eb;
-                  padding-bottom: 8px;
+                .orange-sidebar {
+                  width: 0.75in;
+                  background: linear-gradient(to bottom, #f97316, #ea580c);
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: space-between;
+                  padding: 24px 0;
                 }
-                .company-name { 
-                  font-size: 14px; 
-                  font-weight: bold; 
-                  color: #FFA301; 
-                  margin-bottom: 2px;
-                }
-                .card-title { 
-                  font-size: 10px; 
-                  color: #6b7280; 
-                  text-transform: uppercase;
-                  letter-spacing: 0.5px;
-                }
-                .employee-info { 
-                  display: flex; 
-                  align-items: center; 
-                  gap: 12px;
-                }
-                .avatar { 
-                  width: 48px; 
-                  height: 48px; 
-                  background: #FFA301; 
-                  border-radius: 50%; 
-                  display: flex; 
-                  align-items: center; 
-                  justify-content: center; 
-                  color: black; 
-                  font-weight: bold; 
-                  font-size: 16px;
-                  flex-shrink: 0;
-                }
-                .details { 
-                  flex: 1; 
-                  min-width: 0;
-                }
-                .name { 
-                  font-size: 12px; 
-                  font-weight: bold; 
-                  color: #111827; 
-                  margin-bottom: 2px;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                }
-                .employee-id { 
-                  font-size: 10px; 
-                  color: #6b7280; 
-                  margin-bottom: 4px;
-                  font-family: monospace;
-                }
-                .department { 
-                  font-size: 9px; 
-                  color: #374151; 
-                  margin-bottom: 2px;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                }
-                .role { 
-                  font-size: 8px; 
-                  background: #f3f4f6; 
-                  color: #374151; 
-                  padding: 2px 6px; 
-                  border-radius: 4px; 
-                  display: inline-block;
-                  text-transform: uppercase;
-                  letter-spacing: 0.3px;
-                }
-                .footer { 
-                  position: absolute; 
-                  bottom: 8px; 
-                  left: 16px; 
-                  right: 16px; 
-                  text-align: center; 
-                  font-size: 7px; 
-                  color: #9ca3af;
+                .qr-code-box {
+                  width: 60px;
+                  height: 60px;
+                  background: white;
+                  border-radius: 8px;
+                  padding: 6px;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
                 .qr-placeholder {
-                  position: absolute;
-                  top: 16px;
-                  right: 16px;
-                  width: 32px;
-                  height: 32px;
-                  border: 1px solid #d1d5db;
+                  width: 100%;
+                  height: 100%;
+                  background: rgba(0,0,0,0.1);
                   border-radius: 4px;
                   display: flex;
                   align-items: center;
                   justify-content: center;
                   font-size: 8px;
+                  color: #666;
+                }
+                .verified-badge {
+                  color: white;
+                  font-size: 9px;
+                  margin-top: 6px;
+                  display: flex;
+                  align-items: center;
+                  gap: 3px;
+                }
+                .content-area {
+                  flex: 1;
+                  padding: 32px;
+                  display: flex;
+                  flex-direction: column;
+                }
+                .company-header {
+                  text-align: center;
+                  margin-bottom: 24px;
+                }
+                .company-logo {
+                  width: 48px;
+                  height: 48px;
+                  background: linear-gradient(to bottom right, #f97316, #ea580c);
+                  border-radius: 50%;
+                  margin: 0 auto 12px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+                }
+                .company-name {
+                  font-size: 20px;
+                  font-weight: bold;
+                  color: #111827;
+                }
+                .employee-section {
+                  display: flex;
+                  gap: 24px;
+                  margin-bottom: 24px;
+                }
+                .photo-container {
+                  flex-shrink: 0;
+                }
+                .employee-photo {
+                  width: 100px;
+                  height: 100px;
+                  border-radius: 16px;
+                  border: 3px solid #e5e7eb;
+                  object-fit: cover;
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                .avatar-placeholder {
+                  width: 100px;
+                  height: 100px;
+                  background: linear-gradient(to bottom right, #f97316, #ea580c);
+                  border-radius: 16px;
+                  border: 3px solid #e5e7eb;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: white;
+                  font-weight: bold;
+                  font-size: 32px;
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                .employee-info {
+                  flex: 1;
+                  padding-top: 6px;
+                }
+                .employee-name {
+                  font-size: 24px;
+                  font-weight: bold;
+                  color: #111827;
+                  margin-bottom: 6px;
+                }
+                .employee-role {
+                  font-size: 14px;
                   color: #6b7280;
-                  background: white;
+                  margin-bottom: 16px;
+                }
+                .details-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 12px;
+                  font-size: 11px;
+                }
+                .detail-item {
+                  display: flex;
+                  flex-direction: column;
+                }
+                .detail-label {
+                  color: #6b7280;
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                }
+                .detail-value {
+                  color: #111827;
+                  font-weight: 600;
                 }
                 @media print {
                   body { margin: 0; padding: 0; }
@@ -213,104 +242,83 @@ export default function IDCard({ user }: IDCardProps) {
 
             {/* Modal Content */}
             <div className="p-6">
-              {/* Modern ID Card Preview */}
+              {/* Modern ID Card Preview - New Design */}
               <div className="flex justify-center mb-6">
                 <div
                   id="id-card-print"
-                  className="id-card-print w-full max-w-md bg-gradient-to-br from-orange-50 via-white to-orange-50 rounded-2xl shadow-2xl overflow-hidden border border-orange-200"
+                  className="id-card-print w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-gray-200"
+                  style={{ aspectRatio: '16/9' }}
                 >
-                  {/* Card Header with Company Branding */}
-                  <div className="bg-gradient-to-r from-primary to-orange-500 px-6 py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                          <Building className="h-6 w-6 text-primary" />
+                  <div className="flex h-full">
+                    {/* Left Orange Sidebar */}
+                    <div className="w-24 bg-gradient-to-b from-orange-500 to-orange-600 flex-shrink-0 flex flex-col items-center justify-between py-8">
+                      {/* QR Code at bottom */}
+                      <div className="flex-1"></div>
+                      <div className="w-20 h-20 bg-white rounded-lg p-2 shadow-lg">
+                        <div className="w-full h-full bg-black/10 rounded flex items-center justify-center">
+                          <QrCode className="h-12 w-12 text-gray-700" />
+                        </div>
+                      </div>
+                      <div className="mt-2 text-white text-xs flex items-center space-x-1">
+                        <Shield className="h-3 w-3" />
+                        <span>Verified</span>
+                      </div>
+                    </div>
+
+                    {/* Right Content Area */}
+                    <div className="flex-1 p-8 flex flex-col">
+                      {/* Company Logo and Name */}
+                      <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full mb-3 shadow-lg">
+                          <Shield className="h-10 w-10 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900">Amstarikha</h3>
+                      </div>
+
+                      {/* Employee Photo and Name */}
+                      <div className="flex items-start space-x-6 mb-6">
+                        {/* Employee Photo */}
+                        <div className="flex-shrink-0">
+                          {user.idCardPhoto ? (
+                            <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-gray-200 shadow-xl">
+                              <Image
+                                src={user.idCardPhoto}
+                                alt={user.name}
+                                width={128}
+                                height={128}
+                                className="object-cover w-full h-full"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-32 h-32 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center text-white font-bold text-4xl shadow-xl border-4 border-gray-200">
+                              {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Employee Name and Role */}
+                        <div className="flex-1 pt-2">
+                          <h2 className="text-3xl font-bold text-gray-900 mb-2">{user.name}</h2>
+                          <p className="text-lg text-gray-600 mb-4">{getRoleDisplayName(user.role)} - {user.department}</p>
+                        </div>
+                      </div>
+
+                      {/* Employee Details Grid */}
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                        <div>
+                          <div className="text-gray-500 font-medium">Employee ID:</div>
+                          <div className="text-gray-900 font-semibold">{user.employeeId}</div>
                         </div>
                         <div>
-                          <h3 className="text-white font-bold text-lg">Amtariksha</h3>
-                          <p className="text-orange-100 text-xs">Employee ID Card</p>
+                          <div className="text-gray-500 font-medium">Department</div>
+                          <div className="text-gray-900 font-semibold">{user.department}</div>
                         </div>
-                      </div>
-                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                        <QrCode className="h-8 w-8 text-white" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Employee Information Section */}
-                  <div className="p-6">
-                    <div className="flex items-start space-x-4 mb-6">
-                      {/* Employee Photo or Avatar */}
-                      <div className="flex-shrink-0">
-                        {user.idCardPhoto ? (
-                          <div className="w-24 h-24 rounded-xl overflow-hidden border-4 border-primary shadow-lg">
-                            <Image
-                              src={user.idCardPhoto}
-                              alt={user.name}
-                              width={96}
-                              height={96}
-                              className="object-cover w-full h-full"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-24 h-24 bg-gradient-to-br from-primary to-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-3xl shadow-lg border-4 border-white">
-                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Employee Details */}
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-1 truncate">{user.name}</h2>
-                        <p className="text-sm font-mono text-primary font-semibold mb-2">{user.employeeId}</p>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Building className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-700 truncate">{user.department}</span>
-                        </div>
-                        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-primary to-orange-400 text-black shadow-sm">
-                          <Shield className="h-3 w-3 mr-1" />
-                          {getRoleDisplayName(user.role)}
+                        <div className="col-span-2">
+                          <div className="text-gray-500 font-medium">Join Date:</div>
+                          <div className="text-gray-900 font-semibold">{formatDate(user.createdAt)}</div>
                         </div>
                       </div>
                     </div>
-
-                    {/* Contact Information Grid */}
-                    <div className="grid grid-cols-1 gap-3 bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Mail className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 font-medium">Email</p>
-                          <p className="text-sm text-gray-900 truncate">{user.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Phone className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 font-medium">Phone</p>
-                          <p className="text-sm text-gray-900">{user.phone}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Calendar className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 font-medium">Member Since</p>
-                          <p className="text-sm text-gray-900">{formatDate(user.createdAt)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card Footer */}
-                  <div className="bg-gradient-to-r from-gray-50 to-orange-50 px-6 py-3 border-t border-gray-200">
-                    <p className="text-xs text-center text-gray-500">
-                      This card is property of Amtariksha • Valid from {formatDate(user.createdAt)}
-                    </p>
                   </div>
                 </div>
               </div>
