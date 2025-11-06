@@ -17,38 +17,98 @@ SELECT 'BEFORE FIX - projects_id_seq' AS info, last_value FROM projects_id_seq;
 SELECT 'BEFORE FIX - projects max id' AS info, COALESCE(MAX(id), 0) AS last_value FROM projects;
 
 -- ============================================================================
--- FIX: Reset all sequences
+-- FIX: Reset all sequences (only for tables that exist)
 -- ============================================================================
 
 -- Fix projects sequence (includes both projects and subprojects)
-SELECT setval('projects_id_seq', COALESCE((SELECT MAX(id) FROM projects), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'projects_id_seq') THEN
+    PERFORM setval('projects_id_seq', COALESCE((SELECT MAX(id) FROM projects), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed projects_id_seq';
+  END IF;
+END $$;
 
 -- Fix users sequence
-SELECT setval('users_id_seq', COALESCE((SELECT MAX(id) FROM users), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'users_id_seq') THEN
+    PERFORM setval('users_id_seq', COALESCE((SELECT MAX(id) FROM users), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed users_id_seq';
+  END IF;
+END $$;
 
 -- Fix tasks sequence
-SELECT setval('tasks_id_seq', COALESCE((SELECT MAX(id) FROM tasks), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'tasks_id_seq') THEN
+    PERFORM setval('tasks_id_seq', COALESCE((SELECT MAX(id) FROM tasks), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed tasks_id_seq';
+  END IF;
+END $$;
 
 -- Fix bugs sequence
-SELECT setval('bugs_id_seq', COALESCE((SELECT MAX(id) FROM bugs), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'bugs_id_seq') THEN
+    PERFORM setval('bugs_id_seq', COALESCE((SELECT MAX(id) FROM bugs), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed bugs_id_seq';
+  END IF;
+END $$;
 
 -- Fix activity_log sequence
-SELECT setval('activity_log_id_seq', COALESCE((SELECT MAX(id) FROM activity_log), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'activity_log_id_seq') THEN
+    PERFORM setval('activity_log_id_seq', COALESCE((SELECT MAX(id) FROM activity_log), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed activity_log_id_seq';
+  END IF;
+END $$;
 
 -- Fix settings sequence
-SELECT setval('settings_id_seq', COALESCE((SELECT MAX(id) FROM settings), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'settings_id_seq') THEN
+    PERFORM setval('settings_id_seq', COALESCE((SELECT MAX(id) FROM settings), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed settings_id_seq';
+  END IF;
+END $$;
 
 -- Fix task_checklists sequence (if exists)
-SELECT setval('task_checklists_id_seq', COALESCE((SELECT MAX(id) FROM task_checklists), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'task_checklists_id_seq') THEN
+    PERFORM setval('task_checklists_id_seq', COALESCE((SELECT MAX(id) FROM task_checklists), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed task_checklists_id_seq';
+  END IF;
+END $$;
 
 -- Fix development_checklists sequence (if exists)
-SELECT setval('development_checklists_id_seq', COALESCE((SELECT MAX(id) FROM development_checklists), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'development_checklists_id_seq') THEN
+    PERFORM setval('development_checklists_id_seq', COALESCE((SELECT MAX(id) FROM development_checklists), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed development_checklists_id_seq';
+  END IF;
+END $$;
 
 -- Fix leave_applications sequence (if exists)
-SELECT setval('leave_applications_id_seq', COALESCE((SELECT MAX(id) FROM leave_applications), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'leave_applications_id_seq') THEN
+    PERFORM setval('leave_applications_id_seq', COALESCE((SELECT MAX(id) FROM leave_applications), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed leave_applications_id_seq';
+  END IF;
+END $$;
 
 -- Fix wfh_applications sequence (if exists)
-SELECT setval('wfh_applications_id_seq', COALESCE((SELECT MAX(id) FROM wfh_applications), 0) + 1, false);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'wfh_applications_id_seq') THEN
+    PERFORM setval('wfh_applications_id_seq', COALESCE((SELECT MAX(id) FROM wfh_applications), 0) + 1, false);
+    RAISE NOTICE '✅ Fixed wfh_applications_id_seq';
+  END IF;
+END $$;
 
 -- ============================================================================
 -- AFTER: Verify the fix
