@@ -279,7 +279,11 @@ export default function BugsPage() {
       byStatus: {} as Record<string, number>,
       bySeverity: {} as Record<string, number>,
       byCategory: {} as Record<string, number>,
-      byPlatform: {} as Record<string, number>
+      byPlatform: {} as Record<string, number>,
+      byType: {
+        bug: 0,
+        feature: 0
+      }
     }
 
     bugsData.forEach(bug => {
@@ -294,6 +298,15 @@ export default function BugsPage() {
 
       // Count by platform
       stats.byPlatform[bug.platform] = (stats.byPlatform[bug.platform] || 0) + 1
+
+      // Count by type
+      const bugType = (bug as any).type
+      if (bugType === 'feature') {
+        stats.byType.feature++
+      } else {
+        // All non-feature types are counted as bugs (null, 'testcase', 'other', etc.)
+        stats.byType.bug++
+      }
     })
 
     return stats
@@ -566,15 +579,36 @@ export default function BugsPage() {
         {/* Statistics Cards */}
         {statistics && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            {/* Bugs Card - Clickable */}
+            <div
+              className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setTypeFilter('bug')}
+            >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Bugs</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{statistics.total}</p>
-                  <p className="text-xs text-gray-500 mt-1">All reported issues</p>
+                  <p className="text-sm font-medium text-gray-600">Bugs</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-2">{statistics.byType.bug}</p>
+                  <p className="text-xs text-gray-500 mt-1">Bug reports</p>
                 </div>
                 <div className="p-3 bg-gray-100 rounded-lg">
                   <BugIcon className="h-6 w-6 text-gray-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Features Card - Clickable */}
+            <div
+              className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setTypeFilter('feature')}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Features</p>
+                  <p className="text-3xl font-bold text-blue-600 mt-2">{statistics.byType.feature}</p>
+                  <p className="text-xs text-gray-500 mt-1">Feature requests</p>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <Sparkles className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
             </div>
@@ -590,19 +624,6 @@ export default function BugsPage() {
                 </div>
                 <div className="p-3 bg-blue-100 rounded-lg">
                   <Clock className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Resolved</p>
-                  <p className="text-3xl font-bold text-green-600 mt-2">{statistics.byStatus['Resolved'] || 0}</p>
-                  <p className="text-xs text-gray-500 mt-1">Fixed issues</p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </div>
