@@ -18,11 +18,16 @@
 -- Step 1: Check current state of all sequences
 -- ============================================================================
 
+-- IMPORTANT: For projects table, MAX(id) includes BOTH projects AND subprojects
+-- since they share the same table and same id column. This is correct!
+
 -- Show all sequences and their current values
-SELECT 
+SELECT
   sequence_name,
   last_value,
   (SELECT COALESCE(MAX(id), 0) FROM projects) AS projects_max_id,
+  (SELECT COUNT(*) FROM projects WHERE parent_project_id IS NULL) AS projects_count,
+  (SELECT COUNT(*) FROM projects WHERE parent_project_id IS NOT NULL) AS subprojects_count,
   (SELECT COALESCE(MAX(id), 0) FROM users) AS users_max_id,
   (SELECT COALESCE(MAX(id), 0) FROM tasks) AS tasks_max_id,
   (SELECT COALESCE(MAX(id), 0) FROM bugs) AS bugs_max_id,
@@ -32,6 +37,20 @@ FROM information_schema.sequences
 WHERE sequence_schema = 'public'
   AND sequence_name LIKE '%_id_seq'
 ORDER BY sequence_name;
+
+-- Show detailed projects table info
+SELECT
+  'Projects Table Analysis' AS info,
+  COUNT(*) AS total_rows,
+  COUNT(CASE WHEN parent_project_id IS NULL THEN 1 END) AS projects,
+  COUNT(CASE WHEN parent_project_id IS NOT NULL THEN 1 END) AS subprojects,
+  MAX(id) AS max_id,
+  (SELECT last_value FROM projects_id_seq) AS sequence_value,
+  CASE
+    WHEN (SELECT last_value FROM projects_id_seq) > MAX(id) THEN '✅ Sequence OK'
+    ELSE '❌ Sequence needs fix'
+  END AS status
+FROM projects;
 
 -- ============================================================================
 -- Step 2: Reset all sequences
