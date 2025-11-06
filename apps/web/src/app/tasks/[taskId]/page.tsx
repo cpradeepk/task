@@ -566,6 +566,89 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                   </div>
                 </h1>
                 <p className="text-lg text-gray-900 mt-1 break-words max-w-full overflow-hidden">{task.name || task.description}</p>
+
+                {/* Assignee Dropdown and Support Users */}
+                <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
+                  {/* Assignee Dropdown */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Assigned to:</span>
+                    {canEdit ? (
+                      <select
+                        value={Array.isArray(task.assignedTo) ? task.assignedTo[0] || '' : task.assignedTo || ''}
+                        onChange={async (e) => {
+                          const newAssignee = e.target.value
+                          const oldAssignedTo = task.assignedTo
+
+                          // Optimistic update - keep as array if it was an array
+                          const updatedAssignedTo = Array.isArray(task.assignedTo)
+                            ? (newAssignee ? [newAssignee] : [])
+                            : newAssignee
+                          setTask({ ...task, assignedTo: updatedAssignedTo as any })
+
+                          try {
+                            const response = await fetch(`/api/tasks/${task.taskId}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ assignedTo: newAssignee })
+                            })
+
+                            if (!response.ok) {
+                              // Revert on error
+                              setTask({ ...task, assignedTo: oldAssignedTo })
+                              throw new Error('Failed to update assignee')
+                            }
+
+                            // Reload task data to get updated activity log
+                            loadTaskData()
+                          } catch (error) {
+                            console.error('Error updating assignee:', error)
+                            // Revert on error
+                            setTask({ ...task, assignedTo: oldAssignedTo })
+                          }
+                        }}
+                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Unassigned</option>
+                        {users
+                          .filter(u => u.status === 'active')
+                          .sort((a, b) => a.employeeId.localeCompare(b.employeeId))
+                          .map(user => (
+                            <option key={user.employeeId} value={user.employeeId}>
+                              {user.employeeId} - {user.name}
+                            </option>
+                          ))}
+                      </select>
+                    ) : (
+                      <span className="text-sm font-medium text-gray-900">
+                        {(() => {
+                          const assignedToValue = task.assignedTo
+                          if (Array.isArray(assignedToValue)) {
+                            return assignedToValue.map(id => `${id} - ${users.find(u => u.employeeId === id)?.name || 'Unknown'}`).join(', ') || 'Unassigned'
+                          } else if (assignedToValue) {
+                            return `${assignedToValue} - ${users.find(u => u.employeeId === assignedToValue)?.name || 'Unknown'}`
+                          } else {
+                            return 'Unassigned'
+                          }
+                        })()}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Support Users */}
+                  {task.support && task.support.length > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">Support:</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {task.support.map((employeeId, index) => (
+                          <span key={employeeId}>
+                            {users.find(u => u.employeeId === employeeId)?.name || employeeId}
+                            {index < task.support!.length - 1 && ', '}
+                          </span>
+                        ))}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
