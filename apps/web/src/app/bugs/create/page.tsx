@@ -40,10 +40,8 @@ function CreateBugPageContent() {
 
   const [projects, setProjects] = useState<any[]>([])
   const [subprojects, setSubprojects] = useState<any[]>([])
-  const [allBugs, setAllBugs] = useState<any[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isLoadingSubprojects, setIsLoadingSubprojects] = useState(false)
-  const [isLoadingBugs, setIsLoadingBugs] = useState(false)
   const [projectsLoaded, setProjectsLoaded] = useState(false)
   
   const [users, setUsers] = useState<User[]>([])
@@ -214,26 +212,6 @@ function CreateBugPageContent() {
     }
   }, [])
 
-  // Load bugs for related bugs dropdown
-  const loadBugs = useCallback(async (projectId?: string) => {
-    try {
-      setIsLoadingBugs(true)
-      let url = '/api/bugs?status=New,In Progress,Reopened'
-      if (projectId) {
-        url += `&projectId=${projectId}`
-      }
-      const response = await fetch(url)
-      const data = await response.json()
-      if (data.success) {
-        setAllBugs(data.data || [])
-      }
-    } catch (error) {
-      console.error('Failed to load bugs:', error)
-    } finally {
-      setIsLoadingBugs(false)
-    }
-  }, [])
-
   useEffect(() => {
     if (!isHydrated) return
 
@@ -254,11 +232,10 @@ function CreateBugPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, router, isHydrated])
 
-  // Load subprojects and bugs when project changes
+  // Load subprojects when project changes
   useEffect(() => {
     if (formData.projectId) {
       loadSubprojects(formData.projectId)
-      loadBugs(formData.projectId)
     } else {
       setSubprojects([])
       setFormData(prev => ({ ...prev, subprojectId: undefined }))
@@ -676,37 +653,21 @@ function CreateBugPageContent() {
                   </div>
                 </div>
 
-                {/* Related Bugs */}
+                {/* Related Items (Tasks/Bugs) */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
                     <Bug className="h-4 w-4" />
-                    <span>Related Bugs (Optional)</span>
+                    <span>Related Items (Optional)</span>
                   </label>
-                  <select
-                    multiple
+                  <input
+                    type="text"
                     name="relatedBugs"
-                    value={formData.relatedBugs ? formData.relatedBugs.split(',').map(b => b.trim()) : []}
-                    onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions).map(opt => opt.value)
-                      setFormData(prev => ({ ...prev, relatedBugs: selected.join(', ') }))
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                    disabled={isLoadingBugs || !formData.projectId}
-                    size={4}
-                  >
-                    {isLoadingBugs ? (
-                      <option disabled>Loading bugs...</option>
-                    ) : allBugs.length === 0 ? (
-                      <option disabled>No open bugs in this project</option>
-                    ) : (
-                      allBugs.map(bug => (
-                        <option key={bug.bugId} value={bug.bugId}>
-                          {bug.bugId} - {bug.title}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                  <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple bugs</p>
+                    value={formData.relatedBugs || ''}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="e.g., JSR-0001, JSR-0002, BUG-0001 (comma-separated)"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Enter comma-separated task or bug IDs to link related work items</p>
                 </div>
 
                 {/* Assign To - Sorted by employee_id */}

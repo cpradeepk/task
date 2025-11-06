@@ -157,9 +157,9 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [showActivity, setShowActivity] = useState(false)
   const [showComments, setShowComments] = useState(true)
 
-  // Related bugs state
-  const [relatedBugsData, setRelatedBugsData] = useState<Bug[]>([])
-  const [isLoadingRelatedBugs, setIsLoadingRelatedBugs] = useState(false)
+  // Related items state (tasks and bugs)
+  const [relatedItemsData, setRelatedItemsData] = useState<Array<Bug | any>>([])
+  const [isLoadingRelatedItems, setIsLoadingRelatedItems] = useState(false)
 
   // Lightbox state
   const [showLightbox, setShowLightbox] = useState(false)
@@ -283,43 +283,55 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
 
 
-  // Load related bugs
-  const loadRelatedBugs = useCallback(async () => {
+  // Load related items (tasks and bugs)
+  const loadRelatedItems = useCallback(async () => {
     if (!bug || !bug.relatedBugs || typeof bug.relatedBugs !== 'string') {
-      setRelatedBugsData([])
+      setRelatedItemsData([])
       return
     }
 
     try {
-      setIsLoadingRelatedBugs(true)
-      const bugIds = bug.relatedBugs.split(',').map(id => id.trim()).filter(id => id)
+      setIsLoadingRelatedItems(true)
+      const itemIds = bug.relatedBugs.split(',').map(id => id.trim()).filter(id => id)
 
-      if (bugIds.length === 0) {
-        setRelatedBugsData([])
+      if (itemIds.length === 0) {
+        setRelatedItemsData([])
         return
       }
 
-      // Fetch each related bug
-      const bugPromises = bugIds.map(async (bugId) => {
+      // Fetch each related item (task or bug)
+      const itemPromises = itemIds.map(async (itemId) => {
         try {
-          const response = await fetch(`/api/bugs/${bugId}`)
-          const data = await response.json()
-          if (data.success && data.data) {
-            return data.data
+          // Determine if it's a task (JSR-*) or bug (BUG-*)
+          const isTask = itemId.startsWith('JSR-')
+          const isBug = itemId.startsWith('BUG-')
+
+          if (isTask) {
+            const response = await fetch(`/api/tasks/${itemId}`)
+            const data = await response.json()
+            if (data.success && data.data) {
+              return { ...data.data, itemType: 'task' }
+            }
+          } else if (isBug) {
+            const response = await fetch(`/api/bugs/${itemId}`)
+            const data = await response.json()
+            if (data.success && data.data) {
+              return { ...data.data, itemType: 'bug' }
+            }
           }
           return null
         } catch (error) {
-          console.error(`Failed to load bug ${bugId}:`, error)
+          console.error(`Failed to load item ${itemId}:`, error)
           return null
         }
       })
 
-      const bugs = await Promise.all(bugPromises)
-      setRelatedBugsData(bugs.filter(b => b !== null) as Bug[])
+      const items = await Promise.all(itemPromises)
+      setRelatedItemsData(items.filter(item => item !== null))
     } catch (error) {
-      console.error('Failed to load related bugs:', error)
+      console.error('Failed to load related items:', error)
     } finally {
-      setIsLoadingRelatedBugs(false)
+      setIsLoadingRelatedItems(false)
     }
   }, [bug])
 
@@ -352,12 +364,12 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
 
 
-  // Load related bugs when bug data is available
+  // Load related items when bug data is available
   useEffect(() => {
     if (bug) {
-      loadRelatedBugs()
+      loadRelatedItems()
     }
-  }, [bug, loadRelatedBugs])
+  }, [bug, loadRelatedItems])
 
   // Load project and subproject names
   useEffect(() => {
@@ -1471,60 +1483,70 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </div>
             </div>
 
-            {/* Related Bugs */}
-            {(bug.relatedBugs || relatedBugsData.length > 0) && (
+            {/* Related Items (Tasks/Bugs) */}
+            {(bug.relatedBugs || relatedItemsData.length > 0) && (
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
                   <ExternalLink className="h-5 w-5" />
-                  <span>Related Bugs</span>
+                  <span>Related Items</span>
                 </h3>
 
-                {isLoadingRelatedBugs ? (
+                {isLoadingRelatedItems ? (
                   <div className="flex items-center justify-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <span className="ml-2 text-sm text-gray-600">Loading related bugs...</span>
+                    <span className="ml-2 text-sm text-gray-600">Loading related items...</span>
                   </div>
-                ) : relatedBugsData.length > 0 ? (
+                ) : relatedItemsData.length > 0 ? (
                   <div className="space-y-2">
-                    {relatedBugsData.map((relatedBug) => (
-                      <a
-                        key={relatedBug.bugId}
-                        href={`/bugs/${relatedBug.bugId}`}
-                        className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm font-medium text-blue-600">{relatedBug.bugId}</span>
-                              <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                relatedBug.status === 'New' ? 'bg-blue-100 text-blue-700' :
-                                relatedBug.status === 'In Progress' ? 'bg-yellow-100 text-yellow-700' :
-                                relatedBug.status === 'Resolved' ? 'bg-green-100 text-green-700' :
-                                relatedBug.status === 'Closed' ? 'bg-gray-100 text-gray-700' :
-                                'bg-red-100 text-red-700'
-                              }`}>
-                                {relatedBug.status}
-                              </span>
-                              <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                relatedBug.severity === 'Critical' ? 'bg-red-100 text-red-700' :
-                                relatedBug.severity === 'Major' ? 'bg-orange-100 text-orange-700' :
-                                'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {relatedBug.severity}
-                              </span>
+                    {relatedItemsData.map((item: any) => {
+                      const isBug = item.itemType === 'bug'
+                      const itemId = isBug ? item.bugId : item.taskId
+                      const itemUrl = isBug ? `/bugs/${itemId}` : `/tasks/${itemId}`
+
+                      return (
+                        <a
+                          key={itemId}
+                          href={itemUrl}
+                          className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className={`text-sm font-medium ${isBug ? 'text-red-600' : 'text-blue-600'}`}>
+                                  {itemId}
+                                </span>
+                                <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                  item.status === 'New' || item.status === 'To Do' ? 'bg-blue-100 text-blue-700' :
+                                  item.status === 'In Progress' ? 'bg-yellow-100 text-yellow-700' :
+                                  item.status === 'Resolved' || item.status === 'Done' ? 'bg-green-100 text-green-700' :
+                                  item.status === 'Closed' ? 'bg-gray-100 text-gray-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}>
+                                  {item.status}
+                                </span>
+                                {isBug && item.severity && (
+                                  <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                    item.severity === 'Critical' ? 'bg-red-100 text-red-700' :
+                                    item.severity === 'Major' ? 'bg-orange-100 text-orange-700' :
+                                    'bg-yellow-100 text-yellow-700'
+                                  }`}>
+                                    {item.severity}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-900 mt-1">{isBug ? item.title : item.name}</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {isBug ? `${item.category} • ${item.platform}` : `${item.department || 'General'}`}
+                              </p>
                             </div>
-                            <p className="text-sm text-gray-900 mt-1">{relatedBug.title}</p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {relatedBug.category} • {relatedBug.platform}
-                            </p>
+                            <ExternalLink className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
                           </div>
-                          <ExternalLink className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
-                        </div>
-                      </a>
-                    ))}
+                        </a>
+                      )
+                    })}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">No related bugs found</p>
+                  <p className="text-sm text-gray-500">No related items found</p>
                 )}
               </div>
             )}

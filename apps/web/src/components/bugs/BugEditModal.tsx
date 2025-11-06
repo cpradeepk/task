@@ -20,12 +20,9 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
   const [users, setUsers] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [subprojects, setSubprojects] = useState<any[]>([])
-  const [allBugs, setAllBugs] = useState<any[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isLoadingSubprojects, setIsLoadingSubprojects] = useState(false)
-  const [isLoadingBugs, setIsLoadingBugs] = useState(false)
   const [projectsLoaded, setProjectsLoaded] = useState(false)
-  const [bugsLoaded, setBugsLoaded] = useState(false)
 
   const { settings, isLoading: isLoadingSettings } = useSettings()
   const { getIcon } = useSettingsIcons()
@@ -115,42 +112,19 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
     }
   }, [])
 
-  // Load bugs for related bugs dropdown
-  const loadBugs = useCallback(async (projectId?: string) => {
-    // Only prevent initial load, allow reload when project changes
-    if (!projectId && bugsLoaded) return
-
-    try {
-      setIsLoadingBugs(true)
-      const url = projectId ? `/api/bugs?projectId=${projectId}` : '/api/bugs'
-      const response = await fetch(url)
-      const data = await response.json()
-      if (data.success) {
-        setAllBugs(data.data || [])
-        if (!projectId) setBugsLoaded(true)
-      }
-    } catch (error) {
-      console.error('Failed to load bugs:', error)
-    } finally {
-      setIsLoadingBugs(false)
-    }
-  }, [bugsLoaded])
-
-  // Load projects and bugs on mount
+  // Load projects on mount
   useEffect(() => {
     if (isOpen) {
       loadProjects()
-      loadBugs()
     }
-  }, [isOpen, loadProjects, loadBugs])
+  }, [isOpen, loadProjects])
 
   // Load subprojects when project changes
   useEffect(() => {
     if (formData.projectId) {
       loadSubprojects(formData.projectId)
-      loadBugs(formData.projectId)
     }
-  }, [formData.projectId, loadSubprojects, loadBugs])
+  }, [formData.projectId, loadSubprojects])
 
   // Initialize form data when bug changes
   useEffect(() => {
@@ -193,7 +167,6 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
   useEffect(() => {
     if (!isOpen) {
       setProjectsLoaded(false)
-      setBugsLoaded(false)
     }
   }, [isOpen])
 
@@ -598,30 +571,19 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
             <p className="text-xs text-gray-500">Comma-separated tags</p>
           </div>
 
-          {/* Related Bugs - Multi-select */}
+          {/* Related Items (Tasks/Bugs) */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              Related Bugs
+              Related Items
             </label>
-            <select
-              multiple
-              value={formData.relatedBugs ? formData.relatedBugs.split(',').map(b => b.trim()) : []}
-              onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions, option => option.value)
-                setFormData({ ...formData, relatedBugs: selected.join(', ') })
-              }}
-              disabled={isLoadingBugs}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent min-h-[100px]"
-            >
-              {allBugs
-                .filter(b => b.bugId !== bug?.bugId) // Don't show current bug
-                .map(b => (
-                  <option key={b.bugId} value={b.bugId}>
-                    {b.bugId} - {b.title}
-                  </option>
-                ))}
-            </select>
-            <p className="text-xs text-gray-500">Hold Ctrl/Cmd to select multiple bugs</p>
+            <input
+              type="text"
+              value={formData.relatedBugs || ''}
+              onChange={(e) => setFormData({ ...formData, relatedBugs: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="e.g., JSR-0001, JSR-0002, BUG-0001 (comma-separated)"
+            />
+            <p className="text-xs text-gray-500">Enter comma-separated task or bug IDs to link related work items</p>
           </div>
 
           {/* Action Buttons */}
