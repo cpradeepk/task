@@ -9,38 +9,21 @@
 -- This allows dynamic role management instead of hardcoded roles
 -- Note: This migration is safe to run multiple times (idempotent)
 
--- For MySQL/MariaDB: Use INSERT ... ON DUPLICATE KEY UPDATE
-INSERT INTO settings (`key`, value, description, is_active, created_by, created_at, updated_at)
+-- PostgreSQL version: Use INSERT ... ON CONFLICT DO UPDATE
+INSERT INTO settings (key, value, description, is_active, created_by, created_at, updated_at)
 VALUES (
     'user_roles',
-    '["top_management", "management", "amtarikshain", "employee", "intern", "external"]',
+    '["top_management", "management", "amtarikshain", "employee", "intern", "external"]'::jsonb,
     'Available user roles for the system. Order matters for display in dropdowns.',
     TRUE,
     'SYSTEM',
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 )
-ON DUPLICATE KEY UPDATE
-    value = VALUES(value),
-    description = VALUES(description),
+ON CONFLICT (key) DO UPDATE SET
+    value = EXCLUDED.value,
+    description = EXCLUDED.description,
     updated_at = CURRENT_TIMESTAMP;
-
--- For PostgreSQL: Use INSERT ... ON CONFLICT DO UPDATE
--- Uncomment the following if using PostgreSQL:
--- INSERT INTO settings (key, value, description, is_active, created_by, created_at, updated_at)
--- VALUES (
---     'user_roles',
---     '["top_management", "management", "amtarikshain", "employee", "intern", "external"]',
---     'Available user roles for the system. Order matters for display in dropdowns.',
---     TRUE,
---     'SYSTEM',
---     CURRENT_TIMESTAMP,
---     CURRENT_TIMESTAMP
--- )
--- ON CONFLICT (key) DO UPDATE SET
---     value = EXCLUDED.value,
---     description = EXCLUDED.description,
---     updated_at = CURRENT_TIMESTAMP;
 
 -- ============================================================================
 -- Verification Queries
