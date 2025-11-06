@@ -47,6 +47,7 @@ function CreateTaskContent() {
   const [usersLoaded, setUsersLoaded] = useState(false)
   const [error, setError] = useState('')
   const [isHydrated, setIsHydrated] = useState(false)
+  const [missingFields, setMissingFields] = useState<string[]>([])
 
   // Settings state
   const [taskStatusOptions, setTaskStatusOptions] = useState<string[]>([])
@@ -294,6 +295,17 @@ function CreateTaskContent() {
       }
       return updated
     })
+    // Clear the field from missing fields when user starts typing
+    if (missingFields.includes(name)) {
+      setMissingFields(prev => prev.filter(field => field !== name))
+    }
+  }
+
+  // Helper function to get field class with error styling
+  const getFieldClass = (fieldName: string, baseClass: string = 'input-field') => {
+    return missingFields.includes(fieldName)
+      ? `${baseClass} border-2 border-red-500 focus:ring-red-500 focus:border-red-500`
+      : baseClass
   }
 
   const handleSupportChange = (employeeId: string) => {
@@ -316,11 +328,42 @@ function CreateTaskContent() {
         throw new Error('User not authenticated')
       }
 
-      // Validation
-      if (!formData.selectType || !formData.name || !formData.description ||
-          !formData.startDate || !formData.endDate || !formData.priority || !formData.estimatedHours) {
+      // Validation - Track missing fields for visual feedback
+      const missing: string[] = []
+
+      if (!formData.selectType) missing.push('selectType')
+      if (!formData.name || !formData.name.trim()) missing.push('name')
+      if (!formData.description || !formData.description.trim()) missing.push('description')
+      if (!formData.startDate) missing.push('startDate')
+      if (!formData.endDate) missing.push('endDate')
+      if (!formData.priority) missing.push('priority')
+      if (!formData.projectId) missing.push('projectId')
+      if (!formData.department) missing.push('department')
+
+      // Check recursive type if task type is Recursive
+      if (formData.selectType === 'Recursive' && !formData.recursiveType) {
+        missing.push('recursiveType')
+      }
+
+      // Check assignees based on assignment type
+      if (formData.multiUserAssignment) {
+        if (formData.assignees.length === 0) {
+          missing.push('assignees')
+        }
+      } else {
+        if (!formData.assignedTo) {
+          missing.push('assignedTo')
+        }
+      }
+
+      // If there are missing fields, show error and highlight them
+      if (missing.length > 0) {
+        setMissingFields(missing)
         throw new Error('Please fill in all required fields')
       }
+
+      // Clear missing fields if validation passes
+      setMissingFields([])
 
       // Validate name length
       if (formData.name.trim().length < 3) {
@@ -328,26 +371,6 @@ function CreateTaskContent() {
       }
       if (formData.name.length > 150) {
         throw new Error('Task name must not exceed 150 characters')
-      }
-
-      // Validate mandatory project field
-      if (!formData.projectId) {
-        throw new Error('Please select a Project')
-      }
-
-      // Sub Project is now optional - no validation needed
-
-      // Validate mandatory department field
-      if (!formData.department) {
-        throw new Error('Please select a Department')
-      }
-
-      if (formData.selectType === 'Recursive' && !formData.recursiveType) {
-        throw new Error('Please select recursive type')
-      }
-
-      if (formData.multiUserAssignment && formData.assignees.length === 0) {
-        throw new Error('Please select at least one user for multi-user assignment')
       }
 
       // Convert hh:mm:ss to decimal hours (optional field)
@@ -449,13 +472,7 @@ function CreateTaskContent() {
         // Multi-user assignment: Use all selected assignees in a single task
         assignedToUsers = formData.assignees
       } else {
-        // Single user assignment - must select a user
-        if (!formData.assignedTo) {
-          setError('Please select a user to assign the task to')
-          setIsLoading(false)
-          hideGlobalLoading()
-          return
-        }
+        // Single user assignment
         assignedToUsers = [formData.assignedTo]
       }
 
@@ -632,6 +649,9 @@ function CreateTaskContent() {
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-3">
                 Frequency *
+                {missingFields.includes('recursiveType') && (
+                  <span className="text-red-500 text-xs ml-2">Required</span>
+                )}
               </label>
               <div className="flex gap-3 flex-wrap">
                 {['Daily', 'Weekly', 'Monthly', 'Annually'].map(type => (
@@ -640,10 +660,16 @@ function CreateTaskContent() {
                     type="button"
                     onClick={() => {
                       setFormData(prev => ({ ...prev, recursiveType: type }))
+                      // Clear from missing fields
+                      if (missingFields.includes('recursiveType')) {
+                        setMissingFields(prev => prev.filter(field => field !== 'recursiveType'))
+                      }
                     }}
                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm ${
                       formData.recursiveType === type
                         ? 'bg-green-600 text-white border-green-600 shadow-lg'
+                        : missingFields.includes('recursiveType')
+                        ? 'bg-white text-gray-700 border-red-500 hover:border-red-600 hover:bg-red-50'
                         : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50'
                     }`}
                   >
@@ -662,6 +688,9 @@ function CreateTaskContent() {
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-2">
               Task Name *
+              {missingFields.includes('name') && (
+                <span className="text-red-500 text-xs ml-2">Required</span>
+              )}
             </label>
             <input
               type="text"
@@ -670,7 +699,7 @@ function CreateTaskContent() {
               onChange={handleInputChange}
               required
               maxLength={150}
-              className="input-field"
+              className={getFieldClass('name')}
               placeholder="Enter a short, descriptive task name (max 150 characters)"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -682,6 +711,9 @@ function CreateTaskContent() {
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-2">
               Task Description *
+              {missingFields.includes('description') && (
+                <span className="text-red-500 text-xs ml-2">Required</span>
+              )}
             </label>
             <textarea
               name="description"
@@ -689,7 +721,7 @@ function CreateTaskContent() {
               onChange={handleInputChange}
               required
               rows={3}
-              className="input-field"
+              className={getFieldClass('description')}
               placeholder="Describe the task objectives and requirements in detail..."
             />
           </div>
@@ -699,14 +731,21 @@ function CreateTaskContent() {
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
                 Project *
+                {missingFields.includes('projectId') && (
+                  <span className="text-red-500 text-xs ml-2">Required</span>
+                )}
               </label>
               <select
                 value={formData.projectId || ''}
                 onChange={(e) => {
                   const projectId = e.target.value || undefined
                   setFormData(prev => ({ ...prev, projectId, subprojectId: undefined }))
+                  // Clear from missing fields
+                  if (missingFields.includes('projectId')) {
+                    setMissingFields(prev => prev.filter(field => field !== 'projectId'))
+                  }
                 }}
-                className="input-field"
+                className={getFieldClass('projectId')}
                 disabled={isLoadingProjects}
                 required
               >
@@ -754,6 +793,9 @@ function CreateTaskContent() {
           <div>
             <label className="block text-sm font-medium text-secondary-700 mb-2">
               Department *
+              {missingFields.includes('department') && (
+                <span className="text-red-500 text-xs ml-2">Required</span>
+              )}
             </label>
             <select
               name="department"
@@ -761,7 +803,7 @@ function CreateTaskContent() {
               onChange={handleInputChange}
               required
               disabled={isLoadingSettings}
-              className="input-field"
+              className={getFieldClass('department')}
             >
               <option value="">Select Department...</option>
               {isLoadingSettings ? (
@@ -808,6 +850,9 @@ function CreateTaskContent() {
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
                 Priority *
+                {missingFields.includes('priority') && (
+                  <span className="text-red-500 text-xs ml-2">Required</span>
+                )}
               </label>
               <select
                 name="priority"
@@ -815,7 +860,7 @@ function CreateTaskContent() {
                 onChange={handleInputChange}
                 required
                 disabled={isLoadingSettings}
-                className="input-field"
+                className={getFieldClass('priority')}
               >
                 <option value="">Choose priority...</option>
                 {isLoadingSettings ? (
@@ -860,6 +905,9 @@ function CreateTaskContent() {
               <div>
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
                   Assign To Multiple Users *
+                  {missingFields.includes('assignees') && (
+                    <span className="text-red-500 text-xs ml-2">Required - Select at least one user</span>
+                  )}
                 </label>
                 <p className="text-sm text-gray-600 mb-3">
                   Select users who will each receive their own copy of this task. All tasks will be linked together.
@@ -873,7 +921,9 @@ function CreateTaskContent() {
                     <p className="text-gray-500">No users available</p>
                   </div>
                 ) : (
-                  <div className="border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto space-y-2">
+                  <div className={`border rounded-lg p-4 max-h-64 overflow-y-auto space-y-2 ${
+                    missingFields.includes('assignees') ? 'border-2 border-red-500' : 'border-gray-200'
+                  }`}>
                     {users.map(user => (
                       <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
                         <input
@@ -884,6 +934,10 @@ function CreateTaskContent() {
                               ? [...formData.assignees, user.employeeId]
                               : formData.assignees.filter(id => id !== user.employeeId)
                             setFormData({ ...formData, assignees: newAssignees })
+                            // Clear from missing fields when user selects
+                            if (newAssignees.length > 0 && missingFields.includes('assignees')) {
+                              setMissingFields(prev => prev.filter(field => field !== 'assignees'))
+                            }
                           }}
                           className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                         />
@@ -904,12 +958,21 @@ function CreateTaskContent() {
               <div>
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
                   Assign To *
+                  {missingFields.includes('assignedTo') && (
+                    <span className="text-red-500 text-xs ml-2">Required</span>
+                  )}
                 </label>
                 <select
                   value={formData.assignedTo}
-                  onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, assignedTo: e.target.value })
+                    // Clear from missing fields
+                    if (missingFields.includes('assignedTo')) {
+                      setMissingFields(prev => prev.filter(field => field !== 'assignedTo'))
+                    }
+                  }}
                   required
-                  className="input-field"
+                  className={getFieldClass('assignedTo')}
                   disabled={isLoading || isLoadingUsers}
                 >
                   <option value="">Select user...</option>
@@ -981,6 +1044,9 @@ function CreateTaskContent() {
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
                 Start Date *
+                {missingFields.includes('startDate') && (
+                  <span className="text-red-500 text-xs ml-2">Required</span>
+                )}
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
@@ -990,7 +1056,7 @@ function CreateTaskContent() {
                   value={formData.startDate}
                   onChange={handleInputChange}
                   required
-                  className="input-field pl-10"
+                  className={getFieldClass('startDate', 'input-field pl-10')}
                 />
               </div>
             </div>
@@ -998,6 +1064,9 @@ function CreateTaskContent() {
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
                 End Date *
+                {missingFields.includes('endDate') && (
+                  <span className="text-red-500 text-xs ml-2">Required</span>
+                )}
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
@@ -1007,7 +1076,7 @@ function CreateTaskContent() {
                   value={formData.endDate}
                   onChange={handleInputChange}
                   required
-                  className="input-field pl-10"
+                  className={getFieldClass('endDate', 'input-field pl-10')}
                 />
               </div>
             </div>
