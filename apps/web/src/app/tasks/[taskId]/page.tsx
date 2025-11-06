@@ -434,8 +434,9 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
 
       await updateTask(task.taskId, updates)
 
-      // Log activity
+      // Log activity with hh:mm:ss format (finalHours is already in hh:mm:ss format)
       try {
+        const mode = useTimerHours ? 'timer' : 'manual'
         await fetch('/api/activity-log', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -443,7 +444,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
             entityType: 'task',
             entityId: task.taskId,
             actionType: 'time_logged',
-            description: `Logged ${finalHours} hours${workDescription ? `: ${workDescription}` : ''}`,
+            description: `Logged ${finalHours} (${mode} entry)${workDescription ? `: ${workDescription}` : ''}`,
             isComment: false
           })
         })

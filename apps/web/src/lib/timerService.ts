@@ -150,9 +150,23 @@ export function isTimerRunning(entityType: 'task' | 'bug', entityId: string): bo
 }
 
 /**
- * Get formatted time string (e.g., "2h 30m 15s")
+ * Get formatted time string in hh:mm:ss format (e.g., "02:30:15")
+ * This is the standardized format for all time logging in the system
  */
 export function formatTime(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+}
+
+/**
+ * Get human-readable time string (e.g., "2h 30m 15s")
+ * Use this for display purposes where readability is more important than standardization
+ */
+export function formatTimeReadable(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
