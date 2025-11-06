@@ -48,7 +48,7 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
 
   // Get options from settings (using correct keys from database)
   const taskStatusOptions = settings?.task_status || []
-  const priorityOptions = settings?.task_priority || []
+  const priorityOptions = settings?.task_priorities || [] // Fixed: was task_priority, should be task_priorities
   const departmentOptions = settings?.departments || []
   const taskTypeOptions = ['Normal', 'Recursive']
   const recursiveTypeOptions = ['Daily', 'Weekly', 'Monthly', 'Annually']
@@ -106,7 +106,7 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
 
   // Initialize form data when task changes
   useEffect(() => {
-    if (task) {
+    if (task && isOpen) {
       setFormData({
         taskId: task.taskId,
         selectType: task.selectType,
@@ -127,26 +127,27 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
       })
 
       // If task has a projectId, determine if it's a main project or subproject
-      if (task.projectId && projects.length > 0) {
-        const project = projects.find((p: any) => p.projectId === task.projectId)
-        if (project) {
-          // It's a main project
-          setSelectedMainProject(task.projectId)
-        } else {
-          // It might be a subproject, need to find its parent
-          fetch('/api/projects?status=active')
-            .then(res => res.json())
-            .then(data => {
-              const subproject = data.find((p: any) => p.projectId === task.projectId)
-              if (subproject && subproject.parentProjectId) {
-                setSelectedMainProject(subproject.parentProjectId)
+      if (task.projectId) {
+        // Fetch all projects to determine hierarchy
+        fetch('/api/projects?status=active')
+          .then(res => res.json())
+          .then(data => {
+            const currentProject = data.find((p: any) => p.projectId === task.projectId)
+            if (currentProject) {
+              if (currentProject.parentProjectId) {
+                // It's a subproject - set the parent as main project
+                setSelectedMainProject(currentProject.parentProjectId)
+                // projectId stays as the subproject
+              } else {
+                // It's a main project
+                setSelectedMainProject(task.projectId || '')
               }
-            })
-            .catch(err => console.error('Failed to load project info:', err))
-        }
+            }
+          })
+          .catch(err => console.error('Failed to load project info:', err))
       }
     }
-  }, [task, projects])
+  }, [task, isOpen])
 
   // Click outside to close modal
   useEffect(() => {

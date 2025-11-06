@@ -128,7 +128,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
 
   // Initialize form data when bug changes
   useEffect(() => {
-    if (bug) {
+    if (bug && isOpen) {
       setFormData({
         bugId: bug.bugId,
         title: bug.title,
@@ -161,7 +161,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
         loadSubprojects(bug.projectId)
       }
     }
-  }, [bug, loadSubprojects])
+  }, [bug, isOpen, loadSubprojects])
 
   // Reset loaded flags when modal closes
   useEffect(() => {
