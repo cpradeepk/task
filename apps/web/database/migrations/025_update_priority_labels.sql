@@ -5,21 +5,21 @@
 -- Database: MySQL/PostgreSQL
 -- ============================================================================
 
--- Update task_priority setting with new labels
--- Old values: Critical, High, Medium, Low (or similar)
+-- Update task_priorities setting with new labels (note: plural form)
+-- Old values: IU&I (Important & Urgent), IU&NI (Important & Not Urgent), etc.
 -- New values: U&I, NU&I, NI&U, NU&NI
 UPDATE settings
 SET value = '["U&I", "NU&I", "NI&U", "NU&NI"]',
     updated_at = CURRENT_TIMESTAMP
-WHERE key = 'task_priority';
+WHERE key = 'task_priorities';
 
--- Update bug_priority setting with new labels
--- Old values: Critical, High, Medium, Low (or similar)
+-- Update priorities setting with new labels (used for bug priorities)
+-- Old values: High, Medium, Low
 -- New values: U&I, NU&I, NI&U, NU&NI
 UPDATE settings
 SET value = '["U&I", "NU&I", "NI&U", "NU&NI"]',
     updated_at = CURRENT_TIMESTAMP
-WHERE key = 'bug_priority';
+WHERE key = 'priorities';
 
 -- ============================================================================
 -- Verification Queries
@@ -28,7 +28,7 @@ WHERE key = 'bug_priority';
 -- Check if priority values were updated
 SELECT key, value, updated_at
 FROM settings
-WHERE key IN ('task_priority', 'bug_priority');
+WHERE key IN ('task_priorities', 'priorities');
 
 -- ============================================================================
 -- Priority Label Meanings
@@ -51,14 +51,14 @@ WHERE key IN ('task_priority', 'bug_priority');
 
 -- To rollback to old priority labels (example):
 -- UPDATE settings
--- SET value = '["Critical", "High", "Medium", "Low"]',
+-- SET value = '["IU&I (Important & Urgent)", "IU&NI (Important & Not Urgent)", "NU&I (Not Urgent & Important)", "NU&NI (Not Urgent & Not Important)"]',
 --     updated_at = CURRENT_TIMESTAMP
--- WHERE key = 'task_priority';
+-- WHERE key = 'task_priorities';
 
 -- UPDATE settings
--- SET value = '["Critical", "High", "Medium", "Low"]',
+-- SET value = '["High", "Medium", "Low"]',
 --     updated_at = CURRENT_TIMESTAMP
--- WHERE key = 'bug_priority';
+-- WHERE key = 'priorities';
 
 -- ============================================================================
 
