@@ -64,9 +64,10 @@ const createSubtaskLoader = () => new DataLoader(async (parentTaskIds: readonly 
 })
 
 // DataLoader for batching bug subtask queries
+// Note: The bug_subtasks table was renamed to development_checklists in migration 020
 const createBugSubtaskLoader = () => new DataLoader(async (parentBugIds: readonly string[]) => {
   const result = await pool.query(
-    'SELECT * FROM bug_subtasks WHERE parent_bug_id = ANY($1) AND deleted_at IS NULL',
+    'SELECT * FROM development_checklists WHERE parent_bug_id = ANY($1) AND deleted_at IS NULL',
     [parentBugIds]
   )
 
@@ -471,7 +472,10 @@ export const resolvers = {
       // ✅ NEW: Return all assigned users
       const assignedToArray = Array.isArray(task.assigned_to) ? task.assigned_to : []
       if (assignedToArray.length === 0) return []
-      return loaders.user.loadMany(assignedToArray)
+
+      // loadMany can return Error objects in the array, filter them out
+      const results = await loaders.user.loadMany(assignedToArray)
+      return results.filter((result: any) => !(result instanceof Error))
     },
 
     assignedByUser: (task: any, _: any, { loaders }: any) => {
