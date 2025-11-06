@@ -50,12 +50,16 @@ interface PermissionMatrix {
   }
 }
 
-const ROLES = ['admin', 'top_management', 'management', 'employee']
-const ROLE_LABELS: { [key: string]: string } = {
-  admin: 'Admin',
-  top_management: 'Top Management',
-  management: 'Management',
-  employee: 'Employee'
+// Default roles - will be loaded from settings
+const DEFAULT_ROLES = ['admin', 'top_management', 'management', 'employee']
+
+// Helper function to format role display name
+const formatRoleLabel = (role: string): string => {
+  // Convert snake_case to Title Case
+  return role
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
 }
 
 const PERMISSION_TYPES = [
@@ -77,6 +81,8 @@ export default function PermissionsPage() {
   const [selectedRole, setSelectedRole] = useState<string>('admin')
   const [hasChanges, setHasChanges] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string>('')
+  const [roles, setRoles] = useState<string[]>(DEFAULT_ROLES)
+  const [loadingRoles, setLoadingRoles] = useState(true)
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -92,8 +98,39 @@ export default function PermissionsPage() {
     }
 
     setCurrentUser(user)
+    loadRoles()
     loadPermissions()
   }, [router])
+
+  const loadRoles = async () => {
+    try {
+      setLoadingRoles(true)
+      const response = await fetch('/api/settings')
+      const data = await response.json()
+
+      if (data.success && Array.isArray(data.data)) {
+        const rolesSetting = data.data.find((s: any) => s.key === 'user_roles')
+        if (rolesSetting && rolesSetting.value) {
+          // Add 'admin' role if not present (admin is special)
+          const rolesFromSettings = rolesSetting.value
+          if (!rolesFromSettings.includes('admin')) {
+            setRoles(['admin', ...rolesFromSettings])
+          } else {
+            setRoles(rolesFromSettings)
+          }
+        } else {
+          setRoles(DEFAULT_ROLES)
+        }
+      } else {
+        setRoles(DEFAULT_ROLES)
+      }
+    } catch (error) {
+      console.error('Failed to load roles:', error)
+      setRoles(DEFAULT_ROLES)
+    } finally {
+      setLoadingRoles(false)
+    }
+  }
 
   const loadPermissions = async () => {
     try {
@@ -267,21 +304,25 @@ export default function PermissionsPage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Role to Edit:
           </label>
-          <div className="flex flex-wrap gap-2">
-            {ROLES.map(role => (
-              <button
-                key={role}
-                onClick={() => setSelectedRole(role)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  selectedRole === role
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {ROLE_LABELS[role]}
-              </button>
-            ))}
-          </div>
+          {loadingRoles ? (
+            <div className="text-gray-500">Loading roles...</div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {roles.map(role => (
+                <button
+                  key={role}
+                  onClick={() => setSelectedRole(role)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    selectedRole === role
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {formatRoleLabel(role)}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Permission Matrix */}

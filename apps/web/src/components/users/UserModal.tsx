@@ -41,6 +41,10 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
   const [departmentOptions, setDepartmentOptions] = useState<string[]>([])
   const [isLoadingDepartments, setIsLoadingDepartments] = useState(true)
 
+  // Role options from settings
+  const [roleOptions, setRoleOptions] = useState<string[]>([])
+  const [isLoadingRoles, setIsLoadingRoles] = useState(true)
+
   // Function to generate next Employee ID using existing users data
   const generateNextEmployeeId = (): string => {
     try {
@@ -73,7 +77,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
     }
   }
 
-  // Load department options from settings
+  // Load department and role options from settings
   useEffect(() => {
     const loadDepartments = async () => {
       try {
@@ -113,7 +117,35 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
       }
     }
 
+    const loadRoles = async () => {
+      try {
+        setIsLoadingRoles(true)
+        const response = await fetch('/api/settings')
+        const data = await response.json()
+
+        if (data.success && Array.isArray(data.data)) {
+          const rolesSetting = data.data.find((s: any) => s.key === 'user_roles')
+          if (rolesSetting && rolesSetting.value) {
+            setRoleOptions(rolesSetting.value)
+          } else {
+            // Fallback to default roles
+            setRoleOptions(['employee', 'management', 'top_management'])
+          }
+        } else {
+          // Fallback to default roles
+          setRoleOptions(['employee', 'management', 'top_management'])
+        }
+      } catch (error) {
+        console.error('Failed to load roles:', error)
+        // Fallback to default roles
+        setRoleOptions(['employee', 'management', 'top_management'])
+      } finally {
+        setIsLoadingRoles(false)
+      }
+    }
+
     loadDepartments()
+    loadRoles()
   }, [])
 
   const lookupManagerByEmail = async (email: string) => {
@@ -318,13 +350,14 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
 
   if (!isOpen) return null
 
-  const roles = [
-    { value: 'employee', label: 'Employee' },
-    { value: 'management', label: 'Management' },
-    { value: 'top_management', label: 'Top Management' }
-  ]
-
-
+  // Helper function to format role display name
+  const formatRoleLabel = (role: string): string => {
+    // Convert snake_case to Title Case
+    return role
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
 
   if (!isOpen) return null
 
@@ -482,11 +515,15 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                     value={formData.role}
                     onChange={handleInputChange}
                     required
-                    className="input-field-with-icon"
+                    disabled={isLoadingRoles}
+                    className="input-field-with-icon disabled:bg-secondary-100 disabled:cursor-not-allowed"
                   >
-                    {roles.map(role => (
-                      <option key={role.value} value={role.value}>
-                        {role.label}
+                    <option value="">
+                      {isLoadingRoles ? 'Loading roles...' : 'Select role...'}
+                    </option>
+                    {roleOptions.map(role => (
+                      <option key={role} value={role}>
+                        {formatRoleLabel(role)}
                       </option>
                     ))}
                   </select>
