@@ -85,7 +85,7 @@ export default function UnifiedWorkItemsList({
   allowEdit = false,
   onTaskUpdate
 }: UnifiedWorkItemsListProps) {
-  const [typeFilter, setTypeFilter] = useState<string>('all') // all, tasks, bugs
+  const [typeFilter, setTypeFilter] = useState<string>('all') // all, tasks, bugs, features
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -189,10 +189,15 @@ export default function UnifiedWorkItemsList({
     }
   }
 
+  // Separate bugs and features based on type field
+  const actualBugs = bugs.filter(bug => bug.type !== 'feature')
+  const features = bugs.filter(bug => bug.type === 'feature')
+
   // Combine tasks and bugs into unified list
   const workItems = [
     ...tasks.map(task => ({ ...task, itemType: 'task' as const })),
-    ...bugs.map(bug => ({ ...bug, itemType: 'bug' as const }))
+    ...actualBugs.map(bug => ({ ...bug, itemType: 'bug' as const })),
+    ...features.map(feature => ({ ...feature, itemType: 'feature' as const }))
   ]
 
   // Filter work items
@@ -200,6 +205,7 @@ export default function UnifiedWorkItemsList({
     // Type filter
     if (typeFilter === 'tasks' && item.itemType !== 'task') return false
     if (typeFilter === 'bugs' && item.itemType !== 'bug') return false
+    if (typeFilter === 'features' && item.itemType !== 'feature') return false
 
     // Status filter
     if (statusFilter !== 'all' && item.status !== statusFilter) return false
@@ -267,7 +273,17 @@ export default function UnifiedWorkItemsList({
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                Bugs ({bugs.length})
+                Bugs ({actualBugs.length})
+              </button>
+              <button
+                onClick={() => setTypeFilter('features')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  typeFilter === 'features'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Features ({features.length})
               </button>
             </div>
           </div>
@@ -470,18 +486,23 @@ export default function UnifiedWorkItemsList({
                 </div>
               )
             } else {
-              // Bug item
-              const bug = item as Bug & { itemType: 'bug' }
+              // Bug or Feature item
+              const bug = item as Bug & { itemType: 'bug' | 'feature' }
+              const isFeature = item.itemType === 'feature'
 
               return (
                 <div
-                  key={`bug-${bug.bugId}`}
+                  key={`${isFeature ? 'feature' : 'bug'}-${bug.bugId}`}
                   className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow bg-white ${getBugSeverityColor(bug.severity)}`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <BugIcon className="h-4 w-4 text-red-600" />
+                        {isFeature ? (
+                          <Tag className="h-4 w-4 text-blue-600" />
+                        ) : (
+                          <BugIcon className="h-4 w-4 text-red-600" />
+                        )}
                         <button
                           onClick={() => {
                             setSelectedBugForEdit(bug)
