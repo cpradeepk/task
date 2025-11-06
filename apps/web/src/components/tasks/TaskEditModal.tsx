@@ -107,6 +107,16 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
   // Initialize form data when task changes
   useEffect(() => {
     if (task && isOpen) {
+      // DEBUG: Log task data to see what we're receiving
+      console.log('🔍 [TaskEditModal] Task data received:', {
+        taskId: task.taskId,
+        department: task.department,
+        priority: task.priority,
+        subprojectId: task.subprojectId,
+        projectId: task.projectId,
+        fullTask: task
+      })
+
       // Initialize form data with ALL task properties
       const initialFormData = {
         taskId: task.taskId,
@@ -124,33 +134,30 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
         remarks: task.remarks || '',
         difficulties: task.difficulties || '',
         projectId: task.projectId || '',
-        department: (task as any).department || '',
+        subprojectId: task.subprojectId || '',
+        department: task.department || '',
       }
 
+      console.log('🔍 [TaskEditModal] Form data initialized:', initialFormData)
       setFormData(initialFormData)
 
-      // If task has a projectId, determine if it's a main project or subproject
-      if (task.projectId) {
-        // Fetch all projects to determine hierarchy
+      // If task has a subprojectId, load the parent project
+      if (task.subprojectId) {
+        // Fetch all projects to find the subproject and its parent
         fetch('/api/projects?status=active')
           .then(res => res.json())
           .then(data => {
-            const currentProject = data.find((p: any) => p.projectId === task.projectId)
-            if (currentProject) {
-              if (currentProject.parentProjectId) {
-                // It's a subproject - set the parent as main project
-                setSelectedMainProject(currentProject.parentProjectId)
-                // Keep projectId as the subproject
-                setFormData(prev => ({ ...prev, projectId: task.projectId }))
-              } else {
-                // It's a main project - set it as selected main project
-                setSelectedMainProject(task.projectId || '')
-                // Keep projectId as the main project
-                setFormData(prev => ({ ...prev, projectId: task.projectId }))
-              }
+            const subproject = data.find((p: any) => p.projectId === task.subprojectId)
+            if (subproject && subproject.parentProjectId) {
+              console.log('🔍 [TaskEditModal] Found subproject:', subproject.projectName, 'Parent:', subproject.parentProjectId)
+              setSelectedMainProject(subproject.parentProjectId)
             }
           })
           .catch(err => console.error('Failed to load project info:', err))
+      } else if (task.projectId) {
+        // No subproject, just set the main project
+        console.log('🔍 [TaskEditModal] Setting main project:', task.projectId)
+        setSelectedMainProject(task.projectId)
       }
     }
   }, [task, isOpen])
@@ -349,9 +356,8 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
                 onChange={(e) => {
                   const mainProjectId = e.target.value
                   setSelectedMainProject(mainProjectId)
-                  // If main project selected and no subprojects, set projectId to main project
-                  // Otherwise, clear projectId until subproject is selected
-                  setFormData({ ...formData, projectId: mainProjectId })
+                  // Set projectId to main project, clear subprojectId
+                  setFormData({ ...formData, projectId: mainProjectId, subprojectId: '' } as any)
                 }}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -368,17 +374,16 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
             {/* Subproject (only shown if main project has subprojects) */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Subproject {subprojects.length > 0 ? '*' : '(Optional)'}
+                Subproject {subprojects.length > 0 ? '' : '(Optional)'}
               </label>
               <select
-                value={formData.projectId || selectedMainProject}
-                onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
+                value={(formData as any).subprojectId || ''}
+                onChange={(e) => setFormData({ ...formData, subprojectId: e.target.value } as any)}
                 disabled={!selectedMainProject || subprojects.length === 0}
-                required={subprojects.length > 0}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 {subprojects.length === 0 ? (
-                  <option value={selectedMainProject}>No subprojects</option>
+                  <option value="">No subprojects</option>
                 ) : (
                   <>
                     <option value="">Select subproject...</option>

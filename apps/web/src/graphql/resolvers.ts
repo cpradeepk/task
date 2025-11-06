@@ -218,7 +218,15 @@ export const resolvers = {
       // Fetch tasks
       let tasksQuery = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
       if (!isManagement) {
-        tasksQuery += ' AND (assigned_to = $1 OR assigned_by = $2 OR $3 = ANY(string_to_array(support::text, ',')))'
+        // Support is JSONB array, use jsonb_array_elements_text to check if employeeId is in the array
+        tasksQuery += ` AND (
+          assigned_to = $1
+          OR assigned_by = $2
+          OR EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(support) AS elem
+            WHERE elem = $3
+          )
+        )`
       }
       tasksQuery += ' ORDER BY created_at DESC'
 
@@ -298,9 +306,26 @@ export const resolvers = {
     assignedTo: (task: any) => task.assigned_to,
     assignedBy: (task: any) => task.assigned_by,
     support: (task: any) => {
-      // Support is stored as JSONB array in PostgreSQL
+      // Support is stored as JSONB array in PostgreSQL, but might be a string
       if (!task.support) return []
-      return Array.isArray(task.support) ? task.support : []
+      if (Array.isArray(task.support)) return task.support
+
+      // Handle string case (legacy data or parsing issue)
+      if (typeof task.support === 'string') {
+        try {
+          const trimmed = task.support.trim()
+          if (trimmed === '' || trimmed === 'null') return []
+          // Try to parse as JSON
+          const parsed = JSON.parse(trimmed)
+          return Array.isArray(parsed) ? parsed : []
+        } catch (error) {
+          // If JSON parsing fails, might be comma-separated string
+          console.warn('Failed to parse support field for task:', task.task_id, 'Value:', task.support)
+          return []
+        }
+      }
+
+      return []
     },
     startDate: (task: any) => task.start_date,
     endDate: (task: any) => task.end_date,
