@@ -40,6 +40,7 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
   const [projects, setProjects] = useState<any[]>([])
   const [subprojects, setSubprojects] = useState<any[]>([])
   const [selectedMainProject, setSelectedMainProject] = useState<string>('')
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>([])
 
   const { settings, isLoading: isLoadingSettings } = useSettings()
   const { getIcon } = useSettingsIcons()
@@ -83,6 +84,15 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
     loadProjects()
   }, [])
 
+  // Load department options from settings
+  useEffect(() => {
+    if (settings && Array.isArray(settings) && settings.length > 0) {
+      const departmentsSetting = settings.find((s: any) => s.key === 'departments')
+      const departments = departmentsSetting?.value || []
+      setDepartmentOptions(departments)
+    }
+  }, [settings])
+
   // Load subprojects when main project is selected
   useEffect(() => {
     const loadSubprojects = async () => {
@@ -123,6 +133,7 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
         remarks: task.remarks || '',
         difficulties: task.difficulties || '',
         projectId: task.projectId || '',
+        ...(task as any).department && { department: (task as any).department },
       })
 
       // If task has a projectId, determine if it's a main project or subproject
@@ -383,6 +394,31 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
                 )}
               </select>
             </div>
+          </div>
+
+          {/* Department Field */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Department *
+            </label>
+            <select
+              value={(formData as any).department || ''}
+              onChange={(e) => setFormData({ ...formData, department: e.target.value } as any)}
+              required
+              disabled={isLoadingSettings}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="">Select department...</option>
+              {isLoadingSettings ? (
+                <option>Loading...</option>
+              ) : (
+                departmentOptions.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))
+              )}
+            </select>
           </div>
 
           {/* Assigned To - Multiple Selection */}
