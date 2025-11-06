@@ -161,8 +161,11 @@ export async function getTasksByEmployeeId(employee_id: string): Promise<Task[]>
       `SELECT * FROM tasks
        WHERE deleted_at IS NULL
        AND (
-         assigned_to = $1
-         OR assigned_by = $1
+         assigned_by = $1
+         OR EXISTS (
+           SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+           WHERE elem = $1
+         )
          OR EXISTS (
            SELECT 1 FROM jsonb_array_elements_text(support) AS elem
            WHERE elem = $1
@@ -212,8 +215,14 @@ export async function getTasksByDateRange(start_date: string, endDate: string): 
 export async function getSupportTasksForEmployee(employee_id: string): Promise<Task[]> {
   return withRetry(async () => {
     const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE JSON_CONTAINS(support, $1) AND deleted_at IS NULL ORDER BY created_at DESC',
-      [JSON.stringify(employee_id)]
+      `SELECT * FROM tasks
+       WHERE deleted_at IS NULL
+       AND EXISTS (
+         SELECT 1 FROM jsonb_array_elements_text(support) AS elem
+         WHERE elem = $1
+       )
+       ORDER BY created_at DESC`,
+      [employee_id]
     )
     return rows.map(rowToTask)
   })
