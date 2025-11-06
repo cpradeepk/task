@@ -15,4 +15,370 @@
    - Environments: .env.local
 
  [32m[1m✓[22m[39m Starting...
-[?25h
+ [33m[1m⚠[22m[39m The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+ [32m[1m✓[22m[39m Ready in 421ms
+ GET / [32m200[39m in 1921ms[2m (compile: 1823ms, render: 98ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+🔵 [DB] New PostgreSQL connection pool created {
+  max: [33m3[39m,
+  idleTimeoutMillis: [33m10000[39m,
+  connectionTimeoutMillis: [33m5000[39m,
+  connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
+  usingEnvVar: [33mtrue[39m
+}
+❌ Redis Cloud connection error: 001D1399BB730000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /dashboard [32m200[39m in 469ms[2m (compile: 457ms, render: 12ms)[22m
+ GET /api/settings?grouped=true&activeOnly=true [32m200[39m in 538ms[2m (compile: 260ms, proxy.ts: 40ms, render: 238ms)[22m
+⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T14:21:49.840Z
+🔧 Variables: {
+  "employeeId": "AM-0002",
+  "role": "employee"
+}
+================================================================================
+
+⚙️ [Resolver] dashboard ⏱️ 19:51:49.856
+  🔧 Args: {
+  "employeeId": "AM-0002",
+  "role": "employee"
+}
+  🗄️ [DB Query] [dashboard.tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL AND (
+            assigned_by = $1
+            OR EXISTS (
+              SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+              WHERE e...
+    Params: [ [32m'AM-0002'[39m, [32m'AM-0002'[39m, [32m'AM-0002'[39m ]
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T14:21:49.878Z
+🔧 Variables: {
+  "employeeId": "AM-0002",
+  "role": "employee"
+}
+================================================================================
+
+⚙️ [Resolver] dashboard ⏱️ 19:51:49.879
+  🔧 Args: {
+  "employeeId": "AM-0002",
+  "role": "employee"
+}
+  🗄️ [DB Query] [dashboard.tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL AND (
+            assigned_by = $1
+            OR EXISTS (
+              SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+              WHERE e...
+    Params: [ [32m'AM-0002'[39m, [32m'AM-0002'[39m, [32m'AM-0002'[39m ]
+  ✅ [DB Result] [dashboard.tasks] 2 rows in 29ms
+  🗄️ [DB Query] [dashboard.bugs]
+    SQL: SELECT * FROM bugs WHERE deleted_at IS NULL AND (assigned_to = $1 OR reported_by = $2) ORDER BY created_at DESC
+    Params: [ [32m'AM-0002'[39m, [32m'AM-0002'[39m ]
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.bugs] 0 rows in 27ms
+  🗄️ [DB Query] [dashboard.users]
+    SQL: SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ❌ [Resolver] dashboard FAILED in 100ms
+    Error: column "deleted_at" does not exist
+    Code: 42703
+    Stack: error: column "deleted_at" does not exist
+    at /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.dashboard (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2445:37)
+Unexpected error processing request: TypeError: graphqlError.toJSON is not a function
+
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+💥 [GraphQL Server] UnnamedOperation CRASHED in 130ms
+Error: Error: Internal server error
+    at async POST (src/app/api/graphql/route.ts:47:22)
+[0m [90m 45 |[39m     [36mconst[39m context [33m=[39m createContext()
+ [90m 46 |[39m
+[31m[1m>[22m[39m[90m 47 |[39m     [36mconst[39m response [33m=[39m [36mawait[39m server[33m.[39mexecuteOperation(
+ [90m    |[39m                      [31m[1m^[22m[39m
+ [90m 48 |[39m       {
+ [90m 49 |[39m         query[33m:[39m body[33m.[39mquery[33m,[39m
+ [90m 50 |[39m         variables[33m:[39m body[33m.[39mvariables[33m,[39m[0m
+Stack: Error: Internal server error
+    at internalExecuteOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2354:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ApolloServer.executeOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2321:26)
+    at async POST (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2950:26)
+    at async AppRouteRouteModule.do (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:37913)
+    at async AppRouteRouteModule.handle (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:45132)
+    at async responseGenerator (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14324:38)
+    at async AppRouteRouteModule.handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:19:132654)
+    at async handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14386:32)
+    at async handler (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14439:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1415:9)
+    at async DevServer.renderPageComponent (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1467:24)
+    at async DevServer.renderToResponseImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1517:32)
+    at async DevServer.pipeImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1023:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:914:17)
+    at async /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:369:24)
+    at async invokeRender (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/start-server.js:226:13)
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+ POST /api/graphql [31m500[39m in 701ms[2m (compile: 478ms, proxy.ts: 6ms, render: 216ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.tasks] 2 rows in 277ms
+  🗄️ [DB Query] [dashboard.bugs]
+    SQL: SELECT * FROM bugs WHERE deleted_at IS NULL AND (assigned_to = $1 OR reported_by = $2) ORDER BY created_at DESC
+    Params: [ [32m'AM-0002'[39m, [32m'AM-0002'[39m ]
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.bugs] 0 rows in 105ms
+  🗄️ [DB Query] [dashboard.users]
+    SQL: SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+  ❌ [Resolver] dashboard FAILED in 409ms
+    Error: column "deleted_at" does not exist
+    Code: 42703
+    Stack: error: column "deleted_at" does not exist
+    at /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.dashboard (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2445:37)
+Unexpected error processing request: TypeError: graphqlError.toJSON is not a function
+
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+💥 [GraphQL Server] UnnamedOperation CRASHED in 411ms
+Error: Error: Internal server error
+    at async POST (src/app/api/graphql/route.ts:47:22)
+[0m [90m 45 |[39m     [36mconst[39m context [33m=[39m createContext()
+ [90m 46 |[39m
+[31m[1m>[22m[39m[90m 47 |[39m     [36mconst[39m response [33m=[39m [36mawait[39m server[33m.[39mexecuteOperation(
+ [90m    |[39m                      [31m[1m^[22m[39m
+ [90m 48 |[39m       {
+ [90m 49 |[39m         query[33m:[39m body[33m.[39mquery[33m,[39m
+ [90m 50 |[39m         variables[33m:[39m body[33m.[39mvariables[33m,[39m[0m
+Stack: Error: Internal server error
+    at internalExecuteOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2354:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ApolloServer.executeOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2321:26)
+    at async POST (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2950:26)
+    at async AppRouteRouteModule.do (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:37913)
+    at async AppRouteRouteModule.handle (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:45132)
+    at async responseGenerator (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14324:38)
+    at async AppRouteRouteModule.handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:19:132654)
+    at async handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14386:32)
+    at async handler (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14439:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1415:9)
+    at async DevServer.renderPageComponent (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1467:24)
+    at async DevServer.renderToResponseImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1517:32)
+    at async DevServer.pipeImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1023:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:914:17)
+    at async /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:369:24)
+    at async invokeRender (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/start-server.js:226:13)
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+ POST /api/graphql [31m500[39m in 999ms[2m (compile: 525ms, proxy.ts: 7ms, render: 467ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/dashboard-data?employeeId=AM-0002&role=employee&includeUsers=false [32m200[39m in 352ms[2m (compile: 75ms, proxy.ts: 2ms, render: 275ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/settings [32m200[39m in 63ms[2m (compile: 5ms, proxy.ts: 3ms, render: 55ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/settings [32m200[39m in 40ms[2m (compile: 34ms, proxy.ts: 3ms, render: 3ms)[22m
+ GET /api/settings [32m200[39m in 5ms[2m (compile: 1370µs, proxy.ts: 1704µs, render: 2ms)[22m
+ GET /api/projects?type=main&status=active [32m200[39m in 110ms[2m (compile: 76ms, proxy.ts: 3ms, render: 31ms)[22m
+ GET /api/settings [32m200[39m in 10ms[2m (compile: 6ms, proxy.ts: 2ms, render: 2ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 125ms[2m (compile: 91ms, proxy.ts: 3ms, render: 31ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/projects?type=main&status=active [32m200[39m in 39ms[2m (compile: 8ms, proxy.ts: 2ms, render: 29ms)[22m
+ GET /api/users [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1558µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+ GET /api/users [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1514µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+ GET /api/users [32m200[39m in 34ms[2m (compile: 1698µs, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/dashboard-data?employeeId=AM-0002&role=employee&includeUsers=false [32m200[39m in 266ms[2m (compile: 1273µs, proxy.ts: 1741µs, render: 263ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m2[39m, idleCount: [33m2[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ GET /tasks [32m200[39m in 332ms[2m (compile: 318ms, render: 14ms)[22m
+ GET /api/settings [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 2ms, render: 2ms)[22m
+ GET /api/settings [32m200[39m in 5ms[2m (compile: 1572µs, proxy.ts: 1524µs, render: 1964µs)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T14:22:10.980Z
+================================================================================
+
+⚙️ [Resolver] tasks ⏱️ 19:52:10.990
+  🗄️ [DB Query] [tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY created_at DESC
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 221ms[2m (compile: 24ms, proxy.ts: 3ms, render: 194ms)[22m
+  ✅ [DB Result] [tasks] 2 rows in 208ms
+  ✅ [Resolver] tasks completed in 208ms → Array(2)
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+Unexpected error processing request: TypeError: graphqlError.toJSON is not a function
+
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+💥 [GraphQL Server] UnnamedOperation CRASHED in 256ms
+Error: Error: Internal server error
+    at async POST (src/app/api/graphql/route.ts:47:22)
+[0m [90m 45 |[39m     [36mconst[39m context [33m=[39m createContext()
+ [90m 46 |[39m
+[31m[1m>[22m[39m[90m 47 |[39m     [36mconst[39m response [33m=[39m [36mawait[39m server[33m.[39mexecuteOperation(
+ [90m    |[39m                      [31m[1m^[22m[39m
+ [90m 48 |[39m       {
+ [90m 49 |[39m         query[33m:[39m body[33m.[39mquery[33m,[39m
+ [90m 50 |[39m         variables[33m:[39m body[33m.[39mvariables[33m,[39m[0m
+Stack: Error: Internal server error
+    at internalExecuteOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2354:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ApolloServer.executeOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2321:26)
+    at async POST (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2950:26)
+    at async AppRouteRouteModule.do (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:37913)
+    at async AppRouteRouteModule.handle (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:45132)
+    at async responseGenerator (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14324:38)
+    at async AppRouteRouteModule.handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:19:132654)
+    at async handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14386:32)
+    at async handler (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14439:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1415:9)
+    at async DevServer.renderPageComponent (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1467:24)
+    at async DevServer.renderToResponseImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1517:32)
+    at async DevServer.pipeImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1023:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:914:17)
+    at async /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:369:24)
+    at async invokeRender (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/start-server.js:226:13)
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+ POST /api/graphql [31m500[39m in 366ms[2m (compile: 7ms, proxy.ts: 3ms, render: 356ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔄 Initializing email service...
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+✅ [TASKS-GET] Successfully fetched 2 tasks
+ GET /api/tasks [32m200[39m in 337ms[2m (compile: 135ms, proxy.ts: 1673µs, render: 201ms)[22m
+⚠️ Email verify failed. Falling back to test mode: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-ba8f8c84501sm2762029a12.7 - gsmtp
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ GET /tasks/create [32m200[39m in 327ms[2m (compile: 313ms, render: 14ms)[22m
+ GET /api/settings [32m200[39m in 8ms[2m (compile: 2ms, proxy.ts: 3ms, render: 3ms)[22m
+ GET /api/settings [32m200[39m in 8ms[2m (compile: 1963µs, proxy.ts: 2ms, render: 4ms)[22m
+ GET /api/settings [32m200[39m in 16ms[2m (compile: 8ms, proxy.ts: 5ms, render: 3ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 238ms[2m (compile: 6ms, proxy.ts: 5ms, render: 227ms)[22m
+ GET /api/projects?type=main [32m200[39m in 236ms[2m (compile: 13ms, proxy.ts: 5ms, render: 219ms)[22m
+ GET /api/settings [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1534µs, render: 1669µs)[22m
+ GET /api/settings [32m200[39m in 3ms[2m (compile: 952µs, proxy.ts: 1040µs, render: 1479µs)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T14:22:52.547Z
+================================================================================
+
+⚙️ [Resolver] tasks ⏱️ 19:52:52.548
+  🗄️ [DB Query] [tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY created_at DESC
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [tasks] 2 rows in 28ms
+  ✅ [Resolver] tasks completed in 28ms → Array(2)
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 40ms[2m (compile: 8ms, proxy.ts: 3ms, render: 28ms)[22m
+Unexpected error processing request: TypeError: graphqlError.toJSON is not a function
+
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+💥 [GraphQL Server] UnnamedOperation CRASHED in 60ms
+Error: Error: Internal server error
+    at async POST (src/app/api/graphql/route.ts:47:22)
+[0m [90m 45 |[39m     [36mconst[39m context [33m=[39m createContext()
+ [90m 46 |[39m
+[31m[1m>[22m[39m[90m 47 |[39m     [36mconst[39m response [33m=[39m [36mawait[39m server[33m.[39mexecuteOperation(
+ [90m    |[39m                      [31m[1m^[22m[39m
+ [90m 48 |[39m       {
+ [90m 49 |[39m         query[33m:[39m body[33m.[39mquery[33m,[39m
+ [90m 50 |[39m         variables[33m:[39m body[33m.[39mvariables[33m,[39m[0m
+Stack: Error: Internal server error
+    at internalExecuteOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2354:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ApolloServer.executeOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2321:26)
+    at async POST (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2950:26)
+    at async AppRouteRouteModule.do (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:37913)
+    at async AppRouteRouteModule.handle (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:45132)
+    at async responseGenerator (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14324:38)
+    at async AppRouteRouteModule.handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:19:132654)
+    at async handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14386:32)
+    at async handler (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14439:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1415:9)
+    at async DevServer.renderPageComponent (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1467:24)
+    at async DevServer.renderToResponseImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1517:32)
+    at async DevServer.pipeImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1023:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:914:17)
+    at async /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:369:24)
+    at async invokeRender (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/start-server.js:226:13)
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+ POST /api/graphql [31m500[39m in 144ms[2m (compile: 3ms, proxy.ts: 3ms, render: 138ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+✅ [TASKS-GET] Successfully fetched 2 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1869µs, render: 30ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }

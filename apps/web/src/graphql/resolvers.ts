@@ -14,7 +14,7 @@ const pool = getPool()
 // DataLoader for batching user queries
 const createUserLoader = () => new DataLoader(async (employeeIds: readonly string[]) => {
   const result = await pool.query(
-    'SELECT * FROM users WHERE employee_id = ANY($1) AND deleted_at IS NULL',
+    'SELECT * FROM users WHERE employee_id = ANY($1)',
     [employeeIds]
   )
 
@@ -98,13 +98,13 @@ export const resolvers = {
 
       try {
         const dbStart = logDatabaseQuery(
-          'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name',
+          'SELECT * FROM users ORDER BY name',
           [],
           'users'
         )
 
         const result = await pool.query(
-          'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name'
+          'SELECT * FROM users ORDER BY name'
         )
 
         logDatabaseResult(result.rows.length, dbStart.startTime, 'users')
@@ -316,12 +316,12 @@ export const resolvers = {
 
         // Fetch users and settings
         const dbStart3 = logDatabaseQuery(
-          'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name',
+          'SELECT * FROM users ORDER BY name',
           [],
           'dashboard.users'
         )
         const usersResult = await pool.query(
-          'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name'
+          'SELECT * FROM users ORDER BY name'
         )
         logDatabaseResult(usersResult.rows.length, dbStart3.startTime, 'dashboard.users')
         const users = usersResult.rows

@@ -590,7 +590,7 @@ function CreateTaskContent() {
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-black">Create New Task</h1>
-          <p className="text-gray-600 mt-1">Fill out the form to create a new task assignment</p>
+          <p className="text-gray-600 mt-1">Clarity in Mind, Purity in heart and Sincerity in action</p>
         </div>
 
       <div className="card">
