@@ -199,25 +199,10 @@ export default function TasksPage() {
         console.log('✅ [Tasks] REST API successful:', tasksData.length, 'tasks')
       }
 
-      // Filter tasks based on user role and involvement
-      if (currentUser) {
-        if (currentUser.role === 'employee') {
-          // Employees can only see tasks they created or are assigned to
-          tasksData = tasksData.filter((task: Task) =>
-            task.assignedBy === currentUser.employeeId ||
-            (Array.isArray(task.assignedTo) ? task.assignedTo.includes(currentUser.employeeId) : task.assignedTo === currentUser.employeeId) ||
-            (task.support && task.support.includes(currentUser.employeeId))
-          )
-        } else if (currentUser.role === 'management') {
-          // Management can see tasks they're involved in
-          tasksData = tasksData.filter((task: Task) =>
-            task.assignedBy === currentUser.employeeId ||
-            (Array.isArray(task.assignedTo) ? task.assignedTo.includes(currentUser.employeeId) : task.assignedTo === currentUser.employeeId) ||
-            (task.support && task.support.includes(currentUser.employeeId))
-          )
-        }
-        // top_management and admin can see all tasks (no filtering)
-      }
+      // Note: Role-based filtering is NOT applied here anymore
+      // All users can see all tasks in the system
+      // The assignee filter dropdown allows users to filter by specific assignees
+      // This ensures consistent task visibility across all users
 
       setTasks(tasksData)
 
