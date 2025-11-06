@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Play, Pause, Square } from 'lucide-react'
+import { stopTimer } from '@/lib/timerService'
 
 interface TimerSession {
   startTime: number
@@ -167,37 +168,14 @@ export default function FloatingTimer({ onClose }: FloatingTimerProps) {
   const handleStop = async () => {
     if (!timerData) return
 
-    // Pause first to calculate final time
-    if (timerData.state === 'running') {
-      handlePause()
-    }
+    // Use the stopTimer service function which handles:
+    // 1. Calculating final time
+    // 2. Syncing to backend
+    // 3. Creating activity log entry
+    // 4. Clearing localStorage
+    await stopTimer()
 
-    // Sync final state to backend with 'stopped' state to trigger actualHours update
-    await syncToBackend('stopped')
-
-    // Log to activity log with hh:mm:ss format
-    try {
-      const timeFormatted = formatTime(currentTime) // Already in hh:mm:ss format
-      await fetch('/api/activity-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          entityType: timerData.entityType,
-          entityId: timerData.entityId,
-          actionType: 'time_logged',
-          description: `Logged ${timeFormatted} (timer entry)`,
-          isComment: false
-        })
-      })
-    } catch (error) {
-      console.error('Failed to log time to activity log:', error)
-    }
-
-    // Clear timer from localStorage
-    localStorage.removeItem('activeTimer')
-
-    // Clear timer state
+    // Clear timer state in component
     setTimerData(null)
     setCurrentTime(0)
 

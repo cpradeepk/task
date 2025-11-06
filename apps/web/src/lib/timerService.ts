@@ -86,6 +86,7 @@ export async function startTimer(
 
 /**
  * Stop the active timer and sync to backend
+ * Creates activity log entry for the stopped timer
  */
 export async function stopTimer(): Promise<void> {
   const timer = getActiveTimer()
@@ -115,8 +116,24 @@ export async function stopTimer(): Promise<void> {
     console.error('Failed to sync timer:', error)
   }
 
-  // Note: Activity log is created in FloatingTimer.tsx handleStop
-  // to avoid duplicate entries and use proper hh:mm:ss format
+  // Create activity log entry with hh:mm:ss format
+  try {
+    const timeFormatted = formatTime(finalTime)
+    await fetch('/api/activity-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        entityType: timer.entityType,
+        entityId: timer.entityId,
+        actionType: 'time_logged',
+        description: `Logged ${timeFormatted} (timer entry)`,
+        isComment: false
+      })
+    })
+  } catch (error) {
+    console.error('Failed to log time to activity log:', error)
+  }
 
   // Clear from localStorage
   localStorage.removeItem('activeTimer')
