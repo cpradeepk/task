@@ -6,6 +6,7 @@ import { Task } from '@/lib/types'
 import { ChevronRight, ChevronDown, Circle, CheckCircle2 } from 'lucide-react'
 import AssigneeList from './AssigneeList'
 import SupportTeam from './SupportTeam'
+import TimerButton from '@/components/TimerButton'
 
 interface HierarchicalTaskRowProps {
   task: Task
@@ -153,12 +154,26 @@ export default function HierarchicalTaskRow({
             </div>
           </div>
 
-          <button
-            onClick={handleTaskClick}
-            className="ml-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
-          >
-            View Details
-          </button>
+          <div className="ml-4 flex items-center space-x-2">
+            {/* Timer Button - Hidden for Done/Cancel/Stop statuses */}
+            {task.status !== 'Done' && task.status !== 'Cancel' && task.status !== 'Stop' && (
+              <TimerButton
+                entityType="task"
+                entityId={task.taskId}
+                entityTitle={task.name || task.description}
+                status={task.status}
+                size="md"
+                showLabel={false}
+              />
+            )}
+
+            <button
+              onClick={handleTaskClick}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+            >
+              View Details
+            </button>
+          </div>
         </div>
       </div>
 
