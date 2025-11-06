@@ -69,6 +69,16 @@ export async function PUT(
     // Get current task state before updating (for activity logging)
     const currentTask = await getTaskById(taskId)
 
+    // Convert assignedTo from string to array if needed (for PostgreSQL JSONB array constraint)
+    if (updates.assignedTo !== undefined && typeof updates.assignedTo === 'string') {
+      updates.assignedTo = [updates.assignedTo]
+    }
+
+    // Convert support from string to array if needed (for PostgreSQL JSONB array constraint)
+    if (updates.support !== undefined && typeof updates.support === 'string') {
+      updates.support = updates.support ? [updates.support] : []
+    }
+
     // Update task in MySQL
     const task = await updateTask(taskId, updates)
 

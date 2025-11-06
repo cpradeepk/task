@@ -45,9 +45,10 @@ const createBugLoader = () => new DataLoader(async (bugIds: readonly string[]) =
 })
 
 // DataLoader for batching subtask queries
+// Note: The subtasks table was renamed to task_checklists in migration 020
 const createSubtaskLoader = () => new DataLoader(async (parentTaskIds: readonly string[]) => {
   const result = await pool.query(
-    'SELECT * FROM subtasks WHERE parent_task_id = ANY($1) AND deleted_at IS NULL',
+    'SELECT * FROM task_checklists WHERE parent_task_id = ANY($1) AND deleted_at IS NULL',
     [parentTaskIds]
   )
 
