@@ -102,7 +102,11 @@ export const resolvers = {
       let paramIndex = 1
 
       if (filters.assignedTo) {
-        query += ` AND assigned_to = $${paramIndex++}`
+        // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
+        query += ` AND EXISTS (
+          SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+          WHERE elem = $${paramIndex++}
+        )`
         params.push(filters.assignedTo)
       }
       if (filters.assignedBy) {
@@ -218,10 +222,13 @@ export const resolvers = {
       // Fetch tasks
       let tasksQuery = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
       if (!isManagement) {
-        // Support is JSONB array, use jsonb_array_elements_text to check if employeeId is in the array
+        // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
         tasksQuery += ` AND (
-          assigned_to = $1
-          OR assigned_by = $2
+          assigned_by = $1
+          OR EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+            WHERE elem = $2
+          )
           OR EXISTS (
             SELECT 1 FROM jsonb_array_elements_text(support) AS elem
             WHERE elem = $3
@@ -255,7 +262,7 @@ export const resolvers = {
         'SELECT * FROM settings WHERE is_active = true ORDER BY key'
       )
       const settings = settingsResult.rows
-      
+
       return { tasks, bugs, users, settings }
     }
   },
@@ -277,8 +284,14 @@ export const resolvers = {
     updatedAt: (user: any) => user.updated_at,
 
     tasks: async (user: any, _: any, { loaders }: any) => {
+      // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
       const result = await pool.query(
-        'SELECT * FROM tasks WHERE assigned_to = $1 AND deleted_at IS NULL',
+        `SELECT * FROM tasks
+         WHERE deleted_at IS NULL
+         AND EXISTS (
+           SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+           WHERE elem = $1
+         )`,
         [user.employee_id]
       )
       return result.rows

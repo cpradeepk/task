@@ -171,61 +171,62 @@ export async function updateUser(employee_id: string, updates: Partial<User>): P
 
     const fields: string[] = []
     const values: any[] = []
+    let paramIndex = 1 // PostgreSQL uses $1, $2, $3, etc.
 
     if (updates.name !== undefined) {
-      fields.push('name = ?')
+      fields.push(`name = $${paramIndex++}`)
       values.push(updates.name)
     }
     if (updates.email !== undefined) {
-      fields.push('email = ?')
+      fields.push(`email = $${paramIndex++}`)
       values.push(updates.email)
     }
     if (updates.phone !== undefined) {
-      fields.push('phone = ?')
+      fields.push(`phone = $${paramIndex++}`)
       values.push(updates.phone)
     }
     if (updates.telegramToken !== undefined) {
-      fields.push('telegram_token = ?')
+      fields.push(`telegram_token = $${paramIndex++}`)
       values.push(updates.telegramToken || null)
     }
     if (updates.department !== undefined) {
-      fields.push('department = ?')
+      fields.push(`department = $${paramIndex++}`)
       values.push(updates.department)
     }
     if (updates.managerEmail !== undefined) {
-      fields.push('manager_email = ?')
+      fields.push(`manager_email = $${paramIndex++}`)
       values.push(updates.managerEmail || null)
     }
     if (updates.managerId !== undefined) {
-      fields.push('manager_id = ?')
+      fields.push(`manager_id = $${paramIndex++}`)
       values.push(updates.managerId || null)
     }
     if (updates.isTodayTask !== undefined) {
-      fields.push('is_today_task = ?')
+      fields.push(`is_today_task = $${paramIndex++}`)
       values.push(updates.isTodayTask ? 1 : 0)
     }
     if (updates.warningCount !== undefined) {
-      fields.push('warning_count = ?')
+      fields.push(`warning_count = $${paramIndex++}`)
       values.push(updates.warningCount)
     }
     if (updates.role !== undefined) {
-      fields.push('role = ?')
+      fields.push(`role = $${paramIndex++}`)
       values.push(updates.role)
     }
     if (updates.password !== undefined) {
-      fields.push('password = ?')
+      fields.push(`password = $${paramIndex++}`)
       values.push(updates.password)
     }
     if (updates.status !== undefined) {
-      fields.push('status = ?')
+      fields.push(`status = $${paramIndex++}`)
       values.push(updates.status)
     }
     if (updates.hoursLog !== undefined) {
-      fields.push('hours_log = ?')
+      fields.push(`hours_log = $${paramIndex++}`)
       values.push(updates.hoursLog || null)
     }
     if (updates.idCardPhoto !== undefined) {
-      fields.push('id_card_photo = ?')
+      fields.push(`id_card_photo = $${paramIndex++}`)
       values.push(updates.idCardPhoto || null)
     }
 
@@ -235,9 +236,10 @@ export async function updateUser(employee_id: string, updates: Partial<User>): P
       return user
     }
 
+    // Add employee_id as the last parameter
     values.push(employee_id)
     await query(
-      `UPDATE users SET ${fields.join(', ')} WHERE employee_id = $1`,
+      `UPDATE users SET ${fields.join(', ')} WHERE employee_id = $${paramIndex}`,
       values
     )
 
