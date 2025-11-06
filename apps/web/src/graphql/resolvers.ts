@@ -254,6 +254,14 @@ export const resolvers = {
   
   // Field resolvers for User
   User: {
+    // Map snake_case database columns to camelCase GraphQL fields
+    employeeId: (user: any) => user.employee_id,
+    managerEmail: (user: any) => user.manager_email,
+    isTodayTask: (user: any) => user.is_today_task,
+    warningCount: (user: any) => user.warning_count,
+    createdAt: (user: any) => user.created_at,
+    updatedAt: (user: any) => user.updated_at,
+
     tasks: async (user: any, _: any, { loaders }: any) => {
       const result = await pool.query(
         'SELECT * FROM tasks WHERE assigned_to = $1 AND deleted_at IS NULL',
@@ -273,6 +281,27 @@ export const resolvers = {
 
   // Field resolvers for Task
   Task: {
+    // Map snake_case database columns to camelCase GraphQL fields
+    id: (task: any) => task.internal_id,
+    taskId: (task: any) => task.task_id,
+    selectType: (task: any) => task.select_type,
+    recursiveType: (task: any) => task.recursive_type,
+    assignedTo: (task: any) => task.assigned_to,
+    assignedBy: (task: any) => task.assigned_by,
+    startDate: (task: any) => task.start_date,
+    endDate: (task: any) => task.end_date,
+    estimatedHours: (task: any) => task.estimated_hours,
+    actualHours: (task: any) => task.actual_hours,
+    dailyHours: (task: any) => task.daily_hours,
+    relatedTasks: (task: any) => task.related_tasks,
+    projectId: (task: any) => task.project_id,
+    subprojectId: (task: any) => task.subproject_id,
+    parentTaskId: (task: any) => task.parent_task_id,
+    deletedAt: (task: any) => task.deleted_at,
+    deletedBy: (task: any) => task.deleted_by,
+    createdAt: (task: any) => task.created_at,
+    updatedAt: (task: any) => task.updated_at,
+
     assignedToUser: (task: any, _: any, { loaders }: any) => {
       return loaders.user.load(task.assigned_to)
     },
@@ -304,6 +333,20 @@ export const resolvers = {
 
   // Field resolvers for SubTask
   SubTask: {
+    // Map snake_case database columns to camelCase GraphQL fields
+    subTaskId: (subtask: any) => subtask.sub_task_id,
+    parentTaskId: (subtask: any) => subtask.parent_task_id,
+    assignedTo: (subtask: any) => subtask.assigned_to,
+    assignedBy: (subtask: any) => subtask.assigned_by,
+    startDate: (subtask: any) => subtask.start_date,
+    endDate: (subtask: any) => subtask.end_date,
+    estimatedHours: (subtask: any) => subtask.estimated_hours,
+    actualHours: (subtask: any) => subtask.actual_hours,
+    deletedAt: (subtask: any) => subtask.deleted_at,
+    deletedBy: (subtask: any) => subtask.deleted_by,
+    createdAt: (subtask: any) => subtask.created_at,
+    updatedAt: (subtask: any) => subtask.updated_at,
+
     assignedToUser: (subtask: any, _: any, { loaders }: any) => {
       return loaders.user.load(subtask.assigned_to)
     },
@@ -319,6 +362,30 @@ export const resolvers = {
 
   // Field resolvers for Bug
   Bug: {
+    // Map snake_case database columns to camelCase GraphQL fields
+    bugId: (bug: any) => bug.bug_id,
+    assignedTo: (bug: any) => bug.assigned_to,
+    assignedBy: (bug: any) => bug.assigned_by,
+    reportedBy: (bug: any) => bug.reported_by,
+    reportedDate: (bug: any) => bug.reported_date,
+    resolvedDate: (bug: any) => bug.resolved_date,
+    estimatedHours: (bug: any) => bug.estimated_hours,
+    actualHours: (bug: any) => bug.actual_hours,
+    projectId: (bug: any) => bug.project_id,
+    subprojectId: (bug: any) => bug.subproject_id,
+    relatedBugs: (bug: any) => bug.related_bugs,
+    bugType: (bug: any) => bug.bug_type,
+    parentDevId: (bug: any) => bug.parent_dev_id,
+    timerState: (bug: any) => bug.timer_state,
+    timerStartTime: (bug: any) => bug.timer_start_time,
+    timerPausedTime: (bug: any) => bug.timer_paused_time,
+    timerTotalTime: (bug: any) => bug.timer_total_time,
+    timerSessions: (bug: any) => bug.timer_sessions,
+    deletedAt: (bug: any) => bug.deleted_at,
+    deletedBy: (bug: any) => bug.deleted_by,
+    createdAt: (bug: any) => bug.created_at,
+    updatedAt: (bug: any) => bug.updated_at,
+
     assignedToUser: (bug: any, _: any, { loaders }: any) => {
       return loaders.user.load(bug.assigned_to)
     },
@@ -344,6 +411,16 @@ export const resolvers = {
 
   // Field resolvers for BugSubTask
   BugSubTask: {
+    // Map snake_case database columns to camelCase GraphQL fields
+    parentBugId: (subtask: any) => subtask.parent_bug_id,
+    assignedTo: (subtask: any) => subtask.assigned_to,
+    assignedBy: (subtask: any) => subtask.assigned_by,
+    isCompleted: (subtask: any) => subtask.is_completed,
+    displayOrder: (subtask: any) => subtask.display_order,
+    createdAt: (subtask: any) => subtask.created_at,
+    updatedAt: (subtask: any) => subtask.updated_at,
+    createdBy: (subtask: any) => subtask.created_by,
+
     assignedToUser: (subtask: any, _: any, { loaders }: any) => {
       return loaders.user.load(subtask.assigned_to)
     },
@@ -359,6 +436,15 @@ export const resolvers = {
 
   // Field resolvers for Project
   Project: {
+    // Map snake_case database columns to camelCase GraphQL fields
+    projectId: (project: any) => project.project_id,
+    projectName: (project: any) => project.project_name,
+    parentProjectId: (project: any) => project.parent_project_id,
+    deletedAt: (project: any) => project.deleted_at,
+    deletedBy: (project: any) => project.deleted_by,
+    createdAt: (project: any) => project.created_at,
+    updatedAt: (project: any) => project.updated_at,
+
     tasks: async (project: any) => {
       const result = await pool.query(
         'SELECT * FROM tasks WHERE project_id = $1 AND deleted_at IS NULL',

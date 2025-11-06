@@ -21,6 +21,7 @@ export const typeDefs = `#graphql
     taskId: String!
     selectType: String!
     recursiveType: String
+    name: String
     description: String!
     assignedTo: String!
     assignedBy: String!
@@ -36,6 +37,9 @@ export const typeDefs = `#graphql
     difficulties: String
     relatedTasks: String
     projectId: String
+    subprojectId: String
+    parentTaskId: String
+    department: String
     deletedAt: String
     deletedBy: String
     createdAt: String!
@@ -116,17 +120,20 @@ export const typeDefs = `#graphql
     description: String!
     assignedTo: String!
     assignedBy: String!
-    startDate: String!
-    endDate: String!
-    priority: String!
-    estimatedHours: Float!
+    startDate: String
+    endDate: String
+    priority: String
+    estimatedHours: Float
     actualHours: Float
     status: String!
     remarks: String
+    isCompleted: Boolean
+    displayOrder: Int
     deletedAt: String
     deletedBy: String
     createdAt: String!
     updatedAt: String!
+    createdBy: String
     assignedToUser: User
     assignedByUser: User
     parentBug: Bug
@@ -137,6 +144,7 @@ export const typeDefs = `#graphql
     projectId: String!
     projectName: String!
     description: String
+    parentProjectId: String
     deletedAt: String
     deletedBy: String
     createdAt: String!

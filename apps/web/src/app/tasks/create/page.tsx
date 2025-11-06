@@ -530,15 +530,8 @@ function CreateTaskContent() {
       // Clear task cache to ensure fresh data is loaded
       optimizedDataService.clearTaskCache()
 
-      // Redirect to the newly created task's detail page
-      // Use the first created task ID (mainTaskData.taskId) for navigation
-      const createdTaskId = mainTaskData?.taskId
-      if (createdTaskId) {
-        router.push(`/tasks/${createdTaskId}`)
-      } else {
-        // Fallback to dashboard if no task ID available
-        router.push('/dashboard')
-      }
+      // Redirect to tasks list page after successful creation
+      router.push('/tasks')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
