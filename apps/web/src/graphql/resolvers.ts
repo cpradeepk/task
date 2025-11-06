@@ -303,7 +303,26 @@ export const resolvers = {
     recursiveType: (task: any) => task.recursive_type,
     name: (task: any) => task.name,
     description: (task: any) => task.description,
-    assignedTo: (task: any) => task.assigned_to,
+    assignedTo: (task: any) => {
+      // ✅ FIXED: assignedTo is stored as JSONB array in PostgreSQL
+      if (!task.assigned_to) return []
+      if (Array.isArray(task.assigned_to)) return task.assigned_to
+
+      // Handle string case (legacy data or parsing issue)
+      if (typeof task.assigned_to === 'string') {
+        try {
+          const trimmed = task.assigned_to.trim()
+          if (trimmed === '' || trimmed === 'null') return []
+          const parsed = JSON.parse(trimmed)
+          return Array.isArray(parsed) ? parsed : [parsed] // If single value, wrap in array
+        } catch (error) {
+          console.warn('Failed to parse assignedTo field for task:', task.task_id, 'Value:', task.assigned_to)
+          return []
+        }
+      }
+
+      return []
+    },
     assignedBy: (task: any) => task.assigned_by,
     support: (task: any) => {
       // Support is stored as JSONB array in PostgreSQL, but might be a string
@@ -348,7 +367,16 @@ export const resolvers = {
     updatedAt: (task: any) => task.updated_at,
 
     assignedToUser: (task: any, _: any, { loaders }: any) => {
-      return loaders.user.load(task.assigned_to)
+      // ✅ FIXED: assignedTo is now an array, return first user for backward compatibility
+      const assignedToArray = Array.isArray(task.assigned_to) ? task.assigned_to : []
+      return assignedToArray.length > 0 ? loaders.user.load(assignedToArray[0]) : null
+    },
+
+    assignedToUsers: async (task: any, _: any, { loaders }: any) => {
+      // ✅ NEW: Return all assigned users
+      const assignedToArray = Array.isArray(task.assigned_to) ? task.assigned_to : []
+      if (assignedToArray.length === 0) return []
+      return loaders.user.loadMany(assignedToArray)
     },
 
     assignedByUser: (task: any, _: any, { loaders }: any) => {

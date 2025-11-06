@@ -23,7 +23,7 @@ export const typeDefs = `#graphql
     recursiveType: String
     name: String
     description: String!
-    assignedTo: String!
+    assignedTo: [String!]!
     assignedBy: String!
     support: [String!]!
     startDate: String!
@@ -46,6 +46,7 @@ export const typeDefs = `#graphql
     createdAt: String!
     updatedAt: String!
     assignedToUser: User
+    assignedToUsers: [User!]!
     assignedByUser: User
     supportUsers: [User!]!
     subtasks: [SubTask!]!

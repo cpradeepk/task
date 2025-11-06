@@ -5,12 +5,13 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 interface GroupedSettings {
   task_status: string[]
   bug_status: string[]
-  task_priority: string[]
+  task_priority: string[]  // Singular (from getSettingsByType mapping)
   bug_priority: string[]
   bug_severity: string[]
   bug_category: string[]
   leave_type: string[]
   project_status: string[]
+  department: string[]     // ✅ ADDED - Singular (from getSettingsByType mapping)
   [key: string]: string[]
 }
 
