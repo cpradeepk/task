@@ -120,7 +120,40 @@ REDIS_PASSWORD=your-redis-password-here
       Host: redis-xxxxx.c301.ap-south-1-1.ec2.redns.redis-cloud.com:17948
    ```
 
-3. **Test Cache Stats Endpoint**
+3. **Test Cache Connection Endpoint (NEW!)**
+   ```bash
+   curl http://localhost:3000/api/cache/test
+   ```
+
+   Expected response:
+   ```json
+   {
+     "success": true,
+     "data": {
+       "cacheType": "redis",
+       "isRedisAvailable": true,
+       "stats": {
+         "type": "redis",
+         "size": 42,
+         "host": "redis-xxxxx.c301.ap-south-1-1.ec2.redns.redis-cloud.com",
+         "port": 17948
+       },
+       "tests": {
+         "write": "✅ Success",
+         "read": "✅ Success",
+         "exists": "✅ Success"
+       },
+       "environment": {
+         "REDIS_HOST": "✅ Set",
+         "REDIS_PORT": "✅ Set (17948)",
+         "REDIS_PASSWORD": "✅ Set (hidden)"
+       },
+       "message": "✅ Redis Cloud is connected and working"
+     }
+   }
+   ```
+
+4. **Test Cache Stats Endpoint**
    ```bash
    curl http://localhost:3000/api/cache/stats
    ```
