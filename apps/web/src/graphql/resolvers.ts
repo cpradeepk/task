@@ -256,6 +256,12 @@ export const resolvers = {
   User: {
     // Map snake_case database columns to camelCase GraphQL fields
     employeeId: (user: any) => user.employee_id,
+    name: (user: any) => user.name,
+    email: (user: any) => user.email,
+    phone: (user: any) => user.phone,
+    department: (user: any) => user.department,
+    role: (user: any) => user.role,
+    status: (user: any) => user.status,
     managerEmail: (user: any) => user.manager_email,
     isTodayTask: (user: any) => user.is_today_task,
     warningCount: (user: any) => user.warning_count,
@@ -282,21 +288,35 @@ export const resolvers = {
   // Field resolvers for Task
   Task: {
     // Map snake_case database columns to camelCase GraphQL fields
+    // Note: GraphQL queries request these fields, so we must provide resolvers
     id: (task: any) => task.internal_id,
     taskId: (task: any) => task.task_id,
     selectType: (task: any) => task.select_type,
     recursiveType: (task: any) => task.recursive_type,
+    name: (task: any) => task.name,
+    description: (task: any) => task.description,
     assignedTo: (task: any) => task.assigned_to,
     assignedBy: (task: any) => task.assigned_by,
+    support: (task: any) => {
+      // Support is stored as JSONB array in PostgreSQL
+      if (!task.support) return []
+      return Array.isArray(task.support) ? task.support : []
+    },
     startDate: (task: any) => task.start_date,
     endDate: (task: any) => task.end_date,
+    priority: (task: any) => task.priority,
     estimatedHours: (task: any) => task.estimated_hours,
     actualHours: (task: any) => task.actual_hours,
     dailyHours: (task: any) => task.daily_hours,
+    status: (task: any) => task.status,
+    remarks: (task: any) => task.remarks,
+    difficulties: (task: any) => task.difficulties,
     relatedTasks: (task: any) => task.related_tasks,
     projectId: (task: any) => task.project_id,
     subprojectId: (task: any) => task.subproject_id,
     parentTaskId: (task: any) => task.parent_task_id,
+    department: (task: any) => task.department,
+    timerState: (task: any) => task.timer_state,
     deletedAt: (task: any) => task.deleted_at,
     deletedBy: (task: any) => task.deleted_by,
     createdAt: (task: any) => task.created_at,
@@ -334,14 +354,19 @@ export const resolvers = {
   // Field resolvers for SubTask
   SubTask: {
     // Map snake_case database columns to camelCase GraphQL fields
+    id: (subtask: any) => subtask.id,
     subTaskId: (subtask: any) => subtask.sub_task_id,
     parentTaskId: (subtask: any) => subtask.parent_task_id,
+    description: (subtask: any) => subtask.description,
     assignedTo: (subtask: any) => subtask.assigned_to,
     assignedBy: (subtask: any) => subtask.assigned_by,
     startDate: (subtask: any) => subtask.start_date,
     endDate: (subtask: any) => subtask.end_date,
+    priority: (subtask: any) => subtask.priority,
     estimatedHours: (subtask: any) => subtask.estimated_hours,
     actualHours: (subtask: any) => subtask.actual_hours,
+    status: (subtask: any) => subtask.status,
+    remarks: (subtask: any) => subtask.remarks,
     deletedAt: (subtask: any) => subtask.deleted_at,
     deletedBy: (subtask: any) => subtask.deleted_by,
     createdAt: (subtask: any) => subtask.created_at,
@@ -363,7 +388,12 @@ export const resolvers = {
   // Field resolvers for Bug
   Bug: {
     // Map snake_case database columns to camelCase GraphQL fields
+    id: (bug: any) => bug.id,
     bugId: (bug: any) => bug.bug_id,
+    description: (bug: any) => bug.description,
+    category: (bug: any) => bug.category,
+    severity: (bug: any) => bug.severity,
+    status: (bug: any) => bug.status,
     assignedTo: (bug: any) => bug.assigned_to,
     assignedBy: (bug: any) => bug.assigned_by,
     reportedBy: (bug: any) => bug.reported_by,
@@ -371,10 +401,14 @@ export const resolvers = {
     resolvedDate: (bug: any) => bug.resolved_date,
     estimatedHours: (bug: any) => bug.estimated_hours,
     actualHours: (bug: any) => bug.actual_hours,
+    remarks: (bug: any) => bug.remarks,
     projectId: (bug: any) => bug.project_id,
     subprojectId: (bug: any) => bug.subproject_id,
     relatedBugs: (bug: any) => bug.related_bugs,
+    platform: (bug: any) => bug.platform,
+    environment: (bug: any) => bug.environment,
     bugType: (bug: any) => bug.bug_type,
+    criticality: (bug: any) => bug.criticality,
     parentDevId: (bug: any) => bug.parent_dev_id,
     timerState: (bug: any) => bug.timer_state,
     timerStartTime: (bug: any) => bug.timer_start_time,
@@ -412,11 +446,23 @@ export const resolvers = {
   // Field resolvers for BugSubTask
   BugSubTask: {
     // Map snake_case database columns to camelCase GraphQL fields
+    id: (subtask: any) => subtask.id,
+    subTaskId: (subtask: any) => subtask.sub_task_id,
     parentBugId: (subtask: any) => subtask.parent_bug_id,
+    description: (subtask: any) => subtask.description,
     assignedTo: (subtask: any) => subtask.assigned_to,
     assignedBy: (subtask: any) => subtask.assigned_by,
+    startDate: (subtask: any) => subtask.start_date,
+    endDate: (subtask: any) => subtask.end_date,
+    priority: (subtask: any) => subtask.priority,
+    estimatedHours: (subtask: any) => subtask.estimated_hours,
+    actualHours: (subtask: any) => subtask.actual_hours,
+    status: (subtask: any) => subtask.status,
+    remarks: (subtask: any) => subtask.remarks,
     isCompleted: (subtask: any) => subtask.is_completed,
     displayOrder: (subtask: any) => subtask.display_order,
+    deletedAt: (subtask: any) => subtask.deleted_at,
+    deletedBy: (subtask: any) => subtask.deleted_by,
     createdAt: (subtask: any) => subtask.created_at,
     updatedAt: (subtask: any) => subtask.updated_at,
     createdBy: (subtask: any) => subtask.created_by,
@@ -437,8 +483,10 @@ export const resolvers = {
   // Field resolvers for Project
   Project: {
     // Map snake_case database columns to camelCase GraphQL fields
+    id: (project: any) => project.id,
     projectId: (project: any) => project.project_id,
     projectName: (project: any) => project.project_name,
+    description: (project: any) => project.description,
     parentProjectId: (project: any) => project.parent_project_id,
     deletedAt: (project: any) => project.deleted_at,
     deletedBy: (project: any) => project.deleted_by,
@@ -452,6 +500,18 @@ export const resolvers = {
       )
       return result.rows
     }
+  },
+
+  // Field resolvers for Setting
+  Setting: {
+    // Map snake_case database columns to camelCase GraphQL fields
+    id: (setting: any) => setting.id,
+    key: (setting: any) => setting.key,
+    value: (setting: any) => setting.value,
+    type: (setting: any) => setting.type,
+    isActive: (setting: any) => setting.is_active,
+    createdAt: (setting: any) => setting.created_at,
+    updatedAt: (setting: any) => setting.updated_at,
   },
 
   // Mutations

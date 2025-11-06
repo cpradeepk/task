@@ -40,6 +40,7 @@ export const typeDefs = `#graphql
     subprojectId: String
     parentTaskId: String
     department: String
+    timerState: String
     deletedAt: String
     deletedBy: String
     createdAt: String!

@@ -130,9 +130,10 @@ export const QUERIES = {
         }
         settings {
           id
-          settingKey
-          settingValue
-          description
+          key
+          value
+          type
+          isActive
           createdAt
           updatedAt
         }
