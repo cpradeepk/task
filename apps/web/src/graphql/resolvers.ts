@@ -671,18 +671,19 @@ export const resolvers = {
     // Task mutations
     createTask: async (_: any, { input }: any) => {
       const taskId = `TSK-${Date.now()}`
-      const support = input.support ? input.support.join(',') : ''
+      const support = input.support ? JSON.stringify(input.support) : '[]'
 
+      // ✅ FIXED: Use snake_case column names for PostgreSQL
       await pool.query(
-        `INSERT INTO tasks (taskId, description, assignedTo, assignedBy, support, startDate, endDate,
-         priority, estimatedHours, selectType, recursiveType, projectId, status, createdAt, updatedAt)
+        `INSERT INTO tasks (task_id, description, assigned_to, assigned_by, support, start_date, end_date,
+         priority, estimated_hours, select_type, recursive_type, project_id, status, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'Pending', NOW(), NOW())`,
-        [taskId, input.description, input.assignedTo, input.assignedBy, support, input.startDate,
+        [taskId, input.description, JSON.stringify([input.assignedTo]), input.assignedBy, support, input.startDate,
          input.endDate, input.priority, input.estimatedHours, input.selectType, input.recursiveType, input.projectId]
       )
 
       const result = await pool.query(
-        'SELECT * FROM tasks WHERE taskId = $1',
+        'SELECT * FROM tasks WHERE task_id = $1',
         [taskId]
       )
       return result.rows[0]
@@ -691,14 +692,37 @@ export const resolvers = {
     updateTask: async (_: any, { taskId, input }: any) => {
       const updates: string[] = []
       const params: any[] = []
+      let paramIndex = 1
+
+      // ✅ FIXED: Map camelCase to snake_case and use PostgreSQL parameterized queries
+      const fieldMap: Record<string, string> = {
+        description: 'description',
+        assignedTo: 'assigned_to',
+        support: 'support',
+        startDate: 'start_date',
+        endDate: 'end_date',
+        priority: 'priority',
+        estimatedHours: 'estimated_hours',
+        actualHours: 'actual_hours',
+        status: 'status',
+        remarks: 'remarks',
+        difficulties: 'difficulties'
+      }
 
       Object.keys(input).forEach(key => {
-        if (key === 'support' && Array.isArray(input[key])) {
-          updates.push(`${key} = ?`)
-          params.push(input[key].join(','))
-        } else if (input[key] !== undefined) {
-          updates.push(`${key} = ?`)
-          params.push(input[key])
+        if (input[key] !== undefined && fieldMap[key]) {
+          const dbColumn = fieldMap[key]
+
+          if (key === 'support' && Array.isArray(input[key])) {
+            updates.push(`${dbColumn} = $${paramIndex++}`)
+            params.push(JSON.stringify(input[key]))
+          } else if (key === 'assignedTo') {
+            updates.push(`${dbColumn} = $${paramIndex++}`)
+            params.push(JSON.stringify([input[key]]))
+          } else {
+            updates.push(`${dbColumn} = $${paramIndex++}`)
+            params.push(input[key])
+          }
         }
       })
 
@@ -706,16 +730,16 @@ export const resolvers = {
         throw new Error('No fields to update')
       }
 
-      updates.push('updatedAt = NOW()')
+      updates.push(`updated_at = NOW()`)
       params.push(taskId)
 
       await pool.query(
-        `UPDATE tasks SET ${updates.join(', ')} WHERE taskId = $1`,
+        `UPDATE tasks SET ${updates.join(', ')} WHERE task_id = $${paramIndex}`,
         params
       )
 
       const result = await pool.query(
-        'SELECT * FROM tasks WHERE taskId = $1',
+        'SELECT * FROM tasks WHERE task_id = $1',
         [taskId]
       )
       return result.rows[0]
@@ -723,7 +747,7 @@ export const resolvers = {
 
     deleteTask: async (_: any, { taskId }: any) => {
       await pool.query(
-        'UPDATE tasks SET deletedAt = NOW() WHERE taskId = $1',
+        'UPDATE tasks SET deleted_at = NOW() WHERE task_id = $1',
         [taskId]
       )
       return true
@@ -733,16 +757,17 @@ export const resolvers = {
     createBug: async (_: any, { input }: any) => {
       const bugId = `BUG-${Date.now()}`
 
+      // ✅ FIXED: Use snake_case column names for PostgreSQL
       await pool.query(
-        `INSERT INTO bugs (bugId, description, category, severity, status, assignedTo, assignedBy,
-         reportedBy, reportedDate, estimatedHours, createdAt, updatedAt)
+        `INSERT INTO bugs (bug_id, description, category, severity, status, assigned_to, assigned_by,
+         reported_by, reported_date, estimated_hours, created_at, updated_at)
          VALUES ($1, $2, $3, $4, 'Open', $5, $6, $7, $8, $9, NOW(), NOW())`,
         [bugId, input.description, input.category, input.severity, input.assignedTo, input.assignedBy,
          input.reportedBy, input.reportedDate, input.estimatedHours]
       )
 
       const result = await pool.query(
-        'SELECT * FROM bugs WHERE bugId = $1',
+        'SELECT * FROM bugs WHERE bug_id = $1',
         [bugId]
       )
       return result.rows[0]
@@ -751,10 +776,25 @@ export const resolvers = {
     updateBug: async (_: any, { bugId, input }: any) => {
       const updates: string[] = []
       const params: any[] = []
+      let paramIndex = 1
+
+      // ✅ FIXED: Map camelCase to snake_case and use PostgreSQL parameterized queries
+      const fieldMap: Record<string, string> = {
+        description: 'description',
+        category: 'category',
+        severity: 'severity',
+        status: 'status',
+        assignedTo: 'assigned_to',
+        estimatedHours: 'estimated_hours',
+        actualHours: 'actual_hours',
+        remarks: 'remarks',
+        resolvedDate: 'resolved_date'
+      }
 
       Object.keys(input).forEach(key => {
-        if (input[key] !== undefined) {
-          updates.push(`${key} = ?`)
+        if (input[key] !== undefined && fieldMap[key]) {
+          const dbColumn = fieldMap[key]
+          updates.push(`${dbColumn} = $${paramIndex++}`)
           params.push(input[key])
         }
       })
@@ -763,16 +803,16 @@ export const resolvers = {
         throw new Error('No fields to update')
       }
 
-      updates.push('updatedAt = NOW()')
+      updates.push(`updated_at = NOW()`)
       params.push(bugId)
 
       await pool.query(
-        `UPDATE bugs SET ${updates.join(', ')} WHERE bugId = $1`,
+        `UPDATE bugs SET ${updates.join(', ')} WHERE bug_id = $${paramIndex}`,
         params
       )
 
       const result = await pool.query(
-        'SELECT * FROM bugs WHERE bugId = $1',
+        'SELECT * FROM bugs WHERE bug_id = $1',
         [bugId]
       )
       return result.rows[0]
@@ -780,7 +820,7 @@ export const resolvers = {
 
     deleteBug: async (_: any, { bugId }: any) => {
       await pool.query(
-        'UPDATE bugs SET deletedAt = NOW() WHERE bugId = $1',
+        'UPDATE bugs SET deleted_at = NOW() WHERE bug_id = $1',
         [bugId]
       )
       return true
@@ -791,14 +831,15 @@ export const resolvers = {
       const bcrypt = require('bcryptjs')
       const hashedPassword = await bcrypt.hash(input.password, 10)
 
+      // ✅ FIXED: Use snake_case column names for PostgreSQL
       await pool.query(
-        `INSERT INTO users (employeeId, name, email, phone, department, role, password, status, createdAt, updatedAt)
+        `INSERT INTO users (employee_id, name, email, phone, department, role, password, status, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', NOW(), NOW())`,
         [input.employeeId, input.name, input.email, input.phone, input.department, input.role, hashedPassword]
       )
 
       const result = await pool.query(
-        'SELECT * FROM users WHERE employeeId = $1',
+        'SELECT * FROM users WHERE employee_id = $1',
         [input.employeeId]
       )
       return result.rows[0]
@@ -807,10 +848,23 @@ export const resolvers = {
     updateUser: async (_: any, { employeeId, input }: any) => {
       const updates: string[] = []
       const params: any[] = []
+      let paramIndex = 1
+
+      // ✅ FIXED: Map camelCase to snake_case and use PostgreSQL parameterized queries
+      const fieldMap: Record<string, string> = {
+        name: 'name',
+        email: 'email',
+        phone: 'phone',
+        department: 'department',
+        role: 'role',
+        status: 'status',
+        isTodayTask: 'is_today_task'
+      }
 
       Object.keys(input).forEach(key => {
-        if (input[key] !== undefined) {
-          updates.push(`${key} = ?`)
+        if (input[key] !== undefined && fieldMap[key]) {
+          const dbColumn = fieldMap[key]
+          updates.push(`${dbColumn} = $${paramIndex++}`)
           params.push(input[key])
         }
       })
@@ -819,16 +873,16 @@ export const resolvers = {
         throw new Error('No fields to update')
       }
 
-      updates.push('updatedAt = NOW()')
+      updates.push(`updated_at = NOW()`)
       params.push(employeeId)
 
       await pool.query(
-        `UPDATE users SET ${updates.join(', ')} WHERE employeeId = $1`,
+        `UPDATE users SET ${updates.join(', ')} WHERE employee_id = $${paramIndex}`,
         params
       )
 
       const result = await pool.query(
-        'SELECT * FROM users WHERE employeeId = $1',
+        'SELECT * FROM users WHERE employee_id = $1',
         [employeeId]
       )
       return result.rows[0]

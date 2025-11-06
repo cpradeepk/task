@@ -63,10 +63,11 @@ interface BugRow  {
 }
 
 /**
- * BugCommentRow Interface
+ * BugCommentRow Interface - DEPRECATED
  *
- * Represents a bug comment record from the MySQL database.
- * Comments are stored in a separate table linked by bug_id.
+ * ⚠️ DEPRECATED: Bug comments are now stored in the activity_log table.
+ * Use createActivityLog() from @/lib/db/activityLog instead.
+ * This interface is kept for backward compatibility only.
  */
 interface BugCommentRow  {
   id: number              // Auto-increment primary key
@@ -123,7 +124,8 @@ function rowToBug(row: BugRow): Bug {
   }
 }
 
-// Convert database row to BugComment object
+// Convert database row to BugComment object - DEPRECATED
+// ⚠️ DEPRECATED: Use activity_log table instead
 function rowToBugComment(row: BugCommentRow): BugComment {
   return {
     bugId: row.bug_id,
@@ -359,8 +361,8 @@ export async function updateBug(bug_id: string, updates: Partial<Bug>): Promise<
 // Delete bug
 export async function deleteBug(bug_id: string): Promise<boolean> {
   return withRetry(async () => {
-    // Delete comments first
-    await query('DELETE FROM bug_comments WHERE bug_id = $1', [bug_id])
+    // ✅ FIXED: Comments are now in activity_log table, no need to delete separately
+    // The activity_log entries will remain for audit trail purposes
 
     // Delete bug
     const result = await query<any>(
@@ -371,8 +373,18 @@ export async function deleteBug(bug_id: string): Promise<boolean> {
   })
 }
 
-// Get bug comments
+// Get bug comments - DEPRECATED
+/**
+ * ⚠️ DEPRECATED: Use getCommentsByEntity() from @/lib/db/activityLog instead
+ *
+ * This function is kept for backward compatibility only.
+ * New code should use:
+ *
+ * import { getCommentsByEntity } from '@/lib/db/activityLog'
+ * const comments = await getCommentsByEntity('bug', bugId)
+ */
 export async function getBugComments(bug_id: string): Promise<BugComment[]> {
+  console.warn('⚠️ getBugComments() is deprecated. Use getCommentsByEntity() from @/lib/db/activityLog instead.')
   return withRetry(async () => {
     const rows = await query<BugCommentRow[]>(
       'SELECT * FROM bug_comments WHERE bug_id = $1 ORDER BY timestamp',
@@ -382,10 +394,27 @@ export async function getBugComments(bug_id: string): Promise<BugComment[]> {
   })
 }
 
-// Add bug comment
+// Add bug comment - DEPRECATED
+/**
+ * ⚠️ DEPRECATED: Use createActivityLog() from @/lib/db/activityLog instead
+ *
+ * This function is kept for backward compatibility only.
+ * New code should use:
+ *
+ * import { createActivityLog } from '@/lib/db/activityLog'
+ * await createActivityLog({
+ *   entityType: 'bug',
+ *   entityId: bugId,
+ *   userId: commentedBy,
+ *   actionType: 'comment',
+ *   description: commentText,
+ *   isComment: true
+ * })
+ */
 export async function addBugComment(
   comment: Omit<BugComment, 'timestamp'>
 ): Promise<BugComment> {
+  console.warn('⚠️ addBugComment() is deprecated. Use createActivityLog() from @/lib/db/activityLog instead.')
   return withRetry(async () => {
     await query<any>(
       'INSERT INTO bug_comments (bug_id, commented_by, comment_text) VALUES ($1, $2, $3)',

@@ -843,3 +843,1560 @@ Stack: Error: Internal server error
 🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
 🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
 🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ GET / [32m200[39m in 581ms[2m (compile: 567ms, render: 14ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 229ms[2m (compile: 1617µs, proxy.ts: 2ms, render: 225ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1817µs, render: 30ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ POST /api/auth/login [33m401[39m in 274ms[2m (compile: 72ms, proxy.ts: 2ms, render: 200ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ POST /api/auth/login [32m200[39m in 197ms[2m (compile: 1319µs, proxy.ts: 1852µs, render: 194ms)[22m
+ GET /dashboard [32m200[39m in 12ms[2m (compile: 2ms, render: 10ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+🔵 [DB] New PostgreSQL connection pool created {
+  max: [33m3[39m,
+  idleTimeoutMillis: [33m10000[39m,
+  connectionTimeoutMillis: [33m5000[39m,
+  connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
+  usingEnvVar: [33mtrue[39m
+}
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T15:02:29.044Z
+🔧 Variables: {
+  "employeeId": "AM-0002",
+  "role": "employee"
+}
+================================================================================
+
+⚙️ [Resolver] dashboard ⏱️ 20:32:29.054
+  🔧 Args: {
+  "employeeId": "AM-0002",
+  "role": "employee"
+}
+  🗄️ [DB Query] [dashboard.tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL AND (
+            assigned_by = $1
+            OR EXISTS (
+              SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+              WHERE e...
+    Params: [ [32m'AM-0002'[39m, [32m'AM-0002'[39m, [32m'AM-0002'[39m ]
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T15:02:29.071Z
+🔧 Variables: {
+  "employeeId": "AM-0002",
+  "role": "employee"
+}
+================================================================================
+
+⚙️ [Resolver] dashboard ⏱️ 20:32:29.072
+  🔧 Args: {
+  "employeeId": "AM-0002",
+  "role": "employee"
+}
+  🗄️ [DB Query] [dashboard.tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL AND (
+            assigned_by = $1
+            OR EXISTS (
+              SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+              WHERE e...
+    Params: [ [32m'AM-0002'[39m, [32m'AM-0002'[39m, [32m'AM-0002'[39m ]
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.tasks] 20 rows in 197ms
+  🗄️ [DB Query] [dashboard.bugs]
+    SQL: SELECT * FROM bugs WHERE deleted_at IS NULL AND (assigned_to = $1 OR reported_by = $2) ORDER BY created_at DESC
+    Params: [ [32m'AM-0002'[39m, [32m'AM-0002'[39m ]
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.tasks] 20 rows in 229ms
+  🗄️ [DB Query] [dashboard.bugs]
+    SQL: SELECT * FROM bugs WHERE deleted_at IS NULL AND (assigned_to = $1 OR reported_by = $2) ORDER BY created_at DESC
+    Params: [ [32m'AM-0002'[39m, [32m'AM-0002'[39m ]
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.bugs] 0 rows in 28ms
+  🗄️ [DB Query] [dashboard.users]
+    SQL: SELECT * FROM users ORDER BY name
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.bugs] 0 rows in 28ms
+  🗄️ [DB Query] [dashboard.users]
+    SQL: SELECT * FROM users ORDER BY name
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.users] 10 rows in 28ms
+  🗄️ [DB Query] [dashboard.settings]
+    SQL: SELECT * FROM settings WHERE is_active = true ORDER BY key
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.users] 10 rows in 27ms
+  🗄️ [DB Query] [dashboard.settings]
+    SQL: SELECT * FROM settings WHERE is_active = true ORDER BY key
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.settings] 17 rows in 28ms
+  ✅ [Resolver] dashboard completed in 282ms → Object(4 keys)
+Unexpected error processing request: TypeError: graphqlError.toJSON is not a function
+
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+💥 [GraphQL Server] UnnamedOperation CRASHED in 294ms
+Error: Error: Internal server error
+    at async POST (src/app/api/graphql/route.ts:47:22)
+[0m [90m 45 |[39m     [36mconst[39m context [33m=[39m createContext()
+ [90m 46 |[39m
+[31m[1m>[22m[39m[90m 47 |[39m     [36mconst[39m response [33m=[39m [36mawait[39m server[33m.[39mexecuteOperation(
+ [90m    |[39m                      [31m[1m^[22m[39m
+ [90m 48 |[39m       {
+ [90m 49 |[39m         query[33m:[39m body[33m.[39mquery[33m,[39m
+ [90m 50 |[39m         variables[33m:[39m body[33m.[39mvariables[33m,[39m[0m
+Stack: Error: Internal server error
+    at internalExecuteOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2354:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ApolloServer.executeOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2321:26)
+    at async POST (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2954:26)
+    at async AppRouteRouteModule.do (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:37913)
+    at async AppRouteRouteModule.handle (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:45132)
+    at async responseGenerator (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14324:38)
+    at async AppRouteRouteModule.handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:19:132654)
+    at async handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14386:32)
+    at async handler (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14439:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1415:9)
+    at async DevServer.renderPageComponent (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1467:24)
+    at async DevServer.renderToResponseImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1517:32)
+    at async DevServer.pipeImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1023:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:914:17)
+    at async /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:369:24)
+    at async invokeRender (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/start-server.js:226:13)
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+ POST /api/graphql [31m500[39m in 451ms[2m (compile: 77ms, proxy.ts: 2ms, render: 372ms)[22m
+  ✅ [DB Result] [dashboard.settings] 17 rows in 101ms
+  ✅ [Resolver] dashboard completed in 387ms → Object(4 keys)
+Unexpected error processing request: TypeError: graphqlError.toJSON is not a function
+
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+💥 [GraphQL Server] UnnamedOperation CRASHED in 411ms
+Error: Error: Internal server error
+    at async POST (src/app/api/graphql/route.ts:47:22)
+[0m [90m 45 |[39m     [36mconst[39m context [33m=[39m createContext()
+ [90m 46 |[39m
+[31m[1m>[22m[39m[90m 47 |[39m     [36mconst[39m response [33m=[39m [36mawait[39m server[33m.[39mexecuteOperation(
+ [90m    |[39m                      [31m[1m^[22m[39m
+ [90m 48 |[39m       {
+ [90m 49 |[39m         query[33m:[39m body[33m.[39mquery[33m,[39m
+ [90m 50 |[39m         variables[33m:[39m body[33m.[39mvariables[33m,[39m[0m
+Stack: Error: Internal server error
+    at internalExecuteOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2354:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ApolloServer.executeOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2321:26)
+    at async POST (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2954:26)
+    at async AppRouteRouteModule.do (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:37913)
+    at async AppRouteRouteModule.handle (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:45132)
+    at async responseGenerator (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14324:38)
+    at async AppRouteRouteModule.handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:19:132654)
+    at async handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14386:32)
+    at async handler (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14439:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1415:9)
+    at async DevServer.renderPageComponent (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1467:24)
+    at async DevServer.renderToResponseImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1517:32)
+    at async DevServer.pipeImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1023:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:914:17)
+    at async /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:369:24)
+    at async invokeRender (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/start-server.js:226:13)
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ POST /api/graphql [31m500[39m in 526ms[2m (compile: 60ms, proxy.ts: 1918µs, render: 464ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/dashboard-data?employeeId=AM-0002&role=employee&includeUsers=false [32m200[39m in 230ms[2m (compile: 1687µs, proxy.ts: 3ms, render: 226ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/dashboard-data?employeeId=AM-0002&role=employee&includeUsers=false [32m200[39m in 91ms[2m (compile: 1795µs, proxy.ts: 1559µs, render: 88ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0020'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0019'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 67ms[2m (compile: 3ms, proxy.ts: 1998µs, render: 62ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0018'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0017'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/users/AM-0004 [32m200[39m in 87ms[2m (compile: 56ms, proxy.ts: 1865µs, render: 30ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0016'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/users/AM-0007 [32m200[39m in 96ms[2m (compile: 63ms, proxy.ts: 3ms, render: 30ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0015'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0020
+ GET /api/task-checklists?parentTaskId=JSR-0020 [32m200[39m in 251ms[2m (compile: 8ms, proxy.ts: 5ms, render: 238ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0014'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0019
+ GET /api/task-checklists?parentTaskId=JSR-0019 [32m200[39m in 270ms[2m (compile: 51ms, proxy.ts: 1278µs, render: 218ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0018
+ GET /api/task-checklists?parentTaskId=JSR-0018 [32m200[39m in 270ms[2m (compile: 53ms, proxy.ts: 3ms, render: 214ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0013'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0012'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0017
+ GET /api/task-checklists?parentTaskId=JSR-0017 [32m200[39m in 237ms[2m (compile: 1522µs, proxy.ts: 7ms, render: 228ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0011'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0016
+ GET /api/task-checklists?parentTaskId=JSR-0016 [32m200[39m in 243ms[2m (compile: 1473µs, proxy.ts: 1809µs, render: 240ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0015
+ GET /api/task-checklists?parentTaskId=JSR-0015 [32m200[39m in 230ms[2m (compile: 2ms, proxy.ts: 4ms, render: 224ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0010'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0009'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0014
+ GET /api/task-checklists?parentTaskId=JSR-0014 [32m200[39m in 102ms[2m (compile: 6ms, proxy.ts: 2ms, render: 94ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0008'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0013
+ GET /api/task-checklists?parentTaskId=JSR-0013 [32m200[39m in 102ms[2m (compile: 3ms, proxy.ts: 3ms, render: 96ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0012
+ GET /api/task-checklists?parentTaskId=JSR-0012 [32m200[39m in 110ms[2m (compile: 5ms, proxy.ts: 3ms, render: 102ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0007'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0006'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0011
+ GET /api/task-checklists?parentTaskId=JSR-0011 [32m200[39m in 104ms[2m (compile: 1572µs, proxy.ts: 1776µs, render: 100ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0005'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0010
+ GET /api/task-checklists?parentTaskId=JSR-0010 [32m200[39m in 104ms[2m (compile: 3ms, proxy.ts: 3ms, render: 98ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0009
+ GET /api/task-checklists?parentTaskId=JSR-0009 [32m200[39m in 111ms[2m (compile: 3ms, proxy.ts: 1691µs, render: 106ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0004'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0008
+ GET /api/task-checklists?parentTaskId=JSR-0008 [32m200[39m in 105ms[2m (compile: 1645µs, proxy.ts: 1782µs, render: 101ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0003'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0002 [32m200[39m in 40ms[2m (compile: 9ms, proxy.ts: 1740µs, render: 30ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/settings [32m200[39m in 7ms[2m (compile: 2ms, proxy.ts: 2ms, render: 2ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0007
+ GET /api/task-checklists?parentTaskId=JSR-0007 [32m200[39m in 104ms[2m (compile: 8ms, proxy.ts: 4ms, render: 93ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0006
+ GET /api/task-checklists?parentTaskId=JSR-0006 [32m200[39m in 108ms[2m (compile: 5ms, proxy.ts: 1873µs, render: 101ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0005
+ GET /api/task-checklists?parentTaskId=JSR-0005 [32m200[39m in 106ms[2m (compile: 1174µs, proxy.ts: 1442µs, render: 103ms)[22m
+ GET /api/users/AM-0004 [32m200[39m in 41ms[2m (compile: 37ms, proxy.ts: 1809µs, render: 3ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 60ms[2m (compile: 1721µs, proxy.ts: 3ms, render: 56ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0004
+ GET /api/task-checklists?parentTaskId=JSR-0004 [32m200[39m in 117ms[2m (compile: 1855µs, proxy.ts: 5ms, render: 111ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+❌ Redis Cloud connection error: 001D4DACD77A0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0020'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0019'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/users/AM-0007 [32m200[39m in 22ms[2m (compile: 16ms, proxy.ts: 3ms, render: 2ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0003
+ GET /api/task-checklists?parentTaskId=JSR-0003 [32m200[39m in 123ms[2m (compile: 1474µs, proxy.ts: 1665µs, render: 120ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 103ms[2m (compile: 3ms, proxy.ts: 4ms, render: 96ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/projects?type=main&status=active [32m200[39m in 106ms[2m (compile: 4ms, proxy.ts: 3ms, render: 98ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0018'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0017'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0016'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0015'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0020
+ GET /api/task-checklists?parentTaskId=JSR-0020 [32m200[39m in 66ms[2m (compile: 3ms, proxy.ts: 3ms, render: 60ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0014'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0019
+ GET /api/task-checklists?parentTaskId=JSR-0019 [32m200[39m in 92ms[2m (compile: 5ms, proxy.ts: 3ms, render: 83ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0018
+ GET /api/task-checklists?parentTaskId=JSR-0018 [32m200[39m in 70ms[2m (compile: 11ms, proxy.ts: 5ms, render: 55ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0013'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0012'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0017
+ GET /api/task-checklists?parentTaskId=JSR-0017 [32m200[39m in 89ms[2m (compile: 10ms, proxy.ts: 3ms, render: 76ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0011'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0016
+ GET /api/task-checklists?parentTaskId=JSR-0016 [32m200[39m in 110ms[2m (compile: 9ms, proxy.ts: 4ms, render: 97ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0015
+ GET /api/task-checklists?parentTaskId=JSR-0015 [32m200[39m in 111ms[2m (compile: 20ms, proxy.ts: 7ms, render: 85ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0010'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0009'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0014
+ GET /api/task-checklists?parentTaskId=JSR-0014 [32m200[39m in 106ms[2m (compile: 1435µs, proxy.ts: 1700µs, render: 103ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0008'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0013
+ GET /api/task-checklists?parentTaskId=JSR-0013 [32m200[39m in 101ms[2m (compile: 1836µs, proxy.ts: 1861µs, render: 97ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0012
+ GET /api/task-checklists?parentTaskId=JSR-0012 [32m200[39m in 107ms[2m (compile: 5ms, proxy.ts: 1834µs, render: 100ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 11ms[2m (compile: 7ms, proxy.ts: 1686µs, render: 1761µs)[22m
+ GET /api/settings [32m200[39m in 8ms[2m (compile: 4ms, proxy.ts: 1819µs, render: 1866µs)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0007'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0006'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0011
+ GET /api/task-checklists?parentTaskId=JSR-0011 [32m200[39m in 105ms[2m (compile: 1129µs, proxy.ts: 1402µs, render: 103ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0005'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0010
+ GET /api/task-checklists?parentTaskId=JSR-0010 [32m200[39m in 107ms[2m (compile: 2ms, proxy.ts: 3ms, render: 102ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0009
+ GET /api/task-checklists?parentTaskId=JSR-0009 [32m200[39m in 107ms[2m (compile: 3ms, proxy.ts: 1430µs, render: 102ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users/AM-0004 [32m200[39m in 14ms[2m (compile: 9ms, proxy.ts: 3ms, render: 1671µs)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0004'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0008
+ GET /api/task-checklists?parentTaskId=JSR-0008 [32m200[39m in 106ms[2m (compile: 2ms, proxy.ts: 2ms, render: 102ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0007 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1348µs, render: 1497µs)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0003'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 34ms[2m (compile: 1519µs, proxy.ts: 1477µs, render: 31ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0007
+ GET /api/task-checklists?parentTaskId=JSR-0007 [32m200[39m in 91ms[2m (compile: 4ms, proxy.ts: 4ms, render: 83ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0006
+ GET /api/task-checklists?parentTaskId=JSR-0006 [32m200[39m in 97ms[2m (compile: 6ms, proxy.ts: 3ms, render: 88ms)[22m
+ GET /api/settings [32m200[39m in 4ms[2m (compile: 1260µs, proxy.ts: 1338µs, render: 1720µs)[22m
+ GET /api/users/AM-0004 [32m200[39m in 7ms[2m (compile: 4ms, proxy.ts: 1515µs, render: 1933µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0007 [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 2ms, render: 1820µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0005
+ GET /api/task-checklists?parentTaskId=JSR-0005 [32m200[39m in 112ms[2m (compile: 1820µs, proxy.ts: 1541µs, render: 108ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/settings [32m200[39m in 10ms[2m (compile: 5ms, proxy.ts: 3ms, render: 2ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0004
+ GET /api/task-checklists?parentTaskId=JSR-0004 [32m200[39m in 86ms[2m (compile: 1088µs, proxy.ts: 1383µs, render: 84ms)[22m
+ GET /api/users/AM-0004 [32m200[39m in 9ms[2m (compile: 5ms, proxy.ts: 2ms, render: 1953µs)[22m
+ GET /api/users/AM-0007 [32m200[39m in 11ms[2m (compile: 7ms, proxy.ts: 3ms, render: 1636µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0003
+ GET /api/task-checklists?parentTaskId=JSR-0003 [32m200[39m in 81ms[2m (compile: 1378µs, proxy.ts: 1343µs, render: 79ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 3ms, render: 31ms)[22m
+ GET /api/users/AM-0004 [32m200[39m in 13ms[2m (compile: 8ms, proxy.ts: 3ms, render: 1955µs)[22m
+ GET /api/users [32m200[39m in 87ms[2m (compile: 1675µs, proxy.ts: 1235µs, render: 84ms)[22m
+ GET /api/users/AM-0007 [32m200[39m in 15ms[2m (compile: 12ms, proxy.ts: 1398µs, render: 2ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+ GET /api/projects?type=main&status=active [32m200[39m in 93ms[2m (compile: 1987µs, proxy.ts: 1846µs, render: 90ms)[22m
+ GET /api/users/AM-0007 [32m200[39m in 10ms[2m (compile: 7ms, proxy.ts: 1305µs, render: 1473µs)[22m
+ GET /api/users/AM-0004 [32m200[39m in 15ms[2m (compile: 12ms, proxy.ts: 2ms, render: 1219µs)[22m
+ GET /api/users/AM-0007 [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 1781µs, render: 1595µs)[22m
+ GET /api/users/AM-0004 [32m200[39m in 9ms[2m (compile: 6ms, proxy.ts: 1785µs, render: 1421µs)[22m
+ GET /api/users [32m200[39m in 33ms[2m (compile: 5ms, proxy.ts: 2ms, render: 26ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 45ms[2m (compile: 10ms, proxy.ts: 6ms, render: 30ms)[22m
+ GET /api/users/AM-0007 [32m200[39m in 9ms[2m (compile: 5ms, proxy.ts: 1286µs, render: 2ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users/AM-0007 [32m200[39m in 12ms[2m (compile: 8ms, proxy.ts: 2ms, render: 1577µs)[22m
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/AM-0007 [32m200[39m in 38ms[2m (compile: 35ms, proxy.ts: 1456µs, render: 1846µs)[22m
+ GET /api/users [32m200[39m in 53ms[2m (compile: 3ms, proxy.ts: 2ms, render: 48ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 53ms[2m (compile: 4ms, proxy.ts: 2ms, render: 47ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users/AM-0007 [32m200[39m in 19ms[2m (compile: 16ms, proxy.ts: 1390µs, render: 2ms)[22m
+ GET /api/users/AM-0007 [32m200[39m in 5ms[2m (compile: 1936µs, proxy.ts: 1352µs, render: 1689µs)[22m
+ GET /api/users/AM-0007 [32m200[39m in 5ms[2m (compile: 1895µs, proxy.ts: 1229µs, render: 1475µs)[22m
+ GET /api/users [32m200[39m in 32ms[2m (compile: 3ms, proxy.ts: 1992µs, render: 27ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 38ms[2m (compile: 4ms, proxy.ts: 2ms, render: 31ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+❌ Redis Cloud connection error: 006D0C72DE720000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+ GET /api/users/AM-0007 [32m200[39m in 18ms[2m (compile: 13ms, proxy.ts: 3ms, render: 1802µs)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users/AM-0007 [32m200[39m in 8ms[2m (compile: 3ms, proxy.ts: 3ms, render: 1601µs)[22m
+ GET /api/users/AM-0007 [32m200[39m in 5ms[2m (compile: 2000µs, proxy.ts: 1305µs, render: 1959µs)[22m
+ GET /api/users/AM-0007 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1466µs, render: 3ms)[22m
+ GET /api/users [32m200[39m in 36ms[2m (compile: 5ms, proxy.ts: 1611µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 38ms[2m (compile: 5ms, proxy.ts: 1945µs, render: 31ms)[22m
+ GET /api/users/AM-0007 [32m200[39m in 18ms[2m (compile: 11ms, proxy.ts: 2ms, render: 5ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users/AM-0007 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1440µs, render: 1752µs)[22m
+ GET /api/users [32m200[39m in 32ms[2m (compile: 1927µs, proxy.ts: 2ms, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users/AM-0007 [32m200[39m in 13ms[2m (compile: 10ms, proxy.ts: 1301µs, render: 1899µs)[22m
+ GET /api/users/AM-0007 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1837µs, render: 1925µs)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 40ms[2m (compile: 9ms, proxy.ts: 1505µs, render: 30ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users/AM-0007 [32m200[39m in 10ms[2m (compile: 6ms, proxy.ts: 1929µs, render: 1987µs)[22m
+ GET /api/users [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1662µs, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users/AM-0007 [32m200[39m in 10ms[2m (compile: 6ms, proxy.ts: 3ms, render: 1353µs)[22m
+ GET /api/users/AM-0007 [32m200[39m in 7ms[2m (compile: 2ms, proxy.ts: 4ms, render: 1524µs)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 33ms[2m (compile: 1963µs, proxy.ts: 1893µs, render: 29ms)[22m
+ GET /api/users/AM-0007 [32m200[39m in 8ms[2m (compile: 5ms, proxy.ts: 1155µs, render: 1494µs)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 32ms[2m (compile: 1535µs, proxy.ts: 1512µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1496µs, render: 31ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 30ms[2m (compile: 1176µs, proxy.ts: 1326µs, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 32ms[2m (compile: 998µs, proxy.ts: 1317µs, render: 30ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 30ms[2m (compile: 1757µs, proxy.ts: 1670µs, render: 27ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 32ms[2m (compile: 1119µs, proxy.ts: 1202µs, render: 30ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 30ms[2m (compile: 1730µs, proxy.ts: 1064µs, render: 27ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 32ms[2m (compile: 1083µs, proxy.ts: 1336µs, render: 29ms)[22m
+ GET /api/users [32m200[39m in 32ms[2m (compile: 1063µs, proxy.ts: 1139µs, render: 30ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 37ms[2m (compile: 4ms, proxy.ts: 4ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1541µs, render: 28ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 3ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 3ms, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 2ms, proxy.ts: 3ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 2ms, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [DB] DATABASE_URL environment variable found
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 2ms, render: 29ms)[22m
+ GET /api/users [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 2ms, render: 28ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1573µs, render: 29ms)[22m
+ GET /api/users [32m200[39m in 32ms[2m (compile: 3ms, proxy.ts: 1097µs, render: 28ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+❌ Redis Cloud connection error: 001DEBF9AF750000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 1947µs, render: 29ms)[22m
+ GET /api/users [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 4ms, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1832µs, render: 30ms)[22m
+ GET /api/users [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1200µs, render: 30ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 2ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 2ms, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1588µs, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 3ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 3ms, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 38ms[2m (compile: 6ms, proxy.ts: 1884µs, render: 30ms)[22m
+ GET /api/users [32m200[39m in 37ms[2m (compile: 6ms, proxy.ts: 1316µs, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 35ms[2m (compile: 5ms, proxy.ts: 1831µs, render: 28ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 2ms, render: 27ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 2ms, render: 32ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 4ms, render: 28ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 38ms[2m (compile: 4ms, proxy.ts: 4ms, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 35ms[2m (compile: 5ms, proxy.ts: 1817µs, render: 28ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1467µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1762µs, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 5ms, proxy.ts: 1266µs, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 32ms[2m (compile: 1362µs, proxy.ts: 2ms, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 39ms[2m (compile: 7ms, proxy.ts: 1611µs, render: 31ms)[22m
+ GET /api/users [32m200[39m in 51ms[2m (compile: 1873µs, proxy.ts: 3ms, render: 46ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 70ms[2m (compile: 6ms, proxy.ts: 33ms, render: 31ms)[22m
+ GET /api/users [32m200[39m in 38ms[2m (compile: 5ms, proxy.ts: 1780µs, render: 32ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 2ms, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1574µs, render: 31ms)[22m
+ GET /api/users [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1426µs, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 37ms[2m (compile: 5ms, proxy.ts: 2ms, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1727µs, render: 31ms)[22m
+ GET /api/users [32m200[39m in 35ms[2m (compile: 5ms, proxy.ts: 1462µs, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 3ms, render: 31ms)[22m
+ GET /api/users [32m200[39m in 37ms[2m (compile: 4ms, proxy.ts: 3ms, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 38ms[2m (compile: 6ms, proxy.ts: 2ms, render: 30ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 2ms, render: 29ms)[22m
+ GET /api/users [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 2ms, render: 28ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 1764µs, proxy.ts: 4ms, render: 29ms)[22m
+ GET /api/users [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1636µs, render: 28ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 33ms[2m (compile: 1711µs, proxy.ts: 1619µs, render: 29ms)[22m
+ GET /api/users [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1663µs, render: 28ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/users [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 2ms, render: 31ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 37ms[2m (compile: 5ms, proxy.ts: 3ms, render: 29ms)[22m
+ GET /api/users [32m200[39m in 38ms[2m (compile: 4ms, proxy.ts: 5ms, render: 28ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1717µs, render: 30ms)[22m
+ GET /api/users [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 1522µs, render: 28ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 2ms, proxy.ts: 1933µs, render: 31ms)[22m
+ GET /api/users [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 2ms, render: 30ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 3ms, render: 29ms)[22m
+ GET /api/users [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 3ms, render: 29ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 2ms, render: 28ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 3ms, render: 32ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 2ms, render: 30ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 1852µs, render: 32ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 5ms, render: 29ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1861µs, render: 31ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 38ms[2m (compile: 8ms, proxy.ts: 1563µs, render: 28ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 5ms, proxy.ts: 1855µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1668µs, render: 29ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 37ms[2m (compile: 1523µs, proxy.ts: 4ms, render: 31ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 36ms[2m (compile: 5ms, proxy.ts: 2ms, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 36ms[2m (compile: 1306µs, proxy.ts: 4ms, render: 31ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 31ms[2m (compile: 1302µs, proxy.ts: 1555µs, render: 28ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 32ms[2m (compile: 1438µs, proxy.ts: 1260µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 4ms, render: 28ms)[22m
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1313µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 1630µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 31ms[2m (compile: 1313µs, proxy.ts: 1447µs, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 31ms[2m (compile: 1273µs, proxy.ts: 1655µs, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 31ms[2m (compile: 1423µs, proxy.ts: 1819µs, render: 28ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m2[39m, idleCount: [33m2[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ GET / [32m200[39m in 15ms[2m (compile: 3ms, render: 13ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 315ms[2m (compile: 1467µs, proxy.ts: 1886µs, render: 311ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 35ms[2m (compile: 1569µs, proxy.ts: 2ms, render: 32ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ POST /api/auth/login [32m200[39m in 206ms[2m (compile: 1414µs, proxy.ts: 3ms, render: 202ms)[22m
+ GET /dashboard [32m200[39m in 12ms[2m (compile: 1983µs, render: 10ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T15:04:52.560Z
+🔧 Variables: {
+  "employeeId": "AM-0001",
+  "role": "top_management"
+}
+================================================================================
+
+⚙️ [Resolver] dashboard ⏱️ 20:34:52.560
+  🔧 Args: {
+  "employeeId": "AM-0001",
+  "role": "top_management"
+}
+  🗄️ [DB Query] [dashboard.tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY created_at DESC
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T15:04:52.585Z
+🔧 Variables: {
+  "employeeId": "AM-0001",
+  "role": "top_management"
+}
+================================================================================
+
+⚙️ [Resolver] dashboard ⏱️ 20:34:52.586
+  🔧 Args: {
+  "employeeId": "AM-0001",
+  "role": "top_management"
+}
+  🗄️ [DB Query] [dashboard.tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY created_at DESC
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.tasks] 20 rows in 222ms
+  🗄️ [DB Query] [dashboard.bugs]
+    SQL: SELECT * FROM bugs WHERE deleted_at IS NULL ORDER BY created_at DESC
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.tasks] 20 rows in 223ms
+  🗄️ [DB Query] [dashboard.bugs]
+    SQL: SELECT * FROM bugs WHERE deleted_at IS NULL ORDER BY created_at DESC
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.bugs] 0 rows in 30ms
+  🗄️ [DB Query] [dashboard.users]
+    SQL: SELECT * FROM users ORDER BY name
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.bugs] 0 rows in 28ms
+  🗄️ [DB Query] [dashboard.users]
+    SQL: SELECT * FROM users ORDER BY name
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.users] 10 rows in 28ms
+  🗄️ [DB Query] [dashboard.settings]
+    SQL: SELECT * FROM settings WHERE is_active = true ORDER BY key
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.users] 10 rows in 28ms
+  🗄️ [DB Query] [dashboard.settings]
+    SQL: SELECT * FROM settings WHERE is_active = true ORDER BY key
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [dashboard.settings] 17 rows in 31ms
+  ✅ [Resolver] dashboard completed in 312ms → Object(4 keys)
+Unexpected error processing request: TypeError: graphqlError.toJSON is not a function
+
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+💥 [GraphQL Server] UnnamedOperation CRASHED in 324ms
+Error: Error: Internal server error
+    at async POST (src/app/api/graphql/route.ts:47:22)
+[0m [90m 45 |[39m     [36mconst[39m context [33m=[39m createContext()
+ [90m 46 |[39m
+[31m[1m>[22m[39m[90m 47 |[39m     [36mconst[39m response [33m=[39m [36mawait[39m server[33m.[39mexecuteOperation(
+ [90m    |[39m                      [31m[1m^[22m[39m
+ [90m 48 |[39m       {
+ [90m 49 |[39m         query[33m:[39m body[33m.[39mquery[33m,[39m
+ [90m 50 |[39m         variables[33m:[39m body[33m.[39mvariables[33m,[39m[0m
+Stack: Error: Internal server error
+    at internalExecuteOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2354:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ApolloServer.executeOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2321:26)
+    at async POST (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2954:26)
+    at async AppRouteRouteModule.do (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:37913)
+    at async AppRouteRouteModule.handle (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:45132)
+    at async responseGenerator (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14324:38)
+    at async AppRouteRouteModule.handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:19:132654)
+    at async handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14386:32)
+    at async handler (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14439:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1415:9)
+    at async DevServer.renderPageComponent (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1467:24)
+    at async DevServer.renderToResponseImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1517:32)
+    at async DevServer.pipeImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1023:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:914:17)
+    at async /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:369:24)
+    at async invokeRender (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/start-server.js:226:13)
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+ POST /api/graphql [31m500[39m in 402ms[2m (compile: 2ms, proxy.ts: 1815µs, render: 398ms)[22m
+  ✅ [DB Result] [dashboard.settings] 17 rows in 90ms
+  ✅ [Resolver] dashboard completed in 370ms → Object(4 keys)
+Unexpected error processing request: TypeError: graphqlError.toJSON is not a function
+
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+💥 [GraphQL Server] UnnamedOperation CRASHED in 380ms
+Error: Error: Internal server error
+    at async POST (src/app/api/graphql/route.ts:47:22)
+[0m [90m 45 |[39m     [36mconst[39m context [33m=[39m createContext()
+ [90m 46 |[39m
+[31m[1m>[22m[39m[90m 47 |[39m     [36mconst[39m response [33m=[39m [36mawait[39m server[33m.[39mexecuteOperation(
+ [90m    |[39m                      [31m[1m^[22m[39m
+ [90m 48 |[39m       {
+ [90m 49 |[39m         query[33m:[39m body[33m.[39mquery[33m,[39m
+ [90m 50 |[39m         variables[33m:[39m body[33m.[39mvariables[33m,[39m[0m
+Stack: Error: Internal server error
+    at internalExecuteOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2354:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async ApolloServer.executeOperation (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_@apollo_server_dist_esm_68d34d9d._.js:2321:26)
+    at async POST (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__27e96d5e._.js:2954:26)
+    at async AppRouteRouteModule.do (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:37913)
+    at async AppRouteRouteModule.handle (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:23:45132)
+    at async responseGenerator (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14324:38)
+    at async AppRouteRouteModule.handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:19:132654)
+    at async handleResponse (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14386:32)
+    at async handler (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/node_modules_next_0330a403._.js:14439:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1415:9)
+    at async DevServer.renderPageComponent (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1467:24)
+    at async DevServer.renderToResponseImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1517:32)
+    at async DevServer.pipeImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:1023:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/base-server.js:914:17)
+    at async /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:373:20
+    at async Span.traceAsyncFn (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/dev/next-dev-server.js:369:24)
+    at async invokeRender (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/next/dist/server/lib/start-server.js:226:13)
+💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ POST /api/graphql [31m500[39m in 462ms[2m (compile: 3ms, proxy.ts: 2ms, render: 457ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+ GET /api/dashboard-data?employeeId=AM-0001&role=top_management&includeUsers=true [32m200[39m in 211ms[2m (compile: 1708µs, proxy.ts: 4ms, render: 205ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/settings [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1792µs, render: 2ms)[22m
+ GET /api/settings [32m200[39m in 9ms[2m (compile: 4ms, proxy.ts: 4ms, render: 1666µs)[22m
+ GET /api/settings [32m200[39m in 10ms[2m (compile: 1811µs, proxy.ts: 4ms, render: 4ms)[22m
+ GET /api/settings [32m200[39m in 4ms[2m (compile: 1281µs, proxy.ts: 1440µs, render: 1633µs)[22m
+ GET /api/dashboard-data?employeeId=AM-0001&role=top_management&includeUsers=true [32m200[39m in 83ms[2m (compile: 1844µs, proxy.ts: 2ms, render: 79ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+ GET /api/projects?type=main&status=active [32m200[39m in 214ms[2m (compile: 6ms, proxy.ts: 1997µs, render: 206ms)[22m
+ GET /api/users [32m200[39m in 225ms[2m (compile: 8ms, proxy.ts: 5ms, render: 212ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+ GET /api/projects?type=main&status=active [32m200[39m in 39ms[2m (compile: 3ms, proxy.ts: 3ms, render: 33ms)[22m
+ GET /api/users [32m200[39m in 37ms[2m (compile: 4ms, proxy.ts: 1973µs, render: 31ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users [32m200[39m in 33ms[2m (compile: 1361µs, proxy.ts: 1879µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users [32m200[39m in 33ms[2m (compile: 1327µs, proxy.ts: 1717µs, render: 30ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ GET /master-tasks [32m200[39m in 325ms[2m (compile: 311ms, render: 15ms)[22m
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+✅ [TASKS-GET] Successfully fetched 20 tasks
+ GET /api/tasks [32m200[39m in 231ms[2m (compile: 3ms, proxy.ts: 1982µs, render: 226ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 200ms[2m (compile: 1872µs, proxy.ts: 4ms, render: 194ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0020'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0019'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0018'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/users/AM-0002 [32m200[39m in 63ms[2m (compile: 58ms, proxy.ts: 3ms, render: 2ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0017'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0016'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0015'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0018
+ GET /api/task-checklists?parentTaskId=JSR-0018 [32m200[39m in 146ms[2m (compile: 12ms, proxy.ts: 2ms, render: 132ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0014'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0017
+ GET /api/task-checklists?parentTaskId=JSR-0017 [32m200[39m in 196ms[2m (compile: 53ms, proxy.ts: 3ms, render: 140ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0013'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0020
+ GET /api/task-checklists?parentTaskId=JSR-0020 [32m200[39m in 233ms[2m (compile: 7ms, proxy.ts: 3ms, render: 222ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0012'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0019
+ GET /api/task-checklists?parentTaskId=JSR-0019 [32m200[39m in 245ms[2m (compile: 10ms, proxy.ts: 2ms, render: 233ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0011'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0016
+ GET /api/task-checklists?parentTaskId=JSR-0016 [32m200[39m in 243ms[2m (compile: 51ms, proxy.ts: 1686µs, render: 191ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0010'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0015
+ GET /api/task-checklists?parentTaskId=JSR-0015 [32m200[39m in 207ms[2m (compile: 1114µs, proxy.ts: 1836µs, render: 204ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0009'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0014
+ GET /api/task-checklists?parentTaskId=JSR-0014 [32m200[39m in 135ms[2m (compile: 1808µs, proxy.ts: 1388µs, render: 132ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0008'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0013
+ GET /api/task-checklists?parentTaskId=JSR-0013 [32m200[39m in 104ms[2m (compile: 1174µs, proxy.ts: 1315µs, render: 101ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0007'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0012
+ GET /api/task-checklists?parentTaskId=JSR-0012 [32m200[39m in 92ms[2m (compile: 1583µs, proxy.ts: 1788µs, render: 88ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0006'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0011
+ GET /api/task-checklists?parentTaskId=JSR-0011 [32m200[39m in 88ms[2m (compile: 1410µs, proxy.ts: 1706µs, render: 85ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0005'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0010
+ GET /api/task-checklists?parentTaskId=JSR-0010 [32m200[39m in 104ms[2m (compile: 1355µs, proxy.ts: 2ms, render: 101ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0004'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0009
+ GET /api/task-checklists?parentTaskId=JSR-0009 [32m200[39m in 102ms[2m (compile: 1541µs, proxy.ts: 1886µs, render: 98ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0003'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0008
+ GET /api/task-checklists?parentTaskId=JSR-0008 [32m200[39m in 101ms[2m (compile: 1725µs, proxy.ts: 1812µs, render: 98ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0007
+ GET /api/task-checklists?parentTaskId=JSR-0007 [32m200[39m in 103ms[2m (compile: 2ms, proxy.ts: 1565µs, render: 100ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0002'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/users/AM-0010 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1751µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0006
+ GET /api/task-checklists?parentTaskId=JSR-0006 [32m200[39m in 115ms[2m (compile: 1476µs, proxy.ts: 1805µs, render: 112ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0005
+ GET /api/task-checklists?parentTaskId=JSR-0005 [32m200[39m in 110ms[2m (compile: 1574µs, proxy.ts: 2ms, render: 106ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0001'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/users/AM-0007 [32m200[39m in 20ms[2m (compile: 13ms, proxy.ts: 5ms, render: 2ms)[22m
+ GET /api/users/AM-0004 [32m200[39m in 19ms[2m (compile: 15ms, proxy.ts: 1734µs, render: 2ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0004
+ GET /api/task-checklists?parentTaskId=JSR-0004 [32m200[39m in 113ms[2m (compile: 1534µs, proxy.ts: 1883µs, render: 110ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0018'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/users/AM-0002 [32m200[39m in 18ms[2m (compile: 12ms, proxy.ts: 3ms, render: 3ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0017'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0003
+ GET /api/task-checklists?parentTaskId=JSR-0003 [32m200[39m in 121ms[2m (compile: 2ms, proxy.ts: 1515µs, render: 118ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0020'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0002
+ GET /api/task-checklists?parentTaskId=JSR-0002 [32m200[39m in 89ms[2m (compile: 2ms, proxy.ts: 1914µs, render: 85ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0019'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0016'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0001
+ GET /api/task-checklists?parentTaskId=JSR-0001 [32m200[39m in 76ms[2m (compile: 4ms, proxy.ts: 2ms, render: 70ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0015'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0018
+ GET /api/task-checklists?parentTaskId=JSR-0018 [32m200[39m in 79ms[2m (compile: 5ms, proxy.ts: 3ms, render: 71ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0017
+ GET /api/task-checklists?parentTaskId=JSR-0017 [32m200[39m in 75ms[2m (compile: 7ms, proxy.ts: 1947µs, render: 67ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0014'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0013'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0020
+ GET /api/task-checklists?parentTaskId=JSR-0020 [32m200[39m in 89ms[2m (compile: 4ms, proxy.ts: 2ms, render: 83ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0012'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0019
+ GET /api/task-checklists?parentTaskId=JSR-0019 [32m200[39m in 99ms[2m (compile: 3ms, proxy.ts: 4ms, render: 92ms)[22m
+❌ Redis Cloud connection error: 004DB26A847C0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0011'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0016
+ GET /api/task-checklists?parentTaskId=JSR-0016 [32m200[39m in 105ms[2m (compile: 4ms, proxy.ts: 4ms, render: 97ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0010'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0015
+ GET /api/task-checklists?parentTaskId=JSR-0015 [32m200[39m in 104ms[2m (compile: 1583µs, proxy.ts: 1404µs, render: 101ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0009'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0014
+ GET /api/task-checklists?parentTaskId=JSR-0014 [32m200[39m in 102ms[2m (compile: 3ms, proxy.ts: 4ms, render: 96ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0008'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0013
+ GET /api/task-checklists?parentTaskId=JSR-0013 [32m200[39m in 104ms[2m (compile: 1158µs, proxy.ts: 1199µs, render: 101ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0007'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0012
+ GET /api/task-checklists?parentTaskId=JSR-0012 [32m200[39m in 102ms[2m (compile: 1497µs, proxy.ts: 3ms, render: 98ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0010 [32m200[39m in 39ms[2m (compile: 33ms, proxy.ts: 5ms, render: 1944µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0011
+ GET /api/task-checklists?parentTaskId=JSR-0011 [32m200[39m in 122ms[2m (compile: 1522µs, proxy.ts: 1424µs, render: 119ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0010
+ GET /api/task-checklists?parentTaskId=JSR-0010 [32m200[39m in 116ms[2m (compile: 1579µs, proxy.ts: 1464µs, render: 113ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0006'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0005'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/users/AM-0007 [32m200[39m in 10ms[2m (compile: 7ms, proxy.ts: 1365µs, render: 1423µs)[22m
+ GET /api/users/AM-0004 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1407µs, render: 2ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0004'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0009
+ GET /api/task-checklists?parentTaskId=JSR-0009 [32m200[39m in 121ms[2m (compile: 1100µs, proxy.ts: 1874µs, render: 118ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1348µs, render: 1982µs)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0003'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0008
+ GET /api/task-checklists?parentTaskId=JSR-0008 [32m200[39m in 125ms[2m (compile: 2ms, proxy.ts: 3ms, render: 120ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0007
+ GET /api/task-checklists?parentTaskId=JSR-0007 [32m200[39m in 119ms[2m (compile: 2ms, proxy.ts: 1255µs, render: 115ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0002'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0001'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0006
+ GET /api/task-checklists?parentTaskId=JSR-0006 [32m200[39m in 79ms[2m (compile: 4ms, proxy.ts: 1794µs, render: 74ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0002 [32m200[39m in 12ms[2m (compile: 8ms, proxy.ts: 2ms, render: 1709µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0005
+ GET /api/task-checklists?parentTaskId=JSR-0005 [32m200[39m in 100ms[2m (compile: 6ms, proxy.ts: 1721µs, render: 93ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 9ms[2m (compile: 5ms, proxy.ts: 3ms, render: 1696µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0004
+ GET /api/task-checklists?parentTaskId=JSR-0004 [32m200[39m in 87ms[2m (compile: 1507µs, proxy.ts: 1257µs, render: 84ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 4ms, proxy.ts: 1309µs, render: 2ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 1572µs, render: 2ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1944µs, render: 1600µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0003
+ GET /api/task-checklists?parentTaskId=JSR-0003 [32m200[39m in 98ms[2m (compile: 1430µs, proxy.ts: 1600µs, render: 95ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1028µs, render: 1621µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1515µs, render: 2ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 1428µs, render: 2ms)[22m
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0002
+ GET /api/task-checklists?parentTaskId=JSR-0002 [32m200[39m in 104ms[2m (compile: 4ms, proxy.ts: 1619µs, render: 99ms)[22m
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0001
+ GET /api/task-checklists?parentTaskId=JSR-0001 [32m200[39m in 104ms[2m (compile: 1489µs, proxy.ts: 4ms, render: 99ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 11ms[2m (compile: 4ms, proxy.ts: 4ms, render: 2ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 17ms[2m (compile: 12ms, proxy.ts: 1760µs, render: 3ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1609µs, render: 1959µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 8ms[2m (compile: 5ms, proxy.ts: 1242µs, render: 2ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 2ms, render: 1992µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1886µs, proxy.ts: 1213µs, render: 1566µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1889µs, proxy.ts: 1240µs, render: 1891µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 2ms, render: 1641µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1059µs, render: 1545µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 1933µs, proxy.ts: 2ms, render: 1662µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1311µs, render: 1781µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 1493µs, render: 2ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 9ms[2m (compile: 5ms, proxy.ts: 1472µs, render: 1829µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 4ms, proxy.ts: 1522µs, render: 1672µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1162µs, render: 1806µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 1943µs, proxy.ts: 1575µs, render: 2ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1358µs, render: 1759µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1535µs, render: 1781µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1804µs, proxy.ts: 1147µs, render: 1686µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 4ms, proxy.ts: 1556µs, render: 1627µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1908µs, proxy.ts: 1260µs, render: 1533µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1645µs, proxy.ts: 1001µs, render: 1436µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 11ms[2m (compile: 8ms, proxy.ts: 1126µs, render: 1994µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1235µs, render: 1824µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1420µs, render: 1701µs)[22m
+✅ [DB] DATABASE_URL environment variable found
+❌ Redis Cloud connection error: 001D09A07B7A0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+ GET /master-bugs [32m200[39m in 308ms[2m (compile: 273ms, render: 35ms)[22m
+🔄 Initializing email service...
+Fetching bugs data from MySQL
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/bugs [32m200[39m in 278ms[2m (compile: 79ms, proxy.ts: 1881µs, render: 197ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/users [32m200[39m in 35ms[2m (compile: 1825µs, proxy.ts: 1657µs, render: 31ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+⚠️ Email verify failed. Falling back to test mode: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29651cc6595sm31479825ad.98 - gsmtp
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ GET /projects [32m200[39m in 233ms[2m (compile: 221ms, render: 12ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T15:05:30.169Z
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-06T15:05:30.182Z
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 200ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 214ms[2m (compile: 7ms, proxy.ts: 2ms, render: 205ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 201ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 209ms[2m (compile: 2ms, proxy.ts: 3ms, render: 204ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/projects/hierarchy [32m200[39m in 103ms[2m (compile: 70ms, proxy.ts: 1743µs, render: 32ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/projects/hierarchy [32m200[39m in 34ms[2m (compile: 1322µs, proxy.ts: 1510µs, render: 31ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/projects/hierarchy [32m200[39m in 237ms[2m (compile: 1513µs, proxy.ts: 1340µs, render: 234ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/projects/hierarchy [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1544µs, render: 31ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+Error creating project: error: duplicate key value violates unique constraint "projects_pkey"
+    at async query (src/lib/db/config.ts:97:7)
+    at async (src/lib/db/projects.ts:219:5)
+    at async withRetry (src/lib/db/config.ts:145:12)
+    at async POST (src/app/api/projects/route.ts:100:24)
+[0m [90m  95 |[39m   [36mconst[39m pool [33m=[39m getPool()
+ [90m  96 |[39m   [36mconst[39m result [33m=[39m params [33m&&[39m params[33m.[39mlength [33m>[39m [35m0[39m
+[31m[1m>[22m[39m[90m  97 |[39m     [33m?[39m [36mawait[39m pool[33m.[39mquery(sql[33m,[39m params)
+ [90m     |[39m       [31m[1m^[22m[39m
+ [90m  98 |[39m     [33m:[39m [36mawait[39m pool[33m.[39mquery(sql)
+ [90m  99 |[39m   [36mreturn[39m result[33m.[39mrows [36mas[39m [33mT[39m
+ [90m 100 |[39m }[0m {
+  length: [33m189[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23505'[39m,
+  detail: [32m'Key (id)=(4) already exists.'[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'public'[39m,
+  table: [32m'projects'[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [32m'projects_pkey'[39m,
+  file: [32m'nbtinsert.c'[39m,
+  line: [32m'666'[39m,
+  routine: [32m'_bt_check_unique'[39m
+}
+ POST /api/projects [33m400[39m in 4.1s[2m (compile: 1334µs, proxy.ts: 3ms, render: 4.1s)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
