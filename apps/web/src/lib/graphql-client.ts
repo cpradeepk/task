@@ -1,4 +1,10 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client'
+import { onError } from '@apollo/client/link/error'
+import {
+  logOperationStart,
+  logOperationSuccess,
+  logOperationError
+} from './graphql-logger'
 
 // Re-export queries and mutations from the separate file
 export { QUERIES, MUTATIONS } from './graphql-queries'
@@ -17,20 +23,64 @@ function createApolloClient() {
   const authLink = new ApolloLink((operation, forward) => {
     // Get token from localStorage or cookie
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-    
+
     // Add authorization header if token exists
     operation.setContext({
       headers: {
         authorization: token ? `Bearer ${token}` : '',
       }
     })
-    
+
     return forward(operation)
   })
 
-  // Create Apollo Client
+  // Create logging link for development
+  const loggingLink = new ApolloLink((operation, forward) => {
+    // Log operation start
+    const { startTime, opName, opType } = logOperationStart(
+      operation.query.loc?.source.body || '',
+      operation.variables,
+      operation.operationName
+    )
+
+    // Store metadata for later use
+    operation.setContext({
+      _logMetadata: { startTime, opName, opType }
+    })
+
+    return forward(operation).map((response: any) => {
+      // Log successful response
+      logOperationSuccess(opName, opType, response.data, startTime)
+      return response
+    })
+  })
+
+  // Create error link for error logging
+  const errorLink = onError(({ graphQLErrors, networkError, operation }: any) => {
+    const context = operation.getContext()
+    const metadata = context._logMetadata || {
+      startTime: Date.now(),
+      opName: operation.operationName || 'Unknown',
+      opType: 'query' as const
+    }
+
+    // Log the error with full details
+    logOperationError(
+      metadata.opName,
+      metadata.opType,
+      { graphQLErrors, networkError },
+      metadata.startTime
+    )
+  })
+
+  // Create Apollo Client with logging links
   return new ApolloClient({
-    link: authLink.concat(httpLink),
+    link: ApolloLink.from([
+      errorLink,
+      authLink,
+      loggingLink,
+      httpLink
+    ]),
     cache: new InMemoryCache({
       typePolicies: {
         Query: {
@@ -95,15 +145,18 @@ export const apolloClient = typeof window !== 'undefined' ? getApolloClient() : 
  */
 export async function executeQuery(query: string, variables: any = {}) {
   const client = getApolloClient()
+  const { startTime, opName, opType } = logOperationStart(query, variables)
+
   try {
     const result = await client.query({
       query: require('graphql-tag')(query),
       variables,
       fetchPolicy: 'network-only'
     })
+    logOperationSuccess(opName, opType, result.data, startTime)
     return result.data
   } catch (error) {
-    console.error('GraphQL query error:', error)
+    logOperationError(opName, opType, error, startTime)
     throw error
   }
 }
@@ -116,14 +169,17 @@ export async function executeQuery(query: string, variables: any = {}) {
  */
 export async function executeMutation(mutation: string, variables: any = {}) {
   const client = getApolloClient()
+  const { startTime, opName, opType } = logOperationStart(mutation, variables)
+
   try {
     const result = await client.mutate({
       mutation: require('graphql-tag')(mutation),
       variables
     })
+    logOperationSuccess(opName, opType, result.data, startTime)
     return result.data
   } catch (error) {
-    console.error('GraphQL mutation error:', error)
+    logOperationError(opName, opType, error, startTime)
     throw error
   }
 }

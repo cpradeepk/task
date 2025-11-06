@@ -1,5 +1,14 @@
 import DataLoader from 'dataloader'
 import { getPool } from '@/lib/db'
+import {
+  logResolverStart,
+  logResolverSuccess,
+  logResolverError,
+  logDatabaseQuery,
+  logDatabaseResult,
+  logDatabaseError
+} from '@/lib/graphql-logger'
+
 const pool = getPool()
 
 // DataLoader for batching user queries
@@ -85,51 +94,97 @@ export const resolvers = {
   Query: {
     // Users
     users: async () => {
-      const result = await pool.query(
-        'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name'
-      )
-      return result.rows
+      const { startTime } = logResolverStart('users', {})
+
+      try {
+        const dbStart = logDatabaseQuery(
+          'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name',
+          [],
+          'users'
+        )
+
+        const result = await pool.query(
+          'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name'
+        )
+
+        logDatabaseResult(result.rows.length, dbStart.startTime, 'users')
+        logResolverSuccess('users', result.rows, startTime)
+
+        return result.rows
+      } catch (error) {
+        logResolverError('users', error, startTime)
+        throw error
+      }
     },
 
     user: async (_: any, { employeeId }: any, { loaders }: any) => {
-      return loaders.user.load(employeeId)
+      const { startTime } = logResolverStart('user', { employeeId })
+
+      try {
+        const result = await loaders.user.load(employeeId)
+        logResolverSuccess('user', result, startTime)
+        return result
+      } catch (error) {
+        logResolverError('user', error, startTime)
+        throw error
+      }
     },
 
     // Tasks
     tasks: async (_: any, filters: any) => {
-      let query = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
-      const params: any[] = []
-      let paramIndex = 1
+      const { startTime } = logResolverStart('tasks', filters)
 
-      if (filters.assignedTo) {
-        // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
-        query += ` AND EXISTS (
-          SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
-          WHERE elem = $${paramIndex++}
-        )`
-        params.push(filters.assignedTo)
-      }
-      if (filters.assignedBy) {
-        query += ` AND assigned_by = $${paramIndex++}`
-        params.push(filters.assignedBy)
-      }
-      if (filters.status) {
-        query += ` AND status = $${paramIndex++}`
-        params.push(filters.status)
-      }
-      if (filters.priority) {
-        query += ` AND priority = $${paramIndex++}`
-        params.push(filters.priority)
-      }
+      try {
+        let query = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
+        const params: any[] = []
+        let paramIndex = 1
 
-      query += ' ORDER BY created_at DESC'
+        if (filters.assignedTo) {
+          // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
+          query += ` AND EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+            WHERE elem = $${paramIndex++}
+          )`
+          params.push(filters.assignedTo)
+        }
+        if (filters.assignedBy) {
+          query += ` AND assigned_by = $${paramIndex++}`
+          params.push(filters.assignedBy)
+        }
+        if (filters.status) {
+          query += ` AND status = $${paramIndex++}`
+          params.push(filters.status)
+        }
+        if (filters.priority) {
+          query += ` AND priority = $${paramIndex++}`
+          params.push(filters.priority)
+        }
 
-      const result = await pool.query(query, params)
-      return result.rows
+        query += ' ORDER BY created_at DESC'
+
+        const dbStart = logDatabaseQuery(query, params, 'tasks')
+        const result = await pool.query(query, params)
+        logDatabaseResult(result.rows.length, dbStart.startTime, 'tasks')
+
+        logResolverSuccess('tasks', result.rows, startTime)
+        return result.rows
+      } catch (error) {
+        logResolverError('tasks', error, startTime)
+        throw error
+      }
     },
 
     task: async (_: any, { taskId }: any, { loaders }: any) => {
-      return loaders.task.load(taskId)
+      const { startTime } = logResolverStart('task', { taskId })
+
+      try {
+        const result = await loaders.task.load(taskId)
+        logResolverSuccess('task', result, startTime)
+        return result
+      } catch (error) {
+        logResolverError('task', error, startTime)
+        throw error
+      }
     },
 
     // Subtasks
@@ -217,53 +272,79 @@ export const resolvers = {
 
     // Dashboard
     dashboard: async (_: any, { employeeId, role }: any) => {
-      const isManagement = ['management', 'top_management', 'admin'].includes(role)
+      const { startTime } = logResolverStart('dashboard', { employeeId, role })
 
-      // Fetch tasks
-      let tasksQuery = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
-      if (!isManagement) {
-        // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
-        tasksQuery += ` AND (
-          assigned_by = $1
-          OR EXISTS (
-            SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
-            WHERE elem = $2
-          )
-          OR EXISTS (
-            SELECT 1 FROM jsonb_array_elements_text(support) AS elem
-            WHERE elem = $3
-          )
-        )`
+      try {
+        const isManagement = ['management', 'top_management', 'admin'].includes(role)
+
+        // Fetch tasks
+        let tasksQuery = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
+        if (!isManagement) {
+          // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
+          tasksQuery += ` AND (
+            assigned_by = $1
+            OR EXISTS (
+              SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+              WHERE elem = $2
+            )
+            OR EXISTS (
+              SELECT 1 FROM jsonb_array_elements_text(support) AS elem
+              WHERE elem = $3
+            )
+          )`
+        }
+        tasksQuery += ' ORDER BY created_at DESC'
+
+        const tasksParams = isManagement ? [] : [employeeId, employeeId, employeeId]
+        const dbStart1 = logDatabaseQuery(tasksQuery, tasksParams, 'dashboard.tasks')
+        const tasksResult = await pool.query(tasksQuery, tasksParams)
+        logDatabaseResult(tasksResult.rows.length, dbStart1.startTime, 'dashboard.tasks')
+        const tasks = tasksResult.rows
+
+        // Fetch bugs
+        let bugsQuery = 'SELECT * FROM bugs WHERE deleted_at IS NULL'
+        if (!isManagement) {
+          bugsQuery += ' AND (assigned_to = $1 OR reported_by = $2)'
+        }
+        bugsQuery += ' ORDER BY created_at DESC'
+
+        const bugsParams = isManagement ? [] : [employeeId, employeeId]
+        const dbStart2 = logDatabaseQuery(bugsQuery, bugsParams, 'dashboard.bugs')
+        const bugsResult = await pool.query(bugsQuery, bugsParams)
+        logDatabaseResult(bugsResult.rows.length, dbStart2.startTime, 'dashboard.bugs')
+        const bugs = bugsResult.rows
+
+        // Fetch users and settings
+        const dbStart3 = logDatabaseQuery(
+          'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name',
+          [],
+          'dashboard.users'
+        )
+        const usersResult = await pool.query(
+          'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name'
+        )
+        logDatabaseResult(usersResult.rows.length, dbStart3.startTime, 'dashboard.users')
+        const users = usersResult.rows
+
+        const dbStart4 = logDatabaseQuery(
+          'SELECT * FROM settings WHERE is_active = true ORDER BY key',
+          [],
+          'dashboard.settings'
+        )
+        const settingsResult = await pool.query(
+          'SELECT * FROM settings WHERE is_active = true ORDER BY key'
+        )
+        logDatabaseResult(settingsResult.rows.length, dbStart4.startTime, 'dashboard.settings')
+        const settings = settingsResult.rows
+
+        const result = { tasks, bugs, users, settings }
+        logResolverSuccess('dashboard', result, startTime)
+
+        return result
+      } catch (error) {
+        logResolverError('dashboard', error, startTime)
+        throw error
       }
-      tasksQuery += ' ORDER BY created_at DESC'
-
-      const tasksParams = isManagement ? [] : [employeeId, employeeId, employeeId]
-      const tasksResult = await pool.query(tasksQuery, tasksParams)
-      const tasks = tasksResult.rows
-
-      // Fetch bugs
-      let bugsQuery = 'SELECT * FROM bugs WHERE deleted_at IS NULL'
-      if (!isManagement) {
-        bugsQuery += ' AND (assigned_to = $1 OR reported_by = $2)'
-      }
-      bugsQuery += ' ORDER BY created_at DESC'
-
-      const bugsParams = isManagement ? [] : [employeeId, employeeId]
-      const bugsResult = await pool.query(bugsQuery, bugsParams)
-      const bugs = bugsResult.rows
-
-      // Fetch users and settings
-      const usersResult = await pool.query(
-        'SELECT * FROM users WHERE deleted_at IS NULL ORDER BY name'
-      )
-      const users = usersResult.rows
-
-      const settingsResult = await pool.query(
-        'SELECT * FROM settings WHERE is_active = true ORDER BY key'
-      )
-      const settings = settingsResult.rows
-
-      return { tasks, bugs, users, settings }
     }
   },
   

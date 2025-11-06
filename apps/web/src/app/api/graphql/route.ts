@@ -3,6 +3,8 @@ import { ApolloServer } from '@apollo/server'
 import { typeDefs } from '@/graphql/schema'
 import { resolvers, createContext } from '@/graphql/resolvers'
 
+const isDevelopment = process.env.NODE_ENV === 'development'
+
 // Create Apollo Server instance
 const server = new ApolloServer({
   typeDefs,
@@ -20,10 +22,26 @@ async function ensureServerStarted() {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  let operationName = 'Unknown'
+
   try {
     await ensureServerStarted()
 
     const body = await request.json()
+    operationName = body.operationName || 'UnnamedOperation'
+
+    // Log incoming GraphQL request in development
+    if (isDevelopment) {
+      console.log('\n' + '='.repeat(80))
+      console.log(`🚀 [GraphQL Server] Incoming ${body.query?.trim().startsWith('mutation') ? 'MUTATION' : 'QUERY'}: ${operationName}`)
+      console.log(`⏱️  Timestamp: ${new Date().toISOString()}`)
+      if (body.variables && Object.keys(body.variables).length > 0) {
+        console.log('🔧 Variables:', JSON.stringify(body.variables, null, 2))
+      }
+      console.log('='.repeat(80) + '\n')
+    }
+
     const context = createContext()
 
     const response = await server.executeOperation(
@@ -35,8 +53,26 @@ export async function POST(request: NextRequest) {
       { contextValue: context }
     )
 
+    const duration = Date.now() - startTime
+
     if (response.body.kind === 'single') {
-      return NextResponse.json(response.body.singleResult, {
+      const result = response.body.singleResult
+
+      // Log response in development
+      if (isDevelopment) {
+        if (result.errors && result.errors.length > 0) {
+          console.error('\n' + '❌'.repeat(40))
+          console.error(`❌ [GraphQL Server] ${operationName} FAILED in ${duration}ms`)
+          console.error('Errors:', JSON.stringify(result.errors, null, 2))
+          console.error('❌'.repeat(40) + '\n')
+        } else {
+          console.log('\n' + '✅'.repeat(40))
+          console.log(`✅ [GraphQL Server] ${operationName} completed in ${duration}ms`)
+          console.log('✅'.repeat(40) + '\n')
+        }
+      }
+
+      return NextResponse.json(result, {
         status: 200,
         headers: {
           'Content-Type': 'application/json'
@@ -49,7 +85,18 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     )
   } catch (error: any) {
-    console.error('GraphQL error:', error)
+    const duration = Date.now() - startTime
+
+    if (isDevelopment) {
+      console.error('\n' + '💥'.repeat(40))
+      console.error(`💥 [GraphQL Server] ${operationName} CRASHED in ${duration}ms`)
+      console.error('Error:', error)
+      console.error('Stack:', error.stack)
+      console.error('💥'.repeat(40) + '\n')
+    } else {
+      console.error(`[GraphQL Error] ${operationName}:`, error.message)
+    }
+
     return NextResponse.json(
       { errors: [{ message: error?.message || 'Internal server error' }] },
       { status: 500 }
