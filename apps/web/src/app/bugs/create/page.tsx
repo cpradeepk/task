@@ -51,6 +51,7 @@ function CreateBugPageContent() {
   const [settingsLoaded, setSettingsLoaded] = useState(false)
   const [error, setError] = useState('')
   const [isHydrated, setIsHydrated] = useState(false)
+  const [missingFields, setMissingFields] = useState<string[]>([])
 
   // Settings state
   const [severityOptions, setSeverityOptions] = useState<string[]>([])
@@ -249,6 +250,17 @@ function CreateBugPageContent() {
       ...prev,
       [name]: value
     }))
+    // Clear the field from missing fields when user starts typing
+    if (missingFields.includes(name)) {
+      setMissingFields(prev => prev.filter(field => field !== name))
+    }
+  }
+
+  // Helper function to get field class with error styling
+  const getFieldClass = (fieldName: string, baseClass: string = 'input-field') => {
+    return missingFields.includes(fieldName)
+      ? `${baseClass} border-2 border-red-500 focus:ring-red-500 focus:border-red-500`
+      : baseClass
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -256,26 +268,23 @@ function CreateBugPageContent() {
 
     if (!currentUser) return
 
-    // Validate required fields
-    if (!formData.title.trim()) {
-      setError('Feature name is required')
+    // Validate required fields - Track missing fields for visual feedback
+    const missing: string[] = []
+
+    if (!formData.title || !formData.title.trim()) missing.push('title')
+    if (!formData.description || !formData.description.trim()) missing.push('description')
+    if (!formData.projectId) missing.push('projectId')
+    if (!formData.subprojectId) missing.push('subprojectId')
+
+    // If there are missing fields, show error and highlight them
+    if (missing.length > 0) {
+      setMissingFields(missing)
+      setError('Please fill in all required fields')
       return
     }
 
-    if (!formData.description.trim()) {
-      setError('Description is required')
-      return
-    }
-
-    if (!formData.projectId) {
-      setError('Project is required')
-      return
-    }
-
-    if (!formData.subprojectId) {
-      setError('Subproject is required')
-      return
-    }
+    // Clear missing fields if validation passes
+    setMissingFields([])
 
     setIsLoading(true)
     setError('')
@@ -449,6 +458,9 @@ function CreateBugPageContent() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Project <span className="text-red-500">*</span>
+                      {missingFields.includes('projectId') && (
+                        <span className="text-red-500 text-xs ml-2">Required</span>
+                      )}
                     </label>
                     <select
                       name="projectId"
@@ -456,8 +468,12 @@ function CreateBugPageContent() {
                       onChange={(e) => {
                         const value = e.target.value
                         setFormData(prev => ({ ...prev, projectId: value || undefined, subprojectId: undefined }))
+                        // Clear from missing fields
+                        if (missingFields.includes('projectId')) {
+                          setMissingFields(prev => prev.filter(field => field !== 'projectId'))
+                        }
                       }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      className={getFieldClass('projectId', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white')}
                       required
                       disabled={isLoadingProjects}
                     >
@@ -473,12 +489,21 @@ function CreateBugPageContent() {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Subproject <span className="text-red-500">*</span>
+                      {missingFields.includes('subprojectId') && (
+                        <span className="text-red-500 text-xs ml-2">Required</span>
+                      )}
                     </label>
                     <select
                       name="subprojectId"
                       value={formData.subprojectId || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, subprojectId: e.target.value || undefined }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, subprojectId: e.target.value || undefined }))
+                        // Clear from missing fields
+                        if (missingFields.includes('subprojectId')) {
+                          setMissingFields(prev => prev.filter(field => field !== 'subprojectId'))
+                        }
+                      }}
+                      className={getFieldClass('subprojectId', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white')}
                       disabled={!formData.projectId || isLoadingSubprojects}
                       required
                     >
@@ -496,13 +521,16 @@ function CreateBugPageContent() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Feature <span className="text-red-500">*</span>
+                    {missingFields.includes('title') && (
+                      <span className="text-red-500 text-xs ml-2">Required</span>
+                    )}
                   </label>
                   <input
                     type="text"
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={getFieldClass('title', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors')}
                     placeholder="e.g., User Login, Payment Gateway, Dashboard"
                     required
                   />
@@ -718,13 +746,16 @@ function CreateBugPageContent() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Steps to Reproduce <span className="text-red-500">*</span>
+                    {missingFields.includes('description') && (
+                      <span className="text-red-500 text-xs ml-2">Required</span>
+                    )}
                   </label>
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
+                    className={getFieldClass('description', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical')}
                     placeholder="Please provide step-by-step instructions:&#10;1. Go to the login page&#10;2. Enter invalid credentials&#10;3. Click 'Sign In' button&#10;4. Observe the error"
                     required
                   />
