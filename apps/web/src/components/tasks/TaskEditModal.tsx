@@ -107,7 +107,8 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
   // Initialize form data when task changes
   useEffect(() => {
     if (task && isOpen) {
-      setFormData({
+      // Initialize form data with ALL task properties
+      const initialFormData = {
         taskId: task.taskId,
         selectType: task.selectType,
         recursiveType: task.recursiveType,
@@ -118,13 +119,15 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
         support: task.support || [],
         startDate: task.startDate,
         endDate: task.endDate,
-        priority: task.priority,
+        priority: task.priority || '',
         status: task.status,
         remarks: task.remarks || '',
         difficulties: task.difficulties || '',
         projectId: task.projectId || '',
-        ...(task as any).department && { department: (task as any).department },
-      })
+        department: (task as any).department || '',
+      }
+
+      setFormData(initialFormData)
 
       // If task has a projectId, determine if it's a main project or subproject
       if (task.projectId) {
@@ -137,10 +140,13 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
               if (currentProject.parentProjectId) {
                 // It's a subproject - set the parent as main project
                 setSelectedMainProject(currentProject.parentProjectId)
-                // projectId stays as the subproject
+                // Keep projectId as the subproject
+                setFormData(prev => ({ ...prev, projectId: task.projectId }))
               } else {
-                // It's a main project
+                // It's a main project - set it as selected main project
                 setSelectedMainProject(task.projectId || '')
+                // Keep projectId as the main project
+                setFormData(prev => ({ ...prev, projectId: task.projectId }))
               }
             }
           })
