@@ -26,6 +26,7 @@ interface TaskRow  {
   related_tasks: string | null
   project_id: string | null
   parent_task_id: string | null
+  department: string | null
   deleted_at: string | null
   deleted_by: string | null
   timer_state: string | null
@@ -121,6 +122,7 @@ function rowToTask(row: TaskRow): Task {
     relatedTasks: row.related_tasks || undefined,
     projectId: row.project_id || undefined,
     parentTaskId: row.parent_task_id || undefined,
+    department: row.department || undefined,
     deletedAt: row.deleted_at || undefined,
     deletedBy: row.deleted_by || undefined,
     createdAt: row.created_at,

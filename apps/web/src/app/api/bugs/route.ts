@@ -105,6 +105,7 @@ export async function POST(request: NextRequest) {
       tags: bugData.tags || null,
       relatedBugs: bugData.relatedBugs || null,
       projectId: bugData.projectId || null,
+      subprojectId: bugData.subprojectId || null,
       feature: bugData.feature || null,
       type: bugData.type || null
     }

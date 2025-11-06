@@ -96,6 +96,7 @@ export interface Task {
   relatedTasks?: string | null // Optional: Comma-separated task IDs for multi-user assignments
   projectId?: string | null // Optional: Project ID this task belongs to (e.g., "PRJ-001")
   parentTaskId?: string | null // Optional: Parent task ID for subtasks (e.g., "JSR-0001")
+  department?: string | null // Optional: Department this task belongs to (e.g., "Marketing", "Development")
   timerState?: string | null // Optional: Timer state (stopped, running, paused)
   timerStartTime?: string | null // Optional: Timer start timestamp
   timerPausedTime?: number | null // Optional: Total paused time in milliseconds
