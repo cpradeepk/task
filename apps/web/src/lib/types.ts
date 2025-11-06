@@ -42,6 +42,7 @@ export interface User {
   role: 'employee' | 'management' | 'top_management' | 'admin'  // User role (determines permissions)
   password: string          // Hashed password (never store plain text!)
   status: 'active' | 'inactive'  // Account status
+  isSystemAdmin?: number    // Optional: 1 if user is system admin (cannot be deleted/deactivated), 0 or undefined otherwise
   hoursLog?: string         // Optional: Hours worked log (format: 'DD/MM/YYYY - X Hours worked today')
   idCardPhoto?: string      // Optional: AWS S3 URL for employee ID card photo
   createdAt: string         // Timestamp when user was created

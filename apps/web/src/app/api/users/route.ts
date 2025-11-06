@@ -2,22 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllUsers, createUser } from '@/lib/db/users'
 import { withTimeout } from '@/lib/db/config'
 
-// Admin user constant - only hardcoded user in the system
-const ADMIN_USER = {
-  employeeId: 'admin-001',
-  name: 'System Admin',
-  email: 'mailcpk@gmail.com',
-  phone: '+91-9999999999',
-  department: 'Technology',
-  isTodayTask: false,
-  warningCount: 0,
-  role: 'admin' as const,
-  password: '1234',
-  status: 'active' as const,
-  createdAt: '2024-01-01T00:00:00.000Z',
-  updatedAt: '2024-01-01T00:00:00.000Z'
-}
-
 export async function GET() {
   try {
     // Get users from database with timeout
@@ -26,12 +10,6 @@ export async function GET() {
       10000, // 10 second timeout
       'Failed to fetch users - database timeout'
     )
-
-    // Always ensure admin user is included
-    const hasAdmin = users.some(user => user.employeeId === 'admin-001')
-    if (!hasAdmin) {
-      users.unshift(ADMIN_USER)
-    }
 
     const response = NextResponse.json({
       success: true,
@@ -45,17 +23,15 @@ export async function GET() {
 
     return response
   } catch (error) {
-    console.error('Failed to get users from MySQL:', error)
-    const errorMessage = error instanceof Error ? error.message : 'MySQL unavailable'
+    console.error('Failed to get users from database:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Database unavailable'
 
-    // Return only admin user if MySQL fails
     const response = NextResponse.json({
-      success: true,
-      data: [ADMIN_USER],
-      source: 'admin_only',
+      success: false,
+      data: [],
       error: errorMessage,
       timestamp: Date.now()
-    })
+    }, { status: 500 })
 
     // Shorter cache for error responses
     response.headers.set('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30')

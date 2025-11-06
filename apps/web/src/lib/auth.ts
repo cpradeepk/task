@@ -4,30 +4,13 @@ import { User } from './types'
 
 const CURRENT_USER_KEY = 'jsr_current_user'
 
-// Only admin user is hardcoded - all other users come from MySQL database
-const ADMIN_USER: User = {
-  employeeId: 'admin-001',
-  name: 'System Admin',
-  email: 'mailcpk@gmail.com',
-  phone: '+91-9999999999',
-  department: 'Technology',
-  isTodayTask: false,
-  warningCount: 0,
-  role: 'admin',
-  password: '1234', // Static password as per requirements
-  status: 'active',
-  createdAt: '2024-01-01T00:00:00.000Z',
-  updatedAt: '2024-01-01T00:00:00.000Z'
-}
-
 export async function initializeUsers(): Promise<void> {
   try {
     // Initialize user system by checking if users can be loaded
     await getAllUsers()
-    console.log('User authentication system initialized with MySQL database')
+    console.log('User authentication system initialized with database')
   } catch (error) {
-    console.error('Failed to initialize users from MySQL database:', error)
-    console.log('Falling back to admin-only authentication')
+    console.error('Failed to initialize users from database:', error)
   }
 }
 
@@ -40,29 +23,15 @@ export async function getAllUsers(): Promise<User[]> {
     }
 
     const result = await response.json()
-    const users = result.data || []
-
-    // Always ensure admin user is included
-    const hasAdmin = users.some((user: User) => user.employeeId === 'admin-001')
-    if (!hasAdmin) {
-      users.unshift(ADMIN_USER)
-    }
-
-    return users
+    return result.data || []
   } catch (error) {
     console.error('Failed to get all users from API:', error)
-    // Return only admin user as fallback
-    return [ADMIN_USER]
+    return []
   }
 }
 
 export async function getUserByEmployeeId(employeeId: string): Promise<User | null> {
   try {
-    // Check if it's admin user first
-    if (employeeId.toLowerCase() === 'admin-001') {
-      return ADMIN_USER
-    }
-
     // Get user from API
     const response = await fetch(`/api/users/${employeeId}`)
     if (!response.ok) {
@@ -82,16 +51,11 @@ export async function getUserByEmployeeId(employeeId: string): Promise<User | nu
 
 export async function authenticateUser(employeeId: string, password: string): Promise<User | null> {
   try {
-    // Special case for admin-001 with static password (case-insensitive)
-    if (employeeId.toLowerCase() === 'admin-001' && password === '1234') {
-      return ADMIN_USER
-    }
-
     // Get user from API and validate password
     const user = await getUserByEmployeeId(employeeId)
     if (!user) return null
 
-    // Regular password check for users from Google Sheets
+    // Password check
     if (user.password === password) {
       return user
     }

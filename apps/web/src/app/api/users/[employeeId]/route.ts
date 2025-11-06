@@ -3,22 +3,6 @@ import { getUserByEmployeeId, updateUser } from '@/lib/db/users'
 import { withTimeout } from '@/lib/db/config'
 import { cache, CACHE_KEYS } from '@/lib/cache'
 
-// Admin user constant
-const ADMIN_USER = {
-  employeeId: 'admin-001',
-  name: 'System Admin',
-  email: 'mailcpk@gmail.com',
-  phone: '+91-9999999999',
-  department: 'Technology',
-  isTodayTask: false,
-  warningCount: 0,
-  role: 'admin',
-  password: '1234',
-  status: 'active',
-  createdAt: '2024-01-01T00:00:00.000Z',
-  updatedAt: '2024-01-01T00:00:00.000Z'
-}
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ employeeId: string }> }
@@ -26,22 +10,13 @@ export async function GET(
   try {
     const { employeeId } = await params
 
-    // Check if it's admin user first
-    if (employeeId.toLowerCase() === 'admin-001') {
-      return NextResponse.json({
-        success: true,
-        data: ADMIN_USER,
-        source: 'hardcoded_admin'
-      })
-    }
-
     // Serve from cache if present
     const cacheKey = CACHE_KEYS.USER_DETAIL(employeeId)
     if (await cache.has(cacheKey)) {
       return NextResponse.json({ success: true, data: await cache.get<any>(cacheKey), source: 'cache' })
     }
 
-    // Get user from MySQL with timeout
+    // Get user from database with timeout
     const user = await withTimeout(
       getUserByEmployeeId(employeeId),
       10000,

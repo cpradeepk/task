@@ -159,7 +159,7 @@ export async function updateUser(employee_id: string, updates: Partial<User>): P
   return withRetry(async () => {
     // Check if user is system admin
     const user = await getUserByEmployeeId(employee_id)
-    if (user && user.employeeId === 'admin-001') {
+    if (user && user.isSystemAdmin === 1) {
       // System admin can only update certain fields (not role or status)
       if (updates.role !== undefined && updates.role !== 'admin') {
         throw new Error('Cannot change system admin role')
@@ -253,7 +253,8 @@ export async function updateUser(employee_id: string, updates: Partial<User>): P
 export async function deleteUser(employee_id: string): Promise<boolean> {
   return withRetry(async () => {
     // Prevent deletion of system admin
-    if (employee_id === 'admin-001') {
+    const user = await getUserByEmployeeId(employee_id)
+    if (user && user.isSystemAdmin === 1) {
       throw new Error('Cannot delete system admin user')
     }
 
