@@ -186,7 +186,8 @@ export async function POST(request: NextRequest) {
       isComment,
       fieldName,
       oldValue,
-      newValue
+      newValue,
+      attachments
     } = body
 
     // Assign to outer scope for error logging
@@ -228,7 +229,8 @@ export async function POST(request: NextRequest) {
       isComment: isComment || false,
       fieldName,
       oldValue,
-      newValue
+      newValue,
+      attachments
     }
 
     // Create the activity log entry
