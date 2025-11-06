@@ -111,6 +111,7 @@ export default function BugsPage() {
   const [severityFilter, setSeverityFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
+  const [typeFilter, setTypeFilter] = useState('all') // New: Bug type filter
   const [statistics, setStatistics] = useState<any>(null)
   const [isHydrated, setIsHydrated] = useState(false)
   const [initialized, setInitialized] = useState(false)
@@ -370,6 +371,23 @@ export default function BugsPage() {
       filtered = filtered.filter(bug => bug.category === categoryFilter)
     }
 
+    // Type filter (Bug, Feature, Testcase, Other)
+    if (typeFilter !== 'all') {
+      if (typeFilter === 'bug') {
+        // Show bugs that are NOT features (null, 'testcase', 'other')
+        filtered = filtered.filter(bug => bug.type !== 'feature')
+      } else if (typeFilter === 'feature') {
+        // Show only features
+        filtered = filtered.filter(bug => bug.type === 'feature')
+      } else if (typeFilter === 'testcase') {
+        // Show only testcases
+        filtered = filtered.filter(bug => bug.type === 'testcase')
+      } else if (typeFilter === 'other') {
+        // Show only 'other' type or null
+        filtered = filtered.filter(bug => bug.type === 'other' || bug.type === null)
+      }
+    }
+
     // Assignee filter
     if (assigneeFilter !== 'all') {
       if (assigneeFilter === 'me') {
@@ -395,7 +413,7 @@ export default function BugsPage() {
     })
 
     return filtered
-  }, [bugs, searchTerm, statusFilter, severityFilter, categoryFilter, assigneeFilter, currentUser])
+  }, [bugs, searchTerm, statusFilter, severityFilter, categoryFilter, typeFilter, assigneeFilter, currentUser])
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -637,7 +655,7 @@ export default function BugsPage() {
             <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -649,6 +667,19 @@ export default function BugsPage() {
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
             </div>
+
+            {/* Type Filter */}
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+            >
+              <option value="all">All Types</option>
+              <option value="bug">🐛 Bug</option>
+              <option value="feature">✨ Feature</option>
+              <option value="testcase">🧪 Testcase</option>
+              <option value="other">📝 Other</option>
+            </select>
 
             {/* Status Filter */}
             <select
@@ -711,6 +742,7 @@ export default function BugsPage() {
             <button
               onClick={() => {
                 setSearchTerm('')
+                setTypeFilter('all')
                 setStatusFilter('all')
                 setSeverityFilter('all')
                 setCategoryFilter('all')
