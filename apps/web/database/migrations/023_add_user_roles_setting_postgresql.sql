@@ -1,46 +1,29 @@
 -- ============================================================================
--- Migration 023: Add User Roles Setting
+-- Migration 023: Add User Roles Setting (PostgreSQL Version)
 -- Description: Add user_roles setting to settings table for dynamic role management
 -- Date: 2025-11-06
--- Database: PostgreSQL (Supabase)
+-- Database: PostgreSQL (Supabase/pgAdmin)
 -- ============================================================================
 
 -- Add user_roles setting to settings table
 -- This allows dynamic role management instead of hardcoded roles
 -- Note: This migration is safe to run multiple times (idempotent)
 
--- For MySQL/MariaDB: Use INSERT ... ON DUPLICATE KEY UPDATE
-INSERT INTO settings (`key`, value, description, is_active, created_by, created_at, updated_at)
+-- For PostgreSQL: Use INSERT ... ON CONFLICT DO UPDATE
+INSERT INTO settings (key, value, description, is_active, created_by, created_at, updated_at)
 VALUES (
     'user_roles',
-    '["top_management", "management", "amtarikshain", "employee", "intern", "external"]',
+    '["top_management", "management", "amtarikshain", "employee", "intern", "external"]'::jsonb,
     'Available user roles for the system. Order matters for display in dropdowns.',
     TRUE,
     'SYSTEM',
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 )
-ON DUPLICATE KEY UPDATE
-    value = VALUES(value),
-    description = VALUES(description),
+ON CONFLICT (key) DO UPDATE SET
+    value = EXCLUDED.value,
+    description = EXCLUDED.description,
     updated_at = CURRENT_TIMESTAMP;
-
--- For PostgreSQL: Use INSERT ... ON CONFLICT DO UPDATE
--- Uncomment the following if using PostgreSQL:
--- INSERT INTO settings (key, value, description, is_active, created_by, created_at, updated_at)
--- VALUES (
---     'user_roles',
---     '["top_management", "management", "amtarikshain", "employee", "intern", "external"]',
---     'Available user roles for the system. Order matters for display in dropdowns.',
---     TRUE,
---     'SYSTEM',
---     CURRENT_TIMESTAMP,
---     CURRENT_TIMESTAMP
--- )
--- ON CONFLICT (key) DO UPDATE SET
---     value = EXCLUDED.value,
---     description = EXCLUDED.description,
---     updated_at = CURRENT_TIMESTAMP;
 
 -- ============================================================================
 -- Verification Queries
@@ -64,12 +47,14 @@ WHERE key = 'user_roles';
 
 -- To add a new role:
 -- UPDATE settings 
--- SET value = '["top_management", "management", "amtarikshain", "employee", "intern", "external", "new_role"]'
+-- SET value = '["top_management", "management", "amtarikshain", "employee", "intern", "external", "new_role"]'::jsonb,
+--     updated_at = CURRENT_TIMESTAMP
 -- WHERE key = 'user_roles';
 
 -- To remove a role:
 -- UPDATE settings 
--- SET value = '["top_management", "management", "employee"]'
+-- SET value = '["top_management", "management", "employee"]'::jsonb,
+--     updated_at = CURRENT_TIMESTAMP
 -- WHERE key = 'user_roles';
 
 -- IMPORTANT: The 'admin' role is special and managed separately via is_system_admin flag

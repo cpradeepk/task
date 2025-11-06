@@ -40,8 +40,6 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
   const [projects, setProjects] = useState<any[]>([])
   const [subprojects, setSubprojects] = useState<any[]>([])
   const [selectedMainProject, setSelectedMainProject] = useState<string>('')
-  const [departmentOptions, setDepartmentOptions] = useState<string[]>([])
-
   const { settings, isLoading: isLoadingSettings } = useSettings()
   const { getIcon } = useSettingsIcons()
 
@@ -51,6 +49,7 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
   // Get options from settings (using correct keys from database)
   const taskStatusOptions = settings?.task_status || []
   const priorityOptions = settings?.task_priority || []
+  const departmentOptions = settings?.departments || []
   const taskTypeOptions = ['Normal', 'Recursive']
   const recursiveTypeOptions = ['Daily', 'Weekly', 'Monthly', 'Annually']
 
@@ -83,15 +82,6 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
     }
     loadProjects()
   }, [])
-
-  // Load department options from settings
-  useEffect(() => {
-    if (settings && Array.isArray(settings) && settings.length > 0) {
-      const departmentsSetting = settings.find((s: any) => s.key === 'departments')
-      const departments = departmentsSetting?.value || []
-      setDepartmentOptions(departments)
-    }
-  }, [settings])
 
   // Load subprojects when main project is selected
   useEffect(() => {
