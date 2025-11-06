@@ -20,16 +20,15 @@
 -- Step 1: Check current sequence value and max ID
 -- ============================================================================
 
--- Show current sequence value
-SELECT 
+-- Show current sequence value and max ID
+SELECT
   'Current sequence value' AS info,
   last_value AS value
-FROM projects_id_seq;
-
--- Show max ID in table
-SELECT 
-  'Max ID in table' AS info,
-  COALESCE(MAX(id), 0) AS value
+FROM projects_id_seq
+UNION ALL
+SELECT
+  'Max ID in table (includes projects + subprojects)',
+  COALESCE(MAX(id), 0)
 FROM projects;
 
 -- ============================================================================
