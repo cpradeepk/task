@@ -363,69 +363,82 @@ export const resolvers = {
       try {
         const isManagement = ['management', 'top_management', 'admin'].includes(role)
 
-        // Fetch tasks
-        let tasksQuery = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
-        if (!isManagement) {
-          // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
-          tasksQuery += ` AND (
-            assigned_by = $1
-            OR EXISTS (
-              SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
-              WHERE elem = $2
+        // ✅ OPTIMIZED: Execute all queries in parallel using Promise.all
+        const [tasksResult, bugsResult, usersResult, settingsResult] = await Promise.all([
+          // Fetch tasks
+          (async () => {
+            let tasksQuery = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
+            if (!isManagement) {
+              // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
+              tasksQuery += ` AND (
+                assigned_by = $1
+                OR EXISTS (
+                  SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+                  WHERE elem = $2
+                )
+                OR EXISTS (
+                  SELECT 1 FROM jsonb_array_elements_text(support) AS elem
+                  WHERE elem = $3
+                )
+              )`
+            }
+            tasksQuery += ' ORDER BY created_at DESC'
+
+            const tasksParams = isManagement ? [] : [employeeId, employeeId, employeeId]
+            const dbStart = logDatabaseQuery(tasksQuery, tasksParams, 'dashboard.tasks')
+            const result = await pool.query(tasksQuery, tasksParams)
+            logDatabaseResult(result.rows.length, dbStart.startTime, 'dashboard.tasks')
+            return result
+          })(),
+
+          // Fetch bugs
+          (async () => {
+            let bugsQuery = 'SELECT * FROM bugs WHERE deleted_at IS NULL'
+            if (!isManagement) {
+              bugsQuery += ' AND (assigned_to = $1 OR reported_by = $2)'
+            }
+            bugsQuery += ' ORDER BY created_at DESC'
+
+            const bugsParams = isManagement ? [] : [employeeId, employeeId]
+            const dbStart = logDatabaseQuery(bugsQuery, bugsParams, 'dashboard.bugs')
+            const result = await pool.query(bugsQuery, bugsParams)
+            logDatabaseResult(result.rows.length, dbStart.startTime, 'dashboard.bugs')
+            return result
+          })(),
+
+          // Fetch users
+          (async () => {
+            const dbStart = logDatabaseQuery(
+              'SELECT * FROM users ORDER BY name',
+              [],
+              'dashboard.users'
             )
-            OR EXISTS (
-              SELECT 1 FROM jsonb_array_elements_text(support) AS elem
-              WHERE elem = $3
+            const result = await pool.query('SELECT * FROM users ORDER BY name')
+            logDatabaseResult(result.rows.length, dbStart.startTime, 'dashboard.users')
+            return result
+          })(),
+
+          // Fetch settings
+          (async () => {
+            const dbStart = logDatabaseQuery(
+              'SELECT * FROM settings WHERE is_active = true ORDER BY key',
+              [],
+              'dashboard.settings'
             )
-          )`
+            const result = await pool.query('SELECT * FROM settings WHERE is_active = true ORDER BY key')
+            logDatabaseResult(result.rows.length, dbStart.startTime, 'dashboard.settings')
+            return result
+          })()
+        ])
+
+        const result = {
+          tasks: tasksResult.rows,
+          bugs: bugsResult.rows,
+          users: usersResult.rows,
+          settings: settingsResult.rows
         }
-        tasksQuery += ' ORDER BY created_at DESC'
 
-        const tasksParams = isManagement ? [] : [employeeId, employeeId, employeeId]
-        const dbStart1 = logDatabaseQuery(tasksQuery, tasksParams, 'dashboard.tasks')
-        const tasksResult = await pool.query(tasksQuery, tasksParams)
-        logDatabaseResult(tasksResult.rows.length, dbStart1.startTime, 'dashboard.tasks')
-        const tasks = tasksResult.rows
-
-        // Fetch bugs
-        let bugsQuery = 'SELECT * FROM bugs WHERE deleted_at IS NULL'
-        if (!isManagement) {
-          bugsQuery += ' AND (assigned_to = $1 OR reported_by = $2)'
-        }
-        bugsQuery += ' ORDER BY created_at DESC'
-
-        const bugsParams = isManagement ? [] : [employeeId, employeeId]
-        const dbStart2 = logDatabaseQuery(bugsQuery, bugsParams, 'dashboard.bugs')
-        const bugsResult = await pool.query(bugsQuery, bugsParams)
-        logDatabaseResult(bugsResult.rows.length, dbStart2.startTime, 'dashboard.bugs')
-        const bugs = bugsResult.rows
-
-        // Fetch users and settings
-        const dbStart3 = logDatabaseQuery(
-          'SELECT * FROM users ORDER BY name',
-          [],
-          'dashboard.users'
-        )
-        const usersResult = await pool.query(
-          'SELECT * FROM users ORDER BY name'
-        )
-        logDatabaseResult(usersResult.rows.length, dbStart3.startTime, 'dashboard.users')
-        const users = usersResult.rows
-
-        const dbStart4 = logDatabaseQuery(
-          'SELECT * FROM settings WHERE is_active = true ORDER BY key',
-          [],
-          'dashboard.settings'
-        )
-        const settingsResult = await pool.query(
-          'SELECT * FROM settings WHERE is_active = true ORDER BY key'
-        )
-        logDatabaseResult(settingsResult.rows.length, dbStart4.startTime, 'dashboard.settings')
-        const settings = settingsResult.rows
-
-        const result = { tasks, bugs, users, settings }
         logResolverSuccess('dashboard', result, startTime)
-
         return result
       } catch (error) {
         logResolverError('dashboard', error, startTime)
