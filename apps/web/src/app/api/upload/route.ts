@@ -1,23 +1,51 @@
 /**
  * File Upload API Route
- * Handles image uploads for bug attachments
+ * Handles direct file uploads to AWS S3 for bug attachments and feed posts
+ *
+ * NOTE: This endpoint uploads files directly to S3 (not local filesystem).
+ * For presigned URLs (client-side uploads), use /api/upload/presigned-url instead.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'bugs')
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
-const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
+import { PutObjectCommand } from '@aws-sdk/client-s3'
+import {
+  s3Client,
+  S3_BUCKET,
+  isS3Configured,
+  generateBugAttachmentKey,
+  ALLOWED_FILE_TYPES,
+  MAX_FILE_SIZE,
+  getS3FileUrl
+} from '@/lib/s3Config'
+import { getAuthUser } from '@/lib/auth-server'
 
 /**
  * POST /api/upload
- * Upload one or more image files
+ * Upload one or more files directly to AWS S3
  */
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate user
+    const user = await getAuthUser(request)
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Check if S3 is configured
+    if (!isS3Configured()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'AWS S3 is not configured. Please add AWS credentials to environment variables.',
+          missingConfig: true
+        },
+        { status: 503 }
+      )
+    }
+
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]
 
@@ -31,19 +59,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Ensure upload directory exists
-    if (!existsSync(UPLOAD_DIR)) {
-      await mkdir(UPLOAD_DIR, { recursive: true })
-    }
-
     const uploadedFiles: string[] = []
     const errors: string[] = []
 
     for (const file of files) {
       try {
         // Validate file type
-        if (!ALLOWED_TYPES.includes(file.type)) {
-          errors.push(`${file.name}: Invalid file type. Only images are allowed.`)
+        if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+          errors.push(`${file.name}: Invalid file type. Only images and videos are allowed.`)
           continue
         }
 
@@ -53,22 +76,31 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // Generate unique filename
-        const timestamp = Date.now()
-        const randomString = Math.random().toString(36).substring(2, 15)
-        const extension = path.extname(file.name)
-        const filename = `${timestamp}-${randomString}${extension}`
+        // Generate S3 key
+        const key = generateBugAttachmentKey(file.name)
 
         // Convert file to buffer
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
 
-        // Write file to disk
-        const filepath = path.join(UPLOAD_DIR, filename)
-        await writeFile(filepath, buffer)
+        // Upload to S3
+        const command = new PutObjectCommand({
+          Bucket: S3_BUCKET,
+          Key: key,
+          Body: buffer,
+          ContentType: file.type,
+          Metadata: {
+            uploadedBy: user.employeeId,
+            uploadedAt: new Date().toISOString(),
+            originalFilename: file.name
+          }
+        })
 
-        // Store relative URL path
-        uploadedFiles.push(`/uploads/bugs/${filename}`)
+        await s3Client.send(command)
+
+        // Get S3 file URL
+        const fileUrl = getS3FileUrl(key)
+        uploadedFiles.push(fileUrl)
       } catch (error) {
         console.error(`Error uploading file ${file.name}:`, error)
         errors.push(`${file.name}: Upload failed`)
@@ -90,7 +122,7 @@ export async function POST(request: NextRequest) {
       success: true,
       files: uploadedFiles,
       errors: errors.length > 0 ? errors : undefined,
-      message: `Successfully uploaded ${uploadedFiles.length} file(s)`
+      message: `Successfully uploaded ${uploadedFiles.length} file(s) to S3`
     })
   } catch (error) {
     console.error('Upload API error:', error)
@@ -114,8 +146,9 @@ export async function GET() {
     config: {
       maxFileSize: MAX_FILE_SIZE,
       maxFileSizeMB: MAX_FILE_SIZE / (1024 * 1024),
-      allowedTypes: ALLOWED_TYPES,
-      uploadDir: '/uploads/bugs'
+      allowedTypes: ALLOWED_FILE_TYPES,
+      uploadMethod: 'S3 Direct Upload',
+      s3Configured: isS3Configured()
     }
   })
 }
