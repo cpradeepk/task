@@ -9,6 +9,39 @@ import ConditionalNavbar from '@/components/layout/ConditionalNavbar'
 import TopicSidebar from '@/components/feed/TopicSidebar'
 import FeedPost from '@/components/feed/FeedPost'
 import PostCreator from '@/components/feed/PostCreator'
+import { QUERIES, MUTATIONS } from '@/lib/graphql-queries'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any = {}) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) {
+    console.error('GraphQL errors:', result.errors)
+    throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  }
+  return result.data
+}
+
+// Helper function to execute GraphQL mutations
+async function executeGraphQLMutation(mutation: string, variables: any = {}) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: mutation, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) {
+    console.error('GraphQL errors:', result.errors)
+    throw new Error(result.errors[0]?.message || 'GraphQL mutation failed')
+  }
+  return result.data
+}
 
 export default function FeedPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
@@ -46,11 +79,11 @@ export default function FeedPage() {
 
   const initPersonalTopics = async () => {
     try {
-      await fetch('/api/feed/topics/init-personal', {
-        method: 'POST'
-      })
+      console.log('🔵 [Feed] Initializing personal topics via GraphQL...')
+      await executeGraphQLMutation(MUTATIONS.INIT_PERSONAL_TOPICS)
+      console.log('✅ [Feed] Personal topics initialized successfully')
     } catch (error) {
-      console.error('Error initializing personal topics:', error)
+      console.error('❌ [Feed] Error initializing personal topics:', error)
     }
   }
 
@@ -58,28 +91,34 @@ export default function FeedPage() {
     setIsLoadingPosts(true)
     try {
       const currentOffset = reset ? 0 : offset
-      const params = new URLSearchParams()
-      if (selectedTopicId) params.append('topicId', selectedTopicId.toString())
-      if (searchQuery) params.append('search', searchQuery)
-      if (sortBy) params.append('sortBy', sortBy)
-      if (contentTypeFilter) params.append('contentType', contentTypeFilter)
-      params.append('limit', '20')
-      params.append('offset', currentOffset.toString())
 
-      const response = await fetch(`/api/feed/posts?${params}`)
-      const data = await response.json()
-      if (data.success) {
-        if (reset) {
-          setPosts(data.data)
-          setOffset(20)
-        } else {
-          setPosts([...posts, ...data.data])
-          setOffset(currentOffset + 20)
-        }
-        setHasMore(data.data.length === 20)
+      console.log('🔵 [Feed] Fetching posts via GraphQL...', {
+        topicId: selectedTopicId,
+        search: searchQuery,
+        limit: 20,
+        offset: currentOffset
+      })
+
+      const data = await executeGraphQLQuery(QUERIES.GET_FEED_POSTS, {
+        topicId: selectedTopicId ? selectedTopicId.toString() : null,
+        status: 'published', // Only show published posts
+        search: searchQuery || null,
+        limit: 20,
+        offset: currentOffset
+      })
+
+      console.log('✅ [Feed] GraphQL query successful:', data.feedPosts.posts.length, 'posts')
+
+      if (reset) {
+        setPosts(data.feedPosts.posts)
+        setOffset(20)
+      } else {
+        setPosts([...posts, ...data.feedPosts.posts])
+        setOffset(currentOffset + 20)
       }
+      setHasMore(data.feedPosts.hasMore)
     } catch (error) {
-      console.error('Error fetching posts:', error)
+      console.error('❌ [Feed] Error fetching posts:', error)
     } finally {
       setIsLoadingPosts(false)
     }
@@ -263,7 +302,7 @@ export default function FeedPage() {
                 ) : posts.length > 0 ? (
                   posts.map((post) => (
                     <FeedPost
-                      key={post.post_id}
+                      key={post.postId}
                       post={post}
                       onReact={handleReact}
                       onComment={handleComment}

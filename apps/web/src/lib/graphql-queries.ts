@@ -471,6 +471,165 @@ export const QUERIES = {
         updatedAt
       }
     }
+  `,
+
+  // Feed Queries
+  GET_FEED_POSTS: `
+    query GetFeedPosts($topicId: String, $status: String, $search: String, $limit: Int, $offset: Int) {
+      feedPosts(topicId: $topicId, status: $status, search: $search, limit: $limit, offset: $offset) {
+        posts {
+          postId
+          contentType
+          content
+          linkUrl
+          linkTitle
+          linkDescription
+          linkImage
+          mediaUrls
+          createdAt
+          updatedAt
+          status
+          author {
+            employeeId
+            name
+            email
+          }
+          topics {
+            id
+            topicName
+            icon
+          }
+          reactions {
+            emoji
+            count
+            hasUserReacted
+          }
+          viewCount
+          commentCount
+          isSaved
+          hasUserReacted
+        }
+        total
+        hasMore
+      }
+    }
+  `,
+
+  GET_FEED_POST: `
+    query GetFeedPost($postId: ID!) {
+      feedPost(postId: $postId) {
+        postId
+        contentType
+        content
+        linkUrl
+        linkTitle
+        linkDescription
+        linkImage
+        mediaUrls
+        createdAt
+        updatedAt
+        status
+        author {
+          employeeId
+          name
+          email
+        }
+        topics {
+          id
+          topicName
+          icon
+          description
+        }
+        reactions {
+          emoji
+          count
+          hasUserReacted
+          users {
+            employeeId
+            name
+          }
+        }
+        comments {
+          commentId
+          content
+          createdAt
+          author {
+            employeeId
+            name
+          }
+          replies {
+            commentId
+            content
+            createdAt
+            author {
+              employeeId
+              name
+            }
+          }
+        }
+        viewCount
+        commentCount
+        isSaved
+        hasUserReacted
+      }
+    }
+  `,
+
+  GET_FEED_TOPICS: `
+    query GetFeedTopics($includePersonal: Boolean) {
+      feedTopics(includePersonal: $includePersonal) {
+        id
+        topicName
+        description
+        icon
+        displayOrder
+        isPersonal
+        isSaved
+        ownerUserId
+        createdBy
+        createdAt
+      }
+    }
+  `,
+
+  GET_FEED_COMMENTS: `
+    query GetFeedComments($postId: ID!) {
+      feedComments(postId: $postId) {
+        commentId
+        postId
+        parentCommentId
+        content
+        createdAt
+        updatedAt
+        author {
+          employeeId
+          name
+        }
+        replies {
+          commentId
+          content
+          createdAt
+          author {
+            employeeId
+            name
+          }
+        }
+      }
+    }
+  `,
+
+  GET_FEED_REACTIONS: `
+    query GetFeedReactions($postId: ID!) {
+      feedReactions(postId: $postId) {
+        emoji
+        count
+        hasUserReacted
+        users {
+          employeeId
+          name
+        }
+      }
+    }
   `
 }
 
@@ -534,6 +693,113 @@ export const MUTATIONS = {
   DELETE_BUG: `
     mutation DeleteBug($bugId: String!) {
       deleteBug(bugId: $bugId)
+    }
+  `,
+
+  // Feed Mutations
+  CREATE_FEED_POST: `
+    mutation CreateFeedPost($input: CreateFeedPostInput!) {
+      createFeedPost(input: $input) {
+        postId
+        contentType
+        content
+        status
+        createdAt
+        author {
+          employeeId
+          name
+        }
+        topics {
+          id
+          topicName
+        }
+      }
+    }
+  `,
+
+  UPDATE_FEED_POST: `
+    mutation UpdateFeedPost($postId: ID!, $input: UpdateFeedPostInput!) {
+      updateFeedPost(postId: $postId, input: $input) {
+        postId
+        contentType
+        content
+        status
+        updatedAt
+      }
+    }
+  `,
+
+  DELETE_FEED_POST: `
+    mutation DeleteFeedPost($postId: ID!) {
+      deleteFeedPost(postId: $postId)
+    }
+  `,
+
+  CREATE_FEED_COMMENT: `
+    mutation CreateFeedComment($postId: ID!, $content: String!, $parentCommentId: String) {
+      createFeedComment(postId: $postId, content: $content, parentCommentId: $parentCommentId) {
+        commentId
+        postId
+        content
+        createdAt
+        author {
+          employeeId
+          name
+        }
+      }
+    }
+  `,
+
+  DELETE_FEED_COMMENT: `
+    mutation DeleteFeedComment($commentId: ID!) {
+      deleteFeedComment(commentId: $commentId)
+    }
+  `,
+
+  TOGGLE_FEED_REACTION: `
+    mutation ToggleFeedReaction($postId: ID!, $emoji: String!) {
+      toggleFeedReaction(postId: $postId, emoji: $emoji) {
+        added
+        emoji
+        count
+      }
+    }
+  `,
+
+  TRACK_FEED_VIEW: `
+    mutation TrackFeedView($postId: ID!) {
+      trackFeedView(postId: $postId)
+    }
+  `,
+
+  TOGGLE_FEED_SAVE: `
+    mutation ToggleFeedSave($postId: ID!) {
+      toggleFeedSave(postId: $postId) {
+        saved
+        topicId
+      }
+    }
+  `,
+
+  CREATE_FEED_TOPIC: `
+    mutation CreateFeedTopic($input: CreateFeedTopicInput!) {
+      createFeedTopic(input: $input) {
+        id
+        topicName
+        description
+        icon
+        displayOrder
+      }
+    }
+  `,
+
+  INIT_PERSONAL_TOPICS: `
+    mutation InitPersonalTopics {
+      initPersonalTopics {
+        personalNotesId
+        savedPostsId
+        message
+      }
     }
   `
 }
