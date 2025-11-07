@@ -43,8 +43,8 @@ export async function POST(
 
     // Get or create user's Saved Posts topic
     let savedPostsTopics = await query(
-      `SELECT * FROM feed_topics 
-       WHERE is_saved = 1 AND owner_user_id = $1 AND deleted_at IS NULL`,
+      `SELECT * FROM feed_topics
+       WHERE is_saved = true AND owner_user_id = $1 AND deleted_at IS NULL`,
       [user.employeeId]
     )
 

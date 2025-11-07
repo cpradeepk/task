@@ -57,9 +57,9 @@ export async function POST(
 
     // Record view
     await query(
-      `INSERT INTO feed_views (post_id, user_id, created_by)
-       VALUES ($1, $2, $3)`,
-      [postId, user.employeeId, user.employeeId]
+      `INSERT INTO feed_views (post_id, user_id)
+       VALUES ($1, $2)`,
+      [postId, user.employeeId]
     )
 
     return NextResponse.json({

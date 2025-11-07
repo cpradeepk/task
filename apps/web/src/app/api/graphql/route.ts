@@ -10,6 +10,18 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   introspection: true, // Enable GraphQL Playground in development
+  formatError: (formattedError, error) => {
+    // Log the full error in development for debugging
+    if (isDevelopment) {
+      console.error('GraphQL Error Details:', {
+        message: formattedError.message,
+        path: formattedError.path,
+        extensions: formattedError.extensions,
+        originalError: error
+      })
+    }
+    return formattedError
+  }
 })
 
 // Start server once
@@ -63,7 +75,12 @@ export async function POST(request: NextRequest) {
         if (result.errors && result.errors.length > 0) {
           console.error('\n' + '❌'.repeat(40))
           console.error(`❌ [GraphQL Server] ${operationName} FAILED in ${duration}ms`)
-          console.error('Errors:', JSON.stringify(result.errors, null, 2))
+          // Safely serialize errors - GraphQL errors may not have toJSON method
+          try {
+            console.error('Errors:', JSON.stringify(result.errors, null, 2))
+          } catch (serializationError) {
+            console.error('Errors (raw):', result.errors)
+          }
           console.error('❌'.repeat(40) + '\n')
         } else {
           console.log('\n' + '✅'.repeat(40))

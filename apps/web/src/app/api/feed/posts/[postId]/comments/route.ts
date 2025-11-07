@@ -40,7 +40,7 @@ export async function GET(
         fc.created_at,
         fc.updated_at,
         u.name as author_name,
-        u.profile_picture as author_avatar
+        NULL as author_avatar
        FROM feed_comments fc
        LEFT JOIN users u ON fc.created_by = u.employee_id
        WHERE fc.post_id = $1 AND fc.deleted_at IS NULL
