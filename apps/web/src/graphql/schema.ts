@@ -59,18 +59,18 @@ export const typeDefs = `#graphql
     parentTaskId: String!
     description: String!
     assignedTo: String!
-    assignedBy: String!
-    startDate: String!
-    endDate: String!
-    priority: String!
-    estimatedHours: Float!
+    assignedBy: String
+    startDate: String
+    endDate: String
+    priority: String
+    estimatedHours: Float
     actualHours: Float
-    status: String!
+    status: String
     remarks: String
     deletedAt: String
     deletedBy: String
-    createdAt: String!
-    updatedAt: String!
+    createdAt: String
+    updatedAt: String
     assignedToUser: User
     assignedByUser: User
     parentTask: Task
