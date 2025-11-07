@@ -94,8 +94,10 @@ export default function Navbar() {
     { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
     { href: '/master-bugs', label: 'Master Development', icon: Bug },
     { href: '/users', label: 'User Management', icon: Users },
+    { href: '/feed-topics', label: 'Feed Topics', icon: Rss },
     { href: '/approvals', label: 'Approvals', icon: Calendar },
-    { href: '/settings', label: 'Settings', icon: Settings }
+    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 }
   ]
 
   const getNavigationItems = () => {
@@ -131,7 +133,6 @@ export default function Navbar() {
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },
           { href: '/bugs', label: 'Development', icon: Bug },
           { href: '/feed', label: 'Feed', icon: Rss },
-          { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 },
           { href: '/reports', label: 'Reports', icon: BarChart3 },
           { href: '/profile', label: 'Profile', icon: User }
         ]
@@ -140,8 +141,7 @@ export default function Navbar() {
         return [
           ...baseItems,
           { href: '/bugs', label: 'Development', icon: Bug },
-          { href: '/feed', label: 'Feed', icon: Rss },
-          { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 }
+          { href: '/feed', label: 'Feed', icon: Rss }
         ]
 
       default:
@@ -226,9 +226,12 @@ export default function Navbar() {
 
             {/* Admin Dropdown */}
             {showAdminDropdown && (
-              <div className="relative admin-dropdown-container">
+              <div
+                className="relative admin-dropdown-container"
+                onMouseEnter={() => setIsAdminDropdownOpen(true)}
+                onMouseLeave={() => setIsAdminDropdownOpen(false)}
+              >
                 <button
-                  onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
                     adminDropdownItems.some(item => pathname === item.href)
                       ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
