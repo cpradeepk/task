@@ -153,7 +153,7 @@ export default function Navbar() {
   const showAdminDropdown = currentUser.role === 'admin' || currentUser.role === 'top_management'
 
   return (
-    <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200 backdrop-blur-sm bg-white/95">
+    <nav className="sticky top-0 z-[9999] bg-white shadow-sm border-b border-gray-200 backdrop-blur-sm bg-white/95">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Header Row */}
         <div className="flex justify-between items-center h-16">
@@ -227,7 +227,7 @@ export default function Navbar() {
             {/* Admin Dropdown */}
             {showAdminDropdown && (
               <div
-                className="relative admin-dropdown-container z-[100]"
+                className="relative admin-dropdown-container"
                 onMouseEnter={() => setIsAdminDropdownOpen(true)}
                 onMouseLeave={() => setIsAdminDropdownOpen(false)}
               >
@@ -245,7 +245,7 @@ export default function Navbar() {
 
                 {/* Dropdown Menu */}
                 {isAdminDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[110]">
+                  <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[10000]">
                     {adminDropdownItems.map((item) => {
                       const Icon = item.icon
                       const isActive = pathname === item.href

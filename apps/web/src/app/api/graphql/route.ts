@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ApolloServer } from '@apollo/server'
 import { typeDefs } from '@/graphql/schema'
 import { resolvers, createContext } from '@/graphql/resolvers'
-import { verifyToken } from '@/lib/auth'
+import { verifyToken } from '@/lib/auth-server'
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
