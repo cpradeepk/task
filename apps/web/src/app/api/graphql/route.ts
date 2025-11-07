@@ -14,15 +14,25 @@ const server = new ApolloServer({
   formatError: (formattedError, error) => {
     // Log the full error in development for debugging
     if (isDevelopment) {
-      console.error('GraphQL Error Details:', {
-        message: formattedError.message,
-        path: formattedError.path,
-        extensions: formattedError.extensions,
-        originalError: error
-      })
+      try {
+        console.error('GraphQL Error Details:', {
+          message: formattedError.message,
+          path: formattedError.path,
+          extensions: formattedError.extensions,
+          originalError: error instanceof Error ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          } : error
+        })
+      } catch (logError) {
+        console.error('Error logging GraphQL error:', logError)
+        console.error('Original error:', formattedError.message)
+      }
     }
     return formattedError
-  }
+  },
+  includeStacktraceInErrorResponses: isDevelopment
 })
 
 // Start server once
@@ -75,14 +85,40 @@ export async function POST(request: NextRequest) {
 
     const context = { ...createContext(), user }
 
-    const response = await server.executeOperation(
-      {
-        query: body.query,
-        variables: body.variables,
-        operationName: body.operationName
-      },
-      { contextValue: context }
-    )
+    let response
+    try {
+      response = await server.executeOperation(
+        {
+          query: body.query,
+          variables: body.variables,
+          operationName: body.operationName
+        },
+        { contextValue: context }
+      )
+    } catch (executionError: any) {
+      // Handle errors that occur during GraphQL execution
+      const duration = Date.now() - startTime
+      console.error('\n' + '💥'.repeat(40))
+      console.error(`💥 [GraphQL Server] ${operationName} CRASHED in ${duration}ms`)
+      console.error('Error:', executionError instanceof Error ? {
+        name: executionError.name,
+        message: executionError.message,
+        stack: executionError.stack
+      } : executionError)
+      console.error('💥'.repeat(40) + '\n')
+
+      return NextResponse.json(
+        {
+          errors: [{
+            message: executionError.message || 'Internal server error',
+            extensions: {
+              code: 'INTERNAL_SERVER_ERROR'
+            }
+          }]
+        },
+        { status: 500 }
+      )
+    }
 
     const duration = Date.now() - startTime
 
