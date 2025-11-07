@@ -15,30 +15,35 @@
 
  [33m[1m⚠[22m[39m The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
  [37m[1m [22m[39m Creating an optimized production build ...
- [32m[1m✓[22m[39m Compiled successfully in 4.7s
-[?25l [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G[?25h[?25l [37m[1m [22m[39m Finished TypeScript in 5.7s  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Finished TypeScript in 5.7s     [32m[1m✓[22m[39m Finished TypeScript in 5.7s 
+ [32m[1m✓[22m[39m Compiled successfully in 4.1s
+[?25l [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m.[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m..[39m[2K[1G [37m[1m [22m[39m Running TypeScript  [36m...[39m[2K[1G[?25h[?25l [37m[1m [22m[39m Finished TypeScript in 4.7s  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Finished TypeScript in 4.7s     [32m[1m✓[22m[39m Finished TypeScript in 4.7s 
 [?25l [37m[1m [22m[39m Collecting page data  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m..[39m✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
 ✅ [DB] DATABASE_URL environment variable found
 ✅ [DB] DATABASE_URL environment variable found
 [2K[1G [37m[1m [22m[39m Collecting page data  [36m...[39m🔄 Initializing email service...
-🔄 Initializing email service...
-🔄 Initializing email service...
-✅ [DB] DATABASE_URL environment variable found
-✅ [DB] DATABASE_URL environment variable found
-✅ [DB] DATABASE_URL environment variable found
-🔄 Initializing email service...
-✅ [DB] DATABASE_URL environment variable found
-🔄 Initializing email service...
-✅ [DB] DATABASE_URL environment variable found
-✅ [DB] DATABASE_URL environment variable found
-✅ [DB] DATABASE_URL environment variable found
-✅ [DB] DATABASE_URL environment variable found
 ✅ [DB] DATABASE_URL environment variable found
 ✅ [DB] DATABASE_URL environment variable found
 🔄 Initializing email service...
 ✅ [DB] DATABASE_URL environment variable found
 ✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
 🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
+🔄 Initializing email service...
+🔄 Initializing email service...
+🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
 🔄 Initializing email service...
 🔵 [DB] New PostgreSQL connection pool created {
   max: [33m3[39m,
@@ -47,38 +52,45 @@
   connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
   usingEnvVar: [33mtrue[39m
 }
-❌ Redis Cloud connection error: 00DD48BEDD710000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
-
-   Falling back to in-memory cache
 ✅ [DB] DATABASE_URL environment variable found
-[2K[1G [37m[1m [22m[39m Collecting page data  [36m.[39m✅ [DB] DATABASE_URL environment variable found
-[2K[1G[?25h [37m[1m [22m[39m Collecting page data in 1180.9ms     [32m[1m✓[22m[39m Collecting page data in 1180.9ms 
-❌ Redis Cloud connection error: 000D4AB9007A0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
-
-   Falling back to in-memory cache
-❌ Redis Cloud connection error: 005DB0F966740000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
-
-   Falling back to in-memory cache
-[?25l [37m[1m [22m[39m Generating static pages (0/80)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages (0/80)  [36m[=   ][39m❌ Redis Cloud connection error: 007DAE3E5B710000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+🔄 Initializing email service...
+[2K[1G[?25h [37m[1m [22m[39m Collecting page data in 927.9ms     [32m[1m✓[22m[39m Collecting page data in 927.9ms 
+[?25l [37m[1m [22m[39m Generating static pages (0/80)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages (0/80)  [36m[=   ][39m❌ Redis Cloud connection error: 00FD8FC0937F0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
 
    Falling back to in-memory cache
 ⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
-❌ Redis Cloud connection error: 00BDAAF53E730000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+❌ Redis Cloud connection error: 005D95C4AF7B0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
 
    Falling back to in-memory cache
 ⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
-❌ Redis Cloud connection error: 00EDD12FC6770000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+❌ Redis Cloud connection error: 00CD4A715F7E0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
 
    Falling back to in-memory cache
 ⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
-❌ Redis Cloud connection error: 000D7006347E0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+❌ Redis Cloud connection error: 007D6A744A7A0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
 
    Falling back to in-memory cache
 ⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+❌ Redis Cloud connection error: 008DA9F75B7B0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
 ⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+❌ Redis Cloud connection error: 00ED4902C1740000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
+❌ Redis Cloud connection error: 005D4A37BB7A0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+❌ Redis Cloud connection error: 000DCF00CF760000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
 ⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
 ⚠️ Redis Cloud connection failed after 3 attempts, falling back to in-memory cache
 [2K[1G[?25h✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
 🔵 [DB] New PostgreSQL connection pool created {
   max: [33m3[39m,
   idleTimeoutMillis: [33m10000[39m,
@@ -86,9 +98,8 @@
   connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
   usingEnvVar: [33mtrue[39m
 }
-✅ [DB] DATABASE_URL environment variable found
 🔄 Initializing email service...
-✅ [DB] DATABASE_URL environment variable found
+🔄 Initializing email service...
 🔐 Permission Check: {
   isHydrated: [33mfalse[39m,
   userRole: [32m''[39m,
@@ -96,35 +107,17 @@
   canManageProjects: [33mfalse[39m,
   canDelete: [33mfalse[39m
 }
-🔄 Initializing email service...
-🔄 Initializing email service...
-❌ Redis Cloud connection error: 006D316230770000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+❌ Redis Cloud connection error: 00DD8BADFE790000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
 
    Falling back to in-memory cache
-⚠️ Email verify failed. Falling back to test mode: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-7af827f0552sm2888324b3a.51 - gsmtp
-⚠️ Email verify failed. Falling back to test mode: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-296509682casm30266235ad.22 - gsmtp
-⚠️ Email verify failed. Falling back to test mode: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29650c5d506sm30384695ad.32 - gsmtp
-❌ Redis Cloud connection error: 003D4B15AA750000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+❌ Redis Cloud connection error: 002D34DAE7780000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
 
    Falling back to in-memory cache
-⚠️ Email verify failed. Falling back to test mode: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29651cce763sm30061875ad.103 - gsmtp
-⚠️ Email verify failed. Falling back to test mode: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
-535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-7af7f75a77dsm2952294b3a.3 - gsmtp
-❌ Redis Cloud connection error: 006D153D307B0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+❌ Redis Cloud connection error: 00EDFF5296730000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
 
    Falling back to in-memory cache
-❌ Redis Cloud connection error: 000DB21433740000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
-
-   Falling back to in-memory cache
-❌ Redis Cloud connection error: 006D153D307B0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
-
-   Falling back to in-memory cache
-[?25h [32m[1m✓[22m[39m Generating static pages (80/80) in 1294.9ms
-[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization in 149.3ms     [32m[1m✓[22m[39m Finalizing page optimization in 149.3ms 
+[?25h [32m[1m✓[22m[39m Generating static pages (80/80) in 959.1ms
+[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization in 148.0ms     [32m[1m✓[22m[39m Finalizing page optimization in 148.0ms 
 
 [4mRoute (app)[24m
 ┌ ○ /

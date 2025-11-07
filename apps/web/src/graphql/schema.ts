@@ -164,6 +164,83 @@ export const typeDefs = `#graphql
     updatedAt: String!
   }
 
+  # Feed System Types
+  type FeedPost {
+    postId: ID!
+    contentType: String!
+    content: String!
+    linkUrl: String
+    linkTitle: String
+    linkDescription: String
+    linkImage: String
+    mediaUrls: [String!]
+    createdBy: String!
+    createdAt: String!
+    updatedAt: String
+    status: String!
+    author: User!
+    topics: [FeedTopic!]!
+    reactions: [FeedReaction!]!
+    comments: [FeedComment!]!
+    viewCount: Int!
+    commentCount: Int!
+    isSaved: Boolean!
+    hasUserReacted: Boolean!
+  }
+
+  type FeedTopic {
+    id: ID!
+    topicName: String!
+    description: String
+    icon: String
+    displayOrder: Int!
+    isPersonal: Boolean!
+    isSaved: Boolean!
+    ownerUserId: String
+    createdBy: String!
+    createdAt: String!
+  }
+
+  type FeedComment {
+    commentId: ID!
+    postId: String!
+    parentCommentId: String
+    content: String!
+    createdBy: String!
+    createdAt: String!
+    updatedAt: String
+    author: User!
+    replies: [FeedComment!]!
+  }
+
+  type FeedReaction {
+    emoji: String!
+    users: [User!]!
+    count: Int!
+    hasUserReacted: Boolean!
+  }
+
+  type FeedPostsResponse {
+    posts: [FeedPost!]!
+    total: Int!
+    hasMore: Boolean!
+  }
+
+  type FeedReactionResponse {
+    action: String!
+    message: String!
+  }
+
+  type FeedSaveResponse {
+    action: String!
+    message: String!
+  }
+
+  type InitPersonalTopicsResponse {
+    personalNotes: FeedTopic!
+    savedPosts: FeedTopic!
+  }
+
   type Query {
     # Users
     users: [User!]!
@@ -201,9 +278,17 @@ export const typeDefs = `#graphql
     # Settings
     settings(activeOnly: Boolean): [Setting!]!
     setting(key: String!): Setting
-    
+
     # Dashboard
     dashboard(employeeId: String!, role: String!): DashboardData!
+
+    # Feed
+    feedPosts(topicId: String, status: String, search: String, limit: Int, offset: Int): FeedPostsResponse!
+    feedPost(postId: ID!): FeedPost
+    feedTopics(includePersonal: Boolean): [FeedTopic!]!
+    feedTopic(id: ID!): FeedTopic
+    feedComments(postId: ID!): [FeedComment!]!
+    feedReactions(postId: ID!): [FeedReaction!]!
   }
 
   type DashboardData {

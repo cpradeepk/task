@@ -45,3 +45,6 @@ task-management-*.json
 .env.local
 .env.production
 .env*.local
+
+# Development logs (local only)
+.dev-logs/

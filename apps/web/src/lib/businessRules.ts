@@ -395,7 +395,7 @@ export class WorkHoursService {
       const report = []
 
       for (const user of users) {
-        if (user.role === 'employee' || user.role === 'top_management') {
+        if (user.role === 'amtarikshian' || user.role === 'top_management') {
           const validation = await this.validateWorkHours(user.employeeId, date)
 
           let status: 'compliant' | 'deficit' | 'holiday' = 'compliant'
