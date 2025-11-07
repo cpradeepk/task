@@ -228,14 +228,8 @@ export default function Navbar() {
             {showAdminDropdown && (
               <div
                 className="relative admin-dropdown-container"
-                onMouseEnter={() => {
-                  console.log('🔵 Admin dropdown: Mouse entered')
-                  setIsAdminDropdownOpen(true)
-                }}
-                onMouseLeave={() => {
-                  console.log('🔴 Admin dropdown: Mouse left')
-                  setIsAdminDropdownOpen(false)
-                }}
+                onMouseEnter={() => setIsAdminDropdownOpen(true)}
+                onMouseLeave={() => setIsAdminDropdownOpen(false)}
               >
                 <button
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
@@ -249,16 +243,10 @@ export default function Navbar() {
                   <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isAdminDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Dropdown Menu */}
+                {/* Dropdown Menu - NO GAP between button and menu */}
                 {isAdminDropdownOpen && (
                   <div
-                    className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[10000]"
-                    onMouseEnter={() => {
-                      console.log('🟢 Dropdown menu: Mouse entered')
-                    }}
-                    onMouseLeave={() => {
-                      console.log('🟡 Dropdown menu: Mouse left')
-                    }}
+                    className="absolute top-full left-0 mt-0 w-56 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[10000]"
                   >
                     {adminDropdownItems.map((item) => {
                       const Icon = item.icon

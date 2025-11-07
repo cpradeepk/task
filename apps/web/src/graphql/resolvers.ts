@@ -1004,73 +1004,127 @@ export const resolvers = {
     status: (post: any) => post.status,
 
     author: async (post: any, _: any, { loaders }: any) => {
-      return loaders.user.load(post.created_by)
+      if (!post.created_by) return null
+
+      try {
+        return await loaders.user.load(post.created_by)
+      } catch (error) {
+        console.error(`[FeedPost.author] Failed to load user ${post.created_by}:`, error)
+        return null
+      }
     },
 
     topics: async (post: any, _: any, { loaders }: any) => {
-      return loaders.feedPostTopics.load(post.post_id)
+      if (!post.post_id) return []
+
+      try {
+        return await loaders.feedPostTopics.load(post.post_id)
+      } catch (error) {
+        console.error(`[FeedPost.topics] Failed to load topics for post ${post.post_id}:`, error)
+        return []
+      }
     },
 
     reactions: async (post: any, _: any, { loaders, user }: any) => {
-      const reactions = await loaders.feedReactions.load(post.post_id)
+      if (!post.post_id) return []
 
-      // Group by emoji
-      const grouped: Record<string, any> = {}
-      reactions.forEach((r: any) => {
-        if (!grouped[r.emoji]) {
-          grouped[r.emoji] = { emoji: r.emoji, userIds: [], count: 0, hasUserReacted: false }
-        }
-        grouped[r.emoji].userIds.push(r.user_id)
-        grouped[r.emoji].count++
-        if (user && r.user_id === user.employeeId) {
-          grouped[r.emoji].hasUserReacted = true
-        }
-      })
+      try {
+        const reactions = await loaders.feedReactions.load(post.post_id)
 
-      return Object.values(grouped)
+        // Group by emoji
+        const grouped: Record<string, any> = {}
+        reactions.forEach((r: any) => {
+          if (!grouped[r.emoji]) {
+            grouped[r.emoji] = { emoji: r.emoji, userIds: [], count: 0, hasUserReacted: false }
+          }
+          grouped[r.emoji].userIds.push(r.user_id)
+          grouped[r.emoji].count++
+          if (user && r.user_id === user.employeeId) {
+            grouped[r.emoji].hasUserReacted = true
+          }
+        })
+
+        return Object.values(grouped)
+      } catch (error) {
+        console.error(`[FeedPost.reactions] Failed to load reactions for post ${post.post_id}:`, error)
+        return []
+      }
     },
 
     comments: async (post: any, _: any, { loaders }: any) => {
-      return loaders.feedComments.load(post.post_id)
+      if (!post.post_id) return []
+
+      try {
+        return await loaders.feedComments.load(post.post_id)
+      } catch (error) {
+        console.error(`[FeedPost.comments] Failed to load comments for post ${post.post_id}:`, error)
+        return []
+      }
     },
 
     viewCount: async (post: any) => {
-      const result = await pool.query(
-        'SELECT COUNT(*) FROM feed_views WHERE post_id = $1',
-        [post.post_id]
-      )
-      return parseInt(result.rows[0].count)
+      if (!post.post_id) return 0
+
+      try {
+        const result = await pool.query(
+          'SELECT COUNT(*) FROM feed_views WHERE post_id = $1',
+          [post.post_id]
+        )
+        return parseInt(result.rows[0].count)
+      } catch (error) {
+        console.error(`[FeedPost.viewCount] Failed to get view count for post ${post.post_id}:`, error)
+        return 0
+      }
     },
 
     commentCount: async (post: any) => {
-      const result = await pool.query(
-        'SELECT COUNT(*) FROM feed_comments WHERE post_id = $1 AND deleted_at IS NULL',
-        [post.post_id]
-      )
-      return parseInt(result.rows[0].count)
+      if (!post.post_id) return 0
+
+      try {
+        const result = await pool.query(
+          'SELECT COUNT(*) FROM feed_comments WHERE post_id = $1 AND deleted_at IS NULL',
+          [post.post_id]
+        )
+        return parseInt(result.rows[0].count)
+      } catch (error) {
+        console.error(`[FeedPost.commentCount] Failed to get comment count for post ${post.post_id}:`, error)
+        return 0
+      }
     },
 
     isSaved: async (post: any, _: any, { user }: any) => {
       if (!user) return false
+      if (!post.post_id) return false
 
-      const result = await pool.query(
-        `SELECT fpt.topic_id
-         FROM feed_post_topics fpt
-         JOIN feed_topics ft ON fpt.topic_id = ft.id
-         WHERE fpt.post_id = $1 AND ft.is_saved = true AND ft.owner_user_id = $2 AND ft.deleted_at IS NULL`,
-        [post.post_id, user.employeeId]
-      )
-      return result.rows.length > 0
+      try {
+        const result = await pool.query(
+          `SELECT fpt.topic_id
+           FROM feed_post_topics fpt
+           JOIN feed_topics ft ON fpt.topic_id = ft.id
+           WHERE fpt.post_id = $1 AND ft.is_saved = true AND ft.owner_user_id = $2 AND ft.deleted_at IS NULL`,
+          [post.post_id, user.employeeId]
+        )
+        return result.rows.length > 0
+      } catch (error) {
+        console.error(`[FeedPost.isSaved] Failed to check if post ${post.post_id} is saved:`, error)
+        return false
+      }
     },
 
     hasUserReacted: async (post: any, _: any, { user }: any) => {
       if (!user) return false
+      if (!post.post_id) return false
 
-      const result = await pool.query(
-        'SELECT * FROM feed_reactions WHERE post_id = $1 AND user_id = $2 AND deleted_at IS NULL',
-        [post.post_id, user.employeeId]
-      )
-      return result.rows.length > 0
+      try {
+        const result = await pool.query(
+          'SELECT * FROM feed_reactions WHERE post_id = $1 AND user_id = $2 AND deleted_at IS NULL',
+          [post.post_id, user.employeeId]
+        )
+        return result.rows.length > 0
+      } catch (error) {
+        console.error(`[FeedPost.hasUserReacted] Failed to check if user reacted to post ${post.post_id}:`, error)
+        return false
+      }
     }
   },
 
