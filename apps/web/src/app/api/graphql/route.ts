@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ApolloServer } from '@apollo/server'
 import { typeDefs } from '@/graphql/schema'
 import { resolvers, createContext } from '@/graphql/resolvers'
+import { verifyToken } from '@/lib/auth'
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
@@ -54,7 +55,25 @@ export async function POST(request: NextRequest) {
       console.log('='.repeat(80) + '\n')
     }
 
-    const context = createContext()
+    // Extract user from token (cookie or Authorization header)
+    let user = null
+
+    // Check Authorization header first (for mobile/API)
+    const authHeader = request.headers.get('Authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      user = verifyToken(token)
+    }
+
+    // Check cookie (for web)
+    if (!user) {
+      const tokenCookie = request.cookies.get('token')
+      if (tokenCookie) {
+        user = verifyToken(tokenCookie.value)
+      }
+    }
+
+    const context = { ...createContext(), user }
 
     const response = await server.executeOperation(
       {

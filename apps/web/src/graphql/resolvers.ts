@@ -82,13 +82,97 @@ const createBugSubtaskLoader = () => new DataLoader(async (parentBugIds: readonl
   return parentBugIds.map(id => subtaskMap.get(id) || [])
 })
 
+// DataLoader for batching feed post queries
+const createFeedPostLoader = () => new DataLoader(async (postIds: readonly string[]) => {
+  const result = await pool.query(
+    'SELECT * FROM feed_posts WHERE post_id = ANY($1) AND deleted_at IS NULL',
+    [postIds]
+  )
+
+  const postMap = new Map(result.rows.map((post: any) => [post.post_id, post]))
+  return postIds.map(id => postMap.get(id) || null)
+})
+
+// DataLoader for batching feed topic queries
+const createFeedTopicLoader = () => new DataLoader(async (topicIds: readonly string[]) => {
+  const result = await pool.query(
+    'SELECT * FROM feed_topics WHERE id = ANY($1) AND deleted_at IS NULL',
+    [topicIds]
+  )
+
+  const topicMap = new Map(result.rows.map((topic: any) => [topic.id, topic]))
+  return topicIds.map(id => topicMap.get(id) || null)
+})
+
+// DataLoader for batching feed comments by post ID
+const createFeedCommentsLoader = () => new DataLoader(async (postIds: readonly string[]) => {
+  const result = await pool.query(
+    'SELECT * FROM feed_comments WHERE post_id = ANY($1) AND deleted_at IS NULL ORDER BY created_at ASC',
+    [postIds]
+  )
+
+  const commentMap = new Map<string, any[]>()
+  result.rows.forEach((comment: any) => {
+    if (!commentMap.has(comment.post_id)) {
+      commentMap.set(comment.post_id, [])
+    }
+    commentMap.get(comment.post_id)!.push(comment)
+  })
+
+  return postIds.map(id => commentMap.get(id) || [])
+})
+
+// DataLoader for batching feed reactions by post ID
+const createFeedReactionsLoader = () => new DataLoader(async (postIds: readonly string[]) => {
+  const result = await pool.query(
+    'SELECT * FROM feed_reactions WHERE post_id = ANY($1) AND deleted_at IS NULL',
+    [postIds]
+  )
+
+  const reactionMap = new Map<string, any[]>()
+  result.rows.forEach((reaction: any) => {
+    if (!reactionMap.has(reaction.post_id)) {
+      reactionMap.set(reaction.post_id, [])
+    }
+    reactionMap.get(reaction.post_id)!.push(reaction)
+  })
+
+  return postIds.map(id => reactionMap.get(id) || [])
+})
+
+// DataLoader for batching feed post topics
+const createFeedPostTopicsLoader = () => new DataLoader(async (postIds: readonly string[]) => {
+  const result = await pool.query(
+    `SELECT fpt.post_id, ft.*
+     FROM feed_post_topics fpt
+     JOIN feed_topics ft ON fpt.topic_id = ft.id
+     WHERE fpt.post_id = ANY($1) AND ft.deleted_at IS NULL`,
+    [postIds]
+  )
+
+  const topicMap = new Map<string, any[]>()
+  result.rows.forEach((row: any) => {
+    if (!topicMap.has(row.post_id)) {
+      topicMap.set(row.post_id, [])
+    }
+    topicMap.get(row.post_id)!.push(row)
+  })
+
+  return postIds.map(id => topicMap.get(id) || [])
+})
+
 export const createContext = () => ({
   loaders: {
     user: createUserLoader(),
     task: createTaskLoader(),
     bug: createBugLoader(),
     subtasks: createSubtaskLoader(),
-    bugSubtasks: createBugSubtaskLoader()
+    bugSubtasks: createBugSubtaskLoader(),
+    feedPost: createFeedPostLoader(),
+    feedTopic: createFeedTopicLoader(),
+    feedComments: createFeedCommentsLoader(),
+    feedReactions: createFeedReactionsLoader(),
+    feedPostTopics: createFeedPostTopicsLoader()
   }
 })
 
@@ -345,6 +429,149 @@ export const resolvers = {
         return result
       } catch (error) {
         logResolverError('dashboard', error, startTime)
+        throw error
+      }
+    },
+
+    // Feed Queries
+    feedPosts: async (_: any, { topicId, status, search, limit = 20, offset = 0 }: any, context: any) => {
+      const { startTime } = logResolverStart('feedPosts', { topicId, status, search, limit, offset })
+
+      try {
+        let sql = `
+          SELECT DISTINCT fp.*
+          FROM feed_posts fp
+          LEFT JOIN feed_post_topics fpt ON fp.post_id = fpt.post_id
+          WHERE fp.deleted_at IS NULL
+        `
+        const params: any[] = []
+
+        if (topicId) {
+          sql += ` AND fpt.topic_id = $${params.length + 1}`
+          params.push(topicId)
+        }
+
+        if (status) {
+          sql += ` AND fp.status = $${params.length + 1}`
+          params.push(status)
+        }
+
+        if (search) {
+          sql += ` AND (fp.content ILIKE $${params.length + 1} OR fp.link_title ILIKE $${params.length + 2})`
+          params.push(`%${search}%`, `%${search}%`)
+        }
+
+        sql += ` ORDER BY fp.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`
+        params.push(limit, offset)
+
+        const dbStart = logDatabaseQuery(sql, params, 'feedPosts')
+        const postsResult = await pool.query(sql, params)
+        logDatabaseResult(postsResult.rows.length, dbStart.startTime, 'feedPosts')
+
+        const totalResult = await pool.query(
+          'SELECT COUNT(*) FROM feed_posts WHERE deleted_at IS NULL'
+        )
+        const total = parseInt(totalResult.rows[0].count)
+
+        const result = {
+          posts: postsResult.rows,
+          total,
+          hasMore: offset + postsResult.rows.length < total
+        }
+
+        logResolverSuccess('feedPosts', result, startTime)
+        return result
+      } catch (error) {
+        logResolverError('feedPosts', error, startTime)
+        throw error
+      }
+    },
+
+    feedPost: async (_: any, { postId }: any, { loaders }: any) => {
+      const { startTime } = logResolverStart('feedPost', { postId })
+
+      try {
+        const post = await loaders.feedPost.load(postId)
+        logResolverSuccess('feedPost', post, startTime)
+        return post
+      } catch (error) {
+        logResolverError('feedPost', error, startTime)
+        throw error
+      }
+    },
+
+    feedTopics: async (_: any, { includePersonal = true }: any, context: any) => {
+      const { startTime } = logResolverStart('feedTopics', { includePersonal })
+
+      try {
+        let sql = 'SELECT * FROM feed_topics WHERE deleted_at IS NULL'
+        const params: any[] = []
+
+        if (!includePersonal) {
+          sql += ' AND is_personal = false'
+        }
+
+        sql += ' ORDER BY display_order ASC'
+
+        const dbStart = logDatabaseQuery(sql, params, 'feedTopics')
+        const result = await pool.query(sql, params)
+        logDatabaseResult(result.rows.length, dbStart.startTime, 'feedTopics')
+
+        logResolverSuccess('feedTopics', result.rows, startTime)
+        return result.rows
+      } catch (error) {
+        logResolverError('feedTopics', error, startTime)
+        throw error
+      }
+    },
+
+    feedTopic: async (_: any, { id }: any, { loaders }: any) => {
+      const { startTime } = logResolverStart('feedTopic', { id })
+
+      try {
+        const topic = await loaders.feedTopic.load(id)
+        logResolverSuccess('feedTopic', topic, startTime)
+        return topic
+      } catch (error) {
+        logResolverError('feedTopic', error, startTime)
+        throw error
+      }
+    },
+
+    feedComments: async (_: any, { postId }: any, { loaders }: any) => {
+      const { startTime } = logResolverStart('feedComments', { postId })
+
+      try {
+        const comments = await loaders.feedComments.load(postId)
+        logResolverSuccess('feedComments', comments, startTime)
+        return comments
+      } catch (error) {
+        logResolverError('feedComments', error, startTime)
+        throw error
+      }
+    },
+
+    feedReactions: async (_: any, { postId }: any, { loaders }: any) => {
+      const { startTime } = logResolverStart('feedReactions', { postId })
+
+      try {
+        const reactions = await loaders.feedReactions.load(postId)
+
+        // Group by emoji
+        const grouped: Record<string, any> = {}
+        reactions.forEach((r: any) => {
+          if (!grouped[r.emoji]) {
+            grouped[r.emoji] = { emoji: r.emoji, userIds: [], count: 0 }
+          }
+          grouped[r.emoji].userIds.push(r.user_id)
+          grouped[r.emoji].count++
+        })
+
+        const result = Object.values(grouped)
+        logResolverSuccess('feedReactions', result, startTime)
+        return result
+      } catch (error) {
+        logResolverError('feedReactions', error, startTime)
         throw error
       }
     }
@@ -761,6 +988,142 @@ export const resolvers = {
     updatedAt: (setting: any) => setting.updated_at,
   },
 
+  // Field resolvers for FeedPost
+  FeedPost: {
+    postId: (post: any) => post.post_id,
+    contentType: (post: any) => post.content_type,
+    content: (post: any) => post.content,
+    linkUrl: (post: any) => post.link_url,
+    linkTitle: (post: any) => post.link_title,
+    linkDescription: (post: any) => post.link_description,
+    linkImage: (post: any) => post.link_image,
+    mediaUrls: (post: any) => post.media_urls ? JSON.parse(post.media_urls) : [],
+    createdBy: (post: any) => post.created_by,
+    createdAt: (post: any) => post.created_at,
+    updatedAt: (post: any) => post.updated_at,
+    status: (post: any) => post.status,
+
+    author: async (post: any, _: any, { loaders }: any) => {
+      return loaders.user.load(post.created_by)
+    },
+
+    topics: async (post: any, _: any, { loaders }: any) => {
+      return loaders.feedPostTopics.load(post.post_id)
+    },
+
+    reactions: async (post: any, _: any, { loaders, user }: any) => {
+      const reactions = await loaders.feedReactions.load(post.post_id)
+
+      // Group by emoji
+      const grouped: Record<string, any> = {}
+      reactions.forEach((r: any) => {
+        if (!grouped[r.emoji]) {
+          grouped[r.emoji] = { emoji: r.emoji, userIds: [], count: 0, hasUserReacted: false }
+        }
+        grouped[r.emoji].userIds.push(r.user_id)
+        grouped[r.emoji].count++
+        if (user && r.user_id === user.employeeId) {
+          grouped[r.emoji].hasUserReacted = true
+        }
+      })
+
+      return Object.values(grouped)
+    },
+
+    comments: async (post: any, _: any, { loaders }: any) => {
+      return loaders.feedComments.load(post.post_id)
+    },
+
+    viewCount: async (post: any) => {
+      const result = await pool.query(
+        'SELECT COUNT(*) FROM feed_views WHERE post_id = $1',
+        [post.post_id]
+      )
+      return parseInt(result.rows[0].count)
+    },
+
+    commentCount: async (post: any) => {
+      const result = await pool.query(
+        'SELECT COUNT(*) FROM feed_comments WHERE post_id = $1 AND deleted_at IS NULL',
+        [post.post_id]
+      )
+      return parseInt(result.rows[0].count)
+    },
+
+    isSaved: async (post: any, _: any, { user }: any) => {
+      if (!user) return false
+
+      const result = await pool.query(
+        `SELECT fpt.topic_id
+         FROM feed_post_topics fpt
+         JOIN feed_topics ft ON fpt.topic_id = ft.id
+         WHERE fpt.post_id = $1 AND ft.is_saved = true AND ft.owner_user_id = $2 AND ft.deleted_at IS NULL`,
+        [post.post_id, user.employeeId]
+      )
+      return result.rows.length > 0
+    },
+
+    hasUserReacted: async (post: any, _: any, { user }: any) => {
+      if (!user) return false
+
+      const result = await pool.query(
+        'SELECT * FROM feed_reactions WHERE post_id = $1 AND user_id = $2 AND deleted_at IS NULL',
+        [post.post_id, user.employeeId]
+      )
+      return result.rows.length > 0
+    }
+  },
+
+  // Field resolvers for FeedTopic
+  FeedTopic: {
+    id: (topic: any) => topic.id,
+    topicName: (topic: any) => topic.topic_name,
+    description: (topic: any) => topic.description,
+    icon: (topic: any) => topic.icon,
+    displayOrder: (topic: any) => topic.display_order,
+    isPersonal: (topic: any) => topic.is_personal,
+    isSaved: (topic: any) => topic.is_saved,
+    ownerUserId: (topic: any) => topic.owner_user_id,
+    createdBy: (topic: any) => topic.created_by,
+    createdAt: (topic: any) => topic.created_at
+  },
+
+  // Field resolvers for FeedComment
+  FeedComment: {
+    commentId: (comment: any) => comment.comment_id,
+    postId: (comment: any) => comment.post_id,
+    parentCommentId: (comment: any) => comment.parent_comment_id,
+    content: (comment: any) => comment.content,
+    createdBy: (comment: any) => comment.created_by,
+    createdAt: (comment: any) => comment.created_at,
+    updatedAt: (comment: any) => comment.updated_at,
+
+    author: async (comment: any, _: any, { loaders }: any) => {
+      return loaders.user.load(comment.created_by)
+    },
+
+    replies: async (comment: any) => {
+      const result = await pool.query(
+        'SELECT * FROM feed_comments WHERE parent_comment_id = $1 AND deleted_at IS NULL ORDER BY created_at ASC',
+        [comment.comment_id]
+      )
+      return result.rows
+    }
+  },
+
+  // Field resolvers for FeedReaction
+  FeedReaction: {
+    emoji: (reaction: any) => reaction.emoji,
+    count: (reaction: any) => reaction.count,
+    hasUserReacted: (reaction: any) => reaction.hasUserReacted || false,
+
+    users: async (reaction: any, _: any, { loaders }: any) => {
+      const userIds = reaction.userIds || []
+      const users = await Promise.all(userIds.map((id: string) => loaders.user.load(id)))
+      return users.filter((u: any) => u !== null)
+    }
+  },
+
   // Mutations
   Mutation: {
     // Task mutations
@@ -981,6 +1344,261 @@ export const resolvers = {
         [employeeId]
       )
       return result.rows[0]
+    },
+
+    // Feed Mutations
+    createFeedPost: async (_: any, { input }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      const postId = `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      const status = ['admin', 'top_management'].includes(user.role) ? 'published' : 'pending'
+      const mediaUrls = input.mediaUrls ? JSON.stringify(input.mediaUrls) : null
+
+      await pool.query(
+        `INSERT INTO feed_posts (post_id, content_type, content, link_url, link_title, link_description, link_image, media_urls, created_by, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+        [postId, input.contentType, input.content, input.linkUrl, input.linkTitle, input.linkDescription, input.linkImage, mediaUrls, user.employeeId, status]
+      )
+
+      // Link to topics
+      for (const topicId of input.topicIds) {
+        await pool.query(
+          'INSERT INTO feed_post_topics (post_id, topic_id) VALUES ($1, $2)',
+          [postId, topicId]
+        )
+      }
+
+      const result = await pool.query(
+        'SELECT * FROM feed_posts WHERE post_id = $1',
+        [postId]
+      )
+      return result.rows[0]
+    },
+
+    updateFeedPost: async (_: any, { postId, input }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      const updates: string[] = []
+      const params: any[] = []
+      let paramIndex = 1
+
+      const fieldMap: Record<string, string> = {
+        content: 'content',
+        linkUrl: 'link_url',
+        linkTitle: 'link_title',
+        linkDescription: 'link_description',
+        linkImage: 'link_image',
+        mediaUrls: 'media_urls',
+        status: 'status'
+      }
+
+      Object.keys(input).forEach(key => {
+        if (input[key] !== undefined && fieldMap[key]) {
+          const dbColumn = fieldMap[key]
+
+          if (key === 'mediaUrls' && Array.isArray(input[key])) {
+            updates.push(`${dbColumn} = $${paramIndex++}`)
+            params.push(JSON.stringify(input[key]))
+          } else if (key !== 'topicIds') {
+            updates.push(`${dbColumn} = $${paramIndex++}`)
+            params.push(input[key])
+          }
+        }
+      })
+
+      if (updates.length > 0) {
+        updates.push(`updated_at = NOW()`)
+        params.push(postId)
+
+        await pool.query(
+          `UPDATE feed_posts SET ${updates.join(', ')} WHERE post_id = $${paramIndex}`,
+          params
+        )
+      }
+
+      // Update topics if provided
+      if (input.topicIds) {
+        await pool.query('DELETE FROM feed_post_topics WHERE post_id = $1', [postId])
+        for (const topicId of input.topicIds) {
+          await pool.query(
+            'INSERT INTO feed_post_topics (post_id, topic_id) VALUES ($1, $2)',
+            [postId, topicId]
+          )
+        }
+      }
+
+      const result = await pool.query(
+        'SELECT * FROM feed_posts WHERE post_id = $1',
+        [postId]
+      )
+      return result.rows[0]
+    },
+
+    deleteFeedPost: async (_: any, { postId }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      await pool.query(
+        'UPDATE feed_posts SET deleted_at = NOW(), deleted_by = $1 WHERE post_id = $2',
+        [user.employeeId, postId]
+      )
+      return true
+    },
+
+    createFeedComment: async (_: any, { postId, content, parentCommentId }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      const commentId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+      await pool.query(
+        `INSERT INTO feed_comments (comment_id, post_id, parent_comment_id, content, created_by, created_at)
+         VALUES ($1, $2, $3, $4, $5, NOW())`,
+        [commentId, postId, parentCommentId, content, user.employeeId]
+      )
+
+      const result = await pool.query(
+        'SELECT * FROM feed_comments WHERE comment_id = $1',
+        [commentId]
+      )
+      return result.rows[0]
+    },
+
+    deleteFeedComment: async (_: any, { commentId }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      await pool.query(
+        'UPDATE feed_comments SET deleted_at = NOW(), deleted_by = $1 WHERE comment_id = $2',
+        [user.employeeId, commentId]
+      )
+      return true
+    },
+
+    toggleFeedReaction: async (_: any, { postId, emoji }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      const existing = await pool.query(
+        'SELECT * FROM feed_reactions WHERE post_id = $1 AND user_id = $2 AND emoji = $3 AND deleted_at IS NULL',
+        [postId, user.employeeId, emoji]
+      )
+
+      if (existing.rows.length > 0) {
+        await pool.query(
+          'UPDATE feed_reactions SET deleted_at = NOW(), deleted_by = $1 WHERE post_id = $2 AND user_id = $3 AND emoji = $4',
+          [user.employeeId, postId, user.employeeId, emoji]
+        )
+        return { action: 'removed', message: 'Reaction removed' }
+      } else {
+        await pool.query(
+          'INSERT INTO feed_reactions (post_id, user_id, emoji, created_at) VALUES ($1, $2, $3, NOW())',
+          [postId, user.employeeId, emoji]
+        )
+        return { action: 'added', message: 'Reaction added' }
+      }
+    },
+
+    trackFeedView: async (_: any, { postId }: any, { user }: any) => {
+      if (!user) return false
+
+      // Check if view already exists (idempotent)
+      const existing = await pool.query(
+        'SELECT * FROM feed_views WHERE post_id = $1 AND user_id = $2',
+        [postId, user.employeeId]
+      )
+
+      if (existing.rows.length === 0) {
+        await pool.query(
+          'INSERT INTO feed_views (post_id, user_id, viewed_at) VALUES ($1, $2, NOW())',
+          [postId, user.employeeId]
+        )
+      }
+
+      return true
+    },
+
+    toggleFeedSave: async (_: any, { postId }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      // Get user's "Saved Posts" topic
+      const savedTopic = await pool.query(
+        'SELECT id FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 AND deleted_at IS NULL',
+        [user.employeeId]
+      )
+
+      if (savedTopic.rows.length === 0) {
+        throw new Error('Saved Posts topic not found. Please initialize personal topics first.')
+      }
+
+      const savedTopicId = savedTopic.rows[0].id
+
+      // Check if already saved
+      const existing = await pool.query(
+        'SELECT * FROM feed_post_topics WHERE post_id = $1 AND topic_id = $2',
+        [postId, savedTopicId]
+      )
+
+      if (existing.rows.length > 0) {
+        await pool.query(
+          'DELETE FROM feed_post_topics WHERE post_id = $1 AND topic_id = $2',
+          [postId, savedTopicId]
+        )
+        return { action: 'removed', message: 'Post removed from Saved Posts' }
+      } else {
+        await pool.query(
+          'INSERT INTO feed_post_topics (post_id, topic_id) VALUES ($1, $2)',
+          [postId, savedTopicId]
+        )
+        return { action: 'added', message: 'Post saved successfully' }
+      }
+    },
+
+    createFeedTopic: async (_: any, { input }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      const result = await pool.query(
+        `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, created_by, created_at)
+         VALUES ($1, $2, $3, $4, false, $5, NOW())
+         RETURNING *`,
+        [input.topicName, input.description, input.icon, input.displayOrder || 999, user.employeeId]
+      )
+
+      return result.rows[0]
+    },
+
+    initPersonalTopics: async (_: any, __: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      // Check if personal topics already exist
+      const existing = await pool.query(
+        'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 AND deleted_at IS NULL',
+        [user.employeeId]
+      )
+
+      if (existing.rows.length >= 2) {
+        return {
+          personalNotes: existing.rows.find((t: any) => !t.is_saved),
+          savedPosts: existing.rows.find((t: any) => t.is_saved)
+        }
+      }
+
+      // Create Personal Notes topic
+      const personalNotes = await pool.query(
+        `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, owner_user_id, created_by, created_at)
+         VALUES ($1, $2, $3, $4, true, $5, $6, NOW())
+         RETURNING *`,
+        [`${user.name}'s Personal Notes`, 'Your private notes and thoughts', '📝', 1000, user.employeeId, user.employeeId]
+      )
+
+      // Create Saved Posts topic
+      const savedPosts = await pool.query(
+        `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
+         VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
+         RETURNING *`,
+        [`${user.name}'s Saved Posts`, 'Posts you want to save for later', '🔖', 1001, user.employeeId, user.employeeId]
+      )
+
+      return {
+        personalNotes: personalNotes.rows[0],
+        savedPosts: savedPosts.rows[0]
+      }
     }
   }
 }

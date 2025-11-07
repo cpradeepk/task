@@ -312,6 +312,18 @@ export const typeDefs = `#graphql
     # Users
     createUser(input: CreateUserInput!): User!
     updateUser(employeeId: ID!, input: UpdateUserInput!): User!
+
+    # Feed
+    createFeedPost(input: CreateFeedPostInput!): FeedPost!
+    updateFeedPost(postId: ID!, input: UpdateFeedPostInput!): FeedPost!
+    deleteFeedPost(postId: ID!): Boolean!
+    createFeedComment(postId: ID!, content: String!, parentCommentId: String): FeedComment!
+    deleteFeedComment(commentId: ID!): Boolean!
+    toggleFeedReaction(postId: ID!, emoji: String!): FeedReactionResponse!
+    trackFeedView(postId: ID!): Boolean!
+    toggleFeedSave(postId: ID!): FeedSaveResponse!
+    createFeedTopic(input: CreateFeedTopicInput!): FeedTopic!
+    initPersonalTopics: InitPersonalTopicsResponse!
   }
 
   input CreateTaskInput {
@@ -383,6 +395,36 @@ export const typeDefs = `#graphql
     role: String
     status: String
     isTodayTask: Boolean
+  }
+
+  # Feed Input Types
+  input CreateFeedPostInput {
+    contentType: String!
+    content: String!
+    linkUrl: String
+    linkTitle: String
+    linkDescription: String
+    linkImage: String
+    mediaUrls: [String!]
+    topicIds: [String!]!
+  }
+
+  input UpdateFeedPostInput {
+    content: String
+    linkUrl: String
+    linkTitle: String
+    linkDescription: String
+    linkImage: String
+    mediaUrls: [String!]
+    topicIds: [String!]
+    status: String
+  }
+
+  input CreateFeedTopicInput {
+    topicName: String!
+    description: String
+    icon: String
+    displayOrder: Int
   }
 `
 
