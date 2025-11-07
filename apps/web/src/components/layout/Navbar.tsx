@@ -264,8 +264,8 @@ export default function Navbar() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setIsAdminDropdownOpen(false)}
-                      className={`flex items-center space-x-3 px-4 py-2.5 text-sm font-medium transition-colors ${
+                      onMouseDown={() => setIsAdminDropdownOpen(false)}
+                      className={`flex items-center space-x-3 px-4 py-2.5 text-sm font-medium transition-colors block ${
                         isActive
                           ? 'bg-primary text-black'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-black'

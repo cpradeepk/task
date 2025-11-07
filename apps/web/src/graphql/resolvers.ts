@@ -1130,13 +1130,13 @@ export const resolvers = {
 
   // Field resolvers for FeedTopic
   FeedTopic: {
-    id: (topic: any) => topic.id,
+    id: (topic: any) => topic.topic_id || topic.id,
     topicName: (topic: any) => topic.topic_name,
     description: (topic: any) => topic.description,
     icon: (topic: any) => topic.icon,
     displayOrder: (topic: any) => topic.display_order,
-    isPersonal: (topic: any) => topic.is_personal,
-    isSaved: (topic: any) => topic.is_saved,
+    isPersonal: (topic: any) => topic.is_personal || false,
+    isSaved: (topic: any) => topic.is_saved || false,
     ownerUserId: (topic: any) => topic.owner_user_id,
     createdBy: (topic: any) => topic.created_by,
     createdAt: (topic: any) => topic.created_at
