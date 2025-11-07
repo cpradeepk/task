@@ -462,10 +462,17 @@ export const resolvers = {
     createdAt: (task: any) => task.created_at,
     updatedAt: (task: any) => task.updated_at,
 
-    assignedToUser: (task: any, _: any, { loaders }: any) => {
+    assignedToUser: async (task: any, _: any, { loaders }: any) => {
       // ✅ FIXED: assignedTo is now an array, return first user for backward compatibility
       const assignedToArray = Array.isArray(task.assigned_to) ? task.assigned_to : []
-      return assignedToArray.length > 0 ? loaders.user.load(assignedToArray[0]) : null
+      if (assignedToArray.length === 0) return null
+
+      try {
+        return await loaders.user.load(assignedToArray[0])
+      } catch (error) {
+        console.error(`[Task.assignedToUser] Failed to load user ${assignedToArray[0]}:`, error)
+        return null
+      }
     },
 
     assignedToUsers: async (task: any, _: any, { loaders }: any) => {
@@ -473,20 +480,48 @@ export const resolvers = {
       const assignedToArray = Array.isArray(task.assigned_to) ? task.assigned_to : []
       if (assignedToArray.length === 0) return []
 
-      // loadMany can return Error objects in the array, filter them out
-      const results = await loaders.user.loadMany(assignedToArray)
-      return results.filter((result: any) => !(result instanceof Error))
+      try {
+        // loadMany can return Error objects in the array, filter them out
+        const results = await loaders.user.loadMany(assignedToArray)
+        return results.filter((result: any) => !(result instanceof Error))
+      } catch (error) {
+        console.error(`[Task.assignedToUsers] Failed to load users:`, error)
+        return []
+      }
     },
 
-    assignedByUser: (task: any, _: any, { loaders }: any) => {
-      return loaders.user.load(task.assigned_by)
+    assignedByUser: async (task: any, _: any, { loaders }: any) => {
+      if (!task.assigned_by) return null
+
+      try {
+        return await loaders.user.load(task.assigned_by)
+      } catch (error) {
+        console.error(`[Task.assignedByUser] Failed to load user ${task.assigned_by}:`, error)
+        return null
+      }
     },
 
     supportUsers: async (task: any, _: any, { loaders }: any) => {
       if (!task.support) return []
       // Support is stored as JSONB array in PostgreSQL
       const supportIds = Array.isArray(task.support) ? task.support : []
-      return Promise.all(supportIds.map((id: string) => loaders.user.load(id)))
+
+      try {
+        const results = await Promise.all(
+          supportIds.map(async (id: string) => {
+            try {
+              return await loaders.user.load(id)
+            } catch (error) {
+              console.error(`[Task.supportUsers] Failed to load user ${id}:`, error)
+              return null
+            }
+          })
+        )
+        return results.filter((user: any) => user !== null)
+      } catch (error) {
+        console.error(`[Task.supportUsers] Failed to load support users:`, error)
+        return []
+      }
     },
 
     subtasks: (task: any, _: any, { loaders }: any) => {
@@ -524,16 +559,37 @@ export const resolvers = {
     createdAt: (subtask: any) => subtask.created_at,
     updatedAt: (subtask: any) => subtask.updated_at,
 
-    assignedToUser: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.user.load(subtask.assigned_to)
+    assignedToUser: async (subtask: any, _: any, { loaders }: any) => {
+      if (!subtask.assigned_to) return null
+
+      try {
+        return await loaders.user.load(subtask.assigned_to)
+      } catch (error) {
+        console.error(`[SubTask.assignedToUser] Failed to load user ${subtask.assigned_to}:`, error)
+        return null
+      }
     },
 
-    assignedByUser: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.user.load(subtask.assigned_by)
+    assignedByUser: async (subtask: any, _: any, { loaders }: any) => {
+      if (!subtask.assigned_by) return null
+
+      try {
+        return await loaders.user.load(subtask.assigned_by)
+      } catch (error) {
+        console.error(`[SubTask.assignedByUser] Failed to load user ${subtask.assigned_by}:`, error)
+        return null
+      }
     },
 
-    parentTask: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.task.load(subtask.parent_task_id)
+    parentTask: async (subtask: any, _: any, { loaders }: any) => {
+      if (!subtask.parent_task_id) return null
+
+      try {
+        return await loaders.task.load(subtask.parent_task_id)
+      } catch (error) {
+        console.error(`[SubTask.parentTask] Failed to load task ${subtask.parent_task_id}:`, error)
+        return null
+      }
     }
   },
 
@@ -572,16 +628,34 @@ export const resolvers = {
     createdAt: (bug: any) => bug.created_at,
     updatedAt: (bug: any) => bug.updated_at,
 
-    assignedToUser: (bug: any, _: any, { loaders }: any) => {
-      return loaders.user.load(bug.assigned_to)
+    assignedToUser: async (bug: any, _: any, { loaders }: any) => {
+      if (!bug.assigned_to) return null
+      try {
+        return await loaders.user.load(bug.assigned_to)
+      } catch (error) {
+        console.error(`[Bug.assignedToUser] Failed to load user ${bug.assigned_to}:`, error)
+        return null
+      }
     },
 
-    assignedByUser: (bug: any, _: any, { loaders }: any) => {
-      return loaders.user.load(bug.assigned_by)
+    assignedByUser: async (bug: any, _: any, { loaders }: any) => {
+      if (!bug.assigned_by) return null
+      try {
+        return await loaders.user.load(bug.assigned_by)
+      } catch (error) {
+        console.error(`[Bug.assignedByUser] Failed to load user ${bug.assigned_by}:`, error)
+        return null
+      }
     },
 
-    reportedByUser: (bug: any, _: any, { loaders }: any) => {
-      return loaders.user.load(bug.reported_by)
+    reportedByUser: async (bug: any, _: any, { loaders }: any) => {
+      if (!bug.reported_by) return null
+      try {
+        return await loaders.user.load(bug.reported_by)
+      } catch (error) {
+        console.error(`[Bug.reportedByUser] Failed to load user ${bug.reported_by}:`, error)
+        return null
+      }
     },
 
     subtasks: (bug: any, _: any, { loaders }: any) => {
@@ -619,16 +693,37 @@ export const resolvers = {
     updatedAt: (subtask: any) => subtask.updated_at,
     createdBy: (subtask: any) => subtask.created_by,
 
-    assignedToUser: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.user.load(subtask.assigned_to)
+    assignedToUser: async (subtask: any, _: any, { loaders }: any) => {
+      if (!subtask.assigned_to) return null
+
+      try {
+        return await loaders.user.load(subtask.assigned_to)
+      } catch (error) {
+        console.error(`[BugSubTask.assignedToUser] Failed to load user ${subtask.assigned_to}:`, error)
+        return null
+      }
     },
 
-    assignedByUser: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.user.load(subtask.assigned_by)
+    assignedByUser: async (subtask: any, _: any, { loaders }: any) => {
+      if (!subtask.assigned_by) return null
+
+      try {
+        return await loaders.user.load(subtask.assigned_by)
+      } catch (error) {
+        console.error(`[BugSubTask.assignedByUser] Failed to load user ${subtask.assigned_by}:`, error)
+        return null
+      }
     },
 
-    parentBug: (subtask: any, _: any, { loaders }: any) => {
-      return loaders.bug.load(subtask.parent_bug_id)
+    parentBug: async (subtask: any, _: any, { loaders }: any) => {
+      if (!subtask.parent_bug_id) return null
+
+      try {
+        return await loaders.bug.load(subtask.parent_bug_id)
+      } catch (error) {
+        console.error(`[BugSubTask.parentBug] Failed to load bug ${subtask.parent_bug_id}:`, error)
+        return null
+      }
     }
   },
 
