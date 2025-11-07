@@ -3,16 +3,52 @@
 import { useState, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { Send, Reply } from 'lucide-react'
+import { QUERIES, MUTATIONS } from '@/lib/graphql-queries'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any = {}) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) {
+    console.error('GraphQL errors:', result.errors)
+    throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  }
+  return result.data
+}
+
+// Helper function to execute GraphQL mutations
+async function executeGraphQLMutation(mutation: string, variables: any = {}) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: mutation, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) {
+    console.error('GraphQL errors:', result.errors)
+    throw new Error(result.errors[0]?.message || 'GraphQL mutation failed')
+  }
+  return result.data
+}
 
 interface Comment {
-  comment_id: string
-  post_id: string
-  parent_comment_id: string | null
+  commentId: string
+  postId: string
+  parentCommentId: string | null
   content: string
-  created_by: string
-  created_at: string
-  author_name: string
-  author_avatar: string | null
+  createdBy: string
+  createdAt: string
+  author: {
+    employeeId: string
+    name: string
+    email?: string
+  }
   replies: Comment[]
 }
 
@@ -39,13 +75,14 @@ export default function Comments({ postId, isOpen, onClose }: CommentsProps) {
   const fetchComments = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/feed/posts/${postId}/comments`)
-      const data = await response.json()
-      if (data.success) {
-        setComments(data.data)
-      }
+      console.log('🔵 [Comments] Fetching comments via GraphQL...')
+      const data = await executeGraphQLQuery(QUERIES.GET_FEED_COMMENTS, {
+        postId
+      })
+      setComments(data.feedComments)
+      console.log('✅ [Comments] Comments fetched successfully:', data.feedComments.length)
     } catch (error) {
-      console.error('Error fetching comments:', error)
+      console.error('❌ [Comments] Error fetching comments:', error)
     } finally {
       setIsLoading(false)
     }
@@ -56,22 +93,19 @@ export default function Comments({ postId, isOpen, onClose }: CommentsProps) {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch(`/api/feed/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newComment })
+      console.log('🔵 [Comments] Creating comment via GraphQL...')
+      const data = await executeGraphQLMutation(MUTATIONS.CREATE_FEED_COMMENT, {
+        postId,
+        content: newComment,
+        parentCommentId: null
       })
 
-      const data = await response.json()
-      if (data.success) {
-        setNewComment('')
-        fetchComments()
-      } else {
-        alert('Failed to add comment: ' + data.error)
-      }
+      console.log('✅ [Comments] Comment created successfully:', data.createFeedComment.commentId)
+      setNewComment('')
+      fetchComments()
     } catch (error) {
-      console.error('Error adding comment:', error)
-      alert('Failed to add comment')
+      console.error('❌ [Comments] Error adding comment:', error)
+      alert('Failed to add comment: ' + (error as Error).message)
     } finally {
       setIsSubmitting(false)
     }
@@ -82,46 +116,43 @@ export default function Comments({ postId, isOpen, onClose }: CommentsProps) {
 
     setIsSubmitting(true)
     try {
-      const response = await fetch(`/api/feed/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: replyContent, parentCommentId })
+      console.log('🔵 [Comments] Creating reply via GraphQL...')
+      const data = await executeGraphQLMutation(MUTATIONS.CREATE_FEED_COMMENT, {
+        postId,
+        content: replyContent,
+        parentCommentId
       })
 
-      const data = await response.json()
-      if (data.success) {
-        setReplyContent('')
-        setReplyingTo(null)
-        fetchComments()
-      } else {
-        alert('Failed to add reply: ' + data.error)
-      }
+      console.log('✅ [Comments] Reply created successfully:', data.createFeedComment.commentId)
+      setReplyContent('')
+      setReplyingTo(null)
+      fetchComments()
     } catch (error) {
-      console.error('Error adding reply:', error)
-      alert('Failed to add reply')
+      console.error('❌ [Comments] Error adding reply:', error)
+      alert('Failed to add reply: ' + (error as Error).message)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const renderComment = (comment: Comment, depth: number = 0) => (
-    <div key={comment.comment_id} className={`${depth > 0 ? 'ml-8 mt-3' : 'mt-4'}`}>
+    <div key={comment.commentId} className={`${depth > 0 ? 'ml-8 mt-3' : 'mt-4'}`}>
       <div className="flex gap-3">
         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold flex-shrink-0">
-          {comment.author_name?.charAt(0) || 'U'}
+          {comment.author?.name?.charAt(0) || 'U'}
         </div>
         <div className="flex-1">
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <p className="font-semibold text-sm text-gray-900">{comment.author_name}</p>
+              <p className="font-semibold text-sm text-gray-900">{comment.author?.name}</p>
               <p className="text-xs text-gray-500">
-                {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
               </p>
             </div>
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>
           </div>
           <button
-            onClick={() => setReplyingTo(comment.comment_id)}
+            onClick={() => setReplyingTo(comment.commentId)}
             className="text-xs text-blue-600 hover:text-blue-800 mt-1 flex items-center gap-1"
           >
             <Reply className="w-3 h-3" />
@@ -129,7 +160,7 @@ export default function Comments({ postId, isOpen, onClose }: CommentsProps) {
           </button>
 
           {/* Reply Input */}
-          {replyingTo === comment.comment_id && (
+          {replyingTo === comment.commentId && (
             <div className="mt-2 flex gap-2">
               <input
                 type="text"
@@ -140,12 +171,12 @@ export default function Comments({ postId, isOpen, onClose }: CommentsProps) {
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault()
-                    handleAddReply(comment.comment_id)
+                    handleAddReply(comment.commentId)
                   }
                 }}
               />
               <button
-                onClick={() => handleAddReply(comment.comment_id)}
+                onClick={() => handleAddReply(comment.commentId)}
                 disabled={isSubmitting || !replyContent.trim()}
                 className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300"
               >
