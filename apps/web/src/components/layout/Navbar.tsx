@@ -23,11 +23,14 @@ import {
   CheckSquare,
   Bug,
   Trash2,
-  Rss
+  Rss,
+  ChevronDown,
+  Shield
 } from 'lucide-react'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   const [isClient, setIsClient] = useState(false)
   const router = useRouter()
@@ -37,6 +40,24 @@ export default function Navbar() {
     setIsClient(true)
     setCurrentUser(getCurrentUser())
   }, [])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('.admin-dropdown-container')) {
+        setIsAdminDropdownOpen(false)
+      }
+    }
+
+    if (isAdminDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isAdminDropdownOpen])
 
   // Show skeleton navbar while loading to prevent flickering
   if (!isClient || !currentUser) {
@@ -66,6 +87,16 @@ export default function Navbar() {
   }
 
 
+
+  // Admin dropdown items
+  const adminDropdownItems = [
+    { href: '/projects', label: 'Projects', icon: Briefcase },
+    { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
+    { href: '/master-bugs', label: 'Master Development', icon: Bug },
+    { href: '/users', label: 'User Management', icon: Users },
+    { href: '/approvals', label: 'Approvals', icon: Calendar },
+    { href: '/settings', label: 'Settings', icon: Settings }
+  ]
 
   const getNavigationItems = () => {
     const baseItems = [
@@ -100,14 +131,8 @@ export default function Navbar() {
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },
           { href: '/bugs', label: 'Development', icon: Bug },
           { href: '/feed', label: 'Feed', icon: Rss },
-          { href: '/projects', label: 'Projects', icon: Briefcase },
-          { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
-          { href: '/master-bugs', label: 'Master Development', icon: Bug },
-          { href: '/users', label: 'User Management', icon: Users },
           { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 },
-          { href: '/settings', label: 'Settings', icon: Settings },
           { href: '/reports', label: 'Reports', icon: BarChart3 },
-          { href: '/approvals', label: 'Approvals', icon: Calendar },
           { href: '/profile', label: 'Profile', icon: User }
         ]
 
@@ -116,12 +141,7 @@ export default function Navbar() {
           ...baseItems,
           { href: '/bugs', label: 'Development', icon: Bug },
           { href: '/feed', label: 'Feed', icon: Rss },
-          { href: '/projects', label: 'Projects', icon: Briefcase },
-          { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
-          { href: '/master-bugs', label: 'Master Development', icon: Bug },
-          { href: '/users', label: 'User Management', icon: Users },
-          { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 },
-          { href: '/settings', label: 'Settings', icon: Settings }
+          { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 }
         ]
 
       default:
@@ -130,6 +150,7 @@ export default function Navbar() {
   }
 
   const navigationItems = getNavigationItems()
+  const showAdminDropdown = currentUser.role === 'admin' || currentUser.role === 'top_management'
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200 backdrop-blur-sm bg-white/95">
@@ -202,6 +223,49 @@ export default function Navbar() {
                 </Link>
               )
             })}
+
+            {/* Admin Dropdown */}
+            {showAdminDropdown && (
+              <div className="relative admin-dropdown-container">
+                <button
+                  onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
+                    adminDropdownItems.some(item => pathname === item.href)
+                      ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
+                      : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
+                  }`}
+                >
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden lg:inline">Admin</span>
+                  <ChevronDown className={`h-3 w-3 transition-transform ${isAdminDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isAdminDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    {adminDropdownItems.map((item) => {
+                      const Icon = item.icon
+                      const isActive = pathname === item.href
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsAdminDropdownOpen(false)}
+                          className={`flex items-center space-x-3 px-4 py-2.5 text-sm font-medium transition-colors ${
+                            isActive
+                              ? 'bg-primary text-black'
+                              : 'text-gray-700 hover:bg-gray-50 hover:text-black'
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -228,6 +292,53 @@ export default function Navbar() {
                   </Link>
                 )
               })}
+
+              {/* Admin Dropdown - Mobile */}
+              {showAdminDropdown && (
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      adminDropdownItems.some(item => pathname === item.href)
+                        ? 'bg-primary text-black shadow-sm'
+                        : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Shield className="h-4 w-4" />
+                      <span>Admin</span>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isAdminDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isAdminDropdownOpen && (
+                    <div className="ml-4 space-y-1 border-l-2 border-gray-200 pl-4">
+                      {adminDropdownItems.map((item) => {
+                        const Icon = item.icon
+                        const isActive = pathname === item.href
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                              isActive
+                                ? 'bg-primary text-black shadow-sm'
+                                : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setIsMenuOpen(false)
+                              setIsAdminDropdownOpen(false)
+                            }}
+                          >
+                            <Icon className="h-4 w-4" />
+                            <span>{item.label}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
