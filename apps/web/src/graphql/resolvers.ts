@@ -9,6 +9,7 @@ import {
   logDatabaseError
 } from '@/lib/graphql-logger'
 import { mentionQueries, mentionMutations, mentionFieldResolvers } from './mention-resolvers'
+import { parseMentions, storeMentions } from '@/lib/mention-parser'
 
 const pool = getPool()
 
@@ -1439,6 +1440,18 @@ export const resolvers = {
         )
       }
 
+      // Parse and store mentions
+      try {
+        const mentions = await parseMentions(input.content)
+        if (mentions.length > 0) {
+          await storeMentions(mentions, postId, null, user.employeeId)
+          console.log(`✅ [createFeedPost] Stored ${mentions.length} mentions for post ${postId}`)
+        }
+      } catch (error) {
+        console.error('[createFeedPost] Error parsing/storing mentions:', error)
+        // Don't fail the post creation if mention parsing fails
+      }
+
       const result = await pool.query(
         'SELECT * FROM feed_posts WHERE post_id = $1',
         [postId]
@@ -1525,6 +1538,18 @@ export const resolvers = {
          VALUES ($1, $2, $3, $4, $5, NOW())`,
         [commentId, postId, parentCommentId, content, user.employeeId]
       )
+
+      // Parse and store mentions
+      try {
+        const mentions = await parseMentions(content)
+        if (mentions.length > 0) {
+          await storeMentions(mentions, null, commentId, user.employeeId)
+          console.log(`✅ [createFeedComment] Stored ${mentions.length} mentions for comment ${commentId}`)
+        }
+      } catch (error) {
+        console.error('[createFeedComment] Error parsing/storing mentions:', error)
+        // Don't fail the comment creation if mention parsing fails
+      }
 
       const result = await pool.query(
         'SELECT * FROM feed_comments WHERE comment_id = $1',
