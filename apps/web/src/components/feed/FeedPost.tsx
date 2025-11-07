@@ -286,8 +286,8 @@ export default function FeedPost({ post, onReact, onComment }: FeedPostProps) {
             >
               {localReactions && localReactions.length > 0 ? (
                 <div className="flex items-center gap-1">
-                  {localReactions.slice(0, 3).map((r, i) => (
-                    <span key={i} className="text-lg">{r.emoji}</span>
+                  {localReactions.slice(0, 3).map((r) => (
+                    <span key={r.emoji} className="text-lg">{r.emoji}</span>
                   ))}
                   <span className="text-sm font-medium">
                     {localReactions.reduce((sum, r) => sum + r.count, 0)}
