@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
         fp.approved_by,
         fp.approved_at,
         u.name as author_name,
-        u.profile_picture as author_avatar
+        NULL as author_avatar
       FROM feed_posts fp
       LEFT JOIN users u ON fp.created_by = u.employee_id
       LEFT JOIN feed_post_topics fpt ON fp.post_id = fpt.post_id
