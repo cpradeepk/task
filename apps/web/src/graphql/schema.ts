@@ -220,6 +220,22 @@ export const typeDefs = `#graphql
     hasUserReacted: Boolean!
   }
 
+  type FeedMention {
+    mentionId: ID!
+    postId: String
+    commentId: String
+    mentionedUserId: String!
+    mentionedByUserId: String!
+    mentionText: String!
+    contextText: String
+    isRead: Boolean!
+    createdAt: String!
+    mentionedUser: User!
+    mentionedByUser: User!
+    post: FeedPost
+    comment: FeedComment
+  }
+
   type FeedPostsResponse {
     posts: [FeedPost!]!
     total: Int!
@@ -289,6 +305,10 @@ export const typeDefs = `#graphql
     feedTopic(id: ID!): FeedTopic
     feedComments(postId: ID!): [FeedComment!]!
     feedReactions(postId: ID!): [FeedReaction!]!
+
+    # Mentions
+    feedMentions(userId: String, isRead: Boolean, limit: Int, offset: Int): [FeedMention!]!
+    feedMention(mentionId: ID!): FeedMention
   }
 
   type DashboardData {
@@ -324,6 +344,10 @@ export const typeDefs = `#graphql
     toggleFeedSave(postId: ID!): FeedSaveResponse!
     createFeedTopic(input: CreateFeedTopicInput!): FeedTopic!
     initPersonalTopics: InitPersonalTopicsResponse!
+
+    # Mentions
+    markMentionAsRead(mentionId: ID!): FeedMention!
+    markAllMentionsAsRead(userId: String!): Boolean!
   }
 
   input CreateTaskInput {

@@ -8,6 +8,7 @@ import {
   logDatabaseResult,
   logDatabaseError
 } from '@/lib/graphql-logger'
+import { mentionQueries, mentionMutations, mentionFieldResolvers } from './mention-resolvers'
 
 const pool = getPool()
 
@@ -587,7 +588,10 @@ export const resolvers = {
         logResolverError('feedReactions', error, startTime)
         throw error
       }
-    }
+    },
+
+    // Mention Queries
+    ...mentionQueries
   },
   
   // Field resolvers for User
@@ -1689,7 +1693,13 @@ export const resolvers = {
         console.error(`[initPersonalTopics] Error for user ${user?.employeeId}:`, error)
         throw new Error(`Failed to initialize personal topics: ${error.message}`)
       }
-    }
-  }
+    },
+
+    // Mention Mutations
+    ...mentionMutations
+  },
+
+  // Field Resolvers
+  ...mentionFieldResolvers
 }
 
