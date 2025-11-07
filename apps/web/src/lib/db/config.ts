@@ -22,9 +22,9 @@ export const DB_CONFIG: PoolConfig = {
   // Connection pool settings - OPTIMIZED FOR SERVERLESS
   // CRITICAL: On Vercel serverless, each function instance creates its own pool
   // With PgBouncer on Supabase, we can use more connections safely
-  max: 3, // Maximum connections per serverless instance (was connectionLimit in mysql2)
-  idleTimeoutMillis: 10000, // Close idle connections after 10 seconds
-  connectionTimeoutMillis: 5000 // 5 seconds to establish connection
+  max: 10, // ✅ INCREASED: Maximum connections per serverless instance (was 3, now 10)
+  idleTimeoutMillis: 30000, // ✅ INCREASED: Close idle connections after 30 seconds (was 10s)
+  connectionTimeoutMillis: 15000 // ✅ INCREASED: 15 seconds to establish connection (was 5s)
 }
 
 // Create connection pool

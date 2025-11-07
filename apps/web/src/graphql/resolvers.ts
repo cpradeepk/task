@@ -542,7 +542,7 @@ export const resolvers = {
   SubTask: {
     // Map snake_case database columns to camelCase GraphQL fields
     id: (subtask: any) => subtask.id,
-    subTaskId: (subtask: any) => subtask.sub_task_id,
+    subTaskId: (subtask: any) => `SUBTASK-${subtask.id}`, // ✅ FIXED: Generate subTaskId from id (no sub_task_id column in PostgreSQL)
     parentTaskId: (subtask: any) => subtask.parent_task_id,
     description: (subtask: any) => subtask.description,
     assignedTo: (subtask: any) => subtask.assigned_to,
@@ -673,7 +673,7 @@ export const resolvers = {
   BugSubTask: {
     // Map snake_case database columns to camelCase GraphQL fields
     id: (subtask: any) => subtask.id,
-    subTaskId: (subtask: any) => subtask.sub_task_id,
+    subTaskId: (subtask: any) => `BUGSUBTASK-${subtask.id}`, // ✅ FIXED: Generate subTaskId from id (no sub_task_id column in PostgreSQL)
     parentBugId: (subtask: any) => subtask.parent_bug_id,
     description: (subtask: any) => subtask.description,
     assignedTo: (subtask: any) => subtask.assigned_to,

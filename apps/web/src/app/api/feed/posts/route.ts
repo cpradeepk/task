@@ -195,6 +195,15 @@ export async function GET(request: NextRequest) {
           [post.post_id]
         )
 
+        // ✅ FIXED: Check if post is saved by current user
+        const savedStatus = await query(
+          `SELECT fpt.topic_id
+           FROM feed_post_topics fpt
+           JOIN feed_topics ft ON fpt.topic_id = ft.id
+           WHERE fpt.post_id = $1 AND ft.is_saved = true AND ft.owner_user_id = $2 AND ft.deleted_at IS NULL`,
+          [post.post_id, user.employeeId]
+        )
+
         return {
           ...post,
           topics,
@@ -204,7 +213,8 @@ export async function GET(request: NextRequest) {
           })),
           userReactions: userReactions.map((r: any) => r.emoji),
           commentCount: parseInt(commentCount[0]?.count || '0'),
-          viewCount: parseInt(viewCount[0]?.count || '0')
+          viewCount: parseInt(viewCount[0]?.count || '0'),
+          isSaved: savedStatus.length > 0 // ✅ FIXED: Add saved status flag
         }
       })
     )
