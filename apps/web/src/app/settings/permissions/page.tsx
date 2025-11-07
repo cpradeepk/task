@@ -51,7 +51,7 @@ interface PermissionMatrix {
 }
 
 // Default roles - will be loaded from settings
-const DEFAULT_ROLES = ['admin', 'top_management', 'management', 'employee']
+const DEFAULT_ROLES = ['admin', 'top_management', 'management', 'amtariksian']
 
 // Helper function to format role display name
 const formatRoleLabel = (role: string): string => {

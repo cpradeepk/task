@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const sp = request.nextUrl.searchParams
     const employeeId = sp.get('employeeId') || ''
-    const role = (sp.get('role') || 'employee').toLowerCase()
+    const role = (sp.get('role') || 'amtariksian').toLowerCase()
     const includeUsers = sp.get('includeUsers') === 'true' || ['admin', 'top_management'].includes(role)
 
     // Load core data in parallel based on role

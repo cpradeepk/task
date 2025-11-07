@@ -73,7 +73,7 @@ export default function Navbar() {
     ]
 
     switch (currentUser.role) {
-      case 'employee':
+      case 'amtariksian':
         return [
           ...baseItems,
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },

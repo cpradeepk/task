@@ -225,15 +225,15 @@ export default function BugsPage() {
 
       // Filter bugs based on user role and involvement
       if (currentUser) {
-        if (currentUser.role === 'employee') {
-          // Employees can only see bugs they created or are assigned to
+        if (currentUser.role === 'amtariksian') {
+          // Amtariksians can only see bugs they created or are assigned to
           bugsData = bugsData.filter(bug =>
             bug.reportedBy === currentUser.employeeId ||
             bug.assignedTo === currentUser.employeeId
           )
         } else if (currentUser.role === 'management') {
           // Management can see bugs they're involved in + bugs from their team
-          // For now, applying same restriction as employees (can be expanded)
+          // For now, applying same restriction as amtariksians (can be expanded)
           bugsData = bugsData.filter(bug =>
             bug.reportedBy === currentUser.employeeId ||
             bug.assignedTo === currentUser.employeeId
@@ -571,7 +571,7 @@ export default function BugsPage() {
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center space-x-2 font-medium"
             >
               <Plus className="h-4 w-4" />
-              <span>Report Bug</span>
+              <span>Feature / Bug</span>
             </button>
           </div>
         </div>

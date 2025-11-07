@@ -98,8 +98,8 @@ export default function YourWork() {
       return
     }
 
-    // Only employees can access this page
-    if (currentUser.role !== 'employee') {
+    // Only amtariksians can access this page
+    if (currentUser.role !== 'amtariksian') {
       router.push('/dashboard')
       return
     }

@@ -178,8 +178,8 @@ export default function Approvals() {
       let filteredLeaves = leaves.filter(app => app.status === 'Pending')
       let filteredWFHs = wfhs.filter(app => app.status === 'Pending')
 
-      if (currentUser?.role === 'employee' && teamMembers.length > 0) {
-        // For employees who are managers, show only their team's pending applications
+      if (currentUser?.role === 'amtariksian' && teamMembers.length > 0) {
+        // For amtariksians who are managers, show only their team's pending applications
         filteredLeaves = filteredLeaves.filter(app => teamMembers.includes(app.employeeId))
         filteredWFHs = filteredWFHs.filter(app => teamMembers.includes(app.employeeId))
       } else if (currentUser?.role === 'top_management') {
