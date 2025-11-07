@@ -303,7 +303,7 @@ export default function Dashboard() {
     const totalUsers = users.length
     const activeUsers = users.filter(user => user.status === 'active').length
     const inactiveUsers = users.filter(user => user.status === 'inactive').length
-    const employeeUsers = users.filter(user => user.role === 'employee').length
+    const employeeUsers = users.filter(user => user.role === 'amtariksian').length
 
     return (
       <div>
@@ -654,8 +654,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Task Warning Alert - Only for employees */}
-          {currentUser.role === 'employee' && (
+          {/* Task Warning Alert - Only for amtariksians */}
+          {currentUser.role === 'amtariksian' && (
             <TaskWarningAlert
               employeeId={currentUser.employeeId}
               tasks={tasks}
@@ -670,7 +670,7 @@ export default function Dashboard() {
           <div className="card">
             <h3 className="text-lg font-semibold text-black mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {currentUser.role === 'employee' && (
+              {currentUser.role === 'amtariksian' && (
                 <>
                   <button
                     onClick={() => router.push('/tasks/create')}
