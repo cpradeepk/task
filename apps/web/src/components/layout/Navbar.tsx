@@ -232,6 +232,7 @@ export default function Navbar() {
                 onMouseLeave={() => setIsAdminDropdownOpen(false)}
               >
                 <button
+                  id="admin-dropdown-button"
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
                     adminDropdownItems.some(item => pathname === item.href)
                       ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
@@ -242,33 +243,39 @@ export default function Navbar() {
                   <span className="hidden lg:inline">Admin</span>
                   <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isAdminDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
+              </div>
+            )}
 
-                {/* Dropdown Menu - NO GAP between button and menu */}
-                {isAdminDropdownOpen && (
-                  <div
-                    className="absolute top-full left-0 mt-0 w-56 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[100000]"
-                  >
-                    {adminDropdownItems.map((item) => {
-                      const Icon = item.icon
-                      const isActive = pathname === item.href
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setIsAdminDropdownOpen(false)}
-                          className={`flex items-center space-x-3 px-4 py-2.5 text-sm font-medium transition-colors ${
-                            isActive
-                              ? 'bg-primary text-black'
-                              : 'text-gray-700 hover:bg-gray-50 hover:text-black'
-                          }`}
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span>{item.label}</span>
-                        </Link>
-                      )
-                    })}
-                  </div>
-                )}
+            {/* Admin Dropdown Menu - Rendered at root level with fixed positioning */}
+            {showAdminDropdown && isAdminDropdownOpen && (
+              <div
+                className="fixed w-56 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[100000]"
+                style={{
+                  top: typeof window !== 'undefined' ? (document.getElementById('admin-dropdown-button')?.getBoundingClientRect().bottom || 0) + 'px' : '0px',
+                  left: typeof window !== 'undefined' ? (document.getElementById('admin-dropdown-button')?.getBoundingClientRect().left || 0) + 'px' : '0px'
+                }}
+                onMouseEnter={() => setIsAdminDropdownOpen(true)}
+                onMouseLeave={() => setIsAdminDropdownOpen(false)}
+              >
+                {adminDropdownItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsAdminDropdownOpen(false)}
+                      className={`flex items-center space-x-3 px-4 py-2.5 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-primary text-black'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-black'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  )
+                })}
               </div>
             )}
           </div>

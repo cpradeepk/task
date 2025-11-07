@@ -1618,40 +1618,63 @@ export const resolvers = {
     },
 
     initPersonalTopics: async (_: any, __: any, { user }: any) => {
-      if (!user) throw new Error('Unauthorized')
-
-      // Check if personal topics already exist
-      const existing = await pool.query(
-        'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 AND deleted_at IS NULL',
-        [user.employeeId]
-      )
-
-      if (existing.rows.length >= 2) {
-        return {
-          personalNotes: existing.rows.find((t: any) => !t.is_saved),
-          savedPosts: existing.rows.find((t: any) => t.is_saved)
-        }
+      if (!user) {
+        console.error('[initPersonalTopics] Unauthorized - no user in context')
+        throw new Error('Unauthorized')
       }
 
-      // Create Personal Notes topic
-      const personalNotes = await pool.query(
-        `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, owner_user_id, created_by, created_at)
-         VALUES ($1, $2, $3, $4, true, $5, $6, NOW())
-         RETURNING *`,
-        [`${user.name}'s Personal Notes`, 'Your private notes and thoughts', '📝', 1000, user.employeeId, user.employeeId]
-      )
+      try {
+        console.log(`[initPersonalTopics] Initializing personal topics for user ${user.employeeId}`)
 
-      // Create Saved Posts topic
-      const savedPosts = await pool.query(
-        `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
-         VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
-         RETURNING *`,
-        [`${user.name}'s Saved Posts`, 'Posts you want to save for later', '🔖', 1001, user.employeeId, user.employeeId]
-      )
+        // Check if personal topics already exist
+        const existing = await pool.query(
+          'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 AND deleted_at IS NULL',
+          [user.employeeId]
+        )
 
-      return {
-        personalNotes: personalNotes.rows[0],
-        savedPosts: savedPosts.rows[0]
+        if (existing.rows.length >= 2) {
+          console.log(`[initPersonalTopics] Personal topics already exist for user ${user.employeeId}`)
+          const personalNotes = existing.rows.find((t: any) => !t.is_saved)
+          const savedPosts = existing.rows.find((t: any) => t.is_saved)
+
+          if (!personalNotes || !savedPosts) {
+            console.error('[initPersonalTopics] Missing personal topics:', { personalNotes: !!personalNotes, savedPosts: !!savedPosts })
+            throw new Error('Personal topics exist but are incomplete')
+          }
+
+          return {
+            personalNotes,
+            savedPosts
+          }
+        }
+
+        console.log(`[initPersonalTopics] Creating new personal topics for user ${user.employeeId}`)
+
+        // Create Personal Notes topic
+        const personalNotes = await pool.query(
+          `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, owner_user_id, created_by, created_at)
+           VALUES ($1, $2, $3, $4, true, $5, $6, NOW())
+           RETURNING *`,
+          [`${user.name}'s Personal Notes`, 'Your private notes and thoughts', '📝', 1000, user.employeeId, user.employeeId]
+        )
+
+        // Create Saved Posts topic
+        const savedPosts = await pool.query(
+          `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
+           VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
+           RETURNING *`,
+          [`${user.name}'s Saved Posts`, 'Posts you want to save for later', '🔖', 1001, user.employeeId, user.employeeId]
+        )
+
+        console.log(`[initPersonalTopics] Successfully created personal topics for user ${user.employeeId}`)
+
+        return {
+          personalNotes: personalNotes.rows[0],
+          savedPosts: savedPosts.rows[0]
+        }
+      } catch (error: any) {
+        console.error(`[initPersonalTopics] Error for user ${user?.employeeId}:`, error)
+        throw new Error(`Failed to initialize personal topics: ${error.message}`)
       }
     }
   }
