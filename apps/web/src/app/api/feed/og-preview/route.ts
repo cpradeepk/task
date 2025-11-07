@@ -45,15 +45,21 @@ export async function GET(request: NextRequest) {
     // Fetch the URL
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; JSR-Feed-Bot/1.0)'
+        'User-Agent': 'Mozilla/5.0 (compatible; JSR-Feed-Bot/1.0)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
       },
       signal: AbortSignal.timeout(10000) // 10 second timeout
     })
 
     if (!response.ok) {
+      console.error(`Failed to fetch URL: ${url}, Status: ${response.status} ${response.statusText}`)
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch URL' },
-        { status: 400 }
+        {
+          success: false,
+          error: `Failed to fetch URL (${response.status} ${response.statusText})`,
+          details: `The target website returned an error. Please check if the URL is accessible.`
+        },
+        { status: 200 } // Return 200 with error details instead of 400
       )
     }
 
@@ -65,20 +71,38 @@ export async function GET(request: NextRequest) {
     const ogImage = extractMetaTag(html, 'og:image')
     const ogUrl = extractMetaTag(html, 'og:url') || url
 
+    // Log successful extraction
+    console.log(`OG Preview extracted for ${url}:`, {
+      title: ogTitle ? 'Found' : 'Not found',
+      description: ogDescription ? 'Found' : 'Not found',
+      image: ogImage ? 'Found' : 'Not found'
+    })
+
     return NextResponse.json({
       success: true,
       data: {
-        title: ogTitle,
-        description: ogDescription,
-        image: ogImage,
+        title: ogTitle || 'No title found',
+        description: ogDescription || '',
+        image: ogImage || '',
         url: ogUrl
       }
     })
   } catch (error) {
     console.error('Error fetching OG preview:', error)
+
+    // Provide detailed error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const isTimeout = errorMessage.includes('timeout') || errorMessage.includes('aborted')
+
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch preview' },
-      { status: 500 }
+      {
+        success: false,
+        error: isTimeout
+          ? 'Request timed out. The website took too long to respond.'
+          : 'Failed to fetch preview. Please check the URL and try again.',
+        details: errorMessage
+      },
+      { status: 200 } // Return 200 with error details for better client-side handling
     )
   }
 }

@@ -57,15 +57,20 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
     if (!linkUrl) return
 
     setIsFetchingPreview(true)
+    setOgPreview(null) // Clear previous preview
     try {
       const response = await fetch(`/api/feed/og-preview?url=${encodeURIComponent(linkUrl)}`)
       const data = await response.json()
       if (data.success) {
         setOgPreview(data.data)
         if (!title) setTitle(data.data.title || '')
+      } else {
+        // Show error message to user
+        alert(`Failed to fetch preview: ${data.error}${data.details ? '\n' + data.details : ''}`)
       }
     } catch (error) {
       console.error('Error fetching link preview:', error)
+      alert('Failed to fetch link preview. Please check your internet connection and try again.')
     } finally {
       setIsFetchingPreview(false)
     }
