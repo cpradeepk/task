@@ -2,10 +2,43 @@
 
 import { useState, useEffect } from 'react'
 import { X, Link as LinkIcon, Image as ImageIcon, FileText, Youtube, Upload, Loader2 } from 'lucide-react'
+import { QUERIES, MUTATIONS } from '@/lib/graphql-queries'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any = {}) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) {
+    console.error('GraphQL errors:', result.errors)
+    throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  }
+  return result.data
+}
+
+// Helper function to execute GraphQL mutations
+async function executeGraphQLMutation(mutation: string, variables: any = {}) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: mutation, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) {
+    console.error('GraphQL errors:', result.errors)
+    throw new Error(result.errors[0]?.message || 'GraphQL mutation failed')
+  }
+  return result.data
+}
 
 interface Topic {
-  id: number
-  topic_name: string
+  id: string
+  topicName: string
   icon: string | null
 }
 
@@ -23,7 +56,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
   const [content, setContent] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
   const [youtubeUrl, setYoutubeUrl] = useState('')
-  const [selectedTopics, setSelectedTopics] = useState<number[]>([])
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([])
   const [topics, setTopics] = useState<Topic[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isFetchingPreview, setIsFetchingPreview] = useState(false)
@@ -43,13 +76,17 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
 
   const fetchTopics = async () => {
     try {
-      const response = await fetch('/api/feed/topics?includePersonal=true')
-      const data = await response.json()
-      if (data.success) {
-        setTopics(data.data.filter((t: any) => !t.is_saved)) // Exclude "Saved Posts"
-      }
+      console.log('🔵 [PostCreator] Fetching topics via GraphQL...')
+      const data = await executeGraphQLQuery(QUERIES.GET_FEED_TOPICS, {
+        includePersonal: true
+      })
+
+      // Filter out "Saved Posts"
+      const filteredTopics = data.feedTopics.filter((t: any) => !t.isSaved)
+      setTopics(filteredTopics)
+      console.log('✅ [PostCreator] Topics fetched successfully:', filteredTopics.length)
     } catch (error) {
-      console.error('Error fetching topics:', error)
+      console.error('❌ [PostCreator] Error fetching topics:', error)
     }
   }
 
@@ -161,37 +198,35 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
 
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/feed/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      console.log('🔵 [PostCreator] Creating post via GraphQL...')
+
+      // Prepare media URLs based on content type
+      let mediaUrls: string[] = []
+      if (uploadedFile) {
+        mediaUrls = [uploadedFile.url]
+      }
+
+      const data = await executeGraphQLMutation(MUTATIONS.CREATE_FEED_POST, {
+        input: {
           contentType,
-          title: title || null,
-          content: content || null,
+          content: content || '',
           linkUrl: linkUrl || null,
-          ogTitle: ogPreview?.title || null,
-          ogDescription: ogPreview?.description || null,
-          ogImage: ogPreview?.image || null,
-          fileUrl: uploadedFile?.url || null,
-          fileName: uploadedFile?.name || null,
-          fileSize: uploadedFile?.size || null,
-          youtubeUrl: youtubeUrl || null,
+          linkTitle: ogPreview?.title || title || null,
+          linkDescription: ogPreview?.description || null,
+          linkImage: ogPreview?.image || null,
+          mediaUrls: mediaUrls.length > 0 ? mediaUrls : null,
           topicIds: selectedTopics
-        })
+        }
       })
 
-      const data = await response.json()
-      if (data.success) {
-        alert(data.data.message)
-        resetForm()
-        onPostCreated()
-        onClose()
-      } else {
-        alert('Failed to create post: ' + data.error)
-      }
+      console.log('✅ [PostCreator] Post created successfully:', data.createFeedPost.postId)
+      alert('Post created successfully! It will be visible after approval.')
+      resetForm()
+      onPostCreated()
+      onClose()
     } catch (error) {
-      console.error('Error creating post:', error)
-      alert('Failed to create post')
+      console.error('❌ [PostCreator] Error creating post:', error)
+      alert('Failed to create post: ' + (error as Error).message)
     } finally {
       setIsSubmitting(false)
     }
@@ -208,7 +243,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
     setUploadedFile(null)
   }
 
-  const toggleTopic = (topicId: number) => {
+  const toggleTopic = (topicId: string) => {
     setSelectedTopics(prev =>
       prev.includes(topicId)
         ? prev.filter(id => id !== topicId)
@@ -474,7 +509,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {topic.icon} {topic.topic_name}
+                  {topic.icon} {topic.topicName}
                 </button>
               ))}
             </div>

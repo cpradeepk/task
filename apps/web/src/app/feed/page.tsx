@@ -46,7 +46,7 @@ async function executeGraphQLMutation(mutation: string, variables: any = {}) {
 export default function FeedPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null)
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null)
   const [posts, setPosts] = useState<any[]>([])
   const [isLoadingPosts, setIsLoadingPosts] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -100,7 +100,7 @@ export default function FeedPage() {
       })
 
       const data = await executeGraphQLQuery(QUERIES.GET_FEED_POSTS, {
-        topicId: selectedTopicId ? selectedTopicId.toString() : null,
+        topicId: selectedTopicId || null,
         status: 'published', // Only show published posts
         search: searchQuery || null,
         limit: 20,

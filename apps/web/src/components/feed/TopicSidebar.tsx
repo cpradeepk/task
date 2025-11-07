@@ -2,22 +2,39 @@
 
 import { useEffect, useState } from 'react'
 import { Hash, Lock, Bookmark } from 'lucide-react'
+import { QUERIES } from '@/lib/graphql-queries'
+
+// Helper function to execute GraphQL queries
+async function executeGraphQLQuery(query: string, variables: any = {}) {
+  const response = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+
+  const result = await response.json()
+  if (result.errors) {
+    console.error('GraphQL errors:', result.errors)
+    throw new Error(result.errors[0]?.message || 'GraphQL query failed')
+  }
+  return result.data
+}
 
 interface Topic {
-  id: number
-  topic_name: string
+  id: string
+  topicName: string
   description: string | null
   icon: string | null
-  display_order: number
-  is_personal: number
-  is_saved: number
-  owner_user_id: string | null
-  postCount: number
+  displayOrder: number
+  isPersonal: boolean
+  isSaved: boolean
+  ownerUserId: string | null
+  postCount?: number
 }
 
 interface TopicSidebarProps {
-  selectedTopicId: number | null
-  onSelectTopic: (topicId: number | null) => void
+  selectedTopicId: string | null
+  onSelectTopic: (topicId: string | null) => void
 }
 
 export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSidebarProps) {
@@ -30,23 +47,24 @@ export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSi
 
   const fetchTopics = async () => {
     try {
-      const response = await fetch('/api/feed/topics?includePersonal=true')
-      const data = await response.json()
-      if (data.success) {
-        setTopics(data.data)
-      }
+      console.log('🔵 [TopicSidebar] Fetching topics via GraphQL...')
+      const data = await executeGraphQLQuery(QUERIES.GET_FEED_TOPICS, {
+        includePersonal: true
+      })
+      setTopics(data.feedTopics)
+      console.log('✅ [TopicSidebar] Topics fetched successfully:', data.feedTopics.length)
     } catch (error) {
-      console.error('Error fetching topics:', error)
+      console.error('❌ [TopicSidebar] Error fetching topics:', error)
     } finally {
       setIsLoading(false)
     }
   }
 
   const getTopicIcon = (topic: Topic) => {
-    if (topic.is_personal === 1) {
+    if (topic.isPersonal) {
       return <Lock className="w-4 h-4 text-gray-500" />
     }
-    if (topic.is_saved === 1) {
+    if (topic.isSaved) {
       return <Bookmark className="w-4 h-4 text-yellow-500" />
     }
     if (topic.icon) {
@@ -86,7 +104,7 @@ export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSi
           <span>All Posts</span>
         </div>
         <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-          {topics.reduce((sum, t) => sum + t.postCount, 0)}
+          {topics.reduce((sum, t) => sum + (t.postCount || 0), 0)}
         </span>
       </button>
 
@@ -94,7 +112,7 @@ export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSi
         {/* Public Topics */}
         <div className="space-y-1">
           {topics
-            .filter((t) => !t.is_personal && !t.is_saved)
+            .filter((t) => !t.isPersonal && !t.isSaved)
             .map((topic) => (
               <button
                 key={topic.id}
@@ -107,9 +125,9 @@ export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSi
               >
                 <div className="flex items-center gap-2">
                   {getTopicIcon(topic)}
-                  <span className="text-sm">{topic.topic_name}</span>
+                  <span className="text-sm">{topic.topicName}</span>
                 </div>
-                {topic.postCount > 0 && (
+                {topic.postCount && topic.postCount > 0 && (
                   <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
                     {topic.postCount}
                   </span>
@@ -119,14 +137,14 @@ export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSi
         </div>
 
         {/* Personal Topics */}
-        {topics.some((t) => t.is_personal || t.is_saved) && (
+        {topics.some((t) => t.isPersonal || t.isSaved) && (
           <>
             <div className="border-t my-2 pt-2">
               <p className="text-xs font-semibold text-gray-500 uppercase px-3 mb-1">Personal</p>
             </div>
             <div className="space-y-1">
               {topics
-                .filter((t) => t.is_personal || t.is_saved)
+                .filter((t) => t.isPersonal || t.isSaved)
                 .map((topic) => (
                   <button
                     key={topic.id}
@@ -139,9 +157,9 @@ export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSi
                   >
                     <div className="flex items-center gap-2">
                       {getTopicIcon(topic)}
-                      <span className="text-sm">{topic.topic_name}</span>
+                      <span className="text-sm">{topic.topicName}</span>
                     </div>
-                    {topic.postCount > 0 && (
+                    {topic.postCount && topic.postCount > 0 && (
                       <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
                         {topic.postCount}
                       </span>
