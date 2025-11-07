@@ -22,7 +22,8 @@ import {
   FileText,
   CheckSquare,
   Bug,
-  Trash2
+  Trash2,
+  Rss
 } from 'lucide-react'
 
 export default function Navbar() {
@@ -77,6 +78,7 @@ export default function Navbar() {
           ...baseItems,
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },
           { href: '/bugs', label: 'Development', icon: Bug },
+          { href: '/feed', label: 'Feed', icon: Rss },
           { href: '/my-applications', label: 'Applications', icon: FileText },
           { href: '/profile', label: 'Profile', icon: User }
         ]
@@ -86,6 +88,7 @@ export default function Navbar() {
           ...baseItems,
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },
           { href: '/bugs', label: 'Development', icon: Bug },
+          { href: '/feed', label: 'Feed', icon: Rss },
           { href: '/my-applications', label: 'Applications', icon: FileText },
           { href: '/reports', label: 'Reports', icon: BarChart3 },
           { href: '/profile', label: 'Profile', icon: User }
@@ -96,6 +99,7 @@ export default function Navbar() {
           ...baseItems,
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },
           { href: '/bugs', label: 'Development', icon: Bug },
+          { href: '/feed', label: 'Feed', icon: Rss },
           { href: '/projects', label: 'Projects', icon: Briefcase },
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
           { href: '/master-bugs', label: 'Master Development', icon: Bug },
@@ -111,6 +115,7 @@ export default function Navbar() {
         return [
           ...baseItems,
           { href: '/bugs', label: 'Development', icon: Bug },
+          { href: '/feed', label: 'Feed', icon: Rss },
           { href: '/projects', label: 'Projects', icon: Briefcase },
           { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
           { href: '/master-bugs', label: 'Master Development', icon: Bug },
