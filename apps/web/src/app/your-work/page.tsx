@@ -177,14 +177,14 @@ export default function YourWork() {
 
   if (!currentUser) return null
 
-  if (currentUser.role !== 'employee') {
+  if (currentUser.role !== 'amtariksian') {
     return (
       <div>
         <Navbar />
         <div className="max-w-4xl mx-auto p-6">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-black mb-4">Access Denied</h1>
-            <p className="text-gray-600">This page is only available for employees.</p>
+            <p className="text-gray-600">This page is only available for amtariksians.</p>
           </div>
         </div>
       </div>
