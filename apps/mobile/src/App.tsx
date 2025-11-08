@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { ApolloProvider } from '@apollo/client'
 import { AuthContext } from './contexts/AuthContext'
 import LoginScreen from './screens/LoginScreen'
 import DashboardScreen from './screens/DashboardScreen'
@@ -11,8 +11,11 @@ import CreateBugScreen from './screens/CreateBugScreen'
 import TaskListScreen from './screens/TaskListScreen'
 import TaskDetailsScreen from './screens/TaskDetailsScreen'
 import CreateTaskScreen from './screens/CreateTaskScreen'
+import SettingsScreen from './screens/SettingsScreen'
 import { ActivityIndicator, View } from 'react-native'
-import { buildApiUrl, API_ENDPOINTS } from './config/api'
+import { apolloClient } from './config/apollo'
+import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
+import { LOGIN_MUTATION } from './config/graphql-queries'
 
 const Stack = createNativeStackNavigator()
 
@@ -51,7 +54,8 @@ export default function App() {
     const bootstrapAsync = async () => {
       let userToken
       try {
-        userToken = await AsyncStorage.getItem('userToken')
+        // Use SecureStore instead of AsyncStorage for token
+        userToken = await getUserToken()
       } catch (e) {
         console.error('Failed to restore token', e)
       }
@@ -66,28 +70,46 @@ export default function App() {
     () => ({
       signIn: async (employeeId: string, password: string) => {
         try {
-          const response = await fetch(buildApiUrl(API_ENDPOINTS.LOGIN), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ employeeId, password }),
+          // Use GraphQL mutation for login
+          const result = await apolloClient.mutate({
+            mutation: LOGIN_MUTATION,
+            variables: { employeeId, password },
           })
 
-          const data = await response.json()
-          if (data.token) {
-            await AsyncStorage.setItem('userToken', data.token)
-            await AsyncStorage.setItem('user', JSON.stringify(data.data))
-            dispatch({ type: 'SIGN_IN', payload: data.token })
-            return { success: true }
+          if (result.data?.login?.token) {
+            const { token, user } = result.data.login
+
+            // Save token and user data to SecureStore
+            await saveUserToken(token)
+            await saveUserData(user)
+
+            dispatch({ type: 'SIGN_IN', payload: token })
+            return { success: true, user }
           }
-          return { success: false, error: data.error }
-        } catch (error) {
-          return { success: false, error: 'Network error' }
+
+          return { success: false, error: 'Invalid credentials' }
+        } catch (error: any) {
+          console.error('Login error:', error)
+          return {
+            success: false,
+            error: error.message || 'Network error. Please check your connection.'
+          }
         }
       },
       signOut: async () => {
-        await AsyncStorage.removeItem('userToken')
-        await AsyncStorage.removeItem('user')
-        dispatch({ type: 'SIGN_OUT' })
+        try {
+          // Clear all secure data
+          await clearSecureData()
+
+          // Clear Apollo Client cache
+          await apolloClient.clearStore()
+
+          dispatch({ type: 'SIGN_OUT' })
+        } catch (error) {
+          console.error('Logout error:', error)
+          // Still dispatch sign out even if cleanup fails
+          dispatch({ type: 'SIGN_OUT' })
+        }
       },
       signUp: async () => {
         // Not implemented yet
@@ -105,78 +127,87 @@ export default function App() {
   }
 
   return (
-    <AuthContext.Provider value={authContext}>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: true,
-            animationEnabled: true,
-          }}
-        >
-          {state.userToken == null ? (
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{
-                headerShown: false,
-                animationEnabled: false,
-              }}
-            />
-          ) : (
-            <>
+    <ApolloProvider client={apolloClient}>
+      <AuthContext.Provider value={authContext}>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: true,
+              animationEnabled: true,
+            }}
+          >
+            {state.userToken == null ? (
               <Stack.Screen
-                name="Dashboard"
-                component={DashboardScreen}
+                name="Login"
+                component={LoginScreen}
                 options={{
-                  headerTitle: 'JSR Task Management',
+                  headerShown: false,
+                  animationEnabled: false,
                 }}
               />
-              <Stack.Screen
-                name="BugList"
-                component={BugListScreen}
-                options={{
-                  headerTitle: 'Bugs',
-                }}
-              />
-              <Stack.Screen
-                name="BugDetails"
-                component={BugDetailsScreen}
-                options={{
-                  headerTitle: 'Bug Details',
-                }}
-              />
-              <Stack.Screen
-                name="CreateBug"
-                component={CreateBugScreen}
-                options={{
-                  headerTitle: 'Create Bug',
-                }}
-              />
-              <Stack.Screen
-                name="TaskList"
-                component={TaskListScreen}
-                options={{
-                  headerTitle: 'Tasks',
-                }}
-              />
-              <Stack.Screen
-                name="TaskDetails"
-                component={TaskDetailsScreen}
-                options={{
-                  headerTitle: 'Task Details',
-                }}
-              />
-              <Stack.Screen
-                name="CreateTask"
-                component={CreateTaskScreen}
-                options={{
-                  headerTitle: 'Create Task',
-                }}
-              />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthContext.Provider>
+            ) : (
+              <>
+                <Stack.Screen
+                  name="Dashboard"
+                  component={DashboardScreen}
+                  options={{
+                    headerTitle: 'JSR Task Management',
+                  }}
+                />
+                <Stack.Screen
+                  name="BugList"
+                  component={BugListScreen}
+                  options={{
+                    headerTitle: 'Bugs',
+                  }}
+                />
+                <Stack.Screen
+                  name="BugDetails"
+                  component={BugDetailsScreen}
+                  options={{
+                    headerTitle: 'Bug Details',
+                  }}
+                />
+                <Stack.Screen
+                  name="CreateBug"
+                  component={CreateBugScreen}
+                  options={{
+                    headerTitle: 'Create Bug',
+                  }}
+                />
+                <Stack.Screen
+                  name="TaskList"
+                  component={TaskListScreen}
+                  options={{
+                    headerTitle: 'Tasks',
+                  }}
+                />
+                <Stack.Screen
+                  name="TaskDetails"
+                  component={TaskDetailsScreen}
+                  options={{
+                    headerTitle: 'Task Details',
+                  }}
+                />
+                <Stack.Screen
+                  name="CreateTask"
+                  component={CreateTaskScreen}
+                  options={{
+                    headerTitle: 'Create Task',
+                  }}
+                />
+                <Stack.Screen
+                  name="Settings"
+                  component={SettingsScreen}
+                  options={{
+                    headerTitle: 'Settings',
+                  }}
+                />
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthContext.Provider>
+    </ApolloProvider>
   )
 }
