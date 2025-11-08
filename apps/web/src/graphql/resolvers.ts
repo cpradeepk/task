@@ -1401,7 +1401,19 @@ export const resolvers = {
 
     // Bug mutations
     createBug: async (_: any, { input }: any) => {
-      const bugId = `BUG-${Date.now()}`
+      // ✅ UPDATED: Generate sequential bug ID with DEV- prefix
+      // Get latest bug ID from database to continue numbering
+      const latestBugResult = await getPoolInstance().query(
+        `SELECT bug_id FROM bugs
+         WHERE deleted_at IS NULL
+         ORDER BY created_at DESC
+         LIMIT 1`
+      )
+      const latestBugId = latestBugResult.rows[0]?.bug_id
+
+      // Import generateSequentialBugId function
+      const { generateSequentialBugId } = await import('@/lib/data')
+      const bugId = generateSequentialBugId(latestBugId)
 
       // ✅ FIXED: Use snake_case column names for PostgreSQL
       await getPoolInstance().query(

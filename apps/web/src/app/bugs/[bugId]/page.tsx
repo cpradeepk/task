@@ -24,6 +24,7 @@ import RelatedItemsManager from '@/components/relationships/RelatedItemsManager'
 import SubtasksList from '@/components/subtasks/SubtasksList'
 import SubtaskBreadcrumb from '@/components/subtasks/SubtaskBreadcrumb'
 import { QUERIES } from '@/lib/graphql-queries'
+import { getBugDisplayId } from '@/lib/data'
 import {
   Bug as BugIcon,
   MessageSquare,
@@ -815,7 +816,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             <div>
               <h1 className="text-2xl font-bold text-black flex items-center space-x-2">
                 <BugIcon className="h-6 w-6" />
-                <span>{bug.bugId}</span>
+                <span>{getBugDisplayId(bug.bugId, bug.type)}</span>
                 {projectName && (
                   <>
                     <span className="text-gray-400">-</span>
@@ -962,7 +963,9 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Steps to Reproduce</h3>
+                  <h3 className="font-medium text-gray-900 mb-2">
+                    {bug.type === 'feature' ? 'Feature Description' : 'Steps to Reproduce'}
+                  </h3>
                   <p className="text-gray-700 whitespace-pre-wrap">{bug.description}</p>
                 </div>
 
@@ -973,21 +976,22 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   </div>
                 )}
 
-                {bug.actualBehavior && (
+                {/* Hide these fields for feature-type bugs */}
+                {bug.type !== 'feature' && bug.actualBehavior && (
                   <div>
                     <h3 className="font-medium text-gray-900 mb-2">Actual Behavior</h3>
                     <p className="text-gray-700 whitespace-pre-wrap">{bug.actualBehavior}</p>
                   </div>
                 )}
 
-                {bug.serverLogs && (
+                {bug.type !== 'feature' && bug.serverLogs && (
                   <div>
                     <h3 className="font-medium text-gray-900 mb-2">Server Logs</h3>
                     <pre className="text-gray-700 whitespace-pre-wrap font-mono text-sm bg-gray-50 p-4 rounded-lg overflow-x-auto">{bug.serverLogs}</pre>
                   </div>
                 )}
 
-                {bug.frontendLogs && (
+                {bug.type !== 'feature' && bug.frontendLogs && (
                   <div>
                     <h3 className="font-medium text-gray-900 mb-2">Frontend Logs</h3>
                     <pre className="text-gray-700 whitespace-pre-wrap font-mono text-sm bg-gray-50 p-4 rounded-lg overflow-x-auto">{bug.frontendLogs}</pre>

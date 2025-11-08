@@ -72,43 +72,83 @@ export function generateId(): string {
 
 /**
  * Generate sequential alphanumeric Bug ID
- * Format: BUG-0001, BUG-0002, ..., BUG-9999, BUG-A001, BUG-A002, etc.
+ * Format: DEV-0001, DEV-0002, ..., DEV-9999, DEV-A001, DEV-A002, etc.
+ *
+ * ✅ UPDATED: Changed prefix from BUG- to DEV- for new bugs
+ * ✅ Continues numbering from existing bugs (BUG-0025 → DEV-0026)
+ * ✅ Supports alphanumeric expansion when reaching 9999
  *
  * This function should be called from the API route which will fetch the
  * latest bug ID from the database to ensure uniqueness.
  *
- * @param lastBugId - The last bug ID from the database (e.g., "BUG-0001")
- * @returns {string} Next sequential bug ID (e.g., "BUG-0002")
+ * @param lastBugId - The last bug ID from the database (e.g., "BUG-0025" or "DEV-0030")
+ * @returns {string} Next sequential bug ID with DEV- prefix (e.g., "DEV-0026")
  */
 export function generateSequentialBugId(lastBugId?: string): string {
   if (!lastBugId) {
-    return 'BUG-0001'
+    return 'DEV-0001'
   }
 
-  // Extract the numeric/alphanumeric part after "BUG-"
-  const idPart = lastBugId.replace('BUG-', '')
+  // Extract the numeric/alphanumeric part after "BUG-" or "DEV-"
+  const idPart = lastBugId.replace(/^(BUG-|DEV-)/, '')
 
-  // Try to parse as number first (for IDs like BUG-0001)
+  // Try to parse as number first (for IDs like BUG-0001 or DEV-0001)
   const numericValue = parseInt(idPart, 10)
 
   if (!isNaN(numericValue)) {
     // Increment the number
     const nextNumber = numericValue + 1
-    // Pad with zeros to 4 digits
-    return `BUG-${nextNumber.toString().padStart(4, '0')}`
+
+    // If we've reached 9999, switch to alphanumeric (DEV-A001)
+    if (nextNumber > 9999) {
+      return 'DEV-A001'
+    }
+
+    // Pad with zeros to 4 digits and use DEV- prefix
+    return `DEV-${nextNumber.toString().padStart(4, '0')}`
   }
 
-  // If it's alphanumeric (like BUG-A001), increment accordingly
+  // If it's alphanumeric (like DEV-A001), increment accordingly
   const match = idPart.match(/^([A-Z]+)(\d+)$/)
   if (match) {
     const prefix = match[1]
     const number = parseInt(match[2], 10)
     const nextNumber = number + 1
-    return `BUG-${prefix}${nextNumber.toString().padStart(3, '0')}`
+
+    // If we've reached 999 in current letter, move to next letter
+    if (nextNumber > 999) {
+      const nextPrefix = incrementAlphaPrefix(prefix)
+      return `DEV-${nextPrefix}001`
+    }
+
+    return `DEV-${prefix}${nextNumber.toString().padStart(3, '0')}`
   }
 
   // Fallback: just increment by 1
-  return `BUG-${(parseInt(idPart) + 1).toString().padStart(4, '0')}`
+  return `DEV-${(parseInt(idPart) + 1).toString().padStart(4, '0')}`
+}
+
+/**
+ * Helper function to increment alphabetic prefix (A → B, Z → AA, AZ → BA, etc.)
+ */
+function incrementAlphaPrefix(prefix: string): string {
+  const chars = prefix.split('')
+  let carry = true
+
+  for (let i = chars.length - 1; i >= 0 && carry; i--) {
+    if (chars[i] === 'Z') {
+      chars[i] = 'A'
+    } else {
+      chars[i] = String.fromCharCode(chars[i].charCodeAt(0) + 1)
+      carry = false
+    }
+  }
+
+  if (carry) {
+    chars.unshift('A')
+  }
+
+  return chars.join('')
 }
 
 // Legacy function - kept for backward compatibility during migration
@@ -140,6 +180,27 @@ export function generateBugId(): string {
   const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
   const uniqueCounter = bugCounter.toString().padStart(3, '0')
   return `BUG-${timestamp}${uniqueCounter}${random}`
+}
+
+/**
+ * Get display ID for a bug (adds FT- prefix for feature-type bugs)
+ *
+ * @param bugId - The database bug ID (e.g., "BUG-0005" or "DEV-0010")
+ * @param bugType - The bug type (e.g., "feature", "testcase", null)
+ * @returns {string} Display ID (e.g., "FT-BUG-0005" for features, "BUG-0005" for others)
+ *
+ * Examples:
+ * - getBugDisplayId("BUG-0005", "testcase") → "BUG-0005"
+ * - getBugDisplayId("BUG-0005", "feature") → "FT-BUG-0005"
+ * - getBugDisplayId("DEV-0010", "testcase") → "DEV-0010"
+ * - getBugDisplayId("DEV-0010", "feature") → "FT-DEV-0010"
+ * - getBugDisplayId("DEV-0010", null) → "DEV-0010"
+ */
+export function getBugDisplayId(bugId: string, bugType?: string | null): string {
+  if (bugType === 'feature') {
+    return `FT-${bugId}`
+  }
+  return bugId
 }
 
 // Task utility functions

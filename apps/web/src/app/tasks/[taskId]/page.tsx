@@ -206,8 +206,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
       try {
         console.log('🔵 [Task Detail] Attempting GraphQL query for task:', taskId)
         const data = await executeGraphQLQuery(QUERIES.GET_TASK, { taskId })
-        taskData = data.tasks?.[0] || null
-        console.log('✅ [Task Detail] GraphQL query successful')
+        taskData = data.task || null  // ✅ FIXED: GET_TASK returns 'task' (singular), not 'tasks' (plural)
+        console.log('✅ [Task Detail] GraphQL query successful:', taskData ? 'Task found' : 'Task not found')
       } catch (graphqlError) {
         console.warn('⚠️ [Task Detail] GraphQL failed, falling back to REST:', graphqlError)
 

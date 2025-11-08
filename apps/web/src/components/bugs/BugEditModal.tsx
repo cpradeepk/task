@@ -5,6 +5,7 @@ import { Bug } from '@/lib/types'
 import { X, Save, FileText, AlertTriangle, Tag, Monitor, Globe, Clock, FolderTree } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useSettingsIcons } from '@/hooks/useSettingsIcons'
+import { getBugDisplayId } from '@/lib/data'
 
 interface BugEditModalProps {
   bug: Bug | null
@@ -233,7 +234,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Edit Bug</h2>
-            <p className="text-sm text-gray-500 mt-1">{bug.bugId}</p>
+            <p className="text-sm text-gray-500 mt-1">{getBugDisplayId(bug.bugId, bug.type)}</p>
           </div>
           <button
             onClick={onClose}
@@ -316,10 +317,10 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
             <p className="text-xs text-gray-500">Specify which feature this bug is related to</p>
           </div>
 
-          {/* Steps to Reproduce (renamed from Description) */}
+          {/* Steps to Reproduce / Feature Description */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              Steps to Reproduce <span className="text-red-500">*</span>
+              {formData.type === 'feature' ? 'Feature Description' : 'Steps to Reproduce'} <span className="text-red-500">*</span>
             </label>
             <textarea
               value={formData.description || ''}
@@ -327,7 +328,9 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
               rows={3}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Please provide step-by-step instructions:&#10;1. Go to...&#10;2. Click on...&#10;3. Observe the error..."
+              placeholder={formData.type === 'feature'
+                ? "Describe the feature in detail..."
+                : "Please provide step-by-step instructions:&#10;1. Go to...&#10;2. Click on...&#10;3. Observe the error..."}
             />
           </div>
 
@@ -484,61 +487,66 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
             </div>
           </div>
 
-          {/* Expected vs Actual Behavior */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Expected Behavior
-              </label>
-              <textarea
-                value={formData.expectedBehavior || ''}
-                onChange={(e) => setFormData({ ...formData, expectedBehavior: e.target.value })}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="What should happen..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Actual Behavior
-              </label>
-              <textarea
-                value={formData.actualBehavior || ''}
-                onChange={(e) => setFormData({ ...formData, actualBehavior: e.target.value })}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="What actually happens..."
-              />
-            </div>
-          </div>
+          {/* Hide these fields for feature-type bugs */}
+          {formData.type !== 'feature' && (
+            <>
+              {/* Expected vs Actual Behavior */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Expected Behavior
+                  </label>
+                  <textarea
+                    value={formData.expectedBehavior || ''}
+                    onChange={(e) => setFormData({ ...formData, expectedBehavior: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="What should happen..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Actual Behavior
+                  </label>
+                  <textarea
+                    value={formData.actualBehavior || ''}
+                    onChange={(e) => setFormData({ ...formData, actualBehavior: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="What actually happens..."
+                  />
+                </div>
+              </div>
 
-          {/* Server Logs and Frontend Logs */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Server Logs
-              </label>
-              <textarea
-                value={formData.serverLogs || ''}
-                onChange={(e) => setFormData({ ...formData, serverLogs: e.target.value })}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
-                placeholder="Server-side logs, stack traces, or error messages..."
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Frontend Logs
-              </label>
-              <textarea
-                value={formData.frontendLogs || ''}
-                onChange={(e) => setFormData({ ...formData, frontendLogs: e.target.value })}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
-                placeholder="Browser console logs, JavaScript errors, or network errors..."
-              />
-            </div>
-          </div>
+              {/* Server Logs and Frontend Logs */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Server Logs
+                  </label>
+                  <textarea
+                    value={formData.serverLogs || ''}
+                    onChange={(e) => setFormData({ ...formData, serverLogs: e.target.value })}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
+                    placeholder="Server-side logs, stack traces, or error messages..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Frontend Logs
+                  </label>
+                  <textarea
+                    value={formData.frontendLogs || ''}
+                    onChange={(e) => setFormData({ ...formData, frontendLogs: e.target.value })}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
+                    placeholder="Browser console logs, JavaScript errors, or network errors..."
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Development Prompt */}
           <div className="space-y-2">

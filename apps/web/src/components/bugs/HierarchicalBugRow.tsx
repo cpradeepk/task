@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Bug } from '@/lib/types'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import TimerButton from '@/components/TimerButton'
+import { getBugDisplayId } from '@/lib/data'
 
 interface HierarchicalBugRowProps {
   bug: Bug
@@ -105,9 +106,9 @@ export default function HierarchicalBugRow({
                   )}
                 </button>
               )}
-              
+
               <span className="font-mono text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-lg font-medium">
-                {bug.bugId}
+                {getBugDisplayId(bug.bugId, bug.type)}
               </span>
               <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(bug.priority)}`}>
                 {bug.priority}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Task, Bug } from '@/lib/types'
-import { formatDate, getStatusColor, getPriorityColor, isTaskOwner, isTaskSupporter } from '@/lib/data'
+import { formatDate, getStatusColor, getPriorityColor, isTaskOwner, isTaskSupporter, getBugDisplayId } from '@/lib/data'
 import { getUserNameByEmployeeId, getCurrentUser } from '@/lib/auth'
 import { useSettings } from '@/contexts/SettingsContext'
 import {
@@ -510,7 +510,7 @@ export default function UnifiedWorkItemsList({
                           }}
                           className="font-mono text-sm text-primary font-medium hover:underline cursor-pointer"
                         >
-                          {bug.bugId}
+                          {getBugDisplayId(bug.bugId, bug.type)}
                         </button>
 
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBugSeverityColor(bug.severity)}`}>

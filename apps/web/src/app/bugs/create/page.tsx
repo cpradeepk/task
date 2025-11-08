@@ -745,7 +745,7 @@ function CreateBugPageContent() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Steps to Reproduce <span className="text-red-500">*</span>
+                    {formData.type === 'feature' ? 'Feature Description' : 'Steps to Reproduce'} <span className="text-red-500">*</span>
                     {missingFields.includes('description') && (
                       <span className="text-red-500 text-xs ml-2">Required</span>
                     )}
@@ -756,71 +756,78 @@ function CreateBugPageContent() {
                     onChange={handleInputChange}
                     rows={4}
                     className={getFieldClass('description', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical')}
-                    placeholder="Please provide step-by-step instructions:&#10;1. Go to the login page&#10;2. Enter invalid credentials&#10;3. Click 'Sign In' button&#10;4. Observe the error"
+                    placeholder={formData.type === 'feature'
+                      ? "Describe the feature in detail:&#10;- What is the purpose of this feature?&#10;- What functionality should it provide?&#10;- Any specific requirements or constraints?"
+                      : "Please provide step-by-step instructions:&#10;1. Go to the login page&#10;2. Enter invalid credentials&#10;3. Click 'Sign In' button&#10;4. Observe the error"}
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Expected Behavior
-                    </label>
-                    <textarea
-                      name="expectedBehavior"
-                      value={formData.expectedBehavior}
-                      onChange={handleInputChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
-                      placeholder="What should happen? Describe the expected outcome..."
-                    />
-                  </div>
+                {/* Hide these fields for feature-type bugs */}
+                {formData.type !== 'feature' && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Expected Behavior
+                        </label>
+                        <textarea
+                          name="expectedBehavior"
+                          value={formData.expectedBehavior}
+                          onChange={handleInputChange}
+                          rows={3}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
+                          placeholder="What should happen? Describe the expected outcome..."
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Actual Behavior
-                    </label>
-                    <textarea
-                      name="actualBehavior"
-                      value={formData.actualBehavior}
-                      onChange={handleInputChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
-                      placeholder="What actually happened? Describe what went wrong..."
-                    />
-                  </div>
-                </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Actual Behavior
+                        </label>
+                        <textarea
+                          name="actualBehavior"
+                          value={formData.actualBehavior}
+                          onChange={handleInputChange}
+                          rows={3}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
+                          placeholder="What actually happened? Describe what went wrong..."
+                        />
+                      </div>
+                    </div>
 
-                {/* Server Logs and Frontend Logs */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Server Logs
-                    </label>
-                    <textarea
-                      name="serverLogs"
-                      value={formData.serverLogs}
-                      onChange={handleInputChange}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical font-mono text-sm"
-                      placeholder="Paste server-side logs, stack traces, or error messages..."
-                    />
-                  </div>
+                    {/* Server Logs and Frontend Logs */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Server Logs
+                        </label>
+                        <textarea
+                          name="serverLogs"
+                          value={formData.serverLogs}
+                          onChange={handleInputChange}
+                          rows={4}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical font-mono text-sm"
+                          placeholder="Paste server-side logs, stack traces, or error messages..."
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Frontend Logs
-                    </label>
-                    <textarea
-                      name="frontendLogs"
-                      value={formData.frontendLogs}
-                      onChange={handleInputChange}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical font-mono text-sm"
-                      placeholder="Paste browser console logs, JavaScript errors, or network errors..."
-                    />
-                  </div>
-                </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Frontend Logs
+                        </label>
+                        <textarea
+                          name="frontendLogs"
+                          value={formData.frontendLogs}
+                          onChange={handleInputChange}
+                          rows={4}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical font-mono text-sm"
+                          placeholder="Paste browser console logs, JavaScript errors, or network errors..."
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
 
               </div>
             </div>
