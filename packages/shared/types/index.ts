@@ -39,10 +39,12 @@ export interface User {
   managerId?: string        // Optional: Manager's employee ID
   isTodayTask: boolean      // Whether user has tasks for today
   warningCount: number      // Number of warnings received (for performance tracking)
-  role: 'employee' | 'management' | 'top_management' | 'admin'  // User role (determines permissions)
+  role: 'amtarikshian' | 'management' | 'top_management' | 'admin'  // User role (determines permissions)
   password: string          // Hashed password (never store plain text!)
   status: 'active' | 'inactive'  // Account status
+  isSystemAdmin?: number    // Optional: 1 if user is system admin (cannot be deleted/deactivated), 0 or undefined otherwise
   hoursLog?: string         // Optional: Hours worked log (format: 'DD/MM/YYYY - X Hours worked today')
+  idCardPhoto?: string      // Optional: AWS S3 URL for employee ID card photo
   createdAt: string         // Timestamp when user was created
   updatedAt: string         // Timestamp when user was last updated
 }
@@ -74,11 +76,12 @@ export interface User {
  */
 export interface Task {
   id: string                // Internal database ID (auto-increment)
-  taskId: string            // Unique task ID (e.g., "JSR-1735123456789001234")
+  taskId: string            // Unique task ID (e.g., "JSR-0016")
   selectType: 'Normal' | 'Recursive'  // Normal = one-time, Recursive = repeating
   recursiveType?: 'Daily' | 'Weekly' | 'Monthly' | 'Annually'  // Only for recursive tasks
-  description: string       // Task description/details
-  assignedTo: string        // Employee ID of task owner (who will do the task)
+  name: string              // Task name/title (short, for list display) - VARCHAR(150)
+  description: string       // Task description/details (full details)
+  assignedTo: string[]      // Array of employee IDs who are assigned to this task (multiple assignees supported)
   assignedBy: string        // Employee ID of task creator (who assigned the task)
   support: string[]         // Array of employee IDs who can help with this task
   startDate: string         // Task start date (ISO format: YYYY-MM-DD)
@@ -92,6 +95,10 @@ export interface Task {
   difficulties?: string     // Optional: Challenges faced during task execution
   relatedTasks?: string | null // Optional: Comma-separated task IDs for multi-user assignments
   projectId?: string | null // Optional: Project ID this task belongs to (e.g., "PRJ-001")
+  subprojectId?: string | null // Optional: Subproject ID this task belongs to (e.g., "PRJ-001-SUB-001")
+  parentTaskId?: string | null // Optional: Parent task ID for subtasks (e.g., "JSR-0001")
+  department?: string | null // Optional: Department this task belongs to (e.g., "Marketing", "Development")
+  timerState?: string | null // Optional: Timer state (JSON string)
   deletedAt?: string | null // Optional: Soft delete timestamp
   deletedBy?: string | null // Optional: Employee ID who deleted the task
   createdAt: string         // Timestamp when task was created
@@ -231,9 +238,9 @@ export interface TeamTaskReport {
  * Reopened → In Progress → Resolved → Closed
  */
 export interface Bug {
-  bugId: string             // Unique bug ID (e.g., "BUG-1735123456789001234")
+  bugId: string             // Unique bug ID (e.g., "DEV-0001", "FT-DEV-0001" for features)
   title: string             // Bug title/summary
-  description: string       // Detailed bug description
+  description: string       // Detailed bug description (or "Feature Description" for feature-type bugs)
   severity: 'Critical' | 'Major' | 'Minor'  // How serious is the bug?
   priority: 'High' | 'Medium' | 'Low'       // How urgent is the fix?
   status: 'New' | 'In Progress' | 'Resolved' | 'Closed' | 'Reopened'  // Current bug status
@@ -245,9 +252,11 @@ export interface Bug {
   environment: 'Development' | 'Staging' | 'Production'  // Where was the bug found?
   browserInfo?: string      // Optional: Browser details (e.g., "Chrome 120.0.0")
   deviceInfo?: string       // Optional: Device details (e.g., "iPhone 15 Pro, iOS 17.2")
-  stepsToReproduce?: string // Optional: How to reproduce the bug
+  stepsToReproduce?: string // Optional: How to reproduce the bug (or "Feature Description" for feature-type bugs)
   expectedBehavior?: string // Optional: What should happen
-  actualBehavior?: string   // Optional: What actually happens
+  actualBehavior?: string   // Optional: What actually happens (hidden for feature-type bugs)
+  serverLogs?: string       // Optional: Server logs (hidden for feature-type bugs)
+  frontendLogs?: string     // Optional: Frontend logs (hidden for feature-type bugs)
   attachments?: string      // Optional: URL or file path to screenshots/videos
   estimatedHours?: number   // Optional: Estimated time to fix (in hours)
   actualHours?: number      // Optional: Actual time spent fixing (in hours)
@@ -257,12 +266,48 @@ export interface Bug {
   tags?: string             // Optional: Comma-separated tags (e.g., "login,authentication")
   relatedBugs?: string      // Optional: Comma-separated related bug IDs
   projectId?: string | null // Optional: Project ID this bug belongs to (e.g., "PRJ-001")
+  subprojectId?: string | null // Optional: Subproject ID this bug belongs to
   feature?: string | null   // Optional: Feature name this bug is related to
-  type?: 'testcase' | 'feature' | 'other' | null  // Optional: Bug type categorization
+  type?: 'testcase' | 'feature' | null  // Optional: Bug type categorization (feature shows FT- prefix)
+  parentDevId?: string | null // Optional: Parent development ID for sub-bugs
+  timerState?: string | null // Optional: Timer state (JSON string)
+  timerStartTime?: string | null // Optional: Timer start timestamp
+  timerPausedTime?: number | null // Optional: Timer paused time in seconds
+  timerTotalTime?: number | null // Optional: Timer total time in seconds
+  timerSessions?: string | null // Optional: Timer sessions (JSON string)
   deletedAt?: string | null // Optional: Soft delete timestamp
   deletedBy?: string | null // Optional: Employee ID who deleted the bug
   createdAt: string         // Timestamp when bug was created
   updatedAt: string         // Timestamp when bug was last updated
+}
+
+/**
+ * BugSubTask Interface
+ *
+ * Represents a subtask within a parent bug.
+ * Similar to task subtasks but for bugs.
+ */
+export interface BugSubTask {
+  id: number                // Database ID (auto-increment)
+  subTaskId: string         // Unique subtask ID
+  parentBugId: string       // Parent bug ID (e.g., "DEV-001")
+  description: string       // Subtask description
+  assignedTo?: string | null // Optional: Employee ID of subtask owner
+  assignedBy?: string | null // Optional: Employee ID who assigned the subtask
+  startDate?: string | null // Optional: Subtask start date
+  endDate?: string | null   // Optional: Subtask end date
+  priority?: string | null  // Optional: Subtask priority
+  estimatedHours?: number | null // Optional: Estimated time (in hours)
+  actualHours?: number | null // Optional: Actual time spent (in hours)
+  status: 'Not Started' | 'In Progress' | 'Completed'  // Subtask status
+  remarks?: string | null   // Optional: Additional notes
+  isCompleted: boolean      // Checkbox state (true = checked)
+  displayOrder: number      // Order for display (0, 1, 2, ...) - allows drag-and-drop
+  createdAt: string         // Timestamp when subtask was created
+  updatedAt: string         // Timestamp when subtask was last updated
+  createdBy: string         // Employee ID who created the subtask
+  deletedAt?: string | null // Optional: Soft delete timestamp
+  deletedBy?: string | null // Optional: Employee ID who deleted the subtask
 }
 
 export interface BugComment {
@@ -352,4 +397,158 @@ export interface WorkItem {
   projectName?: string | null  // Project name for display
   severity?: string         // Only for bugs
   createdAt: string         // Creation timestamp
+}
+
+// ============================================================================
+// FEED SYSTEM TYPES
+// ============================================================================
+
+/**
+ * FeedTopic Interface
+ *
+ * Represents a topic/category in the feed system.
+ * Topics can be public (visible to all) or personal (visible only to owner).
+ *
+ * Special Topics:
+ * - Personal Notes: isPersonal=true, ownerUserId=user's employeeId
+ * - Saved Posts: isSaved=true, ownerUserId=user's employeeId
+ */
+export interface FeedTopic {
+  id: string                // Topic ID (database auto-increment)
+  topicName: string         // Topic name (e.g., "Latest Technologies", "AI")
+  description?: string | null // Optional: Topic description
+  icon?: string | null      // Optional: Emoji or Lucide icon name
+  displayOrder: number      // Order for display (0, 1, 2, ...)
+  isPersonal: boolean       // true for Personal Notes topics
+  isSaved: boolean          // true for Saved Posts topics
+  ownerUserId?: string | null // NULL for public topics, employeeId for personal/saved
+  createdBy: string         // Employee ID of creator
+  createdAt: string         // Timestamp when topic was created
+  postCount?: number        // Optional: Number of posts in this topic
+}
+
+/**
+ * FeedPost Interface
+ *
+ * Represents a post in the feed system.
+ * Posts can contain text, links, PDFs, YouTube videos, images, or videos.
+ *
+ * Content Types:
+ * - text: Plain text post
+ * - link: External link with Open Graph preview
+ * - pdf: PDF file uploaded to S3
+ * - youtube: YouTube video embed
+ * - image: Image uploaded to S3
+ * - video: Video uploaded to S3
+ */
+export interface FeedPost {
+  postId: string            // Unique post ID (e.g., "POST-1735123456789-abc123")
+  contentType: 'text' | 'link' | 'pdf' | 'youtube' | 'image' | 'video'
+  content: string           // Post content (text, URL, or S3 URL)
+  linkUrl?: string | null   // Optional: External link URL
+  linkTitle?: string | null // Optional: Open Graph title
+  linkDescription?: string | null // Optional: Open Graph description
+  linkImage?: string | null // Optional: Open Graph image URL
+  mediaUrls?: string[] | null // Optional: Array of media URLs (for multiple images/videos)
+  createdBy: string         // Employee ID of post author
+  createdAt: string         // Timestamp when post was created
+  updatedAt?: string | null // Optional: Timestamp when post was last updated
+  status: 'published' | 'pending' | 'rejected' // Post status
+  author?: User             // Optional: Author user object (populated via GraphQL)
+  topics?: FeedTopic[]      // Optional: Array of topics this post belongs to
+  reactions?: FeedReaction[] // Optional: Array of reactions on this post
+  comments?: FeedComment[]  // Optional: Array of comments on this post
+  viewCount?: number        // Optional: Number of views
+  commentCount?: number     // Optional: Number of comments
+  isSaved?: boolean         // Optional: Whether current user has saved this post
+  hasUserReacted?: boolean  // Optional: Whether current user has reacted to this post
+}
+
+/**
+ * FeedComment Interface
+ *
+ * Represents a comment on a feed post.
+ * Comments can be top-level or replies to other comments (max 2 levels).
+ */
+export interface FeedComment {
+  commentId: string         // Unique comment ID (e.g., "COMMENT-1735123456789-abc123")
+  postId: string            // Post ID this comment belongs to
+  parentCommentId?: string | null // Optional: Parent comment ID for replies
+  content: string           // Comment text content
+  createdBy: string         // Employee ID of comment author
+  createdAt: string         // Timestamp when comment was created
+  updatedAt?: string | null // Optional: Timestamp when comment was last updated
+  author?: User             // Optional: Author user object (populated via GraphQL)
+  replies?: FeedComment[]   // Optional: Array of reply comments
+}
+
+/**
+ * FeedReaction Interface
+ *
+ * Represents a reaction (emoji) on a feed post.
+ * Multiple users can react with the same emoji.
+ */
+export interface FeedReaction {
+  emoji: string             // Emoji character (e.g., "👍", "❤️", "🎉")
+  users?: User[]            // Optional: Array of users who reacted with this emoji
+  count: number             // Number of users who reacted with this emoji
+  hasUserReacted?: boolean  // Optional: Whether current user has reacted with this emoji
+}
+
+/**
+ * FeedMention Interface
+ *
+ * Represents a mention of a user in a post or comment.
+ * Mentions trigger notifications to the mentioned user.
+ */
+export interface FeedMention {
+  mentionId: string         // Unique mention ID
+  postId?: string | null    // Optional: Post ID where mention occurred
+  commentId?: string | null // Optional: Comment ID where mention occurred
+  mentionedUserId: string   // Employee ID of mentioned user
+  mentionedByUserId: string // Employee ID of user who mentioned
+  mentionText: string       // Mention text (e.g., "@john-doe")
+  contextText?: string | null // Optional: Surrounding text for context
+  isRead: boolean           // Whether mention has been read
+  createdAt: string         // Timestamp when mention was created
+  mentionedUser?: User      // Optional: Mentioned user object
+  mentionedByUser?: User    // Optional: User who mentioned object
+  post?: FeedPost           // Optional: Post object
+  comment?: FeedComment     // Optional: Comment object
+}
+
+/**
+ * FeedNotification Interface
+ *
+ * Represents a notification in the feed system.
+ * Notifications are triggered by mentions, comments, reactions, etc.
+ *
+ * Notification Types:
+ * - mention: User was mentioned in a post or comment
+ * - comment: Someone commented on user's post
+ * - reaction: Someone reacted to user's post
+ * - reply: Someone replied to user's comment
+ * - post_approved: User's post was approved
+ * - post_rejected: User's post was rejected
+ */
+export interface FeedNotification {
+  notificationId: string    // Unique notification ID
+  userId: string            // Employee ID of notification recipient
+  actorId: string           // Employee ID of user who triggered notification
+  notificationType: 'mention' | 'comment' | 'reaction' | 'reply' | 'post_approved' | 'post_rejected'
+  postId?: string | null    // Optional: Related post ID
+  commentId?: string | null // Optional: Related comment ID
+  mentionId?: string | null // Optional: Related mention ID
+  title: string             // Notification title
+  message?: string | null   // Optional: Notification message
+  linkUrl?: string | null   // Optional: Link to related content
+  metadata?: string | null  // Optional: JSON metadata
+  isRead: boolean           // Whether notification has been read
+  readAt?: string | null    // Optional: Timestamp when notification was read
+  createdAt: string         // Timestamp when notification was created
+  user?: User               // Optional: Recipient user object
+  actor?: User              // Optional: Actor user object
+  post?: FeedPost           // Optional: Related post object
+  comment?: FeedComment     // Optional: Related comment object
+  mention?: FeedMention     // Optional: Related mention object
 }

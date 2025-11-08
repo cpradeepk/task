@@ -24307,3 +24307,912 @@ Fetching WFH applications from MySQL
 ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
 
  POST /api/graphql [32m200[39m in 214ms[2m (compile: 5ms, proxy.ts: 3ms, render: 205ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:26:38.418Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 197ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 205ms[2m (compile: 3ms, proxy.ts: 3ms, render: 199ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:27:38.414Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 263ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 270ms[2m (compile: 1510µs, proxy.ts: 3ms, render: 265ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:28:38.416Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 199ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 208ms[2m (compile: 1827µs, proxy.ts: 4ms, render: 202ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:29:38.415Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 270ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 277ms[2m (compile: 2ms, proxy.ts: 1473µs, render: 273ms)[22m
+ GET /tasks [32m200[39m in 150ms[2m (compile: 51ms, render: 99ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T15:29:47.950Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+ GET /api/settings?grouped=true&activeOnly=true [32m200[39m in 13ms[2m (compile: 7ms, proxy.ts: 4ms, render: 1916µs)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:29:47.988Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T15:29:47.994Z
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 49ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 57ms[2m (compile: 2ms, proxy.ts: 4ms, render: 51ms)[22m
+ GET /api/users [32m200[39m in 214ms[2m (compile: 10ms, proxy.ts: 3ms, render: 201ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 206ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 218ms[2m (compile: 7ms, proxy.ts: 2ms, render: 208ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 290ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 307ms[2m (compile: 12ms, proxy.ts: 3ms, render: 292ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0043 [32m200[39m in 241ms[2m (compile: 7ms, proxy.ts: 2ms, render: 231ms)[22m
+ GET /api/users/AM-0003 [32m200[39m in 253ms[2m (compile: 56ms, proxy.ts: 1246µs, render: 196ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0042 [32m200[39m in 250ms[2m (compile: 6ms, proxy.ts: 4ms, render: 241ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0044 [32m200[39m in 254ms[2m (compile: 7ms, proxy.ts: 1989µs, render: 245ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0040 [32m200[39m in 257ms[2m (compile: 5ms, proxy.ts: 1541µs, render: 250ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 289ms[2m (compile: 55ms, proxy.ts: 1674µs, render: 233ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0041 [32m200[39m in 43ms[2m (compile: 8ms, proxy.ts: 6ms, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0039 [32m200[39m in 38ms[2m (compile: 8ms, proxy.ts: 1658µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0037 [32m200[39m in 36ms[2m (compile: 6ms, proxy.ts: 3ms, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0038 [32m200[39m in 38ms[2m (compile: 6ms, proxy.ts: 3ms, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0036 [32m200[39m in 37ms[2m (compile: 7ms, proxy.ts: 3ms, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0035 [32m200[39m in 36ms[2m (compile: 1558µs, proxy.ts: 1426µs, render: 33ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0034 [32m200[39m in 37ms[2m (compile: 6ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0032 [32m200[39m in 36ms[2m (compile: 6ms, proxy.ts: 3ms, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0033 [32m200[39m in 37ms[2m (compile: 6ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0031 [32m200[39m in 41ms[2m (compile: 7ms, proxy.ts: 3ms, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0030 [32m200[39m in 42ms[2m (compile: 8ms, proxy.ts: 3ms, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0029 [32m200[39m in 35ms[2m (compile: 1286µs, proxy.ts: 1411µs, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0028 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0027 [32m200[39m in 36ms[2m (compile: 6ms, proxy.ts: 1572µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0025 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0026 [32m200[39m in 40ms[2m (compile: 5ms, proxy.ts: 4ms, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0024 [32m200[39m in 43ms[2m (compile: 3ms, proxy.ts: 1391µs, render: 39ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0023 [32m200[39m in 35ms[2m (compile: 1282µs, proxy.ts: 1497µs, render: 33ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0022 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1456µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0021 [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0020 [32m200[39m in 33ms[2m (compile: 4ms, proxy.ts: 1937µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0019 [32m200[39m in 36ms[2m (compile: 5ms, proxy.ts: 1974µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0018 [32m200[39m in 31ms[2m (compile: 1568µs, proxy.ts: 1191µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0017 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1523µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0016 [32m200[39m in 37ms[2m (compile: 1254µs, proxy.ts: 3ms, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0015 [32m200[39m in 32ms[2m (compile: 3ms, proxy.ts: 1239µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0014 [32m200[39m in 33ms[2m (compile: 4ms, proxy.ts: 1417µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0013 [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 4ms, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0012 [32m200[39m in 31ms[2m (compile: 2ms, proxy.ts: 1218µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0011 [32m200[39m in 31ms[2m (compile: 1392µs, proxy.ts: 1221µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0010 [32m200[39m in 32ms[2m (compile: 1758µs, proxy.ts: 1833µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0009 [32m200[39m in 30ms[2m (compile: 1836µs, proxy.ts: 990µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0008 [32m200[39m in 35ms[2m (compile: 6ms, proxy.ts: 806µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0007 [32m200[39m in 32ms[2m (compile: 2ms, proxy.ts: 3ms, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0006 [32m200[39m in 74ms[2m (compile: 5ms, proxy.ts: 886µs, render: 68ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0005 [32m200[39m in 64ms[2m (compile: 924µs, proxy.ts: 1070µs, render: 62ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0004 [32m200[39m in 57ms[2m (compile: 1780µs, proxy.ts: 993µs, render: 54ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0003 [32m200[39m in 54ms[2m (compile: 764µs, proxy.ts: 1014µs, render: 52ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0002 [32m200[39m in 47ms[2m (compile: 1376µs, proxy.ts: 844µs, render: 45ms)[22m
+❌ Redis Cloud connection error: 00FDE837757B0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+ GET /api/users/AM-0003 [32m200[39m in 19ms[2m (compile: 14ms, proxy.ts: 4ms, render: 1893µs)[22m
+ GET /api/users/AM-0010 [32m200[39m in 77ms[2m (compile: 43ms, proxy.ts: 1055µs, render: 33ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0001 [32m200[39m in 35ms[2m (compile: 5ms, proxy.ts: 3ms, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0043 [32m200[39m in 37ms[2m (compile: 6ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0042 [32m200[39m in 38ms[2m (compile: 7ms, proxy.ts: 4ms, render: 27ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 10ms[2m (compile: 6ms, proxy.ts: 2ms, render: 1245µs)[22m
+ GET /api/users/AM-0007 [32m200[39m in 48ms[2m (compile: 13ms, proxy.ts: 3ms, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0044 [32m200[39m in 32ms[2m (compile: 1106µs, proxy.ts: 2ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0040 [32m200[39m in 33ms[2m (compile: 854µs, proxy.ts: 973µs, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0041 [32m200[39m in 30ms[2m (compile: 3ms, proxy.ts: 1150µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0039 [32m200[39m in 35ms[2m (compile: 5ms, proxy.ts: 1217µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0037 [32m200[39m in 32ms[2m (compile: 1641µs, proxy.ts: 1418µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0038 [32m200[39m in 32ms[2m (compile: 3ms, proxy.ts: 1450µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0036 [32m200[39m in 32ms[2m (compile: 1611µs, proxy.ts: 1145µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0035 [32m200[39m in 35ms[2m (compile: 2ms, proxy.ts: 1235µs, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0034 [32m200[39m in 30ms[2m (compile: 1366µs, proxy.ts: 1717µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0032 [32m200[39m in 32ms[2m (compile: 4ms, proxy.ts: 1712µs, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0033 [32m200[39m in 37ms[2m (compile: 8ms, proxy.ts: 1025µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0031 [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 2ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0030 [32m200[39m in 31ms[2m (compile: 2ms, proxy.ts: 1157µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0029 [32m200[39m in 29ms[2m (compile: 935µs, proxy.ts: 1789µs, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0028 [32m200[39m in 34ms[2m (compile: 1323µs, proxy.ts: 1025µs, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0027 [32m200[39m in 30ms[2m (compile: 1560µs, proxy.ts: 1132µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0025 [32m200[39m in 32ms[2m (compile: 2ms, proxy.ts: 1091µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0026 [32m200[39m in 31ms[2m (compile: 1960µs, proxy.ts: 956µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0024 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 816µs, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0023 [32m200[39m in 29ms[2m (compile: 835µs, proxy.ts: 952µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0022 [32m200[39m in 31ms[2m (compile: 2ms, proxy.ts: 1920µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0021 [32m200[39m in 35ms[2m (compile: 2ms, proxy.ts: 1150µs, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0020 [32m200[39m in 31ms[2m (compile: 1661µs, proxy.ts: 1140µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0019 [32m200[39m in 31ms[2m (compile: 3ms, proxy.ts: 1600µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0018 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1505µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0017 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0016 [32m200[39m in 29ms[2m (compile: 1037µs, proxy.ts: 1239µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0015 [32m200[39m in 33ms[2m (compile: 997µs, proxy.ts: 1131µs, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0014 [32m200[39m in 30ms[2m (compile: 1304µs, proxy.ts: 1016µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0013 [32m200[39m in 30ms[2m (compile: 975µs, proxy.ts: 884µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0012 [32m200[39m in 31ms[2m (compile: 1805µs, proxy.ts: 884µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0011 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 985µs, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0010 [32m200[39m in 30ms[2m (compile: 889µs, proxy.ts: 1047µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0009 [32m200[39m in 34ms[2m (compile: 6ms, proxy.ts: 1653µs, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0008 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 2ms, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0007 [32m200[39m in 32ms[2m (compile: 3ms, proxy.ts: 894µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0006 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 981µs, render: 29ms)[22m
+ GET /api/users/AM-0010 [32m200[39m in 8ms[2m (compile: 6ms, proxy.ts: 1390µs, render: 1247µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0005 [32m200[39m in 36ms[2m (compile: 2ms, proxy.ts: 1585µs, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0004 [32m200[39m in 30ms[2m (compile: 1087µs, proxy.ts: 1327µs, render: 28ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 8ms[2m (compile: 6ms, proxy.ts: 1273µs, render: 1478µs)[22m
+ GET /api/users/AM-0007 [32m200[39m in 10ms[2m (compile: 7ms, proxy.ts: 1322µs, render: 1233µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0003 [32m200[39m in 33ms[2m (compile: 1937µs, proxy.ts: 1098µs, render: 30ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 998µs, render: 1287µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0002 [32m200[39m in 31ms[2m (compile: 1598µs, proxy.ts: 1351µs, render: 28ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1595µs, proxy.ts: 971µs, render: 1296µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1997µs, proxy.ts: 1025µs, render: 1282µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0001 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1147µs, render: 30ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1711µs, proxy.ts: 1038µs, render: 1300µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1502µs, proxy.ts: 907µs, render: 1433µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 958µs, render: 1423µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1127µs, render: 1453µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1983µs, proxy.ts: 1185µs, render: 1387µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 9ms[2m (compile: 3ms, proxy.ts: 4ms, render: 1561µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1160µs, render: 1327µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1456µs, proxy.ts: 958µs, render: 1338µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1991µs, proxy.ts: 951µs, render: 1437µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1640µs, proxy.ts: 1068µs, render: 1373µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1647µs, proxy.ts: 944µs, render: 1421µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1818µs, proxy.ts: 1073µs, render: 1375µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1025µs, render: 1448µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1097µs, render: 1408µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1235µs, render: 1395µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1710µs, proxy.ts: 1152µs, render: 1429µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 936µs, render: 1376µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1653µs, proxy.ts: 1060µs, render: 1463µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 43ms[2m (compile: 40ms, proxy.ts: 1044µs, render: 1749µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1185µs, render: 1641µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1920µs, proxy.ts: 1516µs, render: 1441µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1772µs, proxy.ts: 1046µs, render: 1563µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1239µs, render: 1541µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1933µs, proxy.ts: 1225µs, render: 1385µs)[22m
+❌ Redis Cloud connection error: 00CD4ABA1E7D0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1209µs, render: 1422µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1904µs, proxy.ts: 1000µs, render: 1393µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 965µs, render: 1391µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1079µs, render: 1511µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1580µs, proxy.ts: 981µs, render: 1380µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1892µs, proxy.ts: 966µs, render: 1337µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 1046µs, render: 1365µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1599µs, proxy.ts: 1068µs, render: 1634µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1139µs, render: 1461µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 8ms[2m (compile: 5ms, proxy.ts: 1865µs, render: 1424µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 1048µs, render: 1317µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 990µs, render: 1511µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1644µs, proxy.ts: 1048µs, render: 1458µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1002µs, render: 1371µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 953µs, render: 1467µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1891µs, proxy.ts: 970µs, render: 1258µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1708µs, proxy.ts: 1002µs, render: 1313µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1477µs, proxy.ts: 926µs, render: 1349µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1423µs, proxy.ts: 917µs, render: 1267µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1715µs, proxy.ts: 1132µs, render: 1315µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1840µs, proxy.ts: 835µs, render: 1274µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1463µs, proxy.ts: 847µs, render: 1221µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1431µs, proxy.ts: 864µs, render: 1454µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 899µs, render: 1088µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1585µs, proxy.ts: 785µs, render: 1081µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1436µs, proxy.ts: 1019µs, render: 1098µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 886µs, render: 1104µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1545µs, proxy.ts: 906µs, render: 1201µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 4ms, proxy.ts: 786µs, render: 1326µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1644µs, proxy.ts: 949µs, render: 1154µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1612µs, proxy.ts: 824µs, render: 1446µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1512µs, proxy.ts: 933µs, render: 1341µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1404µs, proxy.ts: 849µs, render: 1432µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1544µs, proxy.ts: 882µs, render: 1358µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1570µs, proxy.ts: 859µs, render: 1343µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1552µs, proxy.ts: 897µs, render: 1289µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1401µs, proxy.ts: 974µs, render: 1306µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1366µs, proxy.ts: 853µs, render: 1345µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1773µs, proxy.ts: 1455µs, render: 1635µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1452µs, proxy.ts: 1029µs, render: 1368µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1426µs, proxy.ts: 938µs, render: 1250µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1338µs, proxy.ts: 884µs, render: 1176µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1345µs, proxy.ts: 888µs, render: 1238µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1481µs, proxy.ts: 863µs, render: 1115µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1413µs, proxy.ts: 922µs, render: 1287µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1389µs, proxy.ts: 925µs, render: 1230µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1368µs, proxy.ts: 881µs, render: 1304µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 5ms, proxy.ts: 902µs, render: 1413µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1164µs, render: 1530µs)[22m
+ GET /tasks/JSR-0040 [32m200[39m in 108ms[2m (compile: 84ms, render: 23ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 12ms[2m (compile: 9ms, proxy.ts: 1257µs, render: 1638µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 1359µs, render: 1773µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 1689µs, render: 1757µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1378µs, render: 1718µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 50ms[2m (compile: 46ms, proxy.ts: 1567µs, render: 1958µs)[22m
+❌ Redis Cloud connection error: 000D5122A77C0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:29:52.966Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+ GET /api/settings?grouped=true&activeOnly=true [32m200[39m in 13ms[2m (compile: 7ms, proxy.ts: 3ms, render: 3ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T15:29:52.973Z
+🔧 Variables: {
+  "taskId": "JSR-0040"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 36ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 46ms[2m (compile: 5ms, proxy.ts: 3ms, render: 38ms)[22m
+ GET /api/users [32m200[39m in 46ms[2m (compile: 15ms, proxy.ts: 3ms, render: 28ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 66ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 82ms[2m (compile: 11ms, proxy.ts: 3ms, render: 68ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0040'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/settings [32m200[39m in 18ms[2m (compile: 14ms, proxy.ts: 3ms, render: 1368µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0040 [32m200[39m in 38ms[2m (compile: 9ms, proxy.ts: 1501µs, render: 28ms)[22m
+ GET /api/users [32m200[39m in 84ms[2m (compile: 16ms, proxy.ts: 3ms, render: 66ms)[22m
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0040
+ GET /api/task-checklists?parentTaskId=JSR-0040 [32m200[39m in 256ms[2m (compile: 13ms, proxy.ts: 2ms, render: 241ms)[22m
+ GET /api/settings [32m200[39m in 4ms[2m (compile: 1171µs, proxy.ts: 1045µs, render: 1427µs)[22m
+ GET /api/projects?type=main&status=active [32m200[39m in 253ms[2m (compile: 1224µs, proxy.ts: 1563µs, render: 250ms)[22m
+🔍 [ActivityLog] Row 186: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 187: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 188: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 151: isComment raw=0 (type: number), converted=false
+✅ [ActivityLog] Fetched 4 activities for task:JSR-0040
+   Comments: 0, Activities: 4
+ GET /api/activity-log?entityType=task&entityId=JSR-0040&sortOrder=desc [32m200[39m in 279ms[2m (compile: 9ms, proxy.ts: 2ms, render: 268ms)[22m
+🔵 [SUBTASKS-GET] API called
+🔵 [SUBTASKS-GET] Params: { parentTaskId: [32m'JSR-0040'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [SUBTASKS-GET] Fetching subtasks and counts...
+ GET /api/tasks/subtasks?parentTaskId=JSR-0040 [32m200[39m in 30ms[2m (compile: 1190µs, proxy.ts: 1299µs, render: 28ms)[22m
+ GET /api/projects/PRJ-003 [32m200[39m in 264ms[2m (compile: 42ms, proxy.ts: 1145µs, render: 221ms)[22m
+❌ Redis Cloud connection error: 008D92EB75780000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+ GET /api/users [32m200[39m in 32ms[2m (compile: 2ms, proxy.ts: 2ms, render: 28ms)[22m
+✅ [SUBTASKS-GET] Found 0 subtasks for parent JSR-0040
+ GET /api/task-checklists?parentTaskId=JSR-0040 [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 1866µs, render: 29ms)[22m
+🔍 [ActivityLog] Row 186: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 187: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 188: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 151: isComment raw=0 (type: number), converted=false
+✅ [ActivityLog] Fetched 4 activities for task:JSR-0040
+   Comments: 0, Activities: 4
+ GET /api/activity-log?entityType=task&entityId=JSR-0040&sortOrder=desc [32m200[39m in 234ms[2m (compile: 1178µs, proxy.ts: 1670µs, render: 231ms)[22m
+ GET /api/projects?type=main&status=active [32m200[39m in 30ms[2m (compile: 1363µs, proxy.ts: 1205µs, render: 27ms)[22m
+ GET /api/relationships?id=JSR-0040&type=task [32m200[39m in 341ms[2m (compile: 13ms, proxy.ts: 2ms, render: 325ms)[22m
+ GET /api/relationships?id=JSR-0040&type=task [32m200[39m in 60ms[2m (compile: 1262µs, proxy.ts: 1591µs, render: 57ms)[22m
+ GET /tasks [32m200[39m in 20ms[2m (compile: 3ms, render: 18ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T15:30:00.346Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T15:30:00.351Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:30:00.369Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T15:30:00.373Z
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 30ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 40ms[2m (compile: 7ms, proxy.ts: 1766µs, render: 32ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 39ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 47ms[2m (compile: 4ms, proxy.ts: 2ms, render: 40ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 29ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 37ms[2m (compile: 5ms, proxy.ts: 1470µs, render: 31ms)[22m
+ GET /api/users [32m200[39m in 38ms[2m (compile: 9ms, proxy.ts: 2ms, render: 27ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 265ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 275ms[2m (compile: 6ms, proxy.ts: 2ms, render: 267ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 70ms[2m (compile: 64ms, proxy.ts: 4ms, render: 2ms)[22m
+ GET /api/users/AM-0003 [32m200[39m in 71ms[2m (compile: 65ms, proxy.ts: 5ms, render: 1579µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0040 [32m200[39m in 73ms[2m (compile: 10ms, proxy.ts: 4ms, render: 59ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0044 [32m200[39m in 69ms[2m (compile: 10ms, proxy.ts: 3ms, render: 57ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0043 [32m200[39m in 67ms[2m (compile: 9ms, proxy.ts: 3ms, render: 55ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0042 [32m200[39m in 64ms[2m (compile: 8ms, proxy.ts: 2ms, render: 54ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0039 [32m200[39m in 45ms[2m (compile: 15ms, proxy.ts: 2ms, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0041 [32m200[39m in 47ms[2m (compile: 13ms, proxy.ts: 2ms, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0038 [32m200[39m in 45ms[2m (compile: 14ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0037 [32m200[39m in 46ms[2m (compile: 15ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0036 [32m200[39m in 51ms[2m (compile: 15ms, proxy.ts: 4ms, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0035 [32m200[39m in 51ms[2m (compile: 16ms, proxy.ts: 4ms, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0034 [32m200[39m in 41ms[2m (compile: 9ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0032 [32m200[39m in 41ms[2m (compile: 9ms, proxy.ts: 5ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0033 [32m200[39m in 43ms[2m (compile: 10ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0031 [32m200[39m in 41ms[2m (compile: 9ms, proxy.ts: 4ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0029 [32m200[39m in 40ms[2m (compile: 7ms, proxy.ts: 2ms, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0030 [32m200[39m in 44ms[2m (compile: 7ms, proxy.ts: 4ms, render: 34ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0028 [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 1662µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0026 [32m200[39m in 34ms[2m (compile: 6ms, proxy.ts: 1602µs, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0027 [32m200[39m in 39ms[2m (compile: 5ms, proxy.ts: 1584µs, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0025 [32m200[39m in 42ms[2m (compile: 10ms, proxy.ts: 1951µs, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0024 [32m200[39m in 39ms[2m (compile: 4ms, proxy.ts: 8ms, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0023 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 4ms, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0022 [32m200[39m in 30ms[2m (compile: 1166µs, proxy.ts: 1216µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0020 [32m200[39m in 30ms[2m (compile: 3ms, proxy.ts: 1004µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0021 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1011µs, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0019 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1813µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0018 [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 3ms, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0017 [32m200[39m in 37ms[2m (compile: 2ms, proxy.ts: 3ms, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0016 [32m200[39m in 33ms[2m (compile: 1060µs, proxy.ts: 1124µs, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0014 [32m200[39m in 31ms[2m (compile: 3ms, proxy.ts: 1078µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0015 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 2ms, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0013 [32m200[39m in 38ms[2m (compile: 5ms, proxy.ts: 4ms, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0012 [32m200[39m in 36ms[2m (compile: 5ms, proxy.ts: 2ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0011 [32m200[39m in 35ms[2m (compile: 7ms, proxy.ts: 1240µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0010 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1075µs, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0008 [32m200[39m in 30ms[2m (compile: 3ms, proxy.ts: 965µs, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0009 [32m200[39m in 37ms[2m (compile: 2ms, proxy.ts: 2ms, render: 33ms)[22m
+ GET /api/users/AM-0010 [32m200[39m in 7ms[2m (compile: 4ms, proxy.ts: 1271µs, render: 1450µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0007 [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 2ms, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0006 [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 1858µs, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0005 [32m200[39m in 37ms[2m (compile: 4ms, proxy.ts: 3ms, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0004 [32m200[39m in 33ms[2m (compile: 1052µs, proxy.ts: 1113µs, render: 31ms)[22m
+ GET /api/users/AM-0007 [32m200[39m in 13ms[2m (compile: 11ms, proxy.ts: 1027µs, render: 1259µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 11ms[2m (compile: 7ms, proxy.ts: 3ms, render: 1130µs)[22m
+ GET /api/users/AM-0003 [32m200[39m in 10ms[2m (compile: 8ms, proxy.ts: 1241µs, render: 1293µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0003 [32m200[39m in 40ms[2m (compile: 4ms, proxy.ts: 2ms, render: 34ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0002 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 2ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0001 [32m200[39m in 36ms[2m (compile: 6ms, proxy.ts: 1993µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0040 [32m200[39m in 37ms[2m (compile: 5ms, proxy.ts: 1098µs, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0044 [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 4ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0043 [32m200[39m in 31ms[2m (compile: 3ms, proxy.ts: 856µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0042 [32m200[39m in 31ms[2m (compile: 3ms, proxy.ts: 913µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0039 [32m200[39m in 33ms[2m (compile: 1054µs, proxy.ts: 1032µs, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0041 [32m200[39m in 30ms[2m (compile: 1302µs, proxy.ts: 905µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0038 [32m200[39m in 32ms[2m (compile: 4ms, proxy.ts: 1142µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0035 [32m200[39m in 32ms[2m (compile: 3ms, proxy.ts: 2ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0037 [32m200[39m in 34ms[2m (compile: 5ms, proxy.ts: 1752µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0036 [32m200[39m in 41ms[2m (compile: 6ms, proxy.ts: 1786µs, render: 33ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0034 [32m200[39m in 31ms[2m (compile: 933µs, proxy.ts: 1626µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0032 [32m200[39m in 30ms[2m (compile: 761µs, proxy.ts: 879µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0033 [32m200[39m in 32ms[2m (compile: 1794µs, proxy.ts: 1830µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0031 [32m200[39m in 31ms[2m (compile: 1288µs, proxy.ts: 3ms, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0029 [32m200[39m in 29ms[2m (compile: 1910µs, proxy.ts: 1227µs, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0030 [32m200[39m in 33ms[2m (compile: 1922µs, proxy.ts: 1191µs, render: 30ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0028 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1207µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0026 [32m200[39m in 37ms[2m (compile: 4ms, proxy.ts: 881µs, render: 32ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0027 [32m200[39m in 31ms[2m (compile: 3ms, proxy.ts: 1988µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0025 [32m200[39m in 33ms[2m (compile: 5ms, proxy.ts: 1283µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0024 [32m200[39m in 35ms[2m (compile: 6ms, proxy.ts: 1288µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0023 [32m200[39m in 31ms[2m (compile: 1303µs, proxy.ts: 1291µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0022 [32m200[39m in 32ms[2m (compile: 2ms, proxy.ts: 1283µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0020 [32m200[39m in 33ms[2m (compile: 949µs, proxy.ts: 842µs, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0021 [32m200[39m in 29ms[2m (compile: 1004µs, proxy.ts: 840µs, render: 27ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0019 [32m200[39m in 31ms[2m (compile: 1573µs, proxy.ts: 1437µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0018 [32m200[39m in 30ms[2m (compile: 2ms, proxy.ts: 896µs, render: 27ms)[22m
+❌ Redis Cloud connection error: 001D3D722B7B0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+ GET /api/tasks/subtasks?parentTaskId=JSR-0017 [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 3ms, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0016 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0015 [32m200[39m in 27ms[2m (compile: 698µs, proxy.ts: 735µs, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0014 [32m200[39m in 33ms[2m (compile: 1070µs, proxy.ts: 985µs, render: 31ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0013 [32m200[39m in 31ms[2m (compile: 1916µs, proxy.ts: 818µs, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0012 [32m200[39m in 30ms[2m (compile: 1981µs, proxy.ts: 1045µs, render: 27ms)[22m
+ GET /api/users/AM-0010 [32m200[39m in 45ms[2m (compile: 42ms, proxy.ts: 1392µs, render: 1749µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0011 [32m200[39m in 66ms[2m (compile: 1983µs, proxy.ts: 943µs, render: 63ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0010 [32m200[39m in 65ms[2m (compile: 3ms, proxy.ts: 948µs, render: 61ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0009 [32m200[39m in 55ms[2m (compile: 3ms, proxy.ts: 1586µs, render: 51ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0008 [32m200[39m in 56ms[2m (compile: 1756µs, proxy.ts: 1717µs, render: 53ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0007 [32m200[39m in 48ms[2m (compile: 1399µs, proxy.ts: 1382µs, render: 45ms)[22m
+ GET /api/users/AM-0007 [32m200[39m in 13ms[2m (compile: 9ms, proxy.ts: 2ms, render: 1237µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 14ms[2m (compile: 11ms, proxy.ts: 2ms, render: 1149µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0006 [32m200[39m in 40ms[2m (compile: 10ms, proxy.ts: 1660µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0004 [32m200[39m in 35ms[2m (compile: 6ms, proxy.ts: 2ms, render: 26ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0003 [32m200[39m in 36ms[2m (compile: 6ms, proxy.ts: 2ms, render: 28ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0005 [32m200[39m in 45ms[2m (compile: 7ms, proxy.ts: 6ms, render: 31ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 4ms, proxy.ts: 1152µs, render: 1313µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1546µs, proxy.ts: 946µs, render: 1336µs)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0002 [32m200[39m in 32ms[2m (compile: 1515µs, proxy.ts: 1009µs, render: 29ms)[22m
+ GET /api/tasks/subtasks?parentTaskId=JSR-0001 [32m200[39m in 31ms[2m (compile: 895µs, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1510µs, proxy.ts: 1678µs, render: 1369µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1141µs, render: 1452µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1484µs, proxy.ts: 933µs, render: 1406µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1519µs, proxy.ts: 848µs, render: 1337µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1434µs, proxy.ts: 851µs, render: 1299µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 920µs, render: 1632µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1773µs, proxy.ts: 1144µs, render: 1463µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 2ms, render: 1541µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1609µs, proxy.ts: 970µs, render: 1535µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1538µs, proxy.ts: 1004µs, render: 1311µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 5ms, proxy.ts: 869µs, render: 1463µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 910µs, render: 1446µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1677µs, proxy.ts: 1414µs, render: 1565µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1800µs, proxy.ts: 1153µs, render: 1817µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1112µs, render: 1593µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1133µs, render: 1585µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1637µs, proxy.ts: 1011µs, render: 1433µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 1021µs, render: 1395µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1555µs, proxy.ts: 943µs, render: 1271µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 854µs, render: 1445µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 5ms, proxy.ts: 849µs, render: 1437µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1325µs, render: 1306µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 997µs, render: 1390µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1703µs, proxy.ts: 1246µs, render: 1281µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1854µs, proxy.ts: 847µs, render: 1250µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 875µs, render: 1295µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 790µs, render: 1300µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1507µs, proxy.ts: 938µs, render: 1235µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1470µs, proxy.ts: 899µs, render: 1241µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1372µs, proxy.ts: 775µs, render: 1221µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1589µs, proxy.ts: 1298µs, render: 1375µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1823µs, proxy.ts: 792µs, render: 1122µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1325µs, proxy.ts: 758µs, render: 1149µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1616µs, proxy.ts: 760µs, render: 1569µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1730µs, proxy.ts: 1082µs, render: 1286µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1447µs, proxy.ts: 891µs, render: 1207µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1343µs, proxy.ts: 774µs, render: 1178µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1349µs, proxy.ts: 802µs, render: 1316µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1351µs, proxy.ts: 783µs, render: 1182µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 4ms, proxy.ts: 739µs, render: 1292µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1433µs, proxy.ts: 908µs, render: 1208µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1598µs, proxy.ts: 776µs, render: 1289µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1579µs, proxy.ts: 782µs, render: 1112µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1681µs, proxy.ts: 712µs, render: 1084µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1687µs, proxy.ts: 736µs, render: 1219µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1473µs, proxy.ts: 745µs, render: 1050µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1414µs, proxy.ts: 691µs, render: 1519µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1333µs, proxy.ts: 872µs, render: 1069µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1482µs, proxy.ts: 1358µs, render: 1278µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 1886µs, proxy.ts: 4ms, render: 1493µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 806µs, render: 1199µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1427µs, proxy.ts: 743µs, render: 1187µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 756µs, render: 1505µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1831µs, proxy.ts: 1766µs, render: 1552µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 1874µs, proxy.ts: 1068µs, render: 1568µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1022µs, render: 1737µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1721µs, proxy.ts: 1043µs, render: 1535µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 978µs, render: 1519µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1022µs, render: 1358µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1148µs, render: 1363µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 982µs, render: 1521µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 863µs, render: 1247µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1810µs, proxy.ts: 804µs, render: 1388µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 814µs, render: 1246µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 3ms[2m (compile: 1352µs, proxy.ts: 798µs, render: 1153µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 2ms, proxy.ts: 840µs, render: 1163µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 8ms[2m (compile: 6ms, proxy.ts: 775µs, render: 1236µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1823µs, proxy.ts: 850µs, render: 1166µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 48ms[2m (compile: 45ms, proxy.ts: 1388µs, render: 2ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1751µs, proxy.ts: 1148µs, render: 1406µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1589µs, proxy.ts: 1000µs, render: 1467µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1514µs, proxy.ts: 944µs, render: 1283µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1568µs, proxy.ts: 920µs, render: 1333µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1594µs, proxy.ts: 956µs, render: 1393µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1671µs, proxy.ts: 1076µs, render: 1275µs)[22m
+❌ Redis Cloud connection error: 003D6BBA43720000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1616µs, proxy.ts: 866µs, render: 1284µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1913µs, proxy.ts: 881µs, render: 1288µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1753µs, proxy.ts: 868µs, render: 1359µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 4ms[2m (compile: 1612µs, proxy.ts: 1087µs, render: 1311µs)[22m
+❌ Redis Cloud connection error: 009D715E1B780000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:31:00.417Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 206ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 219ms[2m (compile: 3ms, proxy.ts: 4ms, render: 212ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:32:00.415Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 319ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 328ms[2m (compile: 1862µs, proxy.ts: 4ms, render: 321ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:33:00.418Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 232ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 243ms[2m (compile: 2ms, proxy.ts: 3ms, render: 238ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:34:00.416Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 211ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 221ms[2m (compile: 4ms, proxy.ts: 3ms, render: 214ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:35:00.417Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 220ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 231ms[2m (compile: 5ms, proxy.ts: 3ms, render: 224ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:36:00.416Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 201ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 209ms[2m (compile: 2ms, proxy.ts: 4ms, render: 203ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:37:18.420Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 197ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 209ms[2m (compile: 5ms, proxy.ts: 2ms, render: 202ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:38:18.424Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 209ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 220ms[2m (compile: 5ms, proxy.ts: 3ms, render: 212ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:39:18.416Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 264ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 271ms[2m (compile: 3ms, proxy.ts: 1642µs, render: 267ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:40:18.417Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 203ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 213ms[2m (compile: 1716µs, proxy.ts: 4ms, render: 208ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:41:18.421Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 268ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 279ms[2m (compile: 3ms, proxy.ts: 3ms, render: 273ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:42:18.424Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 195ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 205ms[2m (compile: 4ms, proxy.ts: 2ms, render: 198ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:43:18.416Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 245ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 254ms[2m (compile: 4ms, proxy.ts: 2ms, render: 248ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:44:18.416Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 236ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 245ms[2m (compile: 1820µs, proxy.ts: 3ms, render: 240ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:45:18.420Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 233ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 244ms[2m (compile: 5ms, proxy.ts: 3ms, render: 236ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:46:18.413Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 213ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 220ms[2m (compile: 3ms, proxy.ts: 1772µs, render: 215ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:47:18.418Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 200ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 209ms[2m (compile: 4ms, proxy.ts: 3ms, render: 203ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:48:18.419Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 234ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 241ms[2m (compile: 3ms, proxy.ts: 1824µs, render: 236ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:49:18.421Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 203ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 215ms[2m (compile: 4ms, proxy.ts: 5ms, render: 206ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:50:06.096Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 256ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 264ms[2m (compile: 1627µs, proxy.ts: 3ms, render: 260ms)[22m

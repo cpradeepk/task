@@ -1,0 +1,482 @@
+/**
+ * GraphQL Queries and Mutations for Mobile App
+ * 
+ * Centralized location for all GraphQL operations.
+ * Organized by feature: Auth, Tasks, Bugs, Feed, Notifications, etc.
+ */
+
+import { gql } from '@apollo/client'
+
+// ============================================================================
+// AUTHENTICATION
+// ============================================================================
+
+export const LOGIN_MUTATION = gql`
+  mutation Login($employeeId: String!, $password: String!) {
+    login(employeeId: $employeeId, password: $password) {
+      token
+      user {
+        employeeId
+        name
+        email
+        phone
+        department
+        role
+        status
+        isTodayTask
+        warningCount
+      }
+    }
+  }
+`
+
+// ============================================================================
+// TASKS
+// ============================================================================
+
+export const GET_TASKS = gql`
+  query GetTasks($assignedTo: String, $status: String, $priority: String) {
+    tasks(assignedTo: $assignedTo, status: $status, priority: $priority) {
+      id
+      taskId
+      name
+      description
+      selectType
+      recursiveType
+      assignedTo
+      assignedBy
+      support
+      startDate
+      endDate
+      priority
+      estimatedHours
+      actualHours
+      status
+      remarks
+      difficulties
+      projectId
+      subprojectId
+      parentTaskId
+      department
+      timerState
+      createdAt
+      updatedAt
+    }
+  }
+`
+
+export const GET_TASK = gql`
+  query GetTask($taskId: ID!) {
+    task(taskId: $taskId) {
+      id
+      taskId
+      name
+      description
+      selectType
+      recursiveType
+      assignedTo
+      assignedBy
+      support
+      startDate
+      endDate
+      priority
+      estimatedHours
+      actualHours
+      status
+      remarks
+      difficulties
+      projectId
+      subprojectId
+      parentTaskId
+      department
+      timerState
+      createdAt
+      updatedAt
+      subtasks {
+        id
+        description
+        assignedTo
+        status
+        isCompleted
+        displayOrder
+        createdAt
+      }
+    }
+  }
+`
+
+export const CREATE_TASK = gql`
+  mutation CreateTask($input: CreateTaskInput!) {
+    createTask(input: $input) {
+      taskId
+      name
+      description
+      assignedTo
+      assignedBy
+      startDate
+      endDate
+      priority
+      estimatedHours
+      status
+    }
+  }
+`
+
+export const UPDATE_TASK = gql`
+  mutation UpdateTask($taskId: ID!, $input: UpdateTaskInput!) {
+    updateTask(taskId: $taskId, input: $input) {
+      taskId
+      name
+      description
+      status
+      remarks
+      actualHours
+    }
+  }
+`
+
+// ============================================================================
+// BUGS
+// ============================================================================
+
+export const GET_BUGS = gql`
+  query GetBugs($assignedTo: String, $status: String, $severity: String, $category: String) {
+    bugs(assignedTo: $assignedTo, status: $status, severity: $severity, category: $category) {
+      bugId
+      title
+      description
+      severity
+      priority
+      status
+      category
+      platform
+      assignedTo
+      reportedBy
+      environment
+      type
+      feature
+      projectId
+      subprojectId
+      estimatedHours
+      actualHours
+      createdAt
+      updatedAt
+    }
+  }
+`
+
+export const GET_BUG = gql`
+  query GetBug($bugId: ID!) {
+    bug(bugId: $bugId) {
+      bugId
+      title
+      description
+      severity
+      priority
+      status
+      category
+      platform
+      assignedTo
+      assignedBy
+      reportedBy
+      environment
+      browserInfo
+      deviceInfo
+      stepsToReproduce
+      expectedBehavior
+      actualBehavior
+      serverLogs
+      frontendLogs
+      attachments
+      type
+      feature
+      projectId
+      subprojectId
+      estimatedHours
+      actualHours
+      createdAt
+      updatedAt
+      subtasks {
+        id
+        subTaskId
+        description
+        assignedTo
+        status
+        isCompleted
+        displayOrder
+        createdAt
+      }
+    }
+  }
+`
+
+export const CREATE_BUG = gql`
+  mutation CreateBug($input: CreateBugInput!) {
+    createBug(input: $input) {
+      bugId
+      title
+      description
+      severity
+      priority
+      status
+      category
+      platform
+      type
+    }
+  }
+`
+
+export const UPDATE_BUG = gql`
+  mutation UpdateBug($bugId: ID!, $input: UpdateBugInput!) {
+    updateBug(bugId: $bugId, input: $input) {
+      bugId
+      title
+      description
+      status
+      remarks
+      actualHours
+    }
+  }
+`
+
+// ============================================================================
+// FEED
+// ============================================================================
+
+export const GET_FEED_POSTS = gql`
+  query GetFeedPosts($topicId: String, $status: String, $search: String, $limit: Int, $offset: Int) {
+    feedPosts(topicId: $topicId, status: $status, search: $search, limit: $limit, offset: $offset) {
+      posts {
+        postId
+        contentType
+        content
+        linkUrl
+        linkTitle
+        linkDescription
+        linkImage
+        mediaUrls
+        createdAt
+        status
+        author {
+          employeeId
+          name
+        }
+        topics {
+          id
+          topicName
+          icon
+        }
+        reactions {
+          emoji
+          count
+          hasUserReacted
+        }
+        viewCount
+        commentCount
+        isSaved
+        hasUserReacted
+      }
+      total
+      hasMore
+    }
+  }
+`
+
+export const GET_FEED_POST = gql`
+  query GetFeedPost($postId: ID!) {
+    feedPost(postId: $postId) {
+      postId
+      contentType
+      content
+      linkUrl
+      linkTitle
+      linkDescription
+      linkImage
+      mediaUrls
+      createdAt
+      updatedAt
+      status
+      author {
+        employeeId
+        name
+        email
+      }
+      topics {
+        id
+        topicName
+        icon
+        description
+      }
+      reactions {
+        emoji
+        count
+        hasUserReacted
+        users {
+          employeeId
+          name
+        }
+      }
+      comments {
+        commentId
+        content
+        createdAt
+        author {
+          employeeId
+          name
+        }
+        replies {
+          commentId
+          content
+          createdAt
+          author {
+            employeeId
+            name
+          }
+        }
+      }
+      viewCount
+      commentCount
+      isSaved
+      hasUserReacted
+    }
+  }
+`
+
+export const GET_FEED_TOPICS = gql`
+  query GetFeedTopics($includePersonal: Boolean) {
+    feedTopics(includePersonal: $includePersonal) {
+      id
+      topicName
+      description
+      icon
+      displayOrder
+      isPersonal
+      isSaved
+      ownerUserId
+      createdBy
+      createdAt
+      postCount
+    }
+  }
+`
+
+export const CREATE_FEED_POST = gql`
+  mutation CreateFeedPost($input: CreateFeedPostInput!) {
+    createFeedPost(input: $input) {
+      postId
+      contentType
+      content
+      status
+      createdAt
+    }
+  }
+`
+
+export const CREATE_FEED_COMMENT = gql`
+  mutation CreateFeedComment($postId: ID!, $content: String!, $parentCommentId: String) {
+    createFeedComment(postId: $postId, content: $content, parentCommentId: $parentCommentId) {
+      commentId
+      content
+      createdAt
+      author {
+        employeeId
+        name
+      }
+    }
+  }
+`
+
+export const TOGGLE_FEED_REACTION = gql`
+  mutation ToggleFeedReaction($postId: ID!, $emoji: String!) {
+    toggleFeedReaction(postId: $postId, emoji: $emoji) {
+      action
+      message
+    }
+  }
+`
+
+export const TOGGLE_FEED_SAVE = gql`
+  mutation ToggleFeedSave($postId: ID!) {
+    toggleFeedSave(postId: $postId) {
+      action
+      message
+    }
+  }
+`
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+export const GET_NOTIFICATIONS = gql`
+  query GetNotifications($userId: String!, $isRead: Boolean, $limit: Int, $offset: Int) {
+    feedNotifications(userId: $userId, isRead: $isRead, limit: $limit, offset: $offset) {
+      notificationId
+      title
+      message
+      linkUrl
+      isRead
+      createdAt
+      actor {
+        employeeId
+        name
+      }
+    }
+  }
+`
+
+export const GET_UNREAD_COUNT = gql`
+  query GetUnreadCount($userId: String!) {
+    unreadNotificationCount(userId: $userId)
+  }
+`
+
+export const MARK_NOTIFICATION_READ = gql`
+  mutation MarkNotificationRead($notificationId: ID!) {
+    markNotificationAsRead(notificationId: $notificationId) {
+      notificationId
+      isRead
+      readAt
+    }
+  }
+`
+
+export const MARK_ALL_NOTIFICATIONS_READ = gql`
+  mutation MarkAllNotificationsRead($userId: String!) {
+    markAllNotificationsAsRead(userId: $userId)
+  }
+`
+
+// ============================================================================
+// DASHBOARD
+// ============================================================================
+
+export const GET_DASHBOARD = gql`
+  query GetDashboard($employeeId: String!, $role: String!) {
+    dashboard(employeeId: $employeeId, role: $role) {
+      tasks {
+        total
+        inProgress
+        delayed
+        completed
+      }
+      bugs {
+        total
+        new
+        inProgress
+        resolved
+      }
+      leaves {
+        pending
+        approved
+        rejected
+      }
+      wfh {
+        pending
+        approved
+        rejected
+      }
+    }
+  }
+`
+
