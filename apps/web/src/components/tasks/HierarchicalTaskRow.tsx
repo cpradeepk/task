@@ -15,7 +15,7 @@ interface HierarchicalTaskRowProps {
   getStatusColor: (status: string) => string
   getPriorityColor: (priority: string) => string
   getStatusIcon: (status: string) => React.ReactElement
-  ProjectDisplay: React.ComponentType<{ projectId?: string | null }>
+  ProjectDisplay: React.ComponentType<{ project?: { projectId: string; projectName: string; description?: string } | null }>
 }
 
 export default function HierarchicalTaskRow({
@@ -143,7 +143,7 @@ export default function HierarchicalTaskRow({
             <div className="flex flex-col space-y-1 text-sm text-gray-600 mb-3">
               <div className="flex items-center space-x-4">
                 <AssigneeList assignedTo={task.assignedTo} />
-                <ProjectDisplay projectId={task.projectId} />
+                <ProjectDisplay project={(task as any).project} />
               </div>
               {task.support && task.support.length > 0 && (
                 <div className="flex items-center">

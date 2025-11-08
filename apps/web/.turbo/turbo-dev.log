@@ -1423,3 +1423,8 @@ Error: {
 🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
 🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
 🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ [32m[1m✓[22m[39m Compiled in 11ms
+ [32m[1m✓[22m[39m Compiled in 7ms
+ [32m[1m✓[22m[39m Compiled in 104ms
+ [32m[1m✓[22m[39m Compiled in 108ms
+ [32m[1m✓[22m[39m Compiled in 79ms

@@ -52,34 +52,14 @@ function UserName({ employeeId }: { employeeId: string }) {
   return <span>{name}</span>
 }
 
-// Component to handle async project name fetching
-function ProjectDisplay({ projectId }: { projectId?: string | null }) {
-  const [projectName, setProjectName] = useState<string>('')
-
-  useEffect(() => {
-    const loadProjectNames = async () => {
-      try {
-        if (projectId) {
-          const response = await fetch(`/api/projects/${projectId}`)
-          const data = await response.json()
-          if (data && data.projectName) {
-            setProjectName(data.projectName)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load project names:', error)
-      }
-    }
-
-    loadProjectNames()
-  }, [projectId])
-
-  if (!projectName) return null
+// Component to display project name (now from GraphQL data)
+function ProjectDisplay({ project }: { project?: { projectId: string; projectName: string; description?: string } | null }) {
+  if (!project || !project.projectName) return null
 
   return (
     <div className="flex items-center space-x-2 text-sm text-gray-600">
       <span className="text-gray-400">-</span>
-      <span>{projectName}</span>
+      <span>{project.projectName}</span>
     </div>
   )
 }
@@ -135,37 +115,54 @@ export default function TasksPage() {
     }
   }, [])
 
-  // Load settings data from database
+  // Load settings data from GraphQL
   useEffect(() => {
     async function loadSettings() {
       try {
-        const response = await fetch('/api/settings')
-        const data = await response.json()
+        console.log('🔵 [Tasks] Loading settings via GraphQL...')
+        const data = await executeGraphQLQuery(QUERIES.GET_SETTINGS, { activeOnly: true })
 
-        if (data.success && data.data) {
-          const settings = data.data
+        if (data && data.settings) {
+          const settings = data.settings
 
           // Process task statuses
           const taskStatusesSetting = settings.find((s: any) => s.key === 'task_statuses')
-          const taskStatuses = taskStatusesSetting?.value?.map((val: string) => ({
-            value: val,
-            icon: taskStatusesSetting?.metadata?.icons?.[val] || ''
-          })) || []
+          let taskStatuses: Array<{ value: string; icon: string }> = []
+          if (taskStatusesSetting) {
+            try {
+              const values = JSON.parse(taskStatusesSetting.value)
+              taskStatuses = values.map((val: string) => ({
+                value: val,
+                icon: '' // Icons are not stored in settings yet
+              }))
+            } catch (e) {
+              console.error('Failed to parse task_statuses:', e)
+            }
+          }
 
           // Process task priorities
           const taskPrioritiesSetting = settings.find((s: any) => s.key === 'task_priorities')
-          const taskPriorities = taskPrioritiesSetting?.value?.map((val: string) => ({
-            value: val,
-            icon: taskPrioritiesSetting?.metadata?.icons?.[val] || ''
-          })) || []
+          let taskPriorities: Array<{ value: string; icon: string }> = []
+          if (taskPrioritiesSetting) {
+            try {
+              const values = JSON.parse(taskPrioritiesSetting.value)
+              taskPriorities = values.map((val: string) => ({
+                value: val,
+                icon: '' // Icons are not stored in settings yet
+              }))
+            } catch (e) {
+              console.error('Failed to parse task_priorities:', e)
+            }
+          }
 
           setSettingsData({
             taskStatuses,
             taskPriorities
           })
+          console.log('✅ [Tasks] Settings loaded successfully via GraphQL')
         }
       } catch (error) {
-        console.error('Failed to load settings:', error)
+        console.error('❌ [Tasks] Failed to load settings via GraphQL:', error)
       }
     }
 

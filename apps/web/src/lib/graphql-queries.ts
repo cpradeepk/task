@@ -197,6 +197,11 @@ export const QUERIES = {
           status
           remarks
         }
+        project {
+          projectId
+          projectName
+          description
+        }
       }
     }
   `,
@@ -312,6 +317,11 @@ export const QUERIES = {
           actualHours
           status
           remarks
+        }
+        project {
+          projectId
+          projectName
+          description
         }
       }
     }
