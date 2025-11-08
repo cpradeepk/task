@@ -215,7 +215,7 @@ export default function BugsPage() {
 
       // Filter bugs based on user role and involvement
       if (currentUser) {
-        if (currentUser.role === 'amtariksian') {
+        if (currentUser.role === 'amtarikshian') {
           // Amtariksians can only see bugs they created or are assigned to
           bugsData = bugsData.filter(bug =>
             bug.reportedBy === currentUser.employeeId ||

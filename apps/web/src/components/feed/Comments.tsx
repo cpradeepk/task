@@ -146,7 +146,9 @@ export default function Comments({ postId, isOpen, onClose }: CommentsProps) {
             <div className="flex items-center justify-between mb-1">
               <p className="font-semibold text-sm text-gray-900">{comment.author?.name}</p>
               <p className="text-xs text-gray-500">
-                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                {comment.createdAt && !isNaN(new Date(comment.createdAt).getTime())
+                  ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })
+                  : 'Unknown date'}
               </p>
             </div>
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>

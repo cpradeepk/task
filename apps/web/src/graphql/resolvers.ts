@@ -178,9 +178,9 @@ const createFeedPostTopicsLoader = () => new DataLoader(async (postIds: readonly
 
 export const createContext = () => ({
   loaders: {
-    userLoader: createUserLoader(),
-    taskLoader: createTaskLoader(),
-    bugLoader: createBugLoader(),
+    user: createUserLoader(),
+    task: createTaskLoader(),
+    bug: createBugLoader(),
     projectLoader: createProjectLoader(),
     subtasks: createSubtaskLoader(),
     bugSubtasks: createBugSubtaskLoader(),
@@ -263,7 +263,7 @@ export const resolvers = {
           params.push(filters.priority)
         }
 
-        query += ' ORDER BY created_at DESC'
+        query += ' ORDER BY updated_at DESC'
 
         const dbStart = logDatabaseQuery(query, params, 'tasks')
         const result = await pool.query(query, params)
@@ -322,7 +322,7 @@ export const resolvers = {
         params.push(filters.category)
       }
 
-      query += ' ORDER BY created_at DESC'
+      query += ' ORDER BY updated_at DESC'
 
       const result = await pool.query(query, params)
       return result.rows
@@ -399,7 +399,7 @@ export const resolvers = {
                 )
               )`
             }
-            tasksQuery += ' ORDER BY created_at DESC'
+            tasksQuery += ' ORDER BY updated_at DESC'
 
             const tasksParams = isManagement ? [] : [employeeId, employeeId, employeeId]
             const dbStart = logDatabaseQuery(tasksQuery, tasksParams, 'dashboard.tasks')
@@ -414,7 +414,7 @@ export const resolvers = {
             if (!isManagement) {
               bugsQuery += ' AND (assigned_to = $1 OR reported_by = $2)'
             }
-            bugsQuery += ' ORDER BY created_at DESC'
+            bugsQuery += ' ORDER BY updated_at DESC'
 
             const bugsParams = isManagement ? [] : [employeeId, employeeId]
             const dbStart = logDatabaseQuery(bugsQuery, bugsParams, 'dashboard.bugs')
@@ -487,7 +487,7 @@ export const resolvers = {
         }
 
         if (search) {
-          sql += ` AND (fp.content ILIKE $${params.length + 1} OR fp.link_title ILIKE $${params.length + 2})`
+          sql += ` AND (fp.content ILIKE $${params.length + 1} OR fp.og_title ILIKE $${params.length + 2})`
           params.push(`%${search}%`, `%${search}%`)
         }
 
@@ -532,13 +532,27 @@ export const resolvers = {
 
     feedTopics: async (_: any, { includePersonal = true }: any, context: any) => {
       const { startTime } = logResolverStart('feedTopics', { includePersonal })
+      const { user } = context
+
+      if (!user) {
+        logResolverError('feedTopics', new Error('Unauthorized'), startTime)
+        throw new Error('Unauthorized')
+      }
 
       try {
         let sql = 'SELECT * FROM feed_topics WHERE deleted_at IS NULL'
         const params: any[] = []
 
         if (!includePersonal) {
-          sql += ' AND is_personal = false'
+          // Only public topics (not personal and not saved)
+          sql += ' AND is_personal = false AND is_saved = false'
+        } else {
+          // Include:
+          // 1. Public topics (is_personal = false AND is_saved = false)
+          // 2. User's personal topics (is_personal = true AND owner_user_id = current user)
+          // 3. User's saved posts (is_saved = true AND owner_user_id = current user)
+          sql += ' AND ((is_personal = false AND is_saved = false) OR owner_user_id = $1)'
+          params.push(user.employeeId)
         }
 
         sql += ' ORDER BY display_order ASC'
@@ -710,7 +724,12 @@ export const resolvers = {
     priority: (task: any) => task.priority,
     estimatedHours: (task: any) => task.estimated_hours,
     actualHours: (task: any) => task.actual_hours,
-    dailyHours: (task: any) => task.daily_hours,
+    dailyHours: (task: any) => {
+      // daily_hours is JSONB in database, convert to JSON string for GraphQL
+      if (!task.daily_hours) return null
+      if (typeof task.daily_hours === 'string') return task.daily_hours
+      return JSON.stringify(task.daily_hours)
+    },
     status: (task: any) => task.status,
     remarks: (task: any) => task.remarks,
     difficulties: (task: any) => task.difficulties,
@@ -862,10 +881,15 @@ export const resolvers = {
     // Map snake_case database columns to camelCase GraphQL fields
     id: (bug: any) => bug.id,
     bugId: (bug: any) => bug.bug_id,
+    title: (bug: any) => bug.title,
     description: (bug: any) => bug.description,
     category: (bug: any) => bug.category,
     severity: (bug: any) => bug.severity,
+    priority: (bug: any) => bug.priority,
     status: (bug: any) => bug.status,
+    platform: (bug: any) => bug.platform,
+    type: (bug: any) => bug.type,
+    feature: (bug: any) => bug.feature,
     assignedTo: (bug: any) => bug.assigned_to,
     assignedBy: (bug: any) => bug.assigned_by,
     reportedBy: (bug: any) => bug.reported_by,
@@ -877,7 +901,6 @@ export const resolvers = {
     projectId: (bug: any) => bug.project_id,
     subprojectId: (bug: any) => bug.subproject_id,
     relatedBugs: (bug: any) => bug.related_bugs,
-    platform: (bug: any) => bug.platform,
     environment: (bug: any) => bug.environment,
     bugType: (bug: any) => bug.bug_type,
     criticality: (bug: any) => bug.criticality,
@@ -1028,7 +1051,13 @@ export const resolvers = {
     // Map snake_case database columns to camelCase GraphQL fields
     id: (setting: any) => setting.id,
     key: (setting: any) => setting.key,
-    value: (setting: any) => setting.value,
+    value: (setting: any) => {
+      // value can be a JSON array in database, convert to JSON string for GraphQL
+      if (!setting.value) return null
+      if (typeof setting.value === 'string') return setting.value
+      // If it's an array or object, stringify it
+      return JSON.stringify(setting.value)
+    },
     type: (setting: any) => setting.type,
     isActive: (setting: any) => setting.is_active,
     createdAt: (setting: any) => setting.created_at,
@@ -1041,13 +1070,33 @@ export const resolvers = {
     contentType: (post: any) => post.content_type,
     content: (post: any) => post.content,
     linkUrl: (post: any) => post.link_url,
-    linkTitle: (post: any) => post.link_title,
-    linkDescription: (post: any) => post.link_description,
-    linkImage: (post: any) => post.link_image,
+    linkTitle: (post: any) => post.og_title,
+    linkDescription: (post: any) => post.og_description,
+    linkImage: (post: any) => post.og_image,
     mediaUrls: (post: any) => post.media_urls ? JSON.parse(post.media_urls) : [],
     createdBy: (post: any) => post.created_by,
-    createdAt: (post: any) => post.created_at,
-    updatedAt: (post: any) => post.updated_at,
+    createdAt: (post: any) => {
+      if (!post.created_at) {
+        console.warn(`[FeedPost] createdAt is null/undefined for post ${post.post_id}`)
+        return null
+      }
+      // Validate the date
+      const date = new Date(post.created_at)
+      if (isNaN(date.getTime())) {
+        console.error(`[FeedPost] Invalid createdAt date for post ${post.post_id}: ${post.created_at}`)
+        return null
+      }
+      return post.created_at
+    },
+    updatedAt: (post: any) => {
+      if (!post.updated_at) return null
+      const date = new Date(post.updated_at)
+      if (isNaN(date.getTime())) {
+        console.error(`[FeedPost] Invalid updatedAt date for post ${post.post_id}: ${post.updated_at}`)
+        return null
+      }
+      return post.updated_at
+    },
     status: (post: any) => post.status,
 
     author: async (post: any, _: any, { loaders }: any) => {
@@ -1196,8 +1245,27 @@ export const resolvers = {
     parentCommentId: (comment: any) => comment.parent_comment_id,
     content: (comment: any) => comment.content,
     createdBy: (comment: any) => comment.created_by,
-    createdAt: (comment: any) => comment.created_at,
-    updatedAt: (comment: any) => comment.updated_at,
+    createdAt: (comment: any) => {
+      if (!comment.created_at) {
+        console.warn(`[FeedComment] createdAt is null/undefined for comment ${comment.comment_id}`)
+        return null
+      }
+      const date = new Date(comment.created_at)
+      if (isNaN(date.getTime())) {
+        console.error(`[FeedComment] Invalid createdAt date for comment ${comment.comment_id}: ${comment.created_at}`)
+        return null
+      }
+      return comment.created_at
+    },
+    updatedAt: (comment: any) => {
+      if (!comment.updated_at) return null
+      const date = new Date(comment.updated_at)
+      if (isNaN(date.getTime())) {
+        console.error(`[FeedComment] Invalid updatedAt date for comment ${comment.comment_id}: ${comment.updated_at}`)
+        return null
+      }
+      return comment.updated_at
+    },
 
     author: async (comment: any, _: any, { loaders }: any) => {
       return loaders.user.load(comment.created_by)
@@ -1456,9 +1524,9 @@ export const resolvers = {
       const mediaUrls = input.mediaUrls ? JSON.stringify(input.mediaUrls) : null
 
       await pool.query(
-        `INSERT INTO feed_posts (post_id, content_type, content, link_url, link_title, link_description, link_image, media_urls, created_by, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
-        [postId, input.contentType, input.content, input.linkUrl, input.linkTitle, input.linkDescription, input.linkImage, mediaUrls, user.employeeId, status]
+        `INSERT INTO feed_posts (post_id, content_type, content, link_url, og_title, og_description, og_image, created_by, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
+        [postId, input.contentType, input.content, input.linkUrl, input.linkTitle, input.linkDescription, input.linkImage, user.employeeId, status]
       )
 
       // Link to topics
@@ -1507,9 +1575,9 @@ export const resolvers = {
       const fieldMap: Record<string, string> = {
         content: 'content',
         linkUrl: 'link_url',
-        linkTitle: 'link_title',
-        linkDescription: 'link_description',
-        linkImage: 'link_image',
+        linkTitle: 'og_title',
+        linkDescription: 'og_description',
+        linkImage: 'og_image',
         mediaUrls: 'media_urls',
         status: 'status'
       }
@@ -1707,20 +1775,17 @@ export const resolvers = {
     trackFeedView: async (_: any, { postId }: any, { user }: any) => {
       if (!user) return false
 
-      // Check if view already exists (idempotent)
-      const existing = await pool.query(
-        'SELECT * FROM feed_views WHERE post_id = $1 AND user_id = $2',
-        [postId, user.employeeId]
-      )
-
-      if (existing.rows.length === 0) {
+      try {
+        // Use ON CONFLICT to handle race conditions (idempotent)
         await pool.query(
-          'INSERT INTO feed_views (post_id, user_id, viewed_at) VALUES ($1, $2, NOW())',
+          'INSERT INTO feed_views (post_id, user_id, viewed_at) VALUES ($1, $2, NOW()) ON CONFLICT (post_id, user_id) DO NOTHING',
           [postId, user.employeeId]
         )
+        return true
+      } catch (error) {
+        console.error('[trackFeedView] Error tracking view:', error)
+        return false
       }
-
-      return true
     },
 
     toggleFeedSave: async (_: any, { postId }: any, { user }: any) => {
@@ -1787,45 +1852,251 @@ export const resolvers = {
           [user.employeeId]
         )
 
-        if (existing.rows.length >= 2) {
-          console.log(`[initPersonalTopics] Personal topics already exist for user ${user.employeeId}`)
-          const personalNotes = existing.rows.find((t: any) => !t.is_saved)
-          const savedPosts = existing.rows.find((t: any) => t.is_saved)
+        // Find existing topics by type
+        let personalNotes = existing.rows.find((t: any) => !t.is_saved)
+        let savedPosts = existing.rows.find((t: any) => t.is_saved)
 
-          if (!personalNotes || !savedPosts) {
-            console.error('[initPersonalTopics] Missing personal topics:', { personalNotes: !!personalNotes, savedPosts: !!savedPosts })
-            throw new Error('Personal topics exist but are incomplete')
-          }
-
+        // If both exist, return them
+        if (personalNotes && savedPosts) {
+          console.log(`[initPersonalTopics] Both personal topics already exist for user ${user.employeeId}`)
           return {
             personalNotes,
             savedPosts
           }
         }
 
-        console.log(`[initPersonalTopics] Creating new personal topics for user ${user.employeeId}`)
+        console.log(`[initPersonalTopics] Creating missing personal topics for user ${user.employeeId}`, {
+          hasPersonalNotes: !!personalNotes,
+          hasSavedPosts: !!savedPosts
+        })
 
-        // Create Personal Notes topic
-        const personalNotes = await pool.query(
-          `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, owner_user_id, created_by, created_at)
-           VALUES ($1, $2, $3, $4, true, $5, $6, NOW())
-           RETURNING *`,
-          [`${user.name}'s Personal Notes`, 'Your private notes and thoughts', '📝', 1000, user.employeeId, user.employeeId]
-        )
+        // Create Personal Notes topic if it doesn't exist
+        if (!personalNotes) {
+          try {
+            const result = await pool.query(
+              `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
+               VALUES ($1, $2, $3, $4, true, false, $5, $6, NOW())
+               RETURNING *`,
+              [`${user.name}'s Personal Notes`, 'Your private notes and thoughts', '📝', 1000, user.employeeId, user.employeeId]
+            )
+            personalNotes = result.rows[0]
+            console.log(`[initPersonalTopics] Created Personal Notes topic for user ${user.employeeId}`)
+          } catch (err: any) {
+            // If duplicate key error, fetch the existing record
+            // The unique constraint is on (owner_user_id, is_personal) WHERE is_personal = true
+            if (err.code === '23505') {
+              console.log(`[initPersonalTopics] Personal Notes topic already exists for user ${user.employeeId}, fetching it`)
 
-        // Create Saved Posts topic
-        const savedPosts = await pool.query(
-          `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
-           VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
-           RETURNING *`,
-          [`${user.name}'s Saved Posts`, 'Posts you want to save for later', '🔖', 1001, user.employeeId, user.employeeId]
-        )
+              // Try multiple queries to find the record (race condition handling)
+              let result = await pool.query(
+                'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 AND deleted_at IS NULL AND (is_saved = false OR is_saved IS NULL) LIMIT 1',
+                [user.employeeId]
+              )
+              personalNotes = result.rows[0]
 
-        console.log(`[initPersonalTopics] Successfully created personal topics for user ${user.employeeId}`)
+              // If not found, try without deleted_at filter (might be soft-deleted)
+              if (!personalNotes) {
+                console.log(`[initPersonalTopics] Trying to find soft-deleted Personal Notes topic for user ${user.employeeId}`)
+                result = await pool.query(
+                  'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
+                  [user.employeeId]
+                )
+                personalNotes = result.rows[0]
+
+                // If found but soft-deleted, restore it
+                if (personalNotes && personalNotes.deleted_at) {
+                  console.log(`[initPersonalTopics] Restoring soft-deleted Personal Notes topic for user ${user.employeeId}`)
+                  result = await pool.query(
+                    'UPDATE feed_topics SET deleted_at = NULL, deleted_by = NULL WHERE id = $1 RETURNING *',
+                    [personalNotes.id]
+                  )
+                  personalNotes = result.rows[0]
+                }
+              }
+
+              // If still not found, wait a bit and retry (race condition with concurrent request)
+              if (!personalNotes) {
+                console.log(`[initPersonalTopics] Waiting 100ms and retrying for user ${user.employeeId} (possible race condition)`)
+                await new Promise(resolve => setTimeout(resolve, 100))
+                result = await pool.query(
+                  'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
+                  [user.employeeId]
+                )
+                personalNotes = result.rows[0]
+              }
+
+              // If STILL not found, use INSERT ... ON CONFLICT
+              if (!personalNotes) {
+                console.warn(`[initPersonalTopics] Could not find existing Personal Notes topic for user ${user.employeeId}, creating new one`)
+                result = await pool.query(
+                  `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
+                   VALUES ($1, $2, $3, $4, true, false, $5, $6, NOW())
+                   ON CONFLICT DO NOTHING
+                   RETURNING *`,
+                  [`${user.name}'s Personal Notes`, 'Your private notes and thoughts', '📝', 1000, user.employeeId, user.employeeId]
+                )
+                personalNotes = result.rows[0]
+
+                // If ON CONFLICT DO NOTHING returned nothing, fetch one more time
+                if (!personalNotes) {
+                  result = await pool.query(
+                    'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
+                    [user.employeeId]
+                  )
+                  personalNotes = result.rows[0]
+                }
+              }
+
+              // Last resort: log error but don't throw
+              if (!personalNotes) {
+                console.error(`[initPersonalTopics] CRITICAL: Failed to fetch or create Personal Notes topic for user ${user.employeeId} after multiple attempts`)
+                console.error(`[initPersonalTopics] This indicates a database constraint or data integrity issue`)
+                // Don't throw - continue with Saved Posts
+              }
+            } else {
+              throw err
+            }
+          }
+        }
+
+        // Create Saved Posts topic if it doesn't exist
+        if (!savedPosts) {
+          try {
+            const result = await pool.query(
+              `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
+               VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
+               RETURNING *`,
+              [`${user.name}'s Saved Posts`, 'Posts you want to save for later', '🔖', 1001, user.employeeId, user.employeeId]
+            )
+            savedPosts = result.rows[0]
+            console.log(`[initPersonalTopics] Created Saved Posts topic for user ${user.employeeId}`)
+          } catch (err: any) {
+            // If duplicate key error, fetch the existing record
+            // The unique constraint is on (owner_user_id, is_saved) WHERE is_saved = true
+            if (err.code === '23505') {
+              console.log(`[initPersonalTopics] Saved Posts topic already exists for user ${user.employeeId}, fetching it`)
+
+              // Try multiple queries to find the record (race condition handling)
+              let result = await pool.query(
+                'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 AND deleted_at IS NULL LIMIT 1',
+                [user.employeeId]
+              )
+              savedPosts = result.rows[0]
+
+              // If not found, try without deleted_at filter (might be soft-deleted)
+              if (!savedPosts) {
+                console.log(`[initPersonalTopics] Trying to find soft-deleted Saved Posts topic for user ${user.employeeId}`)
+                result = await pool.query(
+                  'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
+                  [user.employeeId]
+                )
+                savedPosts = result.rows[0]
+
+                // If found but soft-deleted, restore it
+                if (savedPosts && savedPosts.deleted_at) {
+                  console.log(`[initPersonalTopics] Restoring soft-deleted Saved Posts topic for user ${user.employeeId}`)
+                  result = await pool.query(
+                    'UPDATE feed_topics SET deleted_at = NULL, deleted_by = NULL WHERE id = $1 RETURNING *',
+                    [savedPosts.id]
+                  )
+                  savedPosts = result.rows[0]
+                }
+              }
+
+              // If still not found, wait a bit and retry (race condition with concurrent request)
+              if (!savedPosts) {
+                console.log(`[initPersonalTopics] Waiting 100ms and retrying for user ${user.employeeId} (possible race condition)`)
+                await new Promise(resolve => setTimeout(resolve, 100))
+                result = await pool.query(
+                  'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
+                  [user.employeeId]
+                )
+                savedPosts = result.rows[0]
+              }
+
+              // If STILL not found, create it anyway (ignore the duplicate key error)
+              if (!savedPosts) {
+                console.warn(`[initPersonalTopics] Could not find existing Saved Posts topic for user ${user.employeeId}, creating new one`)
+                // Use INSERT ... ON CONFLICT to handle race condition
+                result = await pool.query(
+                  `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
+                   VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
+                   ON CONFLICT DO NOTHING
+                   RETURNING *`,
+                  [`${user.name}'s Saved Posts`, 'Posts you want to save for later', '🔖', 1001, user.employeeId, user.employeeId]
+                )
+                savedPosts = result.rows[0]
+
+                // If ON CONFLICT DO NOTHING returned nothing, fetch the existing record one more time
+                if (!savedPosts) {
+                  result = await pool.query(
+                    'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
+                    [user.employeeId]
+                  )
+                  savedPosts = result.rows[0]
+                }
+              }
+
+              // Last resort: if we still don't have it, log detailed error but don't throw
+              if (!savedPosts) {
+                console.error(`[initPersonalTopics] CRITICAL: Failed to fetch or create Saved Posts topic for user ${user.employeeId} after multiple attempts`)
+                console.error(`[initPersonalTopics] This indicates a database constraint or data integrity issue`)
+                // Don't throw - return what we have (Personal Notes only)
+              }
+            } else {
+              throw err
+            }
+          }
+        }
+
+        // Ensure we have both topics (create fallback if needed)
+        if (!personalNotes) {
+          console.error(`[initPersonalTopics] CRITICAL: Personal Notes topic is null for user ${user.employeeId}, creating fallback`)
+          const fallbackResult = await pool.query(
+            `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
+             VALUES ($1, $2, $3, $4, true, false, $5, $6, NOW())
+             ON CONFLICT DO NOTHING
+             RETURNING *`,
+            [`${user.name}'s Personal Notes`, 'Your private notes and thoughts', '📝', 1000, user.employeeId, user.employeeId]
+          )
+          personalNotes = fallbackResult.rows[0]
+
+          // If still null, fetch any personal topic for this user
+          if (!personalNotes) {
+            const anyResult = await pool.query(
+              'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 LIMIT 1',
+              [user.employeeId]
+            )
+            personalNotes = anyResult.rows[0]
+          }
+        }
+
+        if (!savedPosts) {
+          console.error(`[initPersonalTopics] CRITICAL: Saved Posts topic is null for user ${user.employeeId}, creating fallback`)
+          const fallbackResult = await pool.query(
+            `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
+             VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
+             ON CONFLICT DO NOTHING
+             RETURNING *`,
+            [`${user.name}'s Saved Posts`, 'Posts you want to save for later', '🔖', 1001, user.employeeId, user.employeeId]
+          )
+          savedPosts = fallbackResult.rows[0]
+
+          // If still null, fetch any saved topic for this user
+          if (!savedPosts) {
+            const anyResult = await pool.query(
+              'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 LIMIT 1',
+              [user.employeeId]
+            )
+            savedPosts = anyResult.rows[0]
+          }
+        }
+
+        console.log(`[initPersonalTopics] Successfully initialized personal topics for user ${user.employeeId}`)
 
         return {
-          personalNotes: personalNotes.rows[0],
-          savedPosts: savedPosts.rows[0]
+          personalNotes: personalNotes || null,
+          savedPosts: savedPosts || null
         }
       } catch (error: any) {
         console.error(`[initPersonalTopics] Error for user ${user?.employeeId}:`, error)

@@ -39,9 +39,12 @@ export default function NotificationBell() {
         }
       `
       const data = await executeQuery(query, { userId: currentUser.employeeId })
-      setUnreadCount(data.unreadNotificationCount || 0)
+      if (data && typeof data.unreadNotificationCount !== 'undefined') {
+        setUnreadCount(data.unreadNotificationCount || 0)
+      }
     } catch (error) {
       console.error('Error fetching unread count:', error)
+      // Don't update count on error to avoid showing stale data
     }
   }
 
@@ -71,9 +74,12 @@ export default function NotificationBell() {
         userId: currentUser.employeeId,
         limit: 10
       })
-      setNotifications(data.feedNotifications || [])
+      if (data && data.feedNotifications) {
+        setNotifications(data.feedNotifications || [])
+      }
     } catch (error) {
       console.error('Error fetching notifications:', error)
+      // Don't update notifications on error
     } finally {
       setLoading(false)
     }
@@ -137,7 +143,7 @@ export default function NotificationBell() {
   // Fetch unread count on mount and set up polling
   useEffect(() => {
     fetchUnreadCount()
-    const interval = setInterval(fetchUnreadCount, 30000) // Poll every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 60000) // Poll every 60 seconds
     return () => clearInterval(interval)
   }, [currentUser])
 

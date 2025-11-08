@@ -272,10 +272,15 @@ export const QUERIES = {
       bugs(assignedTo: $assignedTo, status: $status, severity: $severity) {
         id
         bugId
+        title
         description
         category
         severity
+        priority
         status
+        platform
+        type
+        feature
         assignedTo
         assignedBy
         reportedBy
@@ -769,9 +774,8 @@ export const MUTATIONS = {
   TOGGLE_FEED_REACTION: `
     mutation ToggleFeedReaction($postId: ID!, $emoji: String!) {
       toggleFeedReaction(postId: $postId, emoji: $emoji) {
-        added
-        emoji
-        count
+        action
+        message
       }
     }
   `,
@@ -806,9 +810,22 @@ export const MUTATIONS = {
   INIT_PERSONAL_TOPICS: `
     mutation InitPersonalTopics {
       initPersonalTopics {
-        personalNotesId
-        savedPostsId
-        message
+        personalNotes {
+          id
+          topicName
+          description
+          icon
+          isPersonal
+          isSaved
+        }
+        savedPosts {
+          id
+          topicName
+          description
+          icon
+          isPersonal
+          isSaved
+        }
       }
     }
   `

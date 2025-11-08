@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bug } from '@/lib/types'
 import { ChevronRight, ChevronDown } from 'lucide-react'
+import TimerButton from '@/components/TimerButton'
 
 interface HierarchicalBugRowProps {
   bug: Bug
@@ -127,6 +128,11 @@ export default function HierarchicalBugRow({
               >
                 {bug.title}
               </h3>
+              {(bug as any).feature && (
+                <p className="text-sm text-gray-600 mt-1">
+                  <span className="font-medium">Feature:</span> {(bug as any).feature}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
@@ -140,12 +146,26 @@ export default function HierarchicalBugRow({
             </div>
           </div>
 
-          <button
-            onClick={handleBugClick}
-            className="ml-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
-          >
-            View Details
-          </button>
+          <div className="ml-4 flex items-center space-x-2">
+            {/* Timer Button - Hidden for Closed/Resolved statuses */}
+            {bug.status !== 'Closed' && bug.status !== 'Resolved' && (
+              <TimerButton
+                entityType="bug"
+                entityId={bug.bugId}
+                entityTitle={bug.title}
+                status={bug.status}
+                size="md"
+                showLabel={false}
+              />
+            )}
+
+            <button
+              onClick={handleBugClick}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+            >
+              View Details
+            </button>
+          </div>
         </div>
       </div>
 

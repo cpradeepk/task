@@ -129,16 +129,16 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             setRoleOptions(rolesSetting.value)
           } else {
             // Fallback to default roles
-            setRoleOptions(['amtariksian', 'management', 'top_management'])
+            setRoleOptions(['amtarikshian', 'management', 'top_management'])
           }
         } else {
           // Fallback to default roles
-          setRoleOptions(['amtariksian', 'management', 'top_management'])
+          setRoleOptions(['amtarikshian', 'management', 'top_management'])
         }
       } catch (error) {
         console.error('Failed to load roles:', error)
         // Fallback to default roles
-        setRoleOptions(['amtariksian', 'management', 'top_management'])
+        setRoleOptions(['amtarikshian', 'management', 'top_management'])
       } finally {
         setIsLoadingRoles(false)
       }

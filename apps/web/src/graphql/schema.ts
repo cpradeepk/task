@@ -83,10 +83,10 @@ export const typeDefs = `#graphql
     category: String!
     severity: String!
     status: String!
-    assignedTo: String!
-    assignedBy: String!
-    reportedBy: String!
-    reportedDate: String!
+    assignedTo: String
+    assignedBy: String
+    reportedBy: String
+    reportedDate: String
     resolvedDate: String
     estimatedHours: Float
     actualHours: Float
@@ -121,8 +121,8 @@ export const typeDefs = `#graphql
     subTaskId: String!
     parentBugId: String!
     description: String!
-    assignedTo: String!
-    assignedBy: String!
+    assignedTo: String
+    assignedBy: String
     startDate: String
     endDate: String
     priority: String
@@ -158,7 +158,7 @@ export const typeDefs = `#graphql
   type Setting {
     id: ID!
     key: String!
-    value: String!
+    value: String
     type: String
     isActive: Boolean!
     createdAt: String!
@@ -169,14 +169,14 @@ export const typeDefs = `#graphql
   type FeedPost {
     postId: ID!
     contentType: String!
-    content: String!
+    content: String
     linkUrl: String
     linkTitle: String
     linkDescription: String
     linkImage: String
     mediaUrls: [String!]
     createdBy: String!
-    createdAt: String!
+    createdAt: String
     updatedAt: String
     status: String!
     author: User!
@@ -206,9 +206,9 @@ export const typeDefs = `#graphql
     commentId: ID!
     postId: String!
     parentCommentId: String
-    content: String!
+    content: String
     createdBy: String!
-    createdAt: String!
+    createdAt: String
     updatedAt: String
     author: User!
     replies: [FeedComment!]!
@@ -276,8 +276,8 @@ export const typeDefs = `#graphql
   }
 
   type InitPersonalTopicsResponse {
-    personalNotes: FeedTopic!
-    savedPosts: FeedTopic!
+    personalNotes: FeedTopic
+    savedPosts: FeedTopic
   }
 
   type Query {

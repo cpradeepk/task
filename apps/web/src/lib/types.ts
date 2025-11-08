@@ -39,7 +39,7 @@ export interface User {
   managerId?: string        // Optional: Manager's employee ID
   isTodayTask: boolean      // Whether user has tasks for today
   warningCount: number      // Number of warnings received (for performance tracking)
-  role: 'amtariksian' | 'management' | 'top_management' | 'admin'  // User role (determines permissions)
+  role: 'amtarikshian' | 'management' | 'top_management' | 'admin'  // User role (determines permissions)
   password: string          // Hashed password (never store plain text!)
   status: 'active' | 'inactive'  // Account status
   isSystemAdmin?: number    // Optional: 1 if user is system admin (cannot be deleted/deactivated), 0 or undefined otherwise

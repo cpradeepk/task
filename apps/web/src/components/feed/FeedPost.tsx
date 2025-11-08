@@ -252,7 +252,9 @@ export default function FeedPost({ post, onReact, onComment }: FeedPostProps) {
           <div>
             <p className="font-semibold text-gray-900">{post.author.name}</p>
             <p className="text-sm text-gray-500">
-              {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+              {post.createdAt && !isNaN(new Date(post.createdAt).getTime())
+                ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })
+                : 'Unknown date'}
             </p>
           </div>
         </div>

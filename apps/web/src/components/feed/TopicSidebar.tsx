@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Hash, Lock, Bookmark } from 'lucide-react'
 import { QUERIES } from '@/lib/graphql-queries'
 
@@ -40,9 +40,18 @@ interface TopicSidebarProps {
 export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSidebarProps) {
   const [topics, setTopics] = useState<Topic[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const hasFetchedTopics = useRef(false)
 
   useEffect(() => {
-    fetchTopics()
+    console.log('🔵 [TopicSidebar] useEffect triggered - hasFetchedTopics:', hasFetchedTopics.current)
+    // Prevent duplicate fetches in React Strict Mode
+    if (!hasFetchedTopics.current) {
+      console.log('✅ [TopicSidebar] First fetch - calling fetchTopics()')
+      hasFetchedTopics.current = true
+      fetchTopics()
+    } else {
+      console.log('⏭️  [TopicSidebar] Skipping fetchTopics - already fetched')
+    }
   }, [])
 
   const fetchTopics = async () => {

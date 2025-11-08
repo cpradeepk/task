@@ -46,7 +46,7 @@ export default function Navbar() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement
-      if (!target.closest('.admin-dropdown-container')) {
+      if (!target.closest('.admin-dropdown-container') && !target.closest('.admin-dropdown-menu')) {
         setIsAdminDropdownOpen(false)
       }
     }
@@ -107,7 +107,7 @@ export default function Navbar() {
     ]
 
     switch (currentUser.role) {
-      case 'amtariksian':
+      case 'amtarikshian':
         return [
           ...baseItems,
           { href: '/tasks', label: 'Tasks', icon: CheckSquare },
@@ -233,7 +233,6 @@ export default function Navbar() {
               <div
                 className="relative admin-dropdown-container"
                 onMouseEnter={() => setIsAdminDropdownOpen(true)}
-                onMouseLeave={() => setIsAdminDropdownOpen(false)}
               >
                 <button
                   id="admin-dropdown-button"
@@ -253,23 +252,25 @@ export default function Navbar() {
             {/* Admin Dropdown Menu - Rendered at root level with fixed positioning */}
             {showAdminDropdown && isAdminDropdownOpen && (
               <div
-                className="fixed w-56 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[100000]"
+                className="fixed w-56 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[100000] admin-dropdown-menu"
+                onMouseEnter={() => setIsAdminDropdownOpen(true)}
+                onMouseLeave={() => setIsAdminDropdownOpen(false)}
                 style={{
                   top: typeof window !== 'undefined' ? (document.getElementById('admin-dropdown-button')?.getBoundingClientRect().bottom || 0) + 'px' : '0px',
                   left: typeof window !== 'undefined' ? (document.getElementById('admin-dropdown-button')?.getBoundingClientRect().left || 0) + 'px' : '0px'
                 }}
-                onMouseEnter={() => setIsAdminDropdownOpen(true)}
-                onMouseLeave={() => setIsAdminDropdownOpen(false)}
               >
                 {adminDropdownItems.map((item) => {
                   const Icon = item.icon
                   const isActive = pathname === item.href
                   return (
-                    <Link
+                    <button
                       key={item.href}
-                      href={item.href}
-                      onMouseDown={() => setIsAdminDropdownOpen(false)}
-                      className={`flex items-center space-x-3 px-4 py-2.5 text-sm font-medium transition-colors block ${
+                      onClick={() => {
+                        setIsAdminDropdownOpen(false)
+                        router.push(item.href)
+                      }}
+                      className={`flex items-center space-x-3 px-4 py-2.5 text-sm font-medium transition-colors w-full text-left ${
                         isActive
                           ? 'bg-primary text-black'
                           : 'text-gray-700 hover:bg-gray-50 hover:text-black'
@@ -277,7 +278,7 @@ export default function Navbar() {
                     >
                       <Icon className="h-4 w-4" />
                       <span>{item.label}</span>
-                    </Link>
+                    </button>
                   )
                 })}
               </div>

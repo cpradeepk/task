@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { User } from '@/lib/types'
@@ -57,18 +57,29 @@ export default function FeedPage() {
   const [hasMore, setHasMore] = useState(true)
   const [offset, setOffset] = useState(0)
   const router = useRouter()
+  const hasInitializedTopics = useRef(false)
 
   useEffect(() => {
+    console.log('🔵 [Feed] useEffect triggered - hasInitializedTopics:', hasInitializedTopics.current)
     const user = getCurrentUser()
     if (!user) {
+      console.log('❌ [Feed] No user found, redirecting to home')
       router.push('/')
       return
     }
     setCurrentUser(user)
     setIsLoading(false)
-    // Initialize personal topics
-    initPersonalTopics()
-  }, [router])
+
+    // Initialize personal topics only once (prevents duplicate calls in React Strict Mode)
+    if (!hasInitializedTopics.current) {
+      console.log('✅ [Feed] First initialization - calling initPersonalTopics()')
+      hasInitializedTopics.current = true
+      initPersonalTopics()
+    } else {
+      console.log('⏭️  [Feed] Skipping initPersonalTopics - already initialized')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty dependency array - only run once on mount
 
   useEffect(() => {
     if (currentUser) {

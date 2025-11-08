@@ -50,6 +50,24 @@ interface PostCreatorProps {
 
 type ContentType = 'text' | 'link' | 'image' | 'video' | 'pdf' | 'youtube'
 
+// Helper function to extract YouTube video ID from URL
+function extractYouTubeVideoId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+    /youtube\.com\/embed\/([^&\n?#]+)/,
+    /youtube\.com\/v\/([^&\n?#]+)/
+  ]
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern)
+    if (match && match[1]) {
+      return match[1]
+    }
+  }
+
+  return null
+}
+
 export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCreatorProps) {
   const [contentType, setContentType] = useState<ContentType>('text')
   const [title, setTitle] = useState('')
@@ -206,11 +224,25 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
         mediaUrls = [uploadedFile.url]
       }
 
+      // Convert YouTube URL to embed URL if needed
+      let finalLinkUrl = linkUrl
+      if (contentType === 'youtube' && youtubeUrl) {
+        // Extract video ID from YouTube URL
+        const videoId = extractYouTubeVideoId(youtubeUrl)
+        if (videoId) {
+          finalLinkUrl = `https://www.youtube.com/embed/${videoId}`
+        } else {
+          alert('Invalid YouTube URL. Please use a valid YouTube video URL.')
+          setIsSubmitting(false)
+          return
+        }
+      }
+
       const data = await executeGraphQLMutation(MUTATIONS.CREATE_FEED_POST, {
         input: {
           contentType,
           content: content || '',
-          linkUrl: linkUrl || null,
+          linkUrl: finalLinkUrl || null,
           linkTitle: ogPreview?.title || title || null,
           linkDescription: ogPreview?.description || null,
           linkImage: ogPreview?.image || null,

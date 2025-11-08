@@ -10,20 +10,18 @@ interface PageTransitionProps {
 export default function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname()
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [displayChildren, setDisplayChildren] = useState(children)
 
   useEffect(() => {
-    // Start transition
+    // Start transition when pathname changes
     setIsTransitioning(true)
-    
-    // Small delay to show transition effect
+
+    // End transition after animation completes
     const timer = setTimeout(() => {
-      setDisplayChildren(children)
       setIsTransitioning(false)
     }, 150)
 
     return () => clearTimeout(timer)
-  }, [pathname, children])
+  }, [pathname])  // Only depend on pathname, not children
 
   return (
     <div className="relative min-h-screen">
@@ -31,16 +29,16 @@ export default function PageTransition({ children }: PageTransitionProps) {
       {isTransitioning && (
         <div className="fixed inset-0 bg-white z-40 animate-fade-in" />
       )}
-      
+
       {/* Page content */}
-      <div 
+      <div
         className={`transition-all duration-300 ${
-          isTransitioning 
-            ? 'opacity-0 transform translate-y-2' 
+          isTransitioning
+            ? 'opacity-0 transform translate-y-2'
             : 'opacity-100 transform translate-y-0'
         }`}
       >
-        {displayChildren}
+        {children}
       </div>
     </div>
   )

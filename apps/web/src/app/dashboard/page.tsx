@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, Fragment } from 'react'
+import React, { useEffect, useState, Fragment, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, getAllUsers, getRoleDisplayName } from '@/lib/auth'
 
@@ -72,6 +72,7 @@ export default function Dashboard() {
   const [activeFilter, setActiveFilter] = useState<string>('all')
   const [myTasksOnly, setMyTasksOnly] = useState(true) // Default: checked (show only my tasks)
   const [isHydrated, setIsHydrated] = useState(false)
+  const hasLoadedData = useRef(false) // Prevent duplicate GraphQL calls in React Strict Mode
   const router = useRouter()
   const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading} = useLoading()
@@ -85,7 +86,14 @@ export default function Dashboard() {
     if (!isHydrated) return
 
     if (!currentUser) {
+      console.log('❌ [Dashboard] No user found, redirecting to home')
       router.push('/')
+      return
+    }
+
+    // Use ref to prevent duplicate calls in React Strict Mode
+    if (hasLoadedData.current) {
+      console.log('⏭️  [Dashboard] Skipping data load - already loaded')
       return
     }
 
@@ -93,6 +101,9 @@ export default function Dashboard() {
 
     const loadInitialData = async () => {
       try {
+        console.log('✅ [Dashboard] First data load - fetching dashboard data')
+        hasLoadedData.current = true
+
         // Set current date on client side only after hydration
         const now = new Date()
         setCurrentDate(now.toLocaleDateString('en-GB', {
@@ -303,7 +314,7 @@ export default function Dashboard() {
     const totalUsers = users.length
     const activeUsers = users.filter(user => user.status === 'active').length
     const inactiveUsers = users.filter(user => user.status === 'inactive').length
-    const employeeUsers = users.filter(user => user.role === 'amtariksian').length
+    const employeeUsers = users.filter(user => user.role === 'amtarikshian').length
 
     return (
       <div>
@@ -655,7 +666,7 @@ export default function Dashboard() {
           </div>
 
           {/* Task Warning Alert - Only for amtariksians */}
-          {currentUser.role === 'amtariksian' && (
+          {currentUser.role === 'amtarikshian' && (
             <TaskWarningAlert
               employeeId={currentUser.employeeId}
               tasks={tasks}
@@ -670,7 +681,7 @@ export default function Dashboard() {
           <div className="card">
             <h3 className="text-lg font-semibold text-black mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {currentUser.role === 'amtariksian' && (
+              {currentUser.role === 'amtarikshian' && (
                 <>
                   <button
                     onClick={() => router.push('/tasks/create')}

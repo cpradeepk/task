@@ -99,7 +99,7 @@ export default function YourWork() {
     }
 
     // Only amtariksians can access this page
-    if (currentUser.role !== 'amtariksian') {
+    if (currentUser.role !== 'amtarikshian') {
       router.push('/dashboard')
       return
     }
@@ -177,7 +177,7 @@ export default function YourWork() {
 
   if (!currentUser) return null
 
-  if (currentUser.role !== 'amtariksian') {
+  if (currentUser.role !== 'amtarikshian') {
     return (
       <div>
         <Navbar />
