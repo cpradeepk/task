@@ -79,9 +79,11 @@ export const typeDefs = `#graphql
   type Bug {
     id: ID!
     bugId: String!
+    title: String
     description: String!
     category: String!
     severity: String!
+    priority: String
     status: String!
     assignedTo: String
     assignedBy: String
@@ -96,6 +98,8 @@ export const typeDefs = `#graphql
     subprojectId: String
     relatedBugs: String
     platform: String
+    type: String
+    feature: String
     environment: String
     bugType: String
     criticality: String

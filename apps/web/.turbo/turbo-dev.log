@@ -929,3 +929,1319 @@ Learn more: https://react.dev/warnings/version-mismatch
     at [3mignore-listed frames[23m
  POST /api/graphql [31m500[39m in 241ms[2m (proxy.ts: 4ms)[22m
  POST /api/graphql [31m500[39m in 241ms[2m (proxy.ts: 4ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 150ms[2m (proxy.ts: 2ms)[22m
+ POST /api/graphql [31m500[39m in 150ms[2m (proxy.ts: 2ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 131ms[2m (proxy.ts: 1850µs)[22m
+ POST /api/graphql [31m500[39m in 131ms[2m (proxy.ts: 1850µs)[22m
+ GET /tasks [32m200[39m in 421ms[2m (compile: 402ms, render: 19ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 313ms[2m (proxy.ts: 3ms)[22m
+ POST /api/graphql [31m500[39m in 313ms[2m (proxy.ts: 3ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 353ms[2m (proxy.ts: 4ms)[22m
+ POST /api/graphql [31m500[39m in 353ms[2m (proxy.ts: 4ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 381ms[2m (proxy.ts: 4ms)[22m
+ POST /api/graphql [31m500[39m in 381ms[2m (proxy.ts: 4ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 392ms[2m (proxy.ts: 1988µs)[22m
+ POST /api/graphql [31m500[39m in 392ms[2m (proxy.ts: 1988µs)[22m
+🔄 Initializing email service...
+🔵 [TASKS-GET] API called
+🔵 [TASKS-GET] Fetching tasks from database...
+🔵 [DB] New PostgreSQL connection pool created {
+  max: [33m10[39m,
+  idleTimeoutMillis: [33m30000[39m,
+  connectionTimeoutMillis: [33m15000[39m,
+  connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
+  usingEnvVar: [33mtrue[39m
+}
+⚠️ Email verify failed. Falling back to test mode: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-7b0c9f01821sm6028425b3a.26 - gsmtp
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 5.3s[2m (compile: 61ms, proxy.ts: 1910µs, render: 5.2s)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+✅ [TASKS-GET] Successfully fetched 44 tasks
+ GET /api/tasks [32m200[39m in 5.0s[2m (compile: 93ms, proxy.ts: 7ms, render: 4.9s)[22m
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 93ms[2m (proxy.ts: 2ms)[22m
+ POST /api/graphql [31m500[39m in 93ms[2m (proxy.ts: 2ms)[22m
+ GET /bugs [32m200[39m in 16ms[2m (compile: 2ms, render: 14ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ GET /api/users [32m200[39m in 112ms[2m (compile: 54ms, proxy.ts: 3ms, render: 55ms)[22m
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 249ms[2m (proxy.ts: 7ms)[22m
+ POST /api/graphql [31m500[39m in 249ms[2m (proxy.ts: 7ms)[22m
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 291ms[2m (proxy.ts: 6ms)[22m
+ POST /api/graphql [31m500[39m in 291ms[2m (proxy.ts: 6ms)[22m
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 318ms[2m (proxy.ts: 2ms)[22m
+ POST /api/graphql [31m500[39m in 318ms[2m (proxy.ts: 2ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 340ms[2m (proxy.ts: 2ms)[22m
+ POST /api/graphql [31m500[39m in 340ms[2m (proxy.ts: 2ms)[22m
+Fetching bugs data from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/bugs? [32m200[39m in 97ms[2m (compile: 1507µs, proxy.ts: 2ms, render: 94ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 78ms[2m (proxy.ts: 1705µs)[22m
+ POST /api/graphql [31m500[39m in 78ms[2m (proxy.ts: 1705µs)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ GET /feed [32m200[39m in 17ms[2m (compile: 3ms, render: 14ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 305ms[2m (proxy.ts: 4ms)[22m
+ POST /api/graphql [31m500[39m in 305ms[2m (proxy.ts: 4ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 328ms[2m (proxy.ts: 2ms)[22m
+ POST /api/graphql [31m500[39m in 328ms[2m (proxy.ts: 2ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 359ms[2m (proxy.ts: 2ms)[22m
+ POST /api/graphql [31m500[39m in 359ms[2m (proxy.ts: 2ms)[22m
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 359ms[2m (proxy.ts: 1818µs)[22m
+ POST /api/graphql [31m500[39m in 359ms[2m (proxy.ts: 1818µs)[22m
+ GET /reports [32m200[39m in 333ms[2m (compile: 318ms, render: 14ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 128ms[2m (proxy.ts: 3ms)[22m
+ POST /api/graphql [31m500[39m in 128ms[2m (proxy.ts: 3ms)[22m
+ GET /feed [32m200[39m in 9ms[2m (compile: 1458µs, render: 8ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 221ms[2m (proxy.ts: 3ms)[22m
+ POST /api/graphql [31m500[39m in 221ms[2m (proxy.ts: 3ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 252ms[2m (proxy.ts: 4ms)[22m
+ POST /api/graphql [31m500[39m in 252ms[2m (proxy.ts: 4ms)[22m
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 295ms[2m (proxy.ts: 4ms)[22m
+ POST /api/graphql [31m500[39m in 295ms[2m (proxy.ts: 4ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 324ms[2m (proxy.ts: 15ms)[22m
+ POST /api/graphql [31m500[39m in 324ms[2m (proxy.ts: 15ms)[22m
+ GET /bugs [32m200[39m in 12ms[2m (compile: 2ms, render: 10ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 243ms[2m (proxy.ts: 4ms)[22m
+ POST /api/graphql [31m500[39m in 243ms[2m (proxy.ts: 4ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 285ms[2m (proxy.ts: 3ms)[22m
+ POST /api/graphql [31m500[39m in 285ms[2m (proxy.ts: 3ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 323ms[2m (proxy.ts: 3ms)[22m
+ POST /api/graphql [31m500[39m in 323ms[2m (proxy.ts: 3ms)[22m
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 359ms[2m (proxy.ts: 4ms)[22m
+ POST /api/graphql [31m500[39m in 359ms[2m (proxy.ts: 4ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 88ms[2m (proxy.ts: 2ms)[22m
+ POST /api/graphql [31m500[39m in 88ms[2m (proxy.ts: 2ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 481ms[2m (compile: 32ms, proxy.ts: 1614µs, render: 447ms)[22m
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 79ms[2m (proxy.ts: 2ms)[22m
+ POST /api/graphql [31m500[39m in 79ms[2m (proxy.ts: 2ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ [31m[1m⨯[22m[39m Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Bug.title defined in resolvers, but not in schema
+    at <unknown> (src/app/api/graphql/route.ts:10:16)
+[0m [90m  8 |[39m
+ [90m  9 |[39m [90m// Create Apollo Server instance[39m
+[31m[1m>[22m[39m[90m 10 |[39m [36mconst[39m server [33m=[39m [36mnew[39m [33mApolloServer[39m({
+ [90m    |[39m                [31m[1m^[22m[39m
+ [90m 11 |[39m   typeDefs[33m,[39m
+ [90m 12 |[39m   resolvers[33m,[39m
+ [90m 13 |[39m   introspection[33m:[39m [36mtrue[39m[33m,[39m [90m// Enable GraphQL Playground in development[39m[0m {
+  page: [32m'/api/graphql'[39m
+}
+ [31m[1m⨯[22m[39m Error: Failed to load external module next/dist/compiled/next-server/pages-turbo.runtime.dev.js: Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at module evaluation (.next/dev/server/chunks/ssr/[root-of-the-server]__e6a4d965._.js:22:35)
+    at Object.<anonymous> (.next/dev/server/pages/_document.js:4:3)
+Error: Incompatible React versions: The "react" and "react-dom" packages must have the exact same version. Instead got:
+  - react:      18.3.1
+  - react-dom:  19.2.0
+Learn more: https://react.dev/warnings/version-mismatch
+    at [3mignore-listed frames[23m
+ POST /api/graphql [31m500[39m in 137ms[2m (proxy.ts: 3ms)[22m
+ POST /api/graphql [31m500[39m in 137ms[2m (proxy.ts: 3ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T12:40:42.182Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New PostgreSQL connection pool created {
+  max: [33m10[39m,
+  idleTimeoutMillis: [33m30000[39m,
+  connectionTimeoutMillis: [33m15000[39m,
+  connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
+  usingEnvVar: [33mtrue[39m
+}
+🔵 [DB] New client connected to pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 281ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 378ms[2m (compile: 90ms, proxy.ts: 2ms, render: 287ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0002 [32m200[39m in 382ms[2m (compile: 176ms, proxy.ts: 2ms, render: 205ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0007 [32m200[39m in 32ms[2m (compile: 1283µs, proxy.ts: 1385µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0008 [32m200[39m in 287ms[2m (compile: 93ms, proxy.ts: 3ms, render: 191ms)[22m
+ GET /api/users/AM-0006 [32m200[39m in 35ms[2m (compile: 1932µs, proxy.ts: 1207µs, render: 32ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0011 [32m200[39m in 420ms[2m (compile: 230ms, proxy.ts: 2ms, render: 187ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0009 [32m200[39m in 298ms[2m (compile: 101ms, proxy.ts: 3ms, render: 194ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0010 [32m200[39m in 426ms[2m (compile: 227ms, proxy.ts: 1234µs, render: 197ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0006 [32m200[39m in 36ms[2m (compile: 1764µs, proxy.ts: 1750µs, render: 32ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0005 [32m200[39m in 39ms[2m (compile: 5ms, proxy.ts: 4ms, render: 29ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0004 [32m200[39m in 40ms[2m (compile: 7ms, proxy.ts: 4ms, render: 29ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0002 [32m200[39m in 40ms[2m (compile: 9ms, proxy.ts: 2ms, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m2[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0003 [32m200[39m in 54ms[2m (compile: 8ms, proxy.ts: 5ms, render: 42ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 58ms[2m (compile: 20ms, proxy.ts: 5ms, render: 33ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m2[39m }
+ GET /api/users/AM-0002 [32m200[39m in 24ms[2m (compile: 19ms, proxy.ts: 3ms, render: 3ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0001 [32m200[39m in 48ms[2m (compile: 1971µs, proxy.ts: 7ms, render: 39ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0007 [32m200[39m in 39ms[2m (compile: 4ms, proxy.ts: 3ms, render: 32ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m2[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0008 [32m200[39m in 43ms[2m (compile: 7ms, proxy.ts: 4ms, render: 32ms)[22m
+ GET /api/users/AM-0006 [32m200[39m in 30ms[2m (compile: 26ms, proxy.ts: 1942µs, render: 1665µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m1[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0011 [32m200[39m in 46ms[2m (compile: 11ms, proxy.ts: 5ms, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m1[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0009 [32m200[39m in 48ms[2m (compile: 12ms, proxy.ts: 3ms, render: 33ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m1[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0010 [32m200[39m in 45ms[2m (compile: 13ms, proxy.ts: 4ms, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0005 [32m200[39m in 8ms[2m (compile: 4ms, proxy.ts: 1696µs, render: 1631µs)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0006 [32m200[39m in 48ms[2m (compile: 16ms, proxy.ts: 4ms, render: 28ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0005 [32m200[39m in 47ms[2m (compile: 15ms, proxy.ts: 1447µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m1[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0004 [32m200[39m in 42ms[2m (compile: 9ms, proxy.ts: 5ms, render: 28ms)[22m
+ GET /api/users/AM-0006 [32m200[39m in 18ms[2m (compile: 13ms, proxy.ts: 2ms, render: 2ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0002 [32m200[39m in 43ms[2m (compile: 7ms, proxy.ts: 3ms, render: 34ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0003 [32m200[39m in 38ms[2m (compile: 5ms, proxy.ts: 3ms, render: 30ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 18ms[2m (compile: 14ms, proxy.ts: 3ms, render: 1602µs)[22m
+ GET /api/users/AM-0006 [32m200[39m in 10ms[2m (compile: 7ms, proxy.ts: 1515µs, render: 1720µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 8ms[2m (compile: 5ms, proxy.ts: 1503µs, render: 1957µs)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0001 [32m200[39m in 43ms[2m (compile: 4ms, proxy.ts: 3ms, render: 37ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/AM-0005 [32m200[39m in 43ms[2m (compile: 39ms, proxy.ts: 1543µs, render: 3ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1788µs, render: 2ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1363µs, render: 1556µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1858µs, proxy.ts: 1130µs, render: 1438µs)[22m
+❌ Redis Cloud connection error: 008DAA0AD1780000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+✅ [DB] DATABASE_URL environment variable found
+❌ Redis Cloud connection error: 009D0ADAD27D0000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to /tmp/next-panic-28bb35b6ff1d58544e349dea553e8d21.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20Next.js%20package%20not%20found&body=Turbopack%20version%3A%20%60142b08bf%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0ANext.js%20package%20not%20found%0A%0ADebug%20info%3A%0A-%20Execution%20of%20subscribe_issues_and_diags_operation%20failed%0A-%20Execution%20of%20endpoint_server_changed_operation%20failed%0A-%20Execution%20of%20pick_endpoint%20failed%0A-%20Execution%20of%20entrypoints_without_collectibles_operation%20failed%0A-%20Execution%20of%20Project%3A%3Aentrypoints%20failed%0A-%20Execution%20of%20AppProject%3A%3Aroutes%20failed%0A-%20Execution%20of%20directory_tree_to_entrypoints_internal%20failed%0A-%20Execution%20of%20directory_tree_to_loader_tree%20failed%0A-%20Next.js%20package%20not%20found%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ [31m[1m⨯[22m[39m ./apps/web/src/app
+Error: Next.js inferred your workspace root, but it may not be correct.
+    We couldn't find the Next.js package ([1m[31mnext/package.json[39m[22m) from the project directory: [1m[31m/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/src/app[39m[22m
+     To fix this, set [32mturbopack.root[39m in your Next.js config, or ensure the Next.js package is resolvable from this directory.
+    Note: For security and performance reasons, files outside of the project directory will not be compiled.
+    See [1m[31mhttps://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory[39m[22m for more information.
+
+Error: Turbopack build failed with 1 errors:
+./apps/web/src/app
+Error: Next.js inferred your workspace root, but it may not be correct.
+    We couldn't find the Next.js package ([1m[31mnext/package.json[39m[22m) from the project directory: [1m[31m/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/src/app[39m[22m
+     To fix this, set [32mturbopack.root[39m in your Next.js config, or ensure the Next.js package is resolvable from this directory.
+    Note: For security and performance reasons, files outside of the project directory will not be compiled.
+    See [1m[31mhttps://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory[39m[22m for more information.
+
+    at [3mignore-listed frames[23m
+[?25h
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m Lifecycle script `dev` failed with error:
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcode[39m [33m1[39m
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mpath[39m /media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mworkspace[39m @jsr/web@0.1.0
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mlocation[39m /media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m command failed
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcommand[39m sh -c next dev
+[1G[0K⠙[1G[0K
