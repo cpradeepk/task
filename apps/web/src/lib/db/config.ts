@@ -3,12 +3,17 @@
 
 import { Pool, PoolConfig } from 'pg'
 
-// Log environment variable status for debugging
-if (!process.env.DATABASE_URL) {
-  console.warn('⚠️ [DB] DATABASE_URL environment variable not set, using fallback connection string')
-  console.warn('⚠️ [DB] This may cause connection issues on Vercel. Please set DATABASE_URL in Vercel environment variables.')
-} else {
-  console.log('✅ [DB] DATABASE_URL environment variable found')
+// Configuration: Set to true to suppress database connection logs
+const SUPPRESS_DB_LOGS = process.env.NEXT_PUBLIC_GRAPHQL_ERROR_ONLY === 'true' || true // Default to suppressed
+
+// Log environment variable status for debugging (only if not suppressed)
+if (!SUPPRESS_DB_LOGS) {
+  if (!process.env.DATABASE_URL) {
+    console.warn('⚠️ [DB] DATABASE_URL environment variable not set, using fallback connection string')
+    console.warn('⚠️ [DB] This may cause connection issues on Vercel. Please set DATABASE_URL in Vercel environment variables.')
+  } else {
+    console.log('✅ [DB] DATABASE_URL environment variable found')
+  }
 }
 
 // Database connection configuration
@@ -35,40 +40,45 @@ export function getPool(): Pool {
     try {
       pool = new Pool(DB_CONFIG)
 
-      // Log connection pool creation (helps debug serverless instances)
-      const connectionString = DB_CONFIG.connectionString || ''
-      const maskedConnectionString = connectionString.replace(/:[^:@]+@/, ':****@')
+      // Log connection pool creation (helps debug serverless instances) - only if not suppressed
+      if (!SUPPRESS_DB_LOGS) {
+        const connectionString = DB_CONFIG.connectionString || ''
+        const maskedConnectionString = connectionString.replace(/:[^:@]+@/, ':****@')
 
-      console.log('🔵 [DB] New PostgreSQL connection pool created', {
-        max: DB_CONFIG.max,
-        idleTimeoutMillis: DB_CONFIG.idleTimeoutMillis,
-        connectionTimeoutMillis: DB_CONFIG.connectionTimeoutMillis,
-        connectionString: maskedConnectionString,
-        usingEnvVar: !!process.env.DATABASE_URL
-      })
-
-      // Monitor connection pool events
-      pool.on('connect', (client) => {
-        console.log('🔵 [DB] New client connected to pool', {
-          totalCount: (pool as any).totalCount || 0,
-          idleCount: (pool as any).idleCount || 0
+        console.log('🔵 [DB] New PostgreSQL connection pool created', {
+          max: DB_CONFIG.max,
+          idleTimeoutMillis: DB_CONFIG.idleTimeoutMillis,
+          connectionTimeoutMillis: DB_CONFIG.connectionTimeoutMillis,
+          connectionString: maskedConnectionString,
+          usingEnvVar: !!process.env.DATABASE_URL
         })
-      })
+      }
 
-      pool.on('acquire', (client) => {
-        console.log('🔵 [DB] Client acquired from pool', {
-          totalCount: (pool as any).totalCount || 0,
-          idleCount: (pool as any).idleCount || 0
+      // Monitor connection pool events - only if not suppressed
+      if (!SUPPRESS_DB_LOGS) {
+        pool.on('connect', (client) => {
+          console.log('🔵 [DB] New client connected to pool', {
+            totalCount: (pool as any).totalCount || 0,
+            idleCount: (pool as any).idleCount || 0
+          })
         })
-      })
 
-      pool.on('remove', (client) => {
-        console.log('🔴 [DB] Client removed from pool', {
-          totalCount: (pool as any).totalCount || 0,
-          idleCount: (pool as any).idleCount || 0
+        pool.on('acquire', (client) => {
+          console.log('🔵 [DB] Client acquired from pool', {
+            totalCount: (pool as any).totalCount || 0,
+            idleCount: (pool as any).idleCount || 0
+          })
         })
-      })
 
+        pool.on('remove', (client) => {
+          console.log('🔴 [DB] Client removed from pool', {
+            totalCount: (pool as any).totalCount || 0,
+            idleCount: (pool as any).idleCount || 0
+          })
+        })
+      }
+
+      // Always log errors (even in suppressed mode)
       pool.on('error', (err, client) => {
         console.error('❌ [DB] Unexpected error on idle client', err)
         console.error('❌ [DB] Error details:', {
@@ -113,7 +123,9 @@ export async function testConnection(): Promise<boolean> {
   try {
     const pool = getPool()
     await pool.query('SELECT 1')
-    console.log('✅ PostgreSQL database connection successful')
+    if (!SUPPRESS_DB_LOGS) {
+      console.log('✅ PostgreSQL database connection successful')
+    }
     return true
   } catch (error) {
     console.error('❌ PostgreSQL database connection failed:', error)

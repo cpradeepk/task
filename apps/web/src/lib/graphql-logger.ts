@@ -6,6 +6,9 @@
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
+// Configuration: Set to true to only log errors (suppress success logs)
+const ERROR_ONLY_MODE = process.env.NEXT_PUBLIC_GRAPHQL_ERROR_ONLY === 'true' || true // Default to error-only mode
+
 // Color codes for console styling
 const colors = {
   success: '#10b981', // green
@@ -77,13 +80,15 @@ export function logOperationStart(
   variables: any = {},
   operationName?: string
 ): { startTime: number; opName: string; opType: 'query' | 'mutation' } {
-  if (!isDevelopment || typeof window === 'undefined') {
-    return { startTime: Date.now(), opName: '', opType: 'query' }
-  }
-
   const startTime = Date.now()
   const opName = operationName || extractOperationName(query)
   const opType = extractOperationType(query)
+
+  // Skip logging in error-only mode or non-development
+  if (!isDevelopment || typeof window === 'undefined' || ERROR_ONLY_MODE) {
+    return { startTime, opName, opType }
+  }
+
   const color = opType === 'mutation' ? colors.mutation : colors.query
   const icon = opType === 'mutation' ? emoji.mutation : emoji.query
 
@@ -95,7 +100,7 @@ export function logOperationStart(
 
   console.log('%c📝 Operation:', 'color: #6b7280; font-weight: bold;', opName)
   console.log('%c🔤 Type:', 'color: #6b7280; font-weight: bold;', opType)
-  
+
   if (Object.keys(variables).length > 0) {
     console.log(`%c${emoji.variables} Variables:`, 'color: #6b7280; font-weight: bold;')
     console.table(variables)
@@ -118,7 +123,8 @@ export function logOperationSuccess(
   data: any,
   startTime: number
 ): void {
-  if (!isDevelopment || typeof window === 'undefined') return
+  // Skip success logs in error-only mode
+  if (!isDevelopment || typeof window === 'undefined' || ERROR_ONLY_MODE) return
 
   const duration = Date.now() - startTime
   const color = opType === 'mutation' ? colors.mutation : colors.query
@@ -131,7 +137,7 @@ export function logOperationSuccess(
 
   console.log(`%c${emoji.timer} Duration:`, 'color: #6b7280; font-weight: bold;', `${duration}ms`)
   console.log(`%c${emoji.data} Response Data:`, 'color: #6b7280; font-weight: bold;')
-  
+
   // Show data preview
   if (data && typeof data === 'object') {
     const keys = Object.keys(data)
@@ -219,11 +225,13 @@ export function logResolverStart(
   args: any = {},
   parentType?: string
 ): { startTime: number } {
-  if (!isDevelopment) {
-    return { startTime: Date.now() }
+  const startTime = Date.now()
+
+  // Skip logging in error-only mode
+  if (!isDevelopment || ERROR_ONLY_MODE) {
+    return { startTime }
   }
 
-  const startTime = Date.now()
   const prefix = parentType ? `${parentType}.${resolverName}` : resolverName
 
   console.log(
@@ -246,7 +254,8 @@ export function logResolverSuccess(
   startTime: number,
   parentType?: string
 ): void {
-  if (!isDevelopment) return
+  // Skip success logs in error-only mode
+  if (!isDevelopment || ERROR_ONLY_MODE) return
 
   const duration = Date.now() - startTime
   const prefix = parentType ? `${parentType}.${resolverName}` : resolverName
@@ -305,11 +314,13 @@ export function logDatabaseQuery(
   params: any[] = [],
   context?: string
 ): { startTime: number } {
-  if (!isDevelopment) {
-    return { startTime: Date.now() }
+  const startTime = Date.now()
+
+  // Skip logging in error-only mode
+  if (!isDevelopment || ERROR_ONLY_MODE) {
+    return { startTime }
   }
 
-  const startTime = Date.now()
   const contextStr = context ? ` [${context}]` : ''
 
   console.log(`  ${emoji.database} [DB Query]${contextStr}`)
@@ -330,7 +341,8 @@ export function logDatabaseResult(
   startTime: number,
   context?: string
 ): void {
-  if (!isDevelopment) return
+  // Skip success logs in error-only mode
+  if (!isDevelopment || ERROR_ONLY_MODE) return
 
   const duration = Date.now() - startTime
   const contextStr = context ? ` [${context}]` : ''

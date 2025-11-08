@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Bell } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
@@ -30,8 +30,8 @@ export default function NotificationBell() {
   // Memoize currentUser to prevent unnecessary re-renders
   const currentUser = useMemo(() => getCurrentUser(), [])
 
-  // Fetch unread count
-  const fetchUnreadCount = async () => {
+  // Fetch unread count - memoized to prevent re-creation on every render
+  const fetchUnreadCount = useCallback(async () => {
     if (!currentUser) return
 
     try {
@@ -48,10 +48,10 @@ export default function NotificationBell() {
       console.error('Error fetching unread count:', error)
       // Don't update count on error to avoid showing stale data
     }
-  }
+  }, [currentUser])
 
-  // Fetch notifications
-  const fetchNotifications = async () => {
+  // Fetch notifications - memoized to prevent re-creation on every render
+  const fetchNotifications = useCallback(async () => {
     if (!currentUser) return
 
     setLoading(true)
@@ -85,7 +85,7 @@ export default function NotificationBell() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentUser])
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
@@ -149,15 +149,14 @@ export default function NotificationBell() {
     fetchUnreadCount()
     const interval = setInterval(fetchUnreadCount, 60000) // Poll every 60 seconds
     return () => clearInterval(interval)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser?.employeeId])
+  }, [currentUser, fetchUnreadCount])
 
   // Fetch notifications when dropdown opens
   useEffect(() => {
     if (isOpen) {
       fetchNotifications()
     }
-  }, [isOpen])
+  }, [isOpen, fetchNotifications])
 
   // Close dropdown when clicking outside
   useEffect(() => {

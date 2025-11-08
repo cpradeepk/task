@@ -15829,3 +15829,2598 @@ Fetching team members for manager AM-0001 from MySQL
 ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
 
  POST /api/graphql [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1436µs, render: 32ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:18:42.826Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 206ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 214ms[2m (compile: 1616µs, proxy.ts: 3ms, render: 209ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:19:42.832Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 213ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 225ms[2m (compile: 5ms, proxy.ts: 4ms, render: 216ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:20:42.829Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 223ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 233ms[2m (compile: 4ms, proxy.ts: 3ms, render: 226ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:21:42.827Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 243ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 252ms[2m (compile: 2ms, proxy.ts: 3ms, render: 248ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:22:42.829Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 230ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 240ms[2m (compile: 3ms, proxy.ts: 3ms, render: 234ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:23:42.829Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 208ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 217ms[2m (compile: 3ms, proxy.ts: 4ms, render: 211ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:24:42.829Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 200ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 209ms[2m (compile: 4ms, proxy.ts: 3ms, render: 202ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:25:42.829Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 247ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 257ms[2m (compile: 3ms, proxy.ts: 4ms, render: 250ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:26:42.831Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 228ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 240ms[2m (compile: 4ms, proxy.ts: 4ms, render: 231ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:27:42.827Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 199ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 208ms[2m (compile: 3ms, proxy.ts: 2ms, render: 202ms)[22m
+ GET /feed-topics [32m200[39m in 82ms[2m (compile: 56ms, render: 25ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:27:48.939Z
+🔧 Variables: {
+  "includePersonal": false
+}
+================================================================================
+
+⚙️ [Resolver] feedTopics ⏱️ 18:57:48.943
+  🔧 Args: {
+  "includePersonal": false
+}
+  🗄️ [DB Query] [feedTopics]
+    SQL: SELECT * FROM feed_topics WHERE deleted_at IS NULL AND is_personal = false AND is_saved = false ORDER BY display_order ASC
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:27:48.952Z
+🔧 Variables: {
+  "includePersonal": false
+}
+================================================================================
+
+⚙️ [Resolver] feedTopics ⏱️ 18:57:48.953
+  🔧 Args: {
+  "includePersonal": false
+}
+  🗄️ [DB Query] [feedTopics]
+    SQL: SELECT * FROM feed_topics WHERE deleted_at IS NULL AND is_personal = false AND is_saved = false ORDER BY display_order ASC
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:27:48.959Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+  ✅ [DB Result] [feedTopics] 6 rows in 34ms
+  ✅ [Resolver] feedTopics completed in 35ms → Array(6)
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 41ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 49ms[2m (compile: 1926µs, proxy.ts: 3ms, render: 44ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 191ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 204ms[2m (compile: 9ms, proxy.ts: 3ms, render: 193ms)[22m
+  ✅ [DB Result] [feedTopics] 6 rows in 216ms
+  ✅ [Resolver] feedTopics completed in 217ms → Array(6)
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 219ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 226ms[2m (compile: 3ms, proxy.ts: 2ms, render: 221ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming MUTATION: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:27:59.234Z
+🔧 Variables: {
+  "input": {
+    "topicName": "Ideas",
+    "description": null,
+    "icon": null,
+    "displayOrder": 7
+  }
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+GraphQL Error Details: {
+  message: [32m'duplicate key value violates unique constraint "feed_topics_public_name_unique"'[39m,
+  path: [ [32m'createFeedTopic'[39m ],
+  extensions: {
+    code: [32m'INTERNAL_SERVER_ERROR'[39m,
+    stacktrace: [
+      [32m'error: duplicate key value violates unique constraint "feed_topics_public_name_unique"'[39m,
+      [32m'    at /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/pg-pool/index.js:45:11'[39m,
+      [32m'    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)'[39m,
+      [32m'    at async Object.createFeedTopic (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__f8dc7716._.js:4611:28)'[39m
+    ]
+  },
+  originalError: {
+    name: [32m'GraphQLError'[39m,
+    message: [32m'duplicate key value violates unique constraint "feed_topics_public_name_unique"'[39m,
+    stack: [32m'error: duplicate key value violates unique constraint "feed_topics_public_name_unique"\n'[39m +
+      [32m'    at /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/pg-pool/index.js:45:11\n'[39m +
+      [32m'    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n'[39m +
+      [32m'    at async Object.createFeedTopic (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__f8dc7716._.js:4611:28)'[39m
+  }
+}
+
+❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
+❌ [GraphQL Server] UnnamedOperation FAILED in 44ms
+Errors: [
+  {
+    "message": "duplicate key value violates unique constraint \"feed_topics_public_name_unique\"",
+    "locations": [
+      {
+        "line": 3,
+        "column": 7
+      }
+    ],
+    "path": [
+      "createFeedTopic"
+    ],
+    "extensions": {
+      "code": "INTERNAL_SERVER_ERROR",
+      "stacktrace": [
+        "error: duplicate key value violates unique constraint \"feed_topics_public_name_unique\"",
+        "    at /media/pradeep/Work/projects/jsr_web_app-jsr_tool/node_modules/pg-pool/index.js:45:11",
+        "    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)",
+        "    at async Object.createFeedTopic (/media/pradeep/Work/projects/jsr_web_app-jsr_tool/apps/web/.next/dev/server/chunks/[root-of-the-server]__f8dc7716._.js:4611:28)"
+      ]
+    }
+  }
+]
+❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
+
+ POST /api/graphql [32m200[39m in 53ms[2m (compile: 3ms, proxy.ts: 4ms, render: 46ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m2[39m, idleCount: [33m2[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming MUTATION: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:28.686Z
+🔧 Variables: {
+  "input": {
+    "topicName": "Augment Tips",
+    "description": null,
+    "icon": null,
+    "displayOrder": 7
+  }
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 205ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 214ms[2m (compile: 3ms, proxy.ts: 3ms, render: 208ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:28.901Z
+🔧 Variables: {
+  "includePersonal": false
+}
+================================================================================
+
+⚙️ [Resolver] feedTopics ⏱️ 18:58:28.902
+  🔧 Args: {
+  "includePersonal": false
+}
+  🗄️ [DB Query] [feedTopics]
+    SQL: SELECT * FROM feed_topics WHERE deleted_at IS NULL AND is_personal = false AND is_saved = false ORDER BY display_order ASC
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [feedTopics] 7 rows in 28ms
+  ✅ [Resolver] feedTopics completed in 28ms → Array(7)
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 31ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 37ms[2m (compile: 2ms, proxy.ts: 1493µs, render: 33ms)[22m
+ GET /feed-topics [32m200[39m in 111ms[2m (compile: 2ms, render: 109ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:38.061Z
+🔧 Variables: {
+  "includePersonal": false
+}
+================================================================================
+
+⚙️ [Resolver] feedTopics ⏱️ 18:58:38.062
+  🔧 Args: {
+  "includePersonal": false
+}
+  🗄️ [DB Query] [feedTopics]
+    SQL: SELECT * FROM feed_topics WHERE deleted_at IS NULL AND is_personal = false AND is_saved = false ORDER BY display_order ASC
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/settings?grouped=true&activeOnly=true [32m200[39m in 10ms[2m (compile: 6ms, proxy.ts: 3ms, render: 2ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:28:38.088Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+  ✅ [DB Result] [feedTopics] 7 rows in 29ms
+  ✅ [Resolver] feedTopics completed in 29ms → Array(7)
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 32ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 39ms[2m (compile: 2ms, proxy.ts: 3ms, render: 34ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 195ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 202ms[2m (compile: 3ms, proxy.ts: 1768µs, render: 197ms)[22m
+ GET /feed [32m200[39m in 59ms[2m (compile: 43ms, render: 16ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming MUTATION: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:46.108Z
+================================================================================
+
+[initPersonalTopics] Initializing personal topics for user AM-0001
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:46.122Z
+🔧 Variables: {
+  "includePersonal": true
+}
+================================================================================
+
+⚙️ [Resolver] feedTopics ⏱️ 18:58:46.123
+  🔧 Args: {
+  "includePersonal": true
+}
+  🗄️ [DB Query] [feedTopics]
+    SQL: SELECT * FROM feed_topics WHERE deleted_at IS NULL AND ((is_personal = false AND is_saved = false) OR owner_user_id = $1) ORDER BY display_order ASC
+    Params: [ [32m'AM-0001'[39m ]
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:46.127Z
+🔧 Variables: {
+  "topicId": null,
+  "status": "published",
+  "search": null,
+  "limit": 20,
+  "offset": 0
+}
+================================================================================
+
+⚙️ [Resolver] feedPosts ⏱️ 18:58:46.129
+  🔧 Args: {
+  "topicId": null,
+  "status": "published",
+  "search": null,
+  "limit": 20,
+  "offset": 0
+}
+  🗄️ [DB Query] [feedPosts]
+    SQL: 
+          SELECT DISTINCT fp.*
+          FROM feed_posts fp
+          LEFT JOIN feed_post_topics fpt ON fp.post_id = fpt.post_id
+          WHERE fp.deleted_at IS NULL
+         AND fp.status = $1 ORDE...
+    Params: [ [32m'published'[39m, [33m20[39m, [33m0[39m ]
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:28:46.140Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+[initPersonalTopics] Creating missing personal topics for user AM-0001 { hasPersonalNotes: [33mtrue[39m, hasSavedPosts: [33mfalse[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m0[39m }
+  ✅ [DB Result] [feedTopics] 9 rows in 28ms
+  ✅ [Resolver] feedTopics completed in 28ms → Array(9)
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 31ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 41ms[2m (compile: 4ms, proxy.ts: 4ms, render: 32ms)[22m
+[initPersonalTopics] Saved Posts topic already exists for user AM-0001, fetching it
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+[initPersonalTopics] Successfully initialized personal topics for user AM-0001
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 92ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 99ms[2m (compile: 3ms, proxy.ts: 1830µs, render: 94ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 192ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 197ms[2m (compile: 1708µs, proxy.ts: 1780µs, render: 194ms)[22m
+  ✅ [DB Result] [feedPosts] 1 rows in 209ms
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+  ✅ [Resolver] feedPosts completed in 239ms → Object(3 keys)
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 469ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 483ms[2m (compile: 7ms, proxy.ts: 5ms, render: 472ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming MUTATION: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:46.619Z
+🔧 Variables: {
+  "postId": "post_0a431737-2f0f-4b79-88d5-eab386c14783"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming MUTATION: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:46.624Z
+🔧 Variables: {
+  "postId": "post_0a431737-2f0f-4b79-88d5-eab386c14783"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 27ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 39ms[2m (compile: 7ms, proxy.ts: 2ms, render: 30ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 40ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 47ms[2m (compile: 3ms, proxy.ts: 2ms, render: 42ms)[22m
+ GET /bugs [32m200[39m in 63ms[2m (compile: 44ms, render: 18ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:53.595Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:53.600Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:28:53.611Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m4[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:53.614Z
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 28ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 42ms[2m (compile: 8ms, proxy.ts: 3ms, render: 31ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 36ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 45ms[2m (compile: 4ms, proxy.ts: 3ms, render: 38ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 27ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 3ms, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m4[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 129ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 140ms[2m (compile: 6ms, proxy.ts: 3ms, render: 131ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/users [32m200[39m in 211ms[2m (compile: 11ms, proxy.ts: 3ms, render: 197ms)[22m
+ GET /tasks [32m200[39m in 256ms[2m (compile: 243ms, render: 13ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:56.489Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:56.494Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:56.503Z
+================================================================================
+
+⚙️ [Resolver] tasks ⏱️ 18:58:56.506
+  🗄️ [DB Query] [tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY updated_at DESC
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m4[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:28:56.511Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 29ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 44ms[2m (compile: 11ms, proxy.ts: 1849µs, render: 31ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 36ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 50ms[2m (compile: 8ms, proxy.ts: 3ms, render: 39ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 28ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 49ms[2m (compile: 12ms, proxy.ts: 6ms, render: 31ms)[22m
+ GET /api/users [32m200[39m in 46ms[2m (compile: 2ms, proxy.ts: 14ms, render: 29ms)[22m
+  ✅ [DB Result] [tasks] 44 rows in 71ms
+  ✅ [Resolver] tasks completed in 72ms → Array(44)
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m4[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 125ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 133ms[2m (compile: 3ms, proxy.ts: 3ms, render: 127ms)[22m
+ GET /bugs [32m200[39m in 12ms[2m (compile: 1778µs, render: 10ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:57.626Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:57.631Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:28:57.645Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m4[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:28:57.649Z
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 28ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 43ms[2m (compile: 9ms, proxy.ts: 3ms, render: 31ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 36ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 46ms[2m (compile: 5ms, proxy.ts: 3ms, render: 38ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 27ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 39ms[2m (compile: 7ms, proxy.ts: 3ms, render: 29ms)[22m
+ GET /api/users [32m200[39m in 46ms[2m (compile: 14ms, proxy.ts: 4ms, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m4[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 115ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 132ms[2m (compile: 11ms, proxy.ts: 3ms, render: 118ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0005 [32m200[39m in 73ms[2m (compile: 6ms, proxy.ts: 2ms, render: 64ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0008 [32m200[39m in 32ms[2m (compile: 1773µs, proxy.ts: 1607µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0007 [32m200[39m in 33ms[2m (compile: 1950µs, proxy.ts: 1591µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0006 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1862µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0006 [32m200[39m in 36ms[2m (compile: 5ms, proxy.ts: 1643µs, render: 28ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0004 [32m200[39m in 33ms[2m (compile: 1726µs, proxy.ts: 1458µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0009 [32m200[39m in 253ms[2m (compile: 10ms, proxy.ts: 3ms, render: 240ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m6[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0010 [32m200[39m in 266ms[2m (compile: 9ms, proxy.ts: 3ms, render: 254ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0011 [32m200[39m in 268ms[2m (compile: 8ms, proxy.ts: 3ms, render: 257ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 273ms[2m (compile: 58ms, proxy.ts: 3ms, render: 212ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0003 [32m200[39m in 35ms[2m (compile: 1925µs, proxy.ts: 1323µs, render: 32ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/users/AM-0002 [32m200[39m in 295ms[2m (compile: 61ms, proxy.ts: 3ms, render: 232ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0002 [32m200[39m in 37ms[2m (compile: 6ms, proxy.ts: 1281µs, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m1[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0001 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1515µs, render: 29ms)[22m
+ GET /api/users/AM-0006 [32m200[39m in 14ms[2m (compile: 9ms, proxy.ts: 2ms, render: 2ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0005 [32m200[39m in 37ms[2m (compile: 4ms, proxy.ts: 1856µs, render: 31ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0008 [32m200[39m in 39ms[2m (compile: 5ms, proxy.ts: 1919µs, render: 31ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0007 [32m200[39m in 34ms[2m (compile: 1008µs, proxy.ts: 1199µs, render: 32ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m4[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m1[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0006 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 2ms, render: 29ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 8ms[2m (compile: 6ms, proxy.ts: 1088µs, render: 1487µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m1[39m }
+ GET /api/users/AM-0002 [32m200[39m in 7ms[2m (compile: 4ms, proxy.ts: 1540µs, render: 1359µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0004 [32m200[39m in 39ms[2m (compile: 8ms, proxy.ts: 4ms, render: 28ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0009 [32m200[39m in 38ms[2m (compile: 8ms, proxy.ts: 3ms, render: 27ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0010 [32m200[39m in 42ms[2m (compile: 9ms, proxy.ts: 4ms, render: 29ms)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0011 [32m200[39m in 41ms[2m (compile: 10ms, proxy.ts: 2ms, render: 29ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m3[39m }
+ GET /api/users/AM-0006 [32m200[39m in 12ms[2m (compile: 9ms, proxy.ts: 1639µs, render: 1598µs)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0003 [32m200[39m in 32ms[2m (compile: 1658µs, proxy.ts: 1645µs, render: 28ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 13ms[2m (compile: 10ms, proxy.ts: 1186µs, render: 1596µs)[22m
+ GET /api/users/AM-0006 [32m200[39m in 11ms[2m (compile: 7ms, proxy.ts: 3ms, render: 1671µs)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0002 [32m200[39m in 36ms[2m (compile: 1451µs, proxy.ts: 1167µs, render: 33ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 9ms[2m (compile: 6ms, proxy.ts: 1647µs, render: 1412µs)[22m
+ GET /api/bugs/subtasks?parentDevId=BUG-0001 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1709µs, render: 30ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 7ms[2m (compile: 4ms, proxy.ts: 1347µs, render: 1922µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 10ms[2m (compile: 6ms, proxy.ts: 2ms, render: 1966µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 7ms[2m (compile: 2ms, proxy.ts: 3ms, render: 1802µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 17ms[2m (compile: 13ms, proxy.ts: 1337µs, render: 2ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+❌ Redis Cloud connection error: 00EDA85F52710000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+ GET /bugs/BUG-0005 [32m200[39m in 92ms[2m (compile: 75ms, render: 17ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:29:03.024Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+ GET /api/settings?grouped=true&activeOnly=true [32m200[39m in 20ms[2m (compile: 13ms, proxy.ts: 5ms, render: 1968µs)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:03.031Z
+🔧 Variables: {
+  "bugId": "BUG-0005"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m5[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 33ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 51ms[2m (compile: 10ms, proxy.ts: 5ms, render: 36ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+ GET /api/users [32m200[39m in 55ms[2m (compile: 20ms, proxy.ts: 5ms, render: 31ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 60ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 83ms[2m (compile: 15ms, proxy.ts: 5ms, render: 63ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m5[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m4[39m }
+🔵 [BUG-SUBTASKS-GET] API called
+🔵 [BUG-SUBTASKS-GET] Params: { parentBugId: [32m'BUG-0005'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [BUG-SUBTASKS-GET] Fetching bug subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m1[39m }
+ GET /api/settings [32m200[39m in 25ms[2m (compile: 16ms, proxy.ts: 7ms, render: 1682µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m6[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0005 [32m200[39m in 81ms[2m (compile: 8ms, proxy.ts: 6ms, render: 68ms)[22m
+✅ [BUG-SUBTASKS-GET] Found 0 subtasks for parent bug BUG-0005
+ GET /api/development-checklists?parentBugId=BUG-0005 [32m200[39m in 82ms[2m (compile: 12ms, proxy.ts: 7ms, render: 63ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+ GET /api/users [32m200[39m in 82ms[2m (compile: 17ms, proxy.ts: 7ms, render: 57ms)[22m
+🔍 [ActivityLog] Row 182: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 181: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 180: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 179: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 178: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 177: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 169: isComment raw=0 (type: number), converted=false
+✅ [ActivityLog] Fetched 7 activities for bug:BUG-0005
+   Comments: 0, Activities: 7
+ GET /api/activity-log?entityType=bug&entityId=BUG-0005&sortOrder=desc [32m200[39m in 94ms[2m (compile: 10ms, proxy.ts: 6ms, render: 78ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m4[39m }
+ GET /api/settings [32m200[39m in 18ms[2m (compile: 13ms, proxy.ts: 3ms, render: 2000µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m3[39m }
+🔵 [BUG-SUBTASKS-GET] API called
+🔵 [BUG-SUBTASKS-GET] Params: { parentBugId: [32m'BUG-0005'[39m, assignedTo: [1mnull[22m, includeDeleted: [33mfalse[39m }
+🔵 [BUG-SUBTASKS-GET] Fetching bug subtasks and counts...
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m0[39m }
+ GET /api/relationships?id=BUG-0005&type=development [32m200[39m in 117ms[2m (compile: 14ms, proxy.ts: 7ms, render: 96ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m0[39m }
+ GET /api/bugs/subtasks?parentDevId=BUG-0005 [32m200[39m in 47ms[2m (compile: 15ms, proxy.ts: 3ms, render: 28ms)[22m
+🔍 [ActivityLog] Row 182: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 181: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 180: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 179: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 178: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 177: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 169: isComment raw=0 (type: number), converted=false
+✅ [ActivityLog] Fetched 7 activities for bug:BUG-0005
+   Comments: 0, Activities: 7
+ GET /api/activity-log?entityType=bug&entityId=BUG-0005&sortOrder=desc [32m200[39m in 51ms[2m (compile: 10ms, proxy.ts: 3ms, render: 37ms)[22m
+✅ [BUG-SUBTASKS-GET] Found 0 subtasks for parent bug BUG-0005
+ GET /api/development-checklists?parentBugId=BUG-0005 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1455µs, render: 30ms)[22m
+ GET /api/users [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 1260µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+ GET /api/relationships?id=BUG-0005&type=development [32m200[39m in 94ms[2m (compile: 1498µs, proxy.ts: 1635µs, render: 91ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+ GET /api/projects/PRJ-014 [32m200[39m in 308ms[2m (compile: 44ms, proxy.ts: 1365µs, render: 263ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+ GET /api/projects/PRJ-015 [32m200[39m in 69ms[2m (compile: 2ms, proxy.ts: 2ms, render: 65ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+ GET /api/projects?type=main [32m200[39m in 42ms[2m (compile: 4ms, proxy.ts: 4ms, render: 33ms)[22m
+ GET /api/projects?parentId=PRJ-014 [32m200[39m in 41ms[2m (compile: 5ms, proxy.ts: 4ms, render: 32ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+ GET /api/projects?parentId=PRJ-014 [32m200[39m in 33ms[2m (compile: 1432µs, proxy.ts: 1752µs, render: 30ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m4[39m, idleCount: [33m4[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m4[39m, idleCount: [33m4[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m4[39m, idleCount: [33m4[39m }
+🔄 Initializing email service...
+🔄 Initializing email service...
+✅ [DB] DATABASE_URL environment variable found
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+ PUT /api/bugs/BUG-0005 [32m200[39m in 852ms[2m (compile: 522ms, proxy.ts: 2ms, render: 329ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:18.280Z
+🔧 Variables: {
+  "bugId": "BUG-0005"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m2[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 65ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 70ms[2m (compile: 1529µs, proxy.ts: 1471µs, render: 67ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+ GET /api/projects/PRJ-014 [32m200[39m in 102ms[2m (compile: 42ms, proxy.ts: 1817µs, render: 59ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+ GET /api/projects/PRJ-015 [32m200[39m in 60ms[2m (compile: 3ms, proxy.ts: 1702µs, render: 55ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+⚠️ Email verify failed. Falling back to test mode: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-29651c77939sm89568175ad.54 - gsmtp
+ GET /bugs [32m200[39m in 12ms[2m (compile: 1981µs, render: 10ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:22.136Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:22.143Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m2[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:29:22.154Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m1[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:22.163Z
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 34ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 43ms[2m (compile: 4ms, proxy.ts: 2ms, render: 36ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 29ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 42ms[2m (compile: 8ms, proxy.ts: 2ms, render: 31ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 28ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 38ms[2m (compile: 6ms, proxy.ts: 1751µs, render: 31ms)[22m
+ GET /api/users [32m200[39m in 46ms[2m (compile: 15ms, proxy.ts: 1494µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m1[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 109ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 126ms[2m (compile: 11ms, proxy.ts: 1647µs, render: 113ms)[22m
+ GET /tasks [32m200[39m in 15ms[2m (compile: 2ms, render: 13ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:23.732Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:23.737Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m2[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:29:23.742Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:23.748Z
+================================================================================
+
+⚙️ [Resolver] tasks ⏱️ 18:59:23.749
+  🗄️ [DB Query] [tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY updated_at DESC
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 28ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 61ms[2m (compile: 28ms, proxy.ts: 2ms, render: 31ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 27ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 62ms[2m (compile: 30ms, proxy.ts: 2ms, render: 29ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 26ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 45ms[2m (compile: 13ms, proxy.ts: 3ms, render: 28ms)[22m
+ GET /api/users [32m200[39m in 47ms[2m (compile: 16ms, proxy.ts: 4ms, render: 28ms)[22m
+  ✅ [DB Result] [tasks] 44 rows in 61ms
+  ✅ [Resolver] tasks completed in 61ms → Array(44)
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m1[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 102ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 126ms[2m (compile: 17ms, proxy.ts: 4ms, render: 105ms)[22m
+ GET /dashboard [32m200[39m in 333ms[2m (compile: 322ms, render: 11ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:29:26.681Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m3[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:26.684Z
+🔧 Variables: {
+  "employeeId": "AM-0001",
+  "role": "top_management"
+}
+================================================================================
+
+⚙️ [Resolver] dashboard ⏱️ 18:59:26.687
+  🔧 Args: {
+  "employeeId": "AM-0001",
+  "role": "top_management"
+}
+  🗄️ [DB Query] [dashboard.tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY updated_at DESC
+  🗄️ [DB Query] [dashboard.bugs]
+    SQL: SELECT * FROM bugs WHERE deleted_at IS NULL ORDER BY updated_at DESC
+  🗄️ [DB Query] [dashboard.users]
+    SQL: SELECT * FROM users ORDER BY name
+  🗄️ [DB Query] [dashboard.settings]
+    SQL: SELECT * FROM settings WHERE is_active = true ORDER BY key
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m4[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 32ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 39ms[2m (compile: 1948µs, proxy.ts: 1931µs, render: 35ms)[22m
+  ✅ [DB Result] [dashboard.users] 10 rows in 27ms
+  ✅ [DB Result] [dashboard.tasks] 44 rows in 53ms
+  ✅ [DB Result] [dashboard.bugs] 11 rows in 78ms
+🔵 [DB] New client connected to pool { totalCount: [33m5[39m, idleCount: [33m4[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m4[39m }
+  ✅ [DB Result] [dashboard.settings] 17 rows in 221ms
+  ✅ [Resolver] dashboard completed in 222ms → Object(4 keys)
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m4[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m2[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 271ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 280ms[2m (compile: 5ms, proxy.ts: 1907µs, render: 274ms)[22m
+ GET /api/settings [32m200[39m in 9ms[2m (compile: 5ms, proxy.ts: 2ms, render: 1757µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+ GET /api/users/AM-0005 [32m200[39m in 54ms[2m (compile: 50ms, proxy.ts: 2ms, render: 2ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 56ms[2m (compile: 51ms, proxy.ts: 3ms, render: 1339µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+ GET /api/users [32m200[39m in 53ms[2m (compile: 6ms, proxy.ts: 1699µs, render: 45ms)[22m
+ GET /api/users/AM-0006 [32m200[39m in 61ms[2m (compile: 57ms, proxy.ts: 2ms, render: 1599µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+ GET /api/settings [32m200[39m in 18ms[2m (compile: 14ms, proxy.ts: 3ms, render: 1402µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m4[39m }
+ GET /api/users/AM-0001 [32m200[39m in 90ms[2m (compile: 52ms, proxy.ts: 4ms, render: 34ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 33ms[2m (compile: 25ms, proxy.ts: 6ms, render: 1802µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 31ms[2m (compile: 27ms, proxy.ts: 1798µs, render: 1716µs)[22m
+ GET /api/projects?type=main&status=active [32m200[39m in 46ms[2m (compile: 13ms, proxy.ts: 4ms, render: 29ms)[22m
+ GET /api/users/AM-0006 [32m200[39m in 24ms[2m (compile: 17ms, proxy.ts: 5ms, render: 1879µs)[22m
+ GET /api/settings [32m200[39m in 14ms[2m (compile: 9ms, proxy.ts: 3ms, render: 3ms)[22m
+ GET /api/users [32m200[39m in 60ms[2m (compile: 16ms, proxy.ts: 1487µs, render: 42ms)[22m
+ GET /api/users/AM-0001 [32m200[39m in 43ms[2m (compile: 39ms, proxy.ts: 3ms, render: 1737µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+ GET /api/settings [32m200[39m in 19ms[2m (compile: 13ms, proxy.ts: 4ms, render: 1431µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 47ms[2m (compile: 44ms, proxy.ts: 1502µs, render: 1439µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m5[39m }
+ GET /api/users/AM-0006 [32m200[39m in 28ms[2m (compile: 23ms, proxy.ts: 4ms, render: 1352µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 11ms[2m (compile: 6ms, proxy.ts: 3ms, render: 1513µs)[22m
+ GET /api/users/AM-0006 [32m200[39m in 10ms[2m (compile: 7ms, proxy.ts: 1183µs, render: 1785µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 10ms[2m (compile: 7ms, proxy.ts: 1471µs, render: 1547µs)[22m
+ GET /api/projects?type=main&status=active [32m200[39m in 47ms[2m (compile: 13ms, proxy.ts: 4ms, render: 30ms)[22m
+ GET /api/users/AM-0006 [32m200[39m in 10ms[2m (compile: 7ms, proxy.ts: 1441µs, render: 1574µs)[22m
+ GET /api/users [32m200[39m in 44ms[2m (compile: 12ms, proxy.ts: 4ms, render: 28ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 12ms[2m (compile: 10ms, proxy.ts: 1232µs, render: 1482µs)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m7[39m, idleCount: [33m6[39m }
+ GET /api/users/AM-0006 [32m200[39m in 16ms[2m (compile: 13ms, proxy.ts: 1565µs, render: 1704µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 12ms[2m (compile: 9ms, proxy.ts: 1596µs, render: 1339µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1470µs, proxy.ts: 1143µs, render: 1406µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1711µs, proxy.ts: 1079µs, render: 1419µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 1822µs, proxy.ts: 1166µs, render: 1515µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1587µs, proxy.ts: 1157µs, render: 1530µs)[22m
+ GET /api/users [32m200[39m in 35ms[2m (compile: 5ms, proxy.ts: 1004µs, render: 29ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1100µs, render: 1329µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1074µs, render: 1528µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1651µs, proxy.ts: 1054µs, render: 1436µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 10ms[2m (compile: 7ms, proxy.ts: 1062µs, render: 1714µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1625µs, proxy.ts: 1288µs, render: 1399µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1570µs, proxy.ts: 1060µs, render: 1526µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1090µs, render: 1718µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1650µs, proxy.ts: 1068µs, render: 1561µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1435µs, proxy.ts: 972µs, render: 1351µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 4ms[2m (compile: 1584µs, proxy.ts: 1186µs, render: 1427µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 7ms[2m (compile: 4ms, proxy.ts: 986µs, render: 1835µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1258µs, render: 1819µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 6ms[2m (compile: 2ms, proxy.ts: 1465µs, render: 1839µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1219µs, render: 1507µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1042µs, render: 1515µs)[22m
+✅ [DB] DATABASE_URL environment variable found
+❌ Redis Cloud connection error: 00ED2B85A9780000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+ GET /feed [32m200[39m in 14ms[2m (compile: 2ms, render: 12ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming MUTATION: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:27.999Z
+================================================================================
+
+[initPersonalTopics] Initializing personal topics for user AM-0001
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m4[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:28.006Z
+🔧 Variables: {
+  "includePersonal": true
+}
+================================================================================
+
+⚙️ [Resolver] feedTopics ⏱️ 18:59:28.007
+  🔧 Args: {
+  "includePersonal": true
+}
+  🗄️ [DB Query] [feedTopics]
+    SQL: SELECT * FROM feed_topics WHERE deleted_at IS NULL AND ((is_personal = false AND is_saved = false) OR owner_user_id = $1) ORDER BY display_order ASC
+    Params: [ [32m'AM-0001'[39m ]
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m3[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:28.011Z
+🔧 Variables: {
+  "topicId": null,
+  "status": "published",
+  "search": null,
+  "limit": 20,
+  "offset": 0
+}
+================================================================================
+
+⚙️ [Resolver] feedPosts ⏱️ 18:59:28.012
+  🔧 Args: {
+  "topicId": null,
+  "status": "published",
+  "search": null,
+  "limit": 20,
+  "offset": 0
+}
+  🗄️ [DB Query] [feedPosts]
+    SQL: 
+          SELECT DISTINCT fp.*
+          FROM feed_posts fp
+          LEFT JOIN feed_post_topics fpt ON fp.post_id = fpt.post_id
+          WHERE fp.deleted_at IS NULL
+         AND fp.status = $1 ORDE...
+    Params: [ [32m'published'[39m, [33m20[39m, [33m0[39m ]
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m2[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:29:28.019Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m1[39m }
+[initPersonalTopics] Creating missing personal topics for user AM-0001 { hasPersonalNotes: [33mtrue[39m, hasSavedPosts: [33mfalse[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m1[39m }
+  ✅ [DB Result] [feedTopics] 9 rows in 27ms
+  ✅ [Resolver] feedTopics completed in 27ms → Array(9)
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 29ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 42ms[2m (compile: 8ms, proxy.ts: 2ms, render: 31ms)[22m
+  ✅ [DB Result] [feedPosts] 1 rows in 25ms
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m2[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 28ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 33ms[2m (compile: 1697µs, proxy.ts: 1665µs, render: 30ms)[22m
+  ✅ [Resolver] feedPosts completed in 50ms → Object(3 keys)
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m3[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m5[39m, idleCount: [33m0[39m }
+[initPersonalTopics] Saved Posts topic already exists for user AM-0001, fetching it
+🔴 [DB] Client removed from pool { totalCount: [33m8[39m, idleCount: [33m4[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m8[39m, idleCount: [33m4[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m8[39m, idleCount: [33m4[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m8[39m, idleCount: [33m4[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m8[39m, idleCount: [33m4[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m8[39m, idleCount: [33m4[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m8[39m, idleCount: [33m4[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m8[39m, idleCount: [33m5[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m8[39m, idleCount: [33m5[39m }
+[initPersonalTopics] Successfully initialized personal topics for user AM-0001
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 262ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 272ms[2m (compile: 5ms, proxy.ts: 2ms, render: 265ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 279ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 296ms[2m (compile: 13ms, proxy.ts: 2ms, render: 281ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming MUTATION: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:28.313Z
+🔧 Variables: {
+  "postId": "post_0a431737-2f0f-4b79-88d5-eab386c14783"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m8[39m, idleCount: [33m7[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming MUTATION: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:29:28.317Z
+🔧 Variables: {
+  "postId": "post_0a431737-2f0f-4b79-88d5-eab386c14783"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m8[39m, idleCount: [33m6[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 28ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 36ms[2m (compile: 5ms, proxy.ts: 2ms, render: 30ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 33ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 39ms[2m (compile: 2ms, proxy.ts: 1973µs, render: 34ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m3[39m, idleCount: [33m3[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m3[39m, idleCount: [33m3[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m3[39m, idleCount: [33m3[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m3[39m, idleCount: [33m3[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m2[39m, idleCount: [33m2[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m4[39m, idleCount: [33m4[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m4[39m, idleCount: [33m4[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m4[39m, idleCount: [33m4[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m4[39m, idleCount: [33m4[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m2[39m, idleCount: [33m2[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m2[39m, idleCount: [33m2[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:30:28.021Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 244ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 257ms[2m (compile: 4ms, proxy.ts: 4ms, render: 249ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:31:28.017Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 213ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 224ms[2m (compile: 3ms, proxy.ts: 4ms, render: 216ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:32:28.015Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 219ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 227ms[2m (compile: 2ms, proxy.ts: 3ms, render: 222ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:33:28.014Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 200ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 209ms[2m (compile: 3ms, proxy.ts: 3ms, render: 204ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:34:28.016Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 205ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 214ms[2m (compile: 4ms, proxy.ts: 3ms, render: 207ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:35:28.017Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 210ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 220ms[2m (compile: 3ms, proxy.ts: 4ms, render: 213ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:36:28.016Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 201ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 210ms[2m (compile: 4ms, proxy.ts: 3ms, render: 204ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ GET /approvals [32m200[39m in 166ms[2m (compile: 58ms, render: 108ms)[22m
+ GET /api/settings?grouped=true&activeOnly=true [32m200[39m in 9ms[2m (compile: 4ms, proxy.ts: 2ms, render: 2ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:36:59.129Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 197ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 205ms[2m (compile: 2ms, proxy.ts: 2ms, render: 200ms)[22m
+ GET /api/users/team/AM-0001 [32m200[39m in 275ms[2m (compile: 55ms, proxy.ts: 2ms, render: 218ms)[22m
+Fetching leave applications from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+Fetching team members for manager AM-0001 from MySQL
+ GET /api/leaves [32m200[39m in 40ms[2m (compile: 2ms, proxy.ts: 1687µs, render: 36ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 208ms[2m (compile: 2ms, proxy.ts: 1632µs, render: 204ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 76ms[2m (compile: 44ms, proxy.ts: 1485µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 2ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1828µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 3ms, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 38ms[2m (compile: 6ms, proxy.ts: 1573µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 40ms[2m (compile: 4ms, proxy.ts: 1616µs, render: 35ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 3ms, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 39ms[2m (compile: 6ms, proxy.ts: 4ms, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 2ms, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1817µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1784µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 85ms[2m (compile: 48ms, proxy.ts: 5ms, render: 33ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 39ms[2m (compile: 7ms, proxy.ts: 2ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1893µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1562µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1530µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1612µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1290µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1394µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 4ms, proxy.ts: 2ms, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 5ms, proxy.ts: 2ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 39ms[2m (compile: 4ms, proxy.ts: 5ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/team/AM-0001 [32m200[39m in 39ms[2m (compile: 4ms, proxy.ts: 5ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 70ms[2m (compile: 39ms, proxy.ts: 1791µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1553µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1501µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 1549µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1158µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1720µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 6ms, proxy.ts: 1695µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1766µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1576µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1629µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 41ms[2m (compile: 8ms, proxy.ts: 2ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1580µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 77ms[2m (compile: 44ms, proxy.ts: 1909µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 1585µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 2ms, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 32ms[2m (compile: 1941µs, proxy.ts: 1463µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1464µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1934µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 1679µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 2ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1717µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 6ms, proxy.ts: 1451µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 38ms[2m (compile: 4ms, proxy.ts: 2ms, render: 32ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 39ms[2m (compile: 8ms, proxy.ts: 1638µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 74ms[2m (compile: 40ms, proxy.ts: 2ms, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 1593µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 5ms, proxy.ts: 1878µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 1743µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1501µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1523µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 5ms, proxy.ts: 1560µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 3ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 38ms[2m (compile: 6ms, proxy.ts: 2ms, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 32ms[2m (compile: 1807µs, proxy.ts: 1287µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1752µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 88ms[2m (compile: 57ms, proxy.ts: 1971µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1560µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 6ms, proxy.ts: 1695µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 1766µs, proxy.ts: 1468µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1646µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 38ms[2m (compile: 3ms, proxy.ts: 5ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 1206µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 32ms[2m (compile: 1872µs, proxy.ts: 1467µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1749µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 39ms[2m (compile: 5ms, proxy.ts: 3ms, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1544µs, render: 29ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1406µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 79ms[2m (compile: 47ms, proxy.ts: 1493µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 38ms[2m (compile: 5ms, proxy.ts: 2ms, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 3ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1817µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1714µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1505µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1739µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1826µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1617µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 2ms, proxy.ts: 1890µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 43ms[2m (compile: 3ms, proxy.ts: 9ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/team/AM-0001 [32m200[39m in 38ms[2m (compile: 6ms, proxy.ts: 1698µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 79ms[2m (compile: 47ms, proxy.ts: 1427µs, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 38ms[2m (compile: 4ms, proxy.ts: 4ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 2ms, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 1769µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 1972µs, proxy.ts: 1671µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1469µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 5ms, proxy.ts: 1259µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1511µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 5ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 1989µs, render: 32ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 2ms, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 3ms, proxy.ts: 4ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 70ms[2m (compile: 39ms, proxy.ts: 1563µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 2ms, proxy.ts: 1998µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1535µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1858µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1647µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1887µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 32ms[2m (compile: 2ms, proxy.ts: 1250µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 2ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 32ms[2m (compile: 2ms, proxy.ts: 1755µs, render: 28ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 32ms[2m (compile: 1809µs, proxy.ts: 1089µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/team/AM-0001 [32m200[39m in 31ms[2m (compile: 1943µs, proxy.ts: 1178µs, render: 28ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 75ms[2m (compile: 43ms, proxy.ts: 3ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1400µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 4ms, proxy.ts: 1833µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 4ms, proxy.ts: 1779µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1283µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1327µs, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 36ms[2m (compile: 6ms, proxy.ts: 2ms, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 32ms[2m (compile: 2ms, proxy.ts: 1150µs, render: 28ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 4ms, proxy.ts: 1192µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 3ms, proxy.ts: 1436µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 2ms, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+✅ [DB] DATABASE_URL environment variable found
+ GET /api/users/team/AM-0001 [32m200[39m in 33ms[2m (compile: 2ms, proxy.ts: 1695µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 71ms[2m (compile: 41ms, proxy.ts: 1274µs, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 4ms, render: 30ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 40ms[2m (compile: 8ms, proxy.ts: 1621µs, render: 30ms)[22m
+Fetching WFH applications from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+ GET /api/wfh [32m200[39m in 39ms[2m (compile: 5ms, proxy.ts: 1662µs, render: 32ms)[22m
+ GET /api/users/team/AM-0001 [32m200[39m in 37ms[2m (compile: 2ms, proxy.ts: 5ms, render: 31ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 86ms[2m (compile: 5ms, proxy.ts: 2ms, render: 79ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /profile [32m200[39m in 73ms[2m (compile: 48ms, render: 25ms)[22m
+ GET /api/users/team/AM-0001 [32m200[39m in 35ms[2m (compile: 3ms, proxy.ts: 1200µs, render: 31ms)[22m
+ GET /api/settings?grouped=true&activeOnly=true [32m200[39m in 9ms[2m (compile: 5ms, proxy.ts: 2ms, render: 1598µs)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:37:04.560Z
+🔧 Variables: {
+  "assignedTo": "AM-0001"
+}
+================================================================================
+
+⚙️ [Resolver] tasks ⏱️ 19:07:04.561
+  🔧 Args: {
+  "assignedTo": "AM-0001"
+}
+  🗄️ [DB Query] [tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL AND EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+            WHERE elem = $1
+          ) ORDER BY updated_at DESC
+    Params: [ [32m'AM-0001'[39m ]
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T13:37:04.569Z
+🔧 Variables: {
+  "assignedTo": "AM-0001"
+}
+================================================================================
+
+⚙️ [Resolver] tasks ⏱️ 19:07:04.570
+  🔧 Args: {
+  "assignedTo": "AM-0001"
+}
+  🗄️ [DB Query] [tasks]
+    SQL: SELECT * FROM tasks WHERE deleted_at IS NULL AND EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+            WHERE elem = $1
+          ) ORDER BY updated_at DESC
+    Params: [ [32m'AM-0001'[39m ]
+ GET /api/settings?grouped=true&activeOnly=true [32m200[39m in 11ms[2m (compile: 7ms, proxy.ts: 2ms, render: 1623µs)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:37:04.582Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+  ✅ [DB Result] [tasks] 0 rows in 34ms
+  ✅ [Resolver] tasks completed in 35ms → Array(0)
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 36ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 49ms[2m (compile: 8ms, proxy.ts: 3ms, render: 38ms)[22m
+ GET /api/users/team/AM-0001 [32m200[39m in 44ms[2m (compile: 13ms, proxy.ts: 2ms, render: 29ms)[22m
+Fetching team members for manager AM-0001 from MySQL
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+ GET /api/users/team/AM-0001 [32m200[39m in 34ms[2m (compile: 3ms, proxy.ts: 1329µs, render: 29ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 293ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 300ms[2m (compile: 4ms, proxy.ts: 1339µs, render: 295ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+  ✅ [DB Result] [tasks] 0 rows in 340ms
+  ✅ [Resolver] tasks completed in 342ms → Array(0)
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 343ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 357ms[2m (compile: 10ms, proxy.ts: 1598µs, render: 345ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+ GET /api/leaves/user/AM-0001 [32m200[39m in 538ms[2m (compile: 497ms, proxy.ts: 1576µs, render: 40ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+✅ [DB] DATABASE_URL environment variable found
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+ GET /api/wfh/user/AM-0001 [32m200[39m in 617ms[2m (compile: 585ms, proxy.ts: 1491µs, render: 30ms)[22m
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m1[39m }
+ GET /api/leaves/user/AM-0001 [32m200[39m in 127ms[2m (compile: 43ms, proxy.ts: 1588µs, render: 82ms)[22m
+ GET /api/wfh/user/AM-0001 [32m200[39m in 75ms[2m (compile: 44ms, proxy.ts: 1298µs, render: 29ms)[22m
+✅ [DB] DATABASE_URL environment variable found
+✅ [DB] DATABASE_URL environment variable found
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:37:28.416Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m3[39m, idleCount: [33m2[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 28ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 38ms[2m (compile: 3ms, proxy.ts: 4ms, render: 31ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m2[39m, idleCount: [33m2[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:38:04.581Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 196ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 205ms[2m (compile: 2ms, proxy.ts: 3ms, render: 200ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:39:04.581Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 201ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 212ms[2m (compile: 4ms, proxy.ts: 3ms, render: 205ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:39:18.421Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 29ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 40ms[2m (compile: 5ms, proxy.ts: 3ms, render: 32ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:40:04.582Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 234ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 243ms[2m (compile: 2ms, proxy.ts: 4ms, render: 236ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:40:18.418Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 34ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 42ms[2m (compile: 3ms, proxy.ts: 3ms, render: 36ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:41:04.582Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 208ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 218ms[2m (compile: 3ms, proxy.ts: 3ms, render: 211ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:41:18.417Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 32ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 40ms[2m (compile: 3ms, proxy.ts: 3ms, render: 34ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:42:04.584Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 196ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 207ms[2m (compile: 5ms, proxy.ts: 4ms, render: 199ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:42:18.427Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 30ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 40ms[2m (compile: 2ms, proxy.ts: 4ms, render: 33ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:43:04.585Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 204ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 216ms[2m (compile: 3ms, proxy.ts: 6ms, render: 208ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:43:18.416Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 29ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 37ms[2m (compile: 3ms, proxy.ts: 3ms, render: 32ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:44:04.582Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 309ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 318ms[2m (compile: 4ms, proxy.ts: 3ms, render: 311ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:44:18.422Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 35ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 45ms[2m (compile: 4ms, proxy.ts: 3ms, render: 38ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:45:04.580Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 206ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 214ms[2m (compile: 3ms, proxy.ts: 3ms, render: 208ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:45:18.419Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 30ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 39ms[2m (compile: 1940µs, proxy.ts: 4ms, render: 33ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:46:05.412Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 205ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 213ms[2m (compile: 1810µs, proxy.ts: 3ms, render: 208ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:46:18.416Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] Client acquired from pool { totalCount: [33m1[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 30ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 39ms[2m (compile: 2ms, proxy.ts: 3ms, render: 34ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ [32m[1m✓[22m[39m Compiled in 11ms
+✅ [DB] DATABASE_URL environment variable found
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:47:18.530Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New PostgreSQL connection pool created {
+  max: [33m10[39m,
+  idleTimeoutMillis: [33m30000[39m,
+  connectionTimeoutMillis: [33m15000[39m,
+  connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
+  usingEnvVar: [33mtrue[39m
+}
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:47:18.552Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 231ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 334ms[2m (compile: 96ms, proxy.ts: 1797µs, render: 236ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 226ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 369ms[2m (compile: 135ms, proxy.ts: 5ms, render: 229ms)[22m
+ [32m[1m✓[22m[39m Compiled in 15ms
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ [32m[1m✓[22m[39m Compiled in 11ms
+ [32m[1m✓[22m[39m Compiled in 13ms
+✅ [DB] DATABASE_URL environment variable found
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:48:18.525Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New PostgreSQL connection pool created {
+  max: [33m10[39m,
+  idleTimeoutMillis: [33m30000[39m,
+  connectionTimeoutMillis: [33m15000[39m,
+  connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
+  usingEnvVar: [33mtrue[39m
+}
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:48:18.544Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 200ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 336ms[2m (compile: 128ms, proxy.ts: 4ms, render: 203ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 304ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 408ms[2m (compile: 94ms, proxy.ts: 5ms, render: 310ms)[22m
+ [32m[1m✓[22m[39m Compiled in 11ms
+ [32m[1m✓[22m[39m Compiled in 20ms
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+ [32m[1m✓[22m[39m Compiled in 9ms
+✅ [DB] DATABASE_URL environment variable found
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:49:18.528Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New PostgreSQL connection pool created {
+  max: [33m10[39m,
+  idleTimeoutMillis: [33m30000[39m,
+  connectionTimeoutMillis: [33m15000[39m,
+  connectionString: [32m'postgresql://postgres.rbckjkdohzbclomrufrx:****@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'[39m,
+  usingEnvVar: [33mtrue[39m
+}
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:49:18.549Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m0[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 201ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 343ms[2m (compile: 137ms, proxy.ts: 3ms, render: 203ms)[22m
+🔵 [DB] New client connected to pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+🔵 [DB] Client acquired from pool { totalCount: [33m2[39m, idleCount: [33m1[39m }
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 268ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 378ms[2m (compile: 103ms, proxy.ts: 3ms, render: 272ms)[22m
+🔴 [DB] Client removed from pool { totalCount: [33m1[39m, idleCount: [33m1[39m }
+🔴 [DB] Client removed from pool { totalCount: [33m0[39m, idleCount: [33m0[39m }
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:50:05.526Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 235ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 343ms[2m (compile: 99ms, proxy.ts: 3ms, render: 240ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:50:18.511Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 260ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 353ms[2m (compile: 85ms, proxy.ts: 1732µs, render: 267ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:51:18.420Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:51:18.426Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 196ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 209ms[2m (compile: 9ms, proxy.ts: 2ms, render: 198ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 249ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 261ms[2m (compile: 5ms, proxy.ts: 3ms, render: 252ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:51:26.004Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:51:26.010Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 28ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 37ms[2m (compile: 4ms, proxy.ts: 2ms, render: 31ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 29ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 40ms[2m (compile: 7ms, proxy.ts: 1454µs, render: 32ms)[22m
+ [32m[1m✓[22m[39m Compiled in 147ms
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:51:42.036Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T13:51:42.041Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+ [32m[1m✓[22m[39m Compiled in 124ms
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 30ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 38ms[2m (compile: 4ms, proxy.ts: 1837µs, render: 33ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 27ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 39ms[2m (compile: 7ms, proxy.ts: 1471µs, render: 30ms)[22m
