@@ -113,6 +113,7 @@ export const typeDefs = `#graphql
     assignedByUser: User
     reportedByUser: User
     subtasks: [BugSubTask!]!
+    project: Project
   }
 
   type BugSubTask {

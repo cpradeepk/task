@@ -46,6 +46,17 @@ const createBugLoader = () => new DataLoader(async (bugIds: readonly string[]) =
   return bugIds.map(id => bugMap.get(id) || null)
 })
 
+// DataLoader for batching project queries
+const createProjectLoader = () => new DataLoader(async (projectIds: readonly string[]) => {
+  const result = await pool.query(
+    'SELECT * FROM projects WHERE project_id = ANY($1) AND deleted_at IS NULL',
+    [projectIds]
+  )
+
+  const projectMap = new Map(result.rows.map((project: any) => [project.project_id, project]))
+  return projectIds.map(id => projectMap.get(id) || null)
+})
+
 // DataLoader for batching subtask queries
 // Note: The subtasks table was renamed to task_checklists in migration 020
 const createSubtaskLoader = () => new DataLoader(async (parentTaskIds: readonly string[]) => {
@@ -165,9 +176,10 @@ const createFeedPostTopicsLoader = () => new DataLoader(async (postIds: readonly
 
 export const createContext = () => ({
   loaders: {
-    user: createUserLoader(),
-    task: createTaskLoader(),
-    bug: createBugLoader(),
+    userLoader: createUserLoader(),
+    taskLoader: createTaskLoader(),
+    bugLoader: createBugLoader(),
+    projectLoader: createProjectLoader(),
     subtasks: createSubtaskLoader(),
     bugSubtasks: createBugSubtaskLoader(),
     feedPost: createFeedPostLoader(),
@@ -773,13 +785,14 @@ export const resolvers = {
       return loaders.subtasks.load(task.task_id)
     },
 
-    project: async (task: any) => {
+    project: async (task: any, _: any, { loaders }: any) => {
       if (!task.project_id) return null
-      const result = await pool.query(
-        'SELECT * FROM projects WHERE project_id = $1 AND deleted_at IS NULL',
-        [task.project_id]
-      )
-      return result.rows[0] || null
+      try {
+        return await loaders.projectLoader.load(task.project_id)
+      } catch (error) {
+        console.error(`[Task.project] Failed to load project ${task.project_id}:`, error)
+        return null
+      }
     }
   },
 
@@ -911,6 +924,16 @@ export const resolvers = {
       if (!bug.attachments) return []
       // Attachments is stored as JSONB in PostgreSQL
       return Array.isArray(bug.attachments) ? bug.attachments : []
+    },
+
+    project: async (bug: any, _: any, { loaders }: any) => {
+      if (!bug.project_id) return null
+      try {
+        return await loaders.projectLoader.load(bug.project_id)
+      } catch (error) {
+        console.error(`[Bug.project] Failed to load project ${bug.project_id}:`, error)
+        return null
+      }
     }
   },
 
