@@ -93,13 +93,31 @@ export default function TasksPage() {
   const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
 
-  // Handle hydration
+  // Handle hydration and load persisted filters
   useEffect(() => {
     setIsHydrated(true)
 
-    // Set default assignee filter to current user
-    if (currentUser?.employeeId) {
-      setAssigneeFilter(currentUser.employeeId)
+    // Load persisted filters from localStorage
+    try {
+      const savedFilters = localStorage.getItem('taskFilters')
+      if (savedFilters) {
+        const filters = JSON.parse(savedFilters)
+        setSearchTerm(filters.searchTerm || '')
+        setStatusFilter(filters.statusFilter || 'all')
+        setPriorityFilter(filters.priorityFilter || 'all')
+        setAssigneeFilter(filters.assigneeFilter || (currentUser?.employeeId || 'all'))
+      } else {
+        // Set default assignee filter to current user if no saved filters
+        if (currentUser?.employeeId) {
+          setAssigneeFilter(currentUser.employeeId)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load saved filters:', error)
+      // Set default assignee filter on error
+      if (currentUser?.employeeId) {
+        setAssigneeFilter(currentUser.employeeId)
+      }
     }
 
     // Monitor network status
@@ -229,6 +247,23 @@ export default function TasksPage() {
       setIsLoading(false)
     }
   }, [currentUser])
+
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    if (!isHydrated) return // Don't save during initial hydration
+
+    try {
+      const filters = {
+        searchTerm,
+        statusFilter,
+        priorityFilter,
+        assigneeFilter
+      }
+      localStorage.setItem('taskFilters', JSON.stringify(filters))
+    } catch (error) {
+      console.error('Failed to save filters:', error)
+    }
+  }, [searchTerm, statusFilter, priorityFilter, assigneeFilter, isHydrated])
 
   // Calculate statistics from filtered tasks
   const calculateStatistics = useCallback((tasksData: Task[]) => {

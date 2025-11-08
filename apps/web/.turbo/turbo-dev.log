@@ -24124,3 +24124,186 @@ Fetching WFH applications from MySQL
 ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
 
  POST /api/graphql [32m200[39m in 212ms[2m (compile: 1998µs, proxy.ts: 3ms, render: 206ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:17:18.414Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 237ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 245ms[2m (compile: 1642µs, proxy.ts: 1938µs, render: 242ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:18:18.420Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 195ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 206ms[2m (compile: 3ms, proxy.ts: 3ms, render: 200ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:19:18.419Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 201ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 209ms[2m (compile: 4ms, proxy.ts: 1856µs, render: 203ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:20:18.419Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 206ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 214ms[2m (compile: 1780µs, proxy.ts: 3ms, render: 208ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:21:18.418Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 210ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 218ms[2m (compile: 1329µs, proxy.ts: 4ms, render: 213ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:22:18.417Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 224ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 232ms[2m (compile: 1745µs, proxy.ts: 3ms, render: 227ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:23:18.414Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 207ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 215ms[2m (compile: 1852µs, proxy.ts: 1801µs, render: 211ms)[22m
+ [32m[1m✓[22m[39m Compiled in 16ms
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:23:48.064Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 34ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 42ms[2m (compile: 3ms, proxy.ts: 1450µs, render: 37ms)[22m
+ [32m[1m✓[22m[39m Compiled in 107ms
+ [32m[1m✓[22m[39m Compiled in 112ms
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T15:24:37.593Z
+🔧 Variables: {
+  "activeOnly": true
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:24:37.614Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-08T15:24:37.623Z
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 188ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 197ms[2m (compile: 3ms, proxy.ts: 1458µs, render: 192ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 227ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 235ms[2m (compile: 3ms, proxy.ts: 3ms, render: 229ms)[22m
+ GET /api/users [32m200[39m in 209ms[2m (compile: 8ms, proxy.ts: 1782µs, render: 200ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 367ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 375ms[2m (compile: 3ms, proxy.ts: 3ms, render: 369ms)[22m
+ [32m[1m✓[22m[39m Compiled in 94ms
+ [32m[1m✓[22m[39m Compiled in 109ms
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-08T15:25:38.419Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 202ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 214ms[2m (compile: 5ms, proxy.ts: 3ms, render: 205ms)[22m

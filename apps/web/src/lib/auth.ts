@@ -100,6 +100,9 @@ export async function login(employeeId: string, password: string): Promise<boole
 export function logout(): void {
   if (typeof window === 'undefined') return
   localStorage.removeItem(CURRENT_USER_KEY)
+  // Clear filter persistence on logout
+  localStorage.removeItem('taskFilters')
+  localStorage.removeItem('bugFilters')
 }
 
 export function getCurrentUser(): User | null {
