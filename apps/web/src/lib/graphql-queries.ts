@@ -147,6 +147,7 @@ export const QUERIES = {
       tasks(assignedTo: $assignedTo, status: $status, priority: $priority) {
         id
         taskId
+        name
         selectType
         recursiveType
         description
@@ -208,10 +209,11 @@ export const QUERIES = {
 
   // Get single task by ID
   GET_TASK: `
-    query GetTask($taskId: String!) {
+    query GetTask($taskId: ID!) {
       task(taskId: $taskId) {
         id
         taskId
+        name
         selectType
         recursiveType
         description
@@ -607,6 +609,7 @@ export const QUERIES = {
         ownerUserId
         createdBy
         createdAt
+        postCount
       }
     }
   `,
@@ -793,8 +796,8 @@ export const MUTATIONS = {
   TOGGLE_FEED_SAVE: `
     mutation ToggleFeedSave($postId: ID!) {
       toggleFeedSave(postId: $postId) {
-        saved
-        topicId
+        action
+        message
       }
     }
   `,

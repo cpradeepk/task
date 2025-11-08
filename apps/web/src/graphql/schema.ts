@@ -204,6 +204,7 @@ export const typeDefs = `#graphql
     ownerUserId: String
     createdBy: String!
     createdAt: String!
+    postCount: Int!
   }
 
   type FeedComment {

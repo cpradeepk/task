@@ -1081,13 +1081,13 @@ export const resolvers = {
         console.warn(`[FeedPost] createdAt is null/undefined for post ${post.post_id}`)
         return null
       }
-      // Validate the date
+      // Validate the date and return ISO string
       const date = new Date(post.created_at)
       if (isNaN(date.getTime())) {
         console.error(`[FeedPost] Invalid createdAt date for post ${post.post_id}: ${post.created_at}`)
         return null
       }
-      return post.created_at
+      return date.toISOString()
     },
     updatedAt: (post: any) => {
       if (!post.updated_at) return null
@@ -1096,7 +1096,7 @@ export const resolvers = {
         console.error(`[FeedPost] Invalid updatedAt date for post ${post.post_id}: ${post.updated_at}`)
         return null
       }
-      return post.updated_at
+      return date.toISOString()
     },
     status: (post: any) => post.status,
 
@@ -1236,7 +1236,25 @@ export const resolvers = {
     isSaved: (topic: any) => topic.is_saved || false,
     ownerUserId: (topic: any) => topic.owner_user_id,
     createdBy: (topic: any) => topic.created_by,
-    createdAt: (topic: any) => topic.created_at
+    createdAt: (topic: any) => topic.created_at,
+    postCount: async (topic: any) => {
+      try {
+        const topicId = topic.topic_id || topic.id
+        const result = await getPoolInstance().query(
+          `SELECT COUNT(DISTINCT fp.post_id) as count
+           FROM feed_post_topics fpt
+           JOIN feed_posts fp ON fpt.post_id = fp.post_id
+           WHERE fpt.topic_id = $1
+           AND fp.deleted_at IS NULL
+           AND fp.status = 'published'`,
+          [topicId]
+        )
+        return parseInt(result.rows[0]?.count || '0')
+      } catch (error) {
+        console.error(`[FeedTopic.postCount] Failed to get post count for topic ${topic.topic_id || topic.id}:`, error)
+        return 0
+      }
+    }
   },
 
   // Field resolvers for FeedComment
@@ -1521,7 +1539,19 @@ export const resolvers = {
       if (!user) throw new Error('Unauthorized')
 
       const postId = `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      const status = ['admin', 'top_management'].includes(user.role) ? 'published' : 'pending'
+
+      // Check if posting to personal topic
+      const topicCheck = await getPoolInstance().query(
+        'SELECT is_personal FROM feed_topics WHERE id = ANY($1) AND deleted_at IS NULL',
+        [input.topicIds]
+      )
+      const isPersonalPost = topicCheck.rows.some((t: any) => t.is_personal === true)
+
+      // Auto-publish for: personal posts, admin, top_management, management, amtarikshian
+      const status = isPersonalPost || ['admin', 'top_management', 'management', 'amtarikshian'].includes(user.role)
+        ? 'published'
+        : 'pending'
+
       const mediaUrls = input.mediaUrls ? JSON.stringify(input.mediaUrls) : null
 
       await getPoolInstance().query(

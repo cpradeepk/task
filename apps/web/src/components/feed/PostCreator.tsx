@@ -251,8 +251,14 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
         }
       })
 
-      console.log('✅ [PostCreator] Post created successfully:', data.createFeedPost.postId)
-      alert('Post created successfully! It will be visible after approval.')
+      console.log('✅ [PostCreator] Post created successfully:', data.createFeedPost.postId, 'Status:', data.createFeedPost.status)
+
+      // Show appropriate message based on post status
+      const message = data.createFeedPost.status === 'published'
+        ? 'Post published successfully!'
+        : 'Post created successfully! It will be visible after approval.'
+
+      alert(message)
       resetForm()
       onPostCreated()
       onClose()

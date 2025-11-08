@@ -104,12 +104,25 @@ export default function FeedPost({ post, onReact, onComment }: FeedPostProps) {
       const data = await executeGraphQLMutation(MUTATIONS.TOGGLE_FEED_SAVE, {
         postId: post.postId
       })
-      setIsSaved(data.toggleFeedSave.saved)
-      console.log('✅ [FeedPost] Save toggled successfully:', data.toggleFeedSave.saved)
+      // Toggle the saved state based on the action returned
+      const newSavedState = data.toggleFeedSave.action === 'saved'
+      setIsSaved(newSavedState)
+      console.log('✅ [FeedPost] Save toggled successfully:', data.toggleFeedSave.action)
     } catch (error) {
       console.error('❌ [FeedPost] Error saving post:', error)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleSharePost = async () => {
+    try {
+      const postUrl = `${window.location.origin}/feed?post=${post.postId}`
+      await navigator.clipboard.writeText(postUrl)
+      alert('Post link copied to clipboard!')
+    } catch (error) {
+      console.error('❌ [FeedPost] Error copying link:', error)
+      alert('Failed to copy link to clipboard')
     }
   }
 
@@ -356,7 +369,10 @@ export default function FeedPost({ post, onReact, onComment }: FeedPostProps) {
         </button>
 
         {/* Share */}
-        <button className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
+        <button
+          onClick={handleSharePost}
+          className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
+        >
           <Share2 className="w-5 h-5" />
           <span className="text-sm">Share</span>
         </button>
