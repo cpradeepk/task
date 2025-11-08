@@ -6,7 +6,7 @@
 import { getPool } from '@/lib/db/config'
 import { createMentionNotification } from '@/lib/notification-helper'
 
-const pool = getPool()
+const getPoolInstance = () => getPool()
 
 export interface ParsedMention {
   mentionText: string // e.g., "@john.doe" or "@John Doe"
@@ -57,7 +57,7 @@ export async function parseMentions(text: string): Promise<ParsedMention[]> {
     // 3. email username (before @, case-insensitive)
     
     try {
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         `SELECT employee_id, name, email 
          FROM users 
          WHERE deleted_at IS NULL 
@@ -132,7 +132,7 @@ export async function storeMentions(
 
   try {
     // Get the name of the user who created the mention
-    const mentionedByUserResult = await pool.query(
+    const mentionedByUserResult = await getPoolInstance().query(
       'SELECT name FROM users WHERE employee_id = $1',
       [mentionedByUserId]
     )
@@ -141,7 +141,7 @@ export async function storeMentions(
     for (const mention of validMentions) {
       const mentionId = `mention_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-      await pool.query(
+      await getPoolInstance().query(
         `INSERT INTO feed_mentions (
           mention_id, post_id, comment_id, mentioned_user_id,
           mentioned_by_user_id, mention_text, is_read

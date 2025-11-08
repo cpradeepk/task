@@ -6,7 +6,7 @@
 
 import { getPool } from '@/lib/db'
 
-const pool = getPool()
+const getPoolInstance = () => getPool()
 
 export interface CreateNotificationParams {
   userId: string // recipient
@@ -46,7 +46,7 @@ export async function createNotification(params: CreateNotificationParams): Prom
   // Generate notification ID
   const notificationId = `NOTIF-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
 
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     `INSERT INTO feed_notifications (
       notification_id, user_id, actor_id, notification_type,
       post_id, comment_id, mention_id,

@@ -11,11 +11,11 @@
 import DataLoader from 'dataloader'
 import { getPool } from '@/lib/db'
 
-const pool = getPool()
+const getPoolInstance = () => getPool()
 
 // DataLoader for batching notification queries
 export const createNotificationLoader = () => new DataLoader(async (notificationIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM feed_notifications WHERE notification_id = ANY($1) AND deleted_at IS NULL',
     [notificationIds]
   )
@@ -61,7 +61,7 @@ export const notificationQueries = {
     query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
     params.push(limit, offset)
 
-    const result = await pool.query(query, params)
+    const result = await getPoolInstance().query(query, params)
     return result.rows
   },
 
@@ -72,7 +72,7 @@ export const notificationQueries = {
 
   // Get unread notification count for a user
   unreadNotificationCount: async (_: any, { userId }: { userId: string }) => {
-    const result = await pool.query(
+    const result = await getPoolInstance().query(
       'SELECT COUNT(*) as count FROM feed_notifications WHERE user_id = $1 AND is_read = false AND deleted_at IS NULL',
       [userId]
     )
@@ -84,7 +84,7 @@ export const notificationQueries = {
 export const notificationMutations = {
   // Mark a notification as read
   markNotificationAsRead: async (_: any, { notificationId }: { notificationId: string }) => {
-    const result = await pool.query(
+    const result = await getPoolInstance().query(
       `UPDATE feed_notifications 
        SET is_read = true, read_at = CURRENT_TIMESTAMP 
        WHERE notification_id = $1 AND deleted_at IS NULL
@@ -101,7 +101,7 @@ export const notificationMutations = {
 
   // Mark all notifications as read for a user
   markAllNotificationsAsRead: async (_: any, { userId }: { userId: string }) => {
-    await pool.query(
+    await getPoolInstance().query(
       `UPDATE feed_notifications 
        SET is_read = true, read_at = CURRENT_TIMESTAMP 
        WHERE user_id = $1 AND is_read = false AND deleted_at IS NULL`,
@@ -112,7 +112,7 @@ export const notificationMutations = {
 
   // Delete a notification (soft delete)
   deleteNotification: async (_: any, { notificationId }: { notificationId: string }, { user }: any) => {
-    const result = await pool.query(
+    const result = await getPoolInstance().query(
       `UPDATE feed_notifications 
        SET deleted_at = CURRENT_TIMESTAMP, deleted_by = $2 
        WHERE notification_id = $1 AND deleted_at IS NULL
@@ -176,7 +176,7 @@ export const FeedNotificationFieldResolvers = {
   comment: async (notification: any, _: any, { loaders }: any) => {
     if (!notification.comment_id) return null
     // Note: We don't have a comment loader yet, will need to add one
-    const result = await pool.query(
+    const result = await getPoolInstance().query(
       'SELECT * FROM feed_comments WHERE comment_id = $1 AND deleted_at IS NULL',
       [notification.comment_id]
     )
@@ -186,7 +186,7 @@ export const FeedNotificationFieldResolvers = {
   mention: async (notification: any, _: any, { loaders }: any) => {
     if (!notification.mention_id) return null
     // Note: We don't have a mention loader yet, will need to add one
-    const result = await pool.query(
+    const result = await getPoolInstance().query(
       'SELECT * FROM feed_mentions WHERE mention_id = $1 AND deleted_at IS NULL',
       [notification.mention_id]
     )

@@ -11,7 +11,7 @@ import {
   logDatabaseResult
 } from '@/lib/graphql-logger'
 
-const pool = getPool()
+const getPoolInstance = () => getPool()
 
 export const mentionQueries = {
   /**
@@ -43,7 +43,7 @@ export const mentionQueries = {
       params.push(limit, offset)
 
       const dbStart = logDatabaseQuery(query, params, 'feedMentions')
-      const result = await pool.query(query, params)
+      const result = await getPoolInstance().query(query, params)
       logDatabaseResult(result.rows.length, dbStart.startTime, 'feedMentions')
 
       logResolverSuccess('feedMentions', result.rows, startTime)
@@ -66,7 +66,7 @@ export const mentionQueries = {
         [mentionId],
         'feedMention'
       )
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM feed_mentions WHERE mention_id = $1 AND deleted_at IS NULL',
         [mentionId]
       )
@@ -95,7 +95,7 @@ export const mentionMutations = {
         [mentionId],
         'markMentionAsRead'
       )
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'UPDATE feed_mentions SET is_read = true WHERE mention_id = $1 AND deleted_at IS NULL RETURNING *',
         [mentionId]
       )
@@ -126,7 +126,7 @@ export const mentionMutations = {
         [userId],
         'markAllMentionsAsRead'
       )
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'UPDATE feed_mentions SET is_read = true WHERE mentioned_user_id = $1 AND is_read = false AND deleted_at IS NULL',
         [userId]
       )
@@ -179,7 +179,7 @@ export const mentionFieldResolvers = {
     post: async (mention: any) => {
       if (!mention.post_id) return null
       try {
-        const result = await pool.query(
+        const result = await getPoolInstance().query(
           'SELECT * FROM feed_posts WHERE post_id = $1 AND deleted_at IS NULL',
           [mention.post_id]
         )
@@ -194,7 +194,7 @@ export const mentionFieldResolvers = {
     comment: async (mention: any) => {
       if (!mention.comment_id) return null
       try {
-        const result = await pool.query(
+        const result = await getPoolInstance().query(
           'SELECT * FROM feed_comments WHERE comment_id = $1 AND deleted_at IS NULL',
           [mention.comment_id]
         )

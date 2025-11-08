@@ -13,11 +13,12 @@ import { notificationQueries, notificationMutations, FeedNotificationFieldResolv
 import { parseMentions, storeMentions } from '@/lib/mention-parser'
 import { createCommentNotification, createReactionNotification, createPostStatusNotification } from '@/lib/notification-helper'
 
-const pool = getPool()
+// Lazy-load pool to avoid database connection during build time
+const getPoolInstance = () => getPool()
 
 // DataLoader for batching user queries
 const createUserLoader = () => new DataLoader(async (employeeIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM users WHERE employee_id = ANY($1)',
     [employeeIds]
   )
@@ -28,7 +29,7 @@ const createUserLoader = () => new DataLoader(async (employeeIds: readonly strin
 
 // DataLoader for batching task queries
 const createTaskLoader = () => new DataLoader(async (taskIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM tasks WHERE task_id = ANY($1) AND deleted_at IS NULL',
     [taskIds]
   )
@@ -39,7 +40,7 @@ const createTaskLoader = () => new DataLoader(async (taskIds: readonly string[])
 
 // DataLoader for batching bug queries
 const createBugLoader = () => new DataLoader(async (bugIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM bugs WHERE bug_id = ANY($1) AND deleted_at IS NULL',
     [bugIds]
   )
@@ -50,7 +51,7 @@ const createBugLoader = () => new DataLoader(async (bugIds: readonly string[]) =
 
 // DataLoader for batching project queries
 const createProjectLoader = () => new DataLoader(async (projectIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM projects WHERE project_id = ANY($1) AND deleted_at IS NULL',
     [projectIds]
   )
@@ -62,7 +63,7 @@ const createProjectLoader = () => new DataLoader(async (projectIds: readonly str
 // DataLoader for batching subtask queries
 // Note: The subtasks table was renamed to task_checklists in migration 020
 const createSubtaskLoader = () => new DataLoader(async (parentTaskIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM task_checklists WHERE parent_task_id = ANY($1) AND deleted_at IS NULL',
     [parentTaskIds]
   )
@@ -81,7 +82,7 @@ const createSubtaskLoader = () => new DataLoader(async (parentTaskIds: readonly 
 // DataLoader for batching bug subtask queries
 // Note: The bug_subtasks table was renamed to development_checklists in migration 020
 const createBugSubtaskLoader = () => new DataLoader(async (parentBugIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM development_checklists WHERE parent_bug_id = ANY($1) AND deleted_at IS NULL',
     [parentBugIds]
   )
@@ -99,7 +100,7 @@ const createBugSubtaskLoader = () => new DataLoader(async (parentBugIds: readonl
 
 // DataLoader for batching feed post queries
 const createFeedPostLoader = () => new DataLoader(async (postIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM feed_posts WHERE post_id = ANY($1) AND deleted_at IS NULL',
     [postIds]
   )
@@ -110,7 +111,7 @@ const createFeedPostLoader = () => new DataLoader(async (postIds: readonly strin
 
 // DataLoader for batching feed topic queries
 const createFeedTopicLoader = () => new DataLoader(async (topicIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM feed_topics WHERE id = ANY($1) AND deleted_at IS NULL',
     [topicIds]
   )
@@ -121,7 +122,7 @@ const createFeedTopicLoader = () => new DataLoader(async (topicIds: readonly str
 
 // DataLoader for batching feed comments by post ID
 const createFeedCommentsLoader = () => new DataLoader(async (postIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM feed_comments WHERE post_id = ANY($1) AND deleted_at IS NULL ORDER BY created_at ASC',
     [postIds]
   )
@@ -139,7 +140,7 @@ const createFeedCommentsLoader = () => new DataLoader(async (postIds: readonly s
 
 // DataLoader for batching feed reactions by post ID
 const createFeedReactionsLoader = () => new DataLoader(async (postIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     'SELECT * FROM feed_reactions WHERE post_id = ANY($1) AND deleted_at IS NULL',
     [postIds]
   )
@@ -157,7 +158,7 @@ const createFeedReactionsLoader = () => new DataLoader(async (postIds: readonly 
 
 // DataLoader for batching feed post topics
 const createFeedPostTopicsLoader = () => new DataLoader(async (postIds: readonly string[]) => {
-  const result = await pool.query(
+  const result = await getPoolInstance().query(
     `SELECT fpt.post_id, ft.*
      FROM feed_post_topics fpt
      JOIN feed_topics ft ON fpt.topic_id = ft.id
@@ -206,7 +207,7 @@ export const resolvers = {
           'users'
         )
 
-        const result = await pool.query(
+        const result = await getPoolInstance().query(
           'SELECT * FROM users ORDER BY name'
         )
 
@@ -266,7 +267,7 @@ export const resolvers = {
         query += ' ORDER BY updated_at DESC'
 
         const dbStart = logDatabaseQuery(query, params, 'tasks')
-        const result = await pool.query(query, params)
+        const result = await getPoolInstance().query(query, params)
         logDatabaseResult(result.rows.length, dbStart.startTime, 'tasks')
 
         logResolverSuccess('tasks', result.rows, startTime)
@@ -324,7 +325,7 @@ export const resolvers = {
 
       query += ' ORDER BY updated_at DESC'
 
-      const result = await pool.query(query, params)
+      const result = await getPoolInstance().query(query, params)
       return result.rows
     },
 
@@ -339,14 +340,14 @@ export const resolvers = {
     
     // Projects
     projects: async () => {
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM projects WHERE deleted_at IS NULL ORDER BY project_name'
       )
       return result.rows
     },
 
     project: async (_: any, { projectId }: any) => {
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM projects WHERE project_id = $1 AND deleted_at IS NULL',
         [projectId]
       )
@@ -361,12 +362,12 @@ export const resolvers = {
       }
       query += ' ORDER BY key'
 
-      const result = await pool.query(query)
+      const result = await getPoolInstance().query(query)
       return result.rows
     },
 
     setting: async (_: any, { key }: any) => {
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM settings WHERE key = $1',
         [key]
       )
@@ -403,7 +404,7 @@ export const resolvers = {
 
             const tasksParams = isManagement ? [] : [employeeId, employeeId, employeeId]
             const dbStart = logDatabaseQuery(tasksQuery, tasksParams, 'dashboard.tasks')
-            const result = await pool.query(tasksQuery, tasksParams)
+            const result = await getPoolInstance().query(tasksQuery, tasksParams)
             logDatabaseResult(result.rows.length, dbStart.startTime, 'dashboard.tasks')
             return result
           })(),
@@ -418,7 +419,7 @@ export const resolvers = {
 
             const bugsParams = isManagement ? [] : [employeeId, employeeId]
             const dbStart = logDatabaseQuery(bugsQuery, bugsParams, 'dashboard.bugs')
-            const result = await pool.query(bugsQuery, bugsParams)
+            const result = await getPoolInstance().query(bugsQuery, bugsParams)
             logDatabaseResult(result.rows.length, dbStart.startTime, 'dashboard.bugs')
             return result
           })(),
@@ -430,7 +431,7 @@ export const resolvers = {
               [],
               'dashboard.users'
             )
-            const result = await pool.query('SELECT * FROM users ORDER BY name')
+            const result = await getPoolInstance().query('SELECT * FROM users ORDER BY name')
             logDatabaseResult(result.rows.length, dbStart.startTime, 'dashboard.users')
             return result
           })(),
@@ -442,7 +443,7 @@ export const resolvers = {
               [],
               'dashboard.settings'
             )
-            const result = await pool.query('SELECT * FROM settings WHERE is_active = true ORDER BY key')
+            const result = await getPoolInstance().query('SELECT * FROM settings WHERE is_active = true ORDER BY key')
             logDatabaseResult(result.rows.length, dbStart.startTime, 'dashboard.settings')
             return result
           })()
@@ -495,10 +496,10 @@ export const resolvers = {
         params.push(limit, offset)
 
         const dbStart = logDatabaseQuery(sql, params, 'feedPosts')
-        const postsResult = await pool.query(sql, params)
+        const postsResult = await getPoolInstance().query(sql, params)
         logDatabaseResult(postsResult.rows.length, dbStart.startTime, 'feedPosts')
 
-        const totalResult = await pool.query(
+        const totalResult = await getPoolInstance().query(
           'SELECT COUNT(*) FROM feed_posts WHERE deleted_at IS NULL'
         )
         const total = parseInt(totalResult.rows[0].count)
@@ -558,7 +559,7 @@ export const resolvers = {
         sql += ' ORDER BY display_order ASC'
 
         const dbStart = logDatabaseQuery(sql, params, 'feedTopics')
-        const result = await pool.query(sql, params)
+        const result = await getPoolInstance().query(sql, params)
         logDatabaseResult(result.rows.length, dbStart.startTime, 'feedTopics')
 
         logResolverSuccess('feedTopics', result.rows, startTime)
@@ -645,7 +646,7 @@ export const resolvers = {
 
     tasks: async (user: any, _: any, { loaders }: any) => {
       // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         `SELECT * FROM tasks
          WHERE deleted_at IS NULL
          AND EXISTS (
@@ -658,7 +659,7 @@ export const resolvers = {
     },
 
     bugs: async (user: any, _: any, { loaders }: any) => {
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM bugs WHERE assigned_to = $1 AND deleted_at IS NULL',
         [user.employee_id]
       )
@@ -1038,7 +1039,7 @@ export const resolvers = {
     updatedAt: (project: any) => project.updated_at,
 
     tasks: async (project: any) => {
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM tasks WHERE project_id = $1 AND deleted_at IS NULL',
         [project.project_id]
       )
@@ -1162,7 +1163,7 @@ export const resolvers = {
       if (!post.post_id) return 0
 
       try {
-        const result = await pool.query(
+        const result = await getPoolInstance().query(
           'SELECT COUNT(*) FROM feed_views WHERE post_id = $1',
           [post.post_id]
         )
@@ -1177,7 +1178,7 @@ export const resolvers = {
       if (!post.post_id) return 0
 
       try {
-        const result = await pool.query(
+        const result = await getPoolInstance().query(
           'SELECT COUNT(*) FROM feed_comments WHERE post_id = $1 AND deleted_at IS NULL',
           [post.post_id]
         )
@@ -1193,7 +1194,7 @@ export const resolvers = {
       if (!post.post_id) return false
 
       try {
-        const result = await pool.query(
+        const result = await getPoolInstance().query(
           `SELECT fpt.topic_id
            FROM feed_post_topics fpt
            JOIN feed_topics ft ON fpt.topic_id = ft.id
@@ -1212,7 +1213,7 @@ export const resolvers = {
       if (!post.post_id) return false
 
       try {
-        const result = await pool.query(
+        const result = await getPoolInstance().query(
           'SELECT * FROM feed_reactions WHERE post_id = $1 AND user_id = $2 AND deleted_at IS NULL',
           [post.post_id, user.employeeId]
         )
@@ -1272,7 +1273,7 @@ export const resolvers = {
     },
 
     replies: async (comment: any) => {
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM feed_comments WHERE parent_comment_id = $1 AND deleted_at IS NULL ORDER BY created_at ASC',
         [comment.comment_id]
       )
@@ -1301,7 +1302,7 @@ export const resolvers = {
       const support = input.support ? JSON.stringify(input.support) : '[]'
 
       // ✅ FIXED: Use snake_case column names for PostgreSQL
-      await pool.query(
+      await getPoolInstance().query(
         `INSERT INTO tasks (task_id, description, assigned_to, assigned_by, support, start_date, end_date,
          priority, estimated_hours, select_type, recursive_type, project_id, status, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'Pending', NOW(), NOW())`,
@@ -1309,7 +1310,7 @@ export const resolvers = {
          input.endDate, input.priority, input.estimatedHours, input.selectType, input.recursiveType, input.projectId]
       )
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM tasks WHERE task_id = $1',
         [taskId]
       )
@@ -1360,12 +1361,12 @@ export const resolvers = {
       updates.push(`updated_at = NOW()`)
       params.push(taskId)
 
-      await pool.query(
+      await getPoolInstance().query(
         `UPDATE tasks SET ${updates.join(', ')} WHERE task_id = $${paramIndex}`,
         params
       )
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM tasks WHERE task_id = $1',
         [taskId]
       )
@@ -1373,7 +1374,7 @@ export const resolvers = {
     },
 
     deleteTask: async (_: any, { taskId }: any) => {
-      await pool.query(
+      await getPoolInstance().query(
         'UPDATE tasks SET deleted_at = NOW() WHERE task_id = $1',
         [taskId]
       )
@@ -1385,7 +1386,7 @@ export const resolvers = {
       const bugId = `BUG-${Date.now()}`
 
       // ✅ FIXED: Use snake_case column names for PostgreSQL
-      await pool.query(
+      await getPoolInstance().query(
         `INSERT INTO bugs (bug_id, description, category, severity, status, assigned_to, assigned_by,
          reported_by, reported_date, estimated_hours, created_at, updated_at)
          VALUES ($1, $2, $3, $4, 'Open', $5, $6, $7, $8, $9, NOW(), NOW())`,
@@ -1393,7 +1394,7 @@ export const resolvers = {
          input.reportedBy, input.reportedDate, input.estimatedHours]
       )
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM bugs WHERE bug_id = $1',
         [bugId]
       )
@@ -1433,12 +1434,12 @@ export const resolvers = {
       updates.push(`updated_at = NOW()`)
       params.push(bugId)
 
-      await pool.query(
+      await getPoolInstance().query(
         `UPDATE bugs SET ${updates.join(', ')} WHERE bug_id = $${paramIndex}`,
         params
       )
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM bugs WHERE bug_id = $1',
         [bugId]
       )
@@ -1446,7 +1447,7 @@ export const resolvers = {
     },
 
     deleteBug: async (_: any, { bugId }: any) => {
-      await pool.query(
+      await getPoolInstance().query(
         'UPDATE bugs SET deleted_at = NOW() WHERE bug_id = $1',
         [bugId]
       )
@@ -1459,13 +1460,13 @@ export const resolvers = {
       const hashedPassword = await bcrypt.hash(input.password, 10)
 
       // ✅ FIXED: Use snake_case column names for PostgreSQL
-      await pool.query(
+      await getPoolInstance().query(
         `INSERT INTO users (employee_id, name, email, phone, department, role, password, status, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', NOW(), NOW())`,
         [input.employeeId, input.name, input.email, input.phone, input.department, input.role, hashedPassword]
       )
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM users WHERE employee_id = $1',
         [input.employeeId]
       )
@@ -1503,12 +1504,12 @@ export const resolvers = {
       updates.push(`updated_at = NOW()`)
       params.push(employeeId)
 
-      await pool.query(
+      await getPoolInstance().query(
         `UPDATE users SET ${updates.join(', ')} WHERE employee_id = $${paramIndex}`,
         params
       )
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM users WHERE employee_id = $1',
         [employeeId]
       )
@@ -1523,7 +1524,7 @@ export const resolvers = {
       const status = ['admin', 'top_management'].includes(user.role) ? 'published' : 'pending'
       const mediaUrls = input.mediaUrls ? JSON.stringify(input.mediaUrls) : null
 
-      await pool.query(
+      await getPoolInstance().query(
         `INSERT INTO feed_posts (post_id, content_type, content, link_url, og_title, og_description, og_image, created_by, status, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
         [postId, input.contentType, input.content, input.linkUrl, input.linkTitle, input.linkDescription, input.linkImage, user.employeeId, status]
@@ -1531,7 +1532,7 @@ export const resolvers = {
 
       // Link to topics
       for (const topicId of input.topicIds) {
-        await pool.query(
+        await getPoolInstance().query(
           'INSERT INTO feed_post_topics (post_id, topic_id) VALUES ($1, $2)',
           [postId, topicId]
         )
@@ -1549,7 +1550,7 @@ export const resolvers = {
         // Don't fail the post creation if mention parsing fails
       }
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM feed_posts WHERE post_id = $1',
         [postId]
       )
@@ -1560,7 +1561,7 @@ export const resolvers = {
       if (!user) throw new Error('Unauthorized')
 
       // Get the current post to check for status changes
-      const currentPostResult = await pool.query(
+      const currentPostResult = await getPoolInstance().query(
         'SELECT status, created_by FROM feed_posts WHERE post_id = $1',
         [postId]
       )
@@ -1600,7 +1601,7 @@ export const resolvers = {
         updates.push(`updated_at = NOW()`)
         params.push(postId)
 
-        await pool.query(
+        await getPoolInstance().query(
           `UPDATE feed_posts SET ${updates.join(', ')} WHERE post_id = $${paramIndex}`,
           params
         )
@@ -1608,9 +1609,9 @@ export const resolvers = {
 
       // Update topics if provided
       if (input.topicIds) {
-        await pool.query('DELETE FROM feed_post_topics WHERE post_id = $1', [postId])
+        await getPoolInstance().query('DELETE FROM feed_post_topics WHERE post_id = $1', [postId])
         for (const topicId of input.topicIds) {
-          await pool.query(
+          await getPoolInstance().query(
             'INSERT INTO feed_post_topics (post_id, topic_id) VALUES ($1, $2)',
             [postId, topicId]
           )
@@ -1645,7 +1646,7 @@ export const resolvers = {
         }
       }
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM feed_posts WHERE post_id = $1',
         [postId]
       )
@@ -1655,7 +1656,7 @@ export const resolvers = {
     deleteFeedPost: async (_: any, { postId }: any, { user }: any) => {
       if (!user) throw new Error('Unauthorized')
 
-      await pool.query(
+      await getPoolInstance().query(
         'UPDATE feed_posts SET deleted_at = NOW(), deleted_by = $1 WHERE post_id = $2',
         [user.employeeId, postId]
       )
@@ -1667,7 +1668,7 @@ export const resolvers = {
 
       const commentId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-      await pool.query(
+      await getPoolInstance().query(
         `INSERT INTO feed_comments (comment_id, post_id, parent_comment_id, content, created_by, created_at)
          VALUES ($1, $2, $3, $4, $5, NOW())`,
         [commentId, postId, parentCommentId, content, user.employeeId]
@@ -1687,7 +1688,7 @@ export const resolvers = {
 
       // Create notification for post author (if not commenting on own post)
       try {
-        const postResult = await pool.query(
+        const postResult = await getPoolInstance().query(
           'SELECT created_by FROM feed_posts WHERE post_id = $1',
           [postId]
         )
@@ -1708,7 +1709,7 @@ export const resolvers = {
         // Don't fail the comment creation if notification fails
       }
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         'SELECT * FROM feed_comments WHERE comment_id = $1',
         [commentId]
       )
@@ -1718,7 +1719,7 @@ export const resolvers = {
     deleteFeedComment: async (_: any, { commentId }: any, { user }: any) => {
       if (!user) throw new Error('Unauthorized')
 
-      await pool.query(
+      await getPoolInstance().query(
         'UPDATE feed_comments SET deleted_at = NOW(), deleted_by = $1 WHERE comment_id = $2',
         [user.employeeId, commentId]
       )
@@ -1728,26 +1729,26 @@ export const resolvers = {
     toggleFeedReaction: async (_: any, { postId, emoji }: any, { user }: any) => {
       if (!user) throw new Error('Unauthorized')
 
-      const existing = await pool.query(
+      const existing = await getPoolInstance().query(
         'SELECT * FROM feed_reactions WHERE post_id = $1 AND user_id = $2 AND emoji = $3 AND deleted_at IS NULL',
         [postId, user.employeeId, emoji]
       )
 
       if (existing.rows.length > 0) {
-        await pool.query(
+        await getPoolInstance().query(
           'UPDATE feed_reactions SET deleted_at = NOW(), deleted_by = $1 WHERE post_id = $2 AND user_id = $3 AND emoji = $4',
           [user.employeeId, postId, user.employeeId, emoji]
         )
         return { action: 'removed', message: 'Reaction removed' }
       } else {
-        await pool.query(
+        await getPoolInstance().query(
           'INSERT INTO feed_reactions (post_id, user_id, emoji, created_at) VALUES ($1, $2, $3, NOW())',
           [postId, user.employeeId, emoji]
         )
 
         // Create notification for post author (if not reacting to own post)
         try {
-          const postResult = await pool.query(
+          const postResult = await getPoolInstance().query(
             'SELECT created_by FROM feed_posts WHERE post_id = $1',
             [postId]
           )
@@ -1777,7 +1778,7 @@ export const resolvers = {
 
       try {
         // Use ON CONFLICT to handle race conditions (idempotent)
-        await pool.query(
+        await getPoolInstance().query(
           'INSERT INTO feed_views (post_id, user_id, viewed_at) VALUES ($1, $2, NOW()) ON CONFLICT (post_id, user_id) DO NOTHING',
           [postId, user.employeeId]
         )
@@ -1792,7 +1793,7 @@ export const resolvers = {
       if (!user) throw new Error('Unauthorized')
 
       // Get user's "Saved Posts" topic
-      const savedTopic = await pool.query(
+      const savedTopic = await getPoolInstance().query(
         'SELECT id FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 AND deleted_at IS NULL',
         [user.employeeId]
       )
@@ -1804,19 +1805,19 @@ export const resolvers = {
       const savedTopicId = savedTopic.rows[0].id
 
       // Check if already saved
-      const existing = await pool.query(
+      const existing = await getPoolInstance().query(
         'SELECT * FROM feed_post_topics WHERE post_id = $1 AND topic_id = $2',
         [postId, savedTopicId]
       )
 
       if (existing.rows.length > 0) {
-        await pool.query(
+        await getPoolInstance().query(
           'DELETE FROM feed_post_topics WHERE post_id = $1 AND topic_id = $2',
           [postId, savedTopicId]
         )
         return { action: 'removed', message: 'Post removed from Saved Posts' }
       } else {
-        await pool.query(
+        await getPoolInstance().query(
           'INSERT INTO feed_post_topics (post_id, topic_id) VALUES ($1, $2)',
           [postId, savedTopicId]
         )
@@ -1827,7 +1828,7 @@ export const resolvers = {
     createFeedTopic: async (_: any, { input }: any, { user }: any) => {
       if (!user) throw new Error('Unauthorized')
 
-      const result = await pool.query(
+      const result = await getPoolInstance().query(
         `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, created_by, created_at)
          VALUES ($1, $2, $3, $4, false, $5, NOW())
          RETURNING *`,
@@ -1847,7 +1848,7 @@ export const resolvers = {
         console.log(`[initPersonalTopics] Initializing personal topics for user ${user.employeeId}`)
 
         // Check if personal topics already exist
-        const existing = await pool.query(
+        const existing = await getPoolInstance().query(
           'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 AND deleted_at IS NULL',
           [user.employeeId]
         )
@@ -1873,7 +1874,7 @@ export const resolvers = {
         // Create Personal Notes topic if it doesn't exist
         if (!personalNotes) {
           try {
-            const result = await pool.query(
+            const result = await getPoolInstance().query(
               `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
                VALUES ($1, $2, $3, $4, true, false, $5, $6, NOW())
                RETURNING *`,
@@ -1888,7 +1889,7 @@ export const resolvers = {
               console.log(`[initPersonalTopics] Personal Notes topic already exists for user ${user.employeeId}, fetching it`)
 
               // Try multiple queries to find the record (race condition handling)
-              let result = await pool.query(
+              let result = await getPoolInstance().query(
                 'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 AND deleted_at IS NULL AND (is_saved = false OR is_saved IS NULL) LIMIT 1',
                 [user.employeeId]
               )
@@ -1897,7 +1898,7 @@ export const resolvers = {
               // If not found, try without deleted_at filter (might be soft-deleted)
               if (!personalNotes) {
                 console.log(`[initPersonalTopics] Trying to find soft-deleted Personal Notes topic for user ${user.employeeId}`)
-                result = await pool.query(
+                result = await getPoolInstance().query(
                   'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
                   [user.employeeId]
                 )
@@ -1906,7 +1907,7 @@ export const resolvers = {
                 // If found but soft-deleted, restore it
                 if (personalNotes && personalNotes.deleted_at) {
                   console.log(`[initPersonalTopics] Restoring soft-deleted Personal Notes topic for user ${user.employeeId}`)
-                  result = await pool.query(
+                  result = await getPoolInstance().query(
                     'UPDATE feed_topics SET deleted_at = NULL, deleted_by = NULL WHERE id = $1 RETURNING *',
                     [personalNotes.id]
                   )
@@ -1918,7 +1919,7 @@ export const resolvers = {
               if (!personalNotes) {
                 console.log(`[initPersonalTopics] Waiting 100ms and retrying for user ${user.employeeId} (possible race condition)`)
                 await new Promise(resolve => setTimeout(resolve, 100))
-                result = await pool.query(
+                result = await getPoolInstance().query(
                   'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
                   [user.employeeId]
                 )
@@ -1928,7 +1929,7 @@ export const resolvers = {
               // If STILL not found, use INSERT ... ON CONFLICT
               if (!personalNotes) {
                 console.warn(`[initPersonalTopics] Could not find existing Personal Notes topic for user ${user.employeeId}, creating new one`)
-                result = await pool.query(
+                result = await getPoolInstance().query(
                   `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
                    VALUES ($1, $2, $3, $4, true, false, $5, $6, NOW())
                    ON CONFLICT DO NOTHING
@@ -1939,7 +1940,7 @@ export const resolvers = {
 
                 // If ON CONFLICT DO NOTHING returned nothing, fetch one more time
                 if (!personalNotes) {
-                  result = await pool.query(
+                  result = await getPoolInstance().query(
                     'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
                     [user.employeeId]
                   )
@@ -1962,7 +1963,7 @@ export const resolvers = {
         // Create Saved Posts topic if it doesn't exist
         if (!savedPosts) {
           try {
-            const result = await pool.query(
+            const result = await getPoolInstance().query(
               `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
                VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
                RETURNING *`,
@@ -1977,7 +1978,7 @@ export const resolvers = {
               console.log(`[initPersonalTopics] Saved Posts topic already exists for user ${user.employeeId}, fetching it`)
 
               // Try multiple queries to find the record (race condition handling)
-              let result = await pool.query(
+              let result = await getPoolInstance().query(
                 'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 AND deleted_at IS NULL LIMIT 1',
                 [user.employeeId]
               )
@@ -1986,7 +1987,7 @@ export const resolvers = {
               // If not found, try without deleted_at filter (might be soft-deleted)
               if (!savedPosts) {
                 console.log(`[initPersonalTopics] Trying to find soft-deleted Saved Posts topic for user ${user.employeeId}`)
-                result = await pool.query(
+                result = await getPoolInstance().query(
                   'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
                   [user.employeeId]
                 )
@@ -1995,7 +1996,7 @@ export const resolvers = {
                 // If found but soft-deleted, restore it
                 if (savedPosts && savedPosts.deleted_at) {
                   console.log(`[initPersonalTopics] Restoring soft-deleted Saved Posts topic for user ${user.employeeId}`)
-                  result = await pool.query(
+                  result = await getPoolInstance().query(
                     'UPDATE feed_topics SET deleted_at = NULL, deleted_by = NULL WHERE id = $1 RETURNING *',
                     [savedPosts.id]
                   )
@@ -2007,7 +2008,7 @@ export const resolvers = {
               if (!savedPosts) {
                 console.log(`[initPersonalTopics] Waiting 100ms and retrying for user ${user.employeeId} (possible race condition)`)
                 await new Promise(resolve => setTimeout(resolve, 100))
-                result = await pool.query(
+                result = await getPoolInstance().query(
                   'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
                   [user.employeeId]
                 )
@@ -2018,7 +2019,7 @@ export const resolvers = {
               if (!savedPosts) {
                 console.warn(`[initPersonalTopics] Could not find existing Saved Posts topic for user ${user.employeeId}, creating new one`)
                 // Use INSERT ... ON CONFLICT to handle race condition
-                result = await pool.query(
+                result = await getPoolInstance().query(
                   `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
                    VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
                    ON CONFLICT DO NOTHING
@@ -2029,7 +2030,7 @@ export const resolvers = {
 
                 // If ON CONFLICT DO NOTHING returned nothing, fetch the existing record one more time
                 if (!savedPosts) {
-                  result = await pool.query(
+                  result = await getPoolInstance().query(
                     'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 ORDER BY created_at DESC LIMIT 1',
                     [user.employeeId]
                   )
@@ -2052,7 +2053,7 @@ export const resolvers = {
         // Ensure we have both topics (create fallback if needed)
         if (!personalNotes) {
           console.error(`[initPersonalTopics] CRITICAL: Personal Notes topic is null for user ${user.employeeId}, creating fallback`)
-          const fallbackResult = await pool.query(
+          const fallbackResult = await getPoolInstance().query(
             `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
              VALUES ($1, $2, $3, $4, true, false, $5, $6, NOW())
              ON CONFLICT DO NOTHING
@@ -2063,7 +2064,7 @@ export const resolvers = {
 
           // If still null, fetch any personal topic for this user
           if (!personalNotes) {
-            const anyResult = await pool.query(
+            const anyResult = await getPoolInstance().query(
               'SELECT * FROM feed_topics WHERE is_personal = true AND owner_user_id = $1 LIMIT 1',
               [user.employeeId]
             )
@@ -2073,7 +2074,7 @@ export const resolvers = {
 
         if (!savedPosts) {
           console.error(`[initPersonalTopics] CRITICAL: Saved Posts topic is null for user ${user.employeeId}, creating fallback`)
-          const fallbackResult = await pool.query(
+          const fallbackResult = await getPoolInstance().query(
             `INSERT INTO feed_topics (topic_name, description, icon, display_order, is_personal, is_saved, owner_user_id, created_by, created_at)
              VALUES ($1, $2, $3, $4, true, true, $5, $6, NOW())
              ON CONFLICT DO NOTHING
@@ -2084,7 +2085,7 @@ export const resolvers = {
 
           // If still null, fetch any saved topic for this user
           if (!savedPosts) {
-            const anyResult = await pool.query(
+            const anyResult = await getPoolInstance().query(
               'SELECT * FROM feed_topics WHERE is_saved = true AND owner_user_id = $1 LIMIT 1',
               [user.employeeId]
             )
