@@ -121,14 +121,21 @@ export default function FeedTopicsPage() {
           displayOrder: formData.displayOrder || topics.length + 1
         }
       })
-      
+
       console.log('✅ [FeedTopics] Topic created successfully')
       setIsCreating(false)
       setFormData({ topicName: '', description: '', icon: '', displayOrder: 0 })
       fetchTopics()
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [FeedTopics] Error creating topic:', error)
-      alert('Failed to create topic')
+
+      // Check for duplicate topic name error
+      if (error?.message?.includes('duplicate key value violates unique constraint') ||
+          error?.message?.includes('feed_topics_public_name_unique')) {
+        alert(`A topic with the name "${formData.topicName}" already exists. Please choose a different name.`)
+      } else {
+        alert('Failed to create topic: ' + (error?.message || 'Unknown error'))
+      }
     }
   }
 

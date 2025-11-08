@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Bell } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
@@ -26,7 +26,9 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const currentUser = getCurrentUser()
+
+  // Memoize currentUser to prevent unnecessary re-renders
+  const currentUser = useMemo(() => getCurrentUser(), [])
 
   // Fetch unread count
   const fetchUnreadCount = async () => {
@@ -142,10 +144,13 @@ export default function NotificationBell() {
 
   // Fetch unread count on mount and set up polling
   useEffect(() => {
+    if (!currentUser) return
+
     fetchUnreadCount()
     const interval = setInterval(fetchUnreadCount, 60000) // Poll every 60 seconds
     return () => clearInterval(interval)
-  }, [currentUser])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.employeeId])
 
   // Fetch notifications when dropdown opens
   useEffect(() => {

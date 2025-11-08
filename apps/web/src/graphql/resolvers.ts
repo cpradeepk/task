@@ -1736,8 +1736,8 @@ export const resolvers = {
 
       if (existing.rows.length > 0) {
         await getPoolInstance().query(
-          'UPDATE feed_reactions SET deleted_at = NOW(), deleted_by = $1 WHERE post_id = $2 AND user_id = $3 AND emoji = $4',
-          [user.employeeId, postId, user.employeeId, emoji]
+          'UPDATE feed_reactions SET deleted_at = NOW() WHERE post_id = $1 AND user_id = $2 AND emoji = $3',
+          [postId, user.employeeId, emoji]
         )
         return { action: 'removed', message: 'Reaction removed' }
       } else {

@@ -338,9 +338,11 @@ export const QUERIES = {
       bug(bugId: $bugId) {
         id
         bugId
+        title
         description
         category
         severity
+        priority
         status
         assignedTo
         assignedBy
@@ -355,6 +357,8 @@ export const QUERIES = {
         subprojectId
         relatedBugs
         platform
+        type
+        feature
         environment
         bugType
         criticality
