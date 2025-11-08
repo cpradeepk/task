@@ -9,6 +9,7 @@ import {
   logDatabaseError
 } from '@/lib/graphql-logger'
 import { mentionQueries, mentionMutations, mentionFieldResolvers } from './mention-resolvers'
+import { notificationQueries, notificationMutations, FeedNotificationFieldResolvers, createNotificationLoader } from './notification-resolvers'
 import { parseMentions, storeMentions } from '@/lib/mention-parser'
 
 const pool = getPool()
@@ -186,7 +187,8 @@ export const createContext = () => ({
     feedTopic: createFeedTopicLoader(),
     feedComments: createFeedCommentsLoader(),
     feedReactions: createFeedReactionsLoader(),
-    feedPostTopics: createFeedPostTopicsLoader()
+    feedPostTopics: createFeedPostTopicsLoader(),
+    notificationLoader: createNotificationLoader()
   }
 })
 
@@ -604,7 +606,10 @@ export const resolvers = {
     },
 
     // Mention Queries
-    ...mentionQueries
+    ...mentionQueries,
+
+    // Notification Queries
+    ...notificationQueries
   },
   
   // Field resolvers for User
@@ -1744,10 +1749,16 @@ export const resolvers = {
     },
 
     // Mention Mutations
-    ...mentionMutations
+    ...mentionMutations,
+
+    // Notification Mutations
+    ...notificationMutations
   },
 
   // Field Resolvers
-  ...mentionFieldResolvers
+  ...mentionFieldResolvers,
+
+  // Notification Field Resolvers
+  FeedNotification: FeedNotificationFieldResolvers
 }
 
