@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { graphqlRequest } from '@/lib/graphql-client'
+import { executeQuery, executeMutation } from '@/lib/graphql-client'
 
 interface Notification {
   notificationId: string
@@ -38,7 +38,7 @@ export default function NotificationBell() {
           unreadNotificationCount(userId: $userId)
         }
       `
-      const data = await graphqlRequest(query, { userId: currentUser.employeeId })
+      const data = await executeQuery(query, { userId: currentUser.employeeId })
       setUnreadCount(data.unreadNotificationCount || 0)
     } catch (error) {
       console.error('Error fetching unread count:', error)
@@ -67,7 +67,7 @@ export default function NotificationBell() {
           }
         }
       `
-      const data = await graphqlRequest(query, { 
+      const data = await executeQuery(query, {
         userId: currentUser.employeeId,
         limit: 10
       })
@@ -89,10 +89,10 @@ export default function NotificationBell() {
           }
         }
       `
-      await graphqlRequest(mutation, { notificationId })
-      
+      await executeMutation(mutation, { notificationId })
+
       // Update local state
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.notificationId === notificationId ? { ...n, isRead: true } : n)
       )
       setUnreadCount(prev => Math.max(0, prev - 1))
@@ -111,8 +111,8 @@ export default function NotificationBell() {
           markAllNotificationsAsRead(userId: $userId)
         }
       `
-      await graphqlRequest(mutation, { userId: currentUser.employeeId })
-      
+      await executeMutation(mutation, { userId: currentUser.employeeId })
+
       // Update local state
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
       setUnreadCount(0)
