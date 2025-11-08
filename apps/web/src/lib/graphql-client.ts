@@ -1,5 +1,6 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client'
 import { onError } from '@apollo/client/link/error'
+import gql from 'graphql-tag'
 import {
   logOperationStart,
   logOperationSuccess,
@@ -149,7 +150,7 @@ export async function executeQuery(query: string, variables: any = {}) {
 
   try {
     const result = await client.query({
-      query: require('graphql-tag')(query),
+      query: gql(query),
       variables,
       fetchPolicy: 'network-only'
     })
@@ -173,7 +174,7 @@ export async function executeMutation(mutation: string, variables: any = {}) {
 
   try {
     const result = await client.mutate({
-      mutation: require('graphql-tag')(mutation),
+      mutation: gql(mutation),
       variables
     })
     logOperationSuccess(opName, opType, result.data, startTime)

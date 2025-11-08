@@ -130,7 +130,7 @@ export const mentionMutations = {
         'UPDATE feed_mentions SET is_read = true WHERE mentioned_user_id = $1 AND is_read = false AND deleted_at IS NULL',
         [userId]
       )
-      logDatabaseResult(result.rowCount, dbStart.startTime, 'markAllMentionsAsRead')
+      logDatabaseResult(result.rowCount || 0, dbStart.startTime, 'markAllMentionsAsRead')
 
       logResolverSuccess('markAllMentionsAsRead', true, startTime)
       return true
