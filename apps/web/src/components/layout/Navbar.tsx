@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { logout, getCurrentUser, getRoleDisplayName } from '@/lib/auth'
 import { User as UserType } from '@/lib/types'
+import NotificationBell from './NotificationBell'
 import {
   Menu,
   X,
@@ -182,6 +183,9 @@ export default function Navbar() {
               <p className="text-sm font-medium text-black">{currentUser.name}</p>
               <p className="text-xs text-gray-600">{currentUser.employeeId}</p>
             </div>
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             <button
               onClick={handleLogout}
