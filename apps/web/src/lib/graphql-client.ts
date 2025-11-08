@@ -1,6 +1,7 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client'
 import { onError } from '@apollo/client/link/error'
 import gql from 'graphql-tag'
+import { map } from 'rxjs/operators'
 import {
   logOperationStart,
   logOperationSuccess,
@@ -49,11 +50,13 @@ function createApolloClient() {
       _logMetadata: { startTime, opName, opType }
     })
 
-    return forward(operation).map((response: any) => {
-      // Log successful response
-      logOperationSuccess(opName, opType, response.data, startTime)
-      return response
-    })
+    return forward(operation).pipe(
+      map((response: any) => {
+        // Log successful response
+        logOperationSuccess(opName, opType, response.data, startTime)
+        return response
+      })
+    )
   })
 
   // Create error link for error logging
