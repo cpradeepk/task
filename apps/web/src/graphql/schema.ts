@@ -237,6 +237,28 @@ export const typeDefs = `#graphql
     comment: FeedComment
   }
 
+  type FeedNotification {
+    notificationId: ID!
+    userId: String!
+    actorId: String!
+    notificationType: String!
+    postId: String
+    commentId: String
+    mentionId: String
+    title: String!
+    message: String
+    linkUrl: String
+    metadata: String
+    isRead: Boolean!
+    readAt: String
+    createdAt: String!
+    user: User!
+    actor: User!
+    post: FeedPost
+    comment: FeedComment
+    mention: FeedMention
+  }
+
   type FeedPostsResponse {
     posts: [FeedPost!]!
     total: Int!
@@ -310,6 +332,11 @@ export const typeDefs = `#graphql
     # Mentions
     feedMentions(userId: String, isRead: Boolean, limit: Int, offset: Int): [FeedMention!]!
     feedMention(mentionId: ID!): FeedMention
+
+    # Notifications
+    feedNotifications(userId: String, isRead: Boolean, notificationType: String, limit: Int, offset: Int): [FeedNotification!]!
+    feedNotification(notificationId: ID!): FeedNotification
+    unreadNotificationCount(userId: String!): Int!
   }
 
   type DashboardData {
@@ -349,6 +376,11 @@ export const typeDefs = `#graphql
     # Mentions
     markMentionAsRead(mentionId: ID!): FeedMention!
     markAllMentionsAsRead(userId: String!): Boolean!
+
+    # Notifications
+    markNotificationAsRead(notificationId: ID!): FeedNotification!
+    markAllNotificationsAsRead(userId: String!): Boolean!
+    deleteNotification(notificationId: ID!): Boolean!
   }
 
   input CreateTaskInput {
