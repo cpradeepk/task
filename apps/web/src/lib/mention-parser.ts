@@ -35,7 +35,7 @@ export async function parseMentions(text: string): Promise<ParsedMention[]> {
   // Regex to match @mentions:
   // - @word (alphanumeric, dots, hyphens, underscores)
   // - @"Full Name" (quoted names with spaces)
-  const mentionRegex = /@([\w.-]+|"[^"]+")/ g
+  const mentionRegex = /@([\w.-]+|"[^"]+")/g
 
   let match
   while ((match = mentionRegex.exec(text)) !== null) {
