@@ -1,10 +1,12 @@
 /**
  * Notification Helper Functions
- * 
+ *
  * Utilities for creating and managing feed notifications
  */
 
-import { pool } from '@/lib/db'
+import { getPool } from '@/lib/db'
+
+const pool = getPool()
 
 export interface CreateNotificationParams {
   userId: string // recipient

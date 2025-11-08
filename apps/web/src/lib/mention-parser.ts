@@ -3,8 +3,10 @@
  * Parses @mentions from text content in feed posts and comments
  */
 
-import { pool } from '@/lib/db/config'
+import { getPool } from '@/lib/db/config'
 import { createMentionNotification } from '@/lib/notification-helper'
+
+const pool = getPool()
 
 export interface ParsedMention {
   mentionText: string // e.g., "@john.doe" or "@John Doe"

@@ -9,7 +9,9 @@
  */
 
 import DataLoader from 'dataloader'
-import { pool } from '@/lib/db'
+import { getPool } from '@/lib/db'
+
+const pool = getPool()
 
 // DataLoader for batching notification queries
 export const createNotificationLoader = () => new DataLoader(async (notificationIds: readonly string[]) => {
