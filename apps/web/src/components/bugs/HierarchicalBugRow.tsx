@@ -13,7 +13,7 @@ interface HierarchicalBugRowProps {
   getSeverityColor: (severity: string) => string
   getStatusIcon: (status: string) => React.ReactElement
   UserName: React.ComponentType<{ employeeId: string }>
-  ProjectDisplay: React.ComponentType<{ projectId?: string | null }>
+  ProjectDisplay: React.ComponentType<{ project?: { projectId: string; projectName: string; description?: string } | null }>
 }
 
 export default function HierarchicalBugRow({
@@ -136,7 +136,7 @@ export default function HierarchicalBugRow({
                   <UserName employeeId={bug.assignedTo} />
                 </div>
               )}
-              <ProjectDisplay projectId={bug.projectId} />
+              <ProjectDisplay project={(bug as any).project} />
             </div>
           </div>
 

@@ -55,49 +55,14 @@ function UserName({ employeeId }: { employeeId: string }) {
   return <span>{name}</span>
 }
 
-// Component to handle async project name fetching
-function ProjectDisplay({ projectId, subprojectId }: { projectId?: string | null; subprojectId?: string | null }) {
-  const [projectName, setProjectName] = useState<string>('')
-  const [subprojectName, setSubprojectName] = useState<string>('')
-
-  useEffect(() => {
-    const loadProjectNames = async () => {
-      try {
-        if (projectId) {
-          const response = await fetch(`/api/projects/${projectId}`)
-          const data = await response.json()
-          if (data && data.projectName) {
-            setProjectName(data.projectName)
-          }
-        }
-
-        if (subprojectId) {
-          const response = await fetch(`/api/projects/${subprojectId}`)
-          const data = await response.json()
-          if (data && data.projectName) {
-            setSubprojectName(data.projectName)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load project names:', error)
-      }
-    }
-
-    loadProjectNames()
-  }, [projectId, subprojectId])
-
-  if (!projectName) return null
+// Component to display project name (now from GraphQL data)
+function ProjectDisplay({ project }: { project?: { projectId: string; projectName: string; description?: string } | null }) {
+  if (!project || !project.projectName) return null
 
   return (
     <div className="flex items-center space-x-2 text-sm text-gray-600">
       <span className="text-gray-400">-</span>
-      <span>{projectName}</span>
-      {subprojectName && (
-        <>
-          <span className="text-gray-400">&gt;</span>
-          <span>{subprojectName}</span>
-        </>
-      )}
+      <span>{project.projectName}</span>
     </div>
   )
 }
@@ -157,45 +122,70 @@ export default function BugsPage() {
     }
   }, [])
 
-  // Load settings data from database
+  // Load settings data from GraphQL
   useEffect(() => {
     async function loadSettings() {
       try {
-        const response = await fetch('/api/settings')
-        const data = await response.json()
+        console.log('🔵 [Bugs] Loading settings via GraphQL...')
+        const data = await executeGraphQLQuery(QUERIES.GET_SETTINGS, { activeOnly: true })
 
-        if (data.success && data.data) {
-          const settings = data.data
+        if (data && data.settings) {
+          const settings = data.settings
 
           // Process bug statuses (use bug_statuses key from settings table)
           const bugStatusesSetting = settings.find((s: any) => s.key === 'bug_statuses')
-          const bugStatuses = bugStatusesSetting?.value?.map((val: string) => ({
-            value: val,
-            icon: bugStatusesSetting?.metadata?.icons?.[val] || ''
-          })) || []
+          let bugStatuses: Array<{ value: string; icon: string }> = []
+          if (bugStatusesSetting) {
+            try {
+              const values = JSON.parse(bugStatusesSetting.value)
+              bugStatuses = values.map((val: string) => ({
+                value: val,
+                icon: '' // Icons are not stored in settings yet
+              }))
+            } catch (e) {
+              console.error('Failed to parse bug_statuses:', e)
+            }
+          }
 
           // Process severities
           const severitiesSetting = settings.find((s: any) => s.key === 'severities')
-          const severities = severitiesSetting?.value?.map((val: string) => ({
-            value: val,
-            icon: severitiesSetting?.metadata?.icons?.[val] || ''
-          })) || []
+          let severities: Array<{ value: string; icon: string }> = []
+          if (severitiesSetting) {
+            try {
+              const values = JSON.parse(severitiesSetting.value)
+              severities = values.map((val: string) => ({
+                value: val,
+                icon: '' // Icons are not stored in settings yet
+              }))
+            } catch (e) {
+              console.error('Failed to parse severities:', e)
+            }
+          }
 
           // Process categories
           const categoriesSetting = settings.find((s: any) => s.key === 'categories')
-          const categories = categoriesSetting?.value?.map((val: string) => ({
-            value: val,
-            icon: categoriesSetting?.metadata?.icons?.[val] || ''
-          })) || []
+          let categories: Array<{ value: string; icon: string }> = []
+          if (categoriesSetting) {
+            try {
+              const values = JSON.parse(categoriesSetting.value)
+              categories = values.map((val: string) => ({
+                value: val,
+                icon: '' // Icons are not stored in settings yet
+              }))
+            } catch (e) {
+              console.error('Failed to parse categories:', e)
+            }
+          }
 
           setSettingsData({
             bugStatuses,
             severities,
             categories
           })
+          console.log('✅ [Bugs] Settings loaded successfully via GraphQL')
         }
       } catch (error) {
-        console.error('Failed to load settings:', error)
+        console.error('❌ [Bugs] Failed to load settings via GraphQL:', error)
       }
     }
 
