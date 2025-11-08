@@ -11,6 +11,7 @@ import {
 import { mentionQueries, mentionMutations, mentionFieldResolvers } from './mention-resolvers'
 import { notificationQueries, notificationMutations, FeedNotificationFieldResolvers, createNotificationLoader } from './notification-resolvers'
 import { parseMentions, storeMentions } from '@/lib/mention-parser'
+import { createCommentNotification, createReactionNotification, createPostStatusNotification } from '@/lib/notification-helper'
 
 const pool = getPool()
 
@@ -1490,6 +1491,15 @@ export const resolvers = {
     updateFeedPost: async (_: any, { postId, input }: any, { user }: any) => {
       if (!user) throw new Error('Unauthorized')
 
+      // Get the current post to check for status changes
+      const currentPostResult = await pool.query(
+        'SELECT status, created_by FROM feed_posts WHERE post_id = $1',
+        [postId]
+      )
+      const currentPost = currentPostResult.rows[0]
+      const oldStatus = currentPost?.status
+      const postAuthorId = currentPost?.created_by
+
       const updates: string[] = []
       const params: any[] = []
       let paramIndex = 1
@@ -1539,6 +1549,34 @@ export const resolvers = {
         }
       }
 
+      // Create notification if status changed to published or rejected
+      if (input.status && input.status !== oldStatus && postAuthorId) {
+        try {
+          if (input.status === 'published' && oldStatus === 'pending') {
+            await createPostStatusNotification(
+              postAuthorId,
+              user.employeeId,
+              postId,
+              'approved',
+              user.name
+            )
+            console.log(`✅ [updateFeedPost] Created approval notification for post author ${postAuthorId}`)
+          } else if (input.status === 'rejected') {
+            await createPostStatusNotification(
+              postAuthorId,
+              user.employeeId,
+              postId,
+              'rejected',
+              user.name
+            )
+            console.log(`✅ [updateFeedPost] Created rejection notification for post author ${postAuthorId}`)
+          }
+        } catch (notifError) {
+          console.error('[updateFeedPost] Error creating notification:', notifError)
+          // Don't fail the update if notification fails
+        }
+      }
+
       const result = await pool.query(
         'SELECT * FROM feed_posts WHERE post_id = $1',
         [postId]
@@ -1579,6 +1617,29 @@ export const resolvers = {
         // Don't fail the comment creation if mention parsing fails
       }
 
+      // Create notification for post author (if not commenting on own post)
+      try {
+        const postResult = await pool.query(
+          'SELECT created_by FROM feed_posts WHERE post_id = $1',
+          [postId]
+        )
+        const postAuthorId = postResult.rows[0]?.created_by
+
+        if (postAuthorId && postAuthorId !== user.employeeId) {
+          await createCommentNotification(
+            postAuthorId,
+            user.employeeId,
+            postId,
+            commentId,
+            user.name
+          )
+          console.log(`✅ [createFeedComment] Created notification for post author ${postAuthorId}`)
+        }
+      } catch (notifError) {
+        console.error('[createFeedComment] Error creating notification:', notifError)
+        // Don't fail the comment creation if notification fails
+      }
+
       const result = await pool.query(
         'SELECT * FROM feed_comments WHERE comment_id = $1',
         [commentId]
@@ -1615,6 +1676,30 @@ export const resolvers = {
           'INSERT INTO feed_reactions (post_id, user_id, emoji, created_at) VALUES ($1, $2, $3, NOW())',
           [postId, user.employeeId, emoji]
         )
+
+        // Create notification for post author (if not reacting to own post)
+        try {
+          const postResult = await pool.query(
+            'SELECT created_by FROM feed_posts WHERE post_id = $1',
+            [postId]
+          )
+          const postAuthorId = postResult.rows[0]?.created_by
+
+          if (postAuthorId && postAuthorId !== user.employeeId) {
+            await createReactionNotification(
+              postAuthorId,
+              user.employeeId,
+              postId,
+              emoji,
+              user.name
+            )
+            console.log(`✅ [toggleFeedReaction] Created notification for post author ${postAuthorId}`)
+          }
+        } catch (notifError) {
+          console.error('[toggleFeedReaction] Error creating notification:', notifError)
+          // Don't fail the reaction if notification fails
+        }
+
         return { action: 'added', message: 'Reaction added' }
       }
     },

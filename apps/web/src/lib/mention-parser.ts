@@ -4,6 +4,7 @@
  */
 
 import { pool } from '@/lib/db/config'
+import { createMentionNotification } from '@/lib/notification-helper'
 
 export interface ParsedMention {
   mentionText: string // e.g., "@john.doe" or "@John Doe"
@@ -128,12 +129,19 @@ export async function storeMentions(
   }
 
   try {
+    // Get the name of the user who created the mention
+    const mentionedByUserResult = await pool.query(
+      'SELECT name FROM users WHERE employee_id = $1',
+      [mentionedByUserId]
+    )
+    const mentionedByUserName = mentionedByUserResult.rows[0]?.name || 'Someone'
+
     for (const mention of validMentions) {
       const mentionId = `mention_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
+
       await pool.query(
         `INSERT INTO feed_mentions (
-          mention_id, post_id, comment_id, mentioned_user_id, 
+          mention_id, post_id, comment_id, mentioned_user_id,
           mentioned_by_user_id, mention_text, is_read
         ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [
@@ -146,6 +154,22 @@ export async function storeMentions(
           false
         ]
       )
+
+      // Create notification for the mention
+      try {
+        await createMentionNotification(
+          mention.employeeId!,
+          mentionedByUserId,
+          mentionId,
+          postId || undefined,
+          commentId || undefined,
+          mentionedByUserName
+        )
+        console.log(`✅ [storeMentions] Created notification for mention ${mentionId}`)
+      } catch (notifError) {
+        console.error('[storeMentions] Error creating notification:', notifError)
+        // Don't fail the mention creation if notification fails
+      }
     }
 
     console.log(`✅ [storeMentions] Stored ${validMentions.length} mentions`)
