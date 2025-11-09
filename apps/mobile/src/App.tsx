@@ -15,6 +15,8 @@ import SettingsScreen from './screens/SettingsScreen'
 import FeedScreen from './screens/FeedScreen'
 import FeedPostDetailsScreen from './screens/FeedPostDetailsScreen'
 import CreateFeedPostScreen from './screens/CreateFeedPostScreen'
+import NotificationsScreen from './screens/NotificationsScreen'
+import NotificationBell from './components/NotificationBell'
 import { ActivityIndicator, View } from 'react-native'
 import { apolloClient } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
@@ -155,6 +157,7 @@ export default function App() {
                   component={DashboardScreen}
                   options={{
                     headerTitle: 'JSR Task Management',
+                    headerRight: () => <NotificationBell />,
                   }}
                 />
                 <Stack.Screen
@@ -225,6 +228,13 @@ export default function App() {
                   component={CreateFeedPostScreen}
                   options={{
                     headerTitle: 'Create Post',
+                  }}
+                />
+                <Stack.Screen
+                  name="Notifications"
+                  component={NotificationsScreen}
+                  options={{
+                    headerTitle: 'Notifications',
                   }}
                 />
               </>
