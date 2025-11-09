@@ -20,6 +20,7 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import { AuthContext } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import {
   isBiometricSupported,
   isBiometricEnrolled,
@@ -39,6 +40,7 @@ export default function SettingsScreen({ navigation }: any) {
   const [biometricEnabled, setBiometricEnabled] = useState(false)
   const [biometricType, setBiometricType] = useState('Biometric')
   const { signOut } = React.useContext(AuthContext)
+  const { theme, toggleTheme, colors, isDark } = useTheme()
 
   useEffect(() => {
     loadSettings()
@@ -142,10 +144,30 @@ export default function SettingsScreen({ navigation }: any) {
         </View>
       </View>
 
+      {/* Appearance Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Appearance</Text>
+
+        <View style={styles.settingRow}>
+          <View style={styles.settingInfo}>
+            <Text style={styles.settingLabel}>Dark Mode</Text>
+            <Text style={styles.settingDescription}>
+              {isDark ? 'Dark theme enabled' : 'Light theme enabled'}
+            </Text>
+          </View>
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#ccc', true: '#007AFF' }}
+            thumbColor="#fff"
+          />
+        </View>
+      </View>
+
       {/* Security Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Security</Text>
-        
+
         {biometricSupported && biometricEnrolled ? (
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>

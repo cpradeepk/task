@@ -27,6 +27,7 @@ import { ActivityIndicator, View } from 'react-native'
 import { apolloClient } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
 import { LOGIN_MUTATION } from './config/graphql-queries'
+import { ThemeProvider } from './contexts/ThemeContext'
 
 const Stack = createNativeStackNavigator()
 
@@ -138,9 +139,10 @@ export default function App() {
   }
 
   return (
-    <ApolloProvider client={apolloClient}>
-      <AuthContext.Provider value={authContext}>
-        <NavigationContainer>
+    <ThemeProvider>
+      <ApolloProvider client={apolloClient}>
+        <AuthContext.Provider value={authContext}>
+          <NavigationContainer>
           <Stack.Navigator
             screenOptions={{
               headerShown: true,
@@ -291,5 +293,6 @@ export default function App() {
         </NavigationContainer>
       </AuthContext.Provider>
     </ApolloProvider>
+    </ThemeProvider>
   )
 }
