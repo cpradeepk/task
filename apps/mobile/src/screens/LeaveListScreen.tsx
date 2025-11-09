@@ -23,6 +23,7 @@ import {
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface LeaveApplication {
   id: string
@@ -42,6 +43,7 @@ interface LeaveApplication {
 
 export default function LeaveListScreen() {
   const navigation = useNavigation()
+  const { colors } = useTheme()
   const [leaves, setLeaves] = useState<LeaveApplication[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -128,6 +130,8 @@ export default function LeaveListScreen() {
     return diffDays
   }
 
+  const styles = getStyles(colors)
+
   const renderLeaveItem = ({ item }: { item: LeaveApplication }) => (
     <TouchableOpacity
       style={styles.leaveCard}
@@ -172,7 +176,7 @@ export default function LeaveListScreen() {
   if (loading && !refreshing) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading leaves...</Text>
       </View>
     )
@@ -236,10 +240,10 @@ export default function LeaveListScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
@@ -249,12 +253,12 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   filterContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   filterContent: {
     padding: 16,
@@ -264,16 +268,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.borderLight,
     marginRight: 8,
   },
   filterButtonActive: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
   },
   filterText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   filterTextActive: {
     color: '#FFFFFF',
@@ -282,12 +286,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   leaveCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   leaveHeader: {
     flexDirection: 'row',
@@ -304,7 +308,7 @@ const styles = StyleSheet.create({
   leaveType: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -318,7 +322,7 @@ const styles = StyleSheet.create({
   },
   leaveId: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   leaveDates: {
     flexDirection: 'row',
@@ -328,21 +332,21 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   daysText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   leaveReason: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   leaveDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   emptyContainer: {
     padding: 48,
@@ -354,7 +358,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
     textAlign: 'center',
   },
   fab: {
@@ -364,7 +368,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
