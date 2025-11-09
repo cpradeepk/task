@@ -113,20 +113,16 @@ export default function BugsPage() {
         setStatusFilter(filters.statusFilter || 'all')
         setSeverityFilter(filters.severityFilter || 'all')
         setCategoryFilter(filters.categoryFilter || 'all')
-        setAssigneeFilter(filters.assigneeFilter || (currentUser?.employeeId || 'all'))
+        setAssigneeFilter(filters.assigneeFilter || 'me')
         setTypeFilter(filters.typeFilter || 'all')
       } else {
-        // Set default assignee filter to current user if no saved filters
-        if (currentUser?.employeeId) {
-          setAssigneeFilter(currentUser.employeeId)
-        }
+        // Set default assignee filter to "me" (My Bugs) if no saved filters
+        setAssigneeFilter('me')
       }
     } catch (error) {
       console.error('Failed to load saved filters:', error)
-      // Set default assignee filter on error
-      if (currentUser?.employeeId) {
-        setAssigneeFilter(currentUser.employeeId)
-      }
+      // Set default assignee filter to "me" on error
+      setAssigneeFilter('me')
     }
 
     // Monitor network status
@@ -233,24 +229,10 @@ export default function BugsPage() {
         console.log('✅ [Bugs] REST API successful:', bugsData.length, 'bugs')
       }
 
-      // Filter bugs based on user role and involvement
-      if (currentUser) {
-        if (currentUser.role === 'amtarikshian') {
-          // Amtariksians can only see bugs they created or are assigned to
-          bugsData = bugsData.filter(bug =>
-            bug.reportedBy === currentUser.employeeId ||
-            bug.assignedTo === currentUser.employeeId
-          )
-        } else if (currentUser.role === 'management') {
-          // Management can see bugs they're involved in + bugs from their team
-          // For now, applying same restriction as amtariksians (can be expanded)
-          bugsData = bugsData.filter(bug =>
-            bug.reportedBy === currentUser.employeeId ||
-            bug.assignedTo === currentUser.employeeId
-          )
-        }
-        // top_management and admin can see all bugs (no filtering)
-      }
+      // Note: Role-based filtering is NOT applied here anymore
+      // All users can see all bugs in the system
+      // The assignee filter dropdown allows users to filter by specific assignees
+      // This ensures consistent bug visibility across all users and matches task behavior
 
       // Set bugs data directly without any field swapping
       setBugs(bugsData)
