@@ -12,6 +12,9 @@ import TaskListScreen from './screens/TaskListScreen'
 import TaskDetailsScreen from './screens/TaskDetailsScreen'
 import CreateTaskScreen from './screens/CreateTaskScreen'
 import SettingsScreen from './screens/SettingsScreen'
+import FeedScreen from './screens/FeedScreen'
+import FeedPostDetailsScreen from './screens/FeedPostDetailsScreen'
+import CreateFeedPostScreen from './screens/CreateFeedPostScreen'
 import { ActivityIndicator, View } from 'react-native'
 import { apolloClient } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
@@ -201,6 +204,27 @@ export default function App() {
                   component={SettingsScreen}
                   options={{
                     headerTitle: 'Settings',
+                  }}
+                />
+                <Stack.Screen
+                  name="Feed"
+                  component={FeedScreen}
+                  options={{
+                    headerTitle: 'Feed',
+                  }}
+                />
+                <Stack.Screen
+                  name="FeedPostDetails"
+                  component={FeedPostDetailsScreen}
+                  options={{
+                    headerTitle: 'Post Details',
+                  }}
+                />
+                <Stack.Screen
+                  name="CreateFeedPost"
+                  component={CreateFeedPostScreen}
+                  options={{
+                    headerTitle: 'Create Post',
                   }}
                 />
               </>

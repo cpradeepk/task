@@ -124,6 +124,13 @@ export default function DashboardScreen() {
           <Text style={styles.actionTitle}>➕ Report Bug</Text>
           <Text style={styles.actionDescription}>Create a new bug report</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => navigation.navigate('Feed' as never)}
+        >
+          <Text style={styles.actionTitle}>📰 Feed</Text>
+          <Text style={styles.actionDescription}>View team feed and updates</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
