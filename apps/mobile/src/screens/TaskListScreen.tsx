@@ -1,3 +1,16 @@
+/**
+ * Task List Screen
+ * Displays all tasks with filters and search
+ *
+ * Features:
+ * - GraphQL-based task fetching
+ * - Multiple assignee support
+ * - Status filtering
+ * - Filter persistence with AsyncStorage
+ * - Pull-to-refresh
+ * - Timer display
+ */
+
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   View,
@@ -8,76 +21,115 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  TextInput,
+  ScrollView,
 } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { getAllTasks, Task } from '../services/taskService'
 import { useFocusEffect } from '@react-navigation/native'
+import { useQuery } from '@apollo/client'
+import { GET_TASKS } from '../config/graphql-queries'
+import { Task } from '../../packages/shared/types'
+import { getUserData, save, get, STORAGE_KEYS } from '../utils/secureStorage'
+
+interface TaskFilters {
+  searchQuery: string
+  statusFilter: string
+}
 
 export default function TaskListScreen({ navigation }: any) {
-  const [tasks, setTasks] = useState<Task[]>([])
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
-  const [selectedStatus, setSelectedStatus] = useState<string>('All')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('All')
 
-  const statusOptions = ['All', 'Open', 'In Progress', 'Delayed', 'On Hold', 'Completed', 'Cancelled']
+  const statusOptions = ['All', 'Yet to Start', 'In Progress', 'Delayed', 'Done', 'Cancel', 'Hold', 'ReOpened', 'Stop']
+
+  // GraphQL query for tasks
+  const { data, loading, error, refetch } = useQuery(GET_TASKS, {
+    fetchPolicy: 'cache-and-network',
+  })
+
+  const tasks = data?.tasks || []
 
   useFocusEffect(
     useCallback(() => {
-      loadTasks()
-    }, [])
+      refetch()
+    }, [refetch])
   )
 
   useEffect(() => {
     loadCurrentUser()
+    loadSavedFilters()
   }, [])
 
   useEffect(() => {
     filterTasks()
-  }, [tasks, selectedStatus])
+  }, [tasks, searchQuery, statusFilter])
+
+  useEffect(() => {
+    saveFilters()
+  }, [searchQuery, statusFilter])
 
   const loadCurrentUser = async () => {
     try {
-      const userStr = await AsyncStorage.getItem('user')
-      if (userStr) {
-        setCurrentUser(JSON.parse(userStr))
-      }
+      const userData = await getUserData()
+      setCurrentUser(userData)
     } catch (error) {
       console.error('Failed to load user:', error)
     }
   }
 
-  const loadTasks = async () => {
+  const loadSavedFilters = async () => {
     try {
-      setLoading(true)
-      const response = await getAllTasks()
-      
-      if (response.success && response.data) {
-        setTasks(response.data)
-      } else {
-        Alert.alert('Error', response.error || 'Failed to load tasks')
+      const savedFilters = await get<TaskFilters>(STORAGE_KEYS.TASK_FILTERS)
+      if (savedFilters) {
+        setSearchQuery(savedFilters.searchQuery || '')
+        setStatusFilter(savedFilters.statusFilter || 'All')
       }
     } catch (error) {
-      console.error('Failed to load tasks:', error)
-      Alert.alert('Error', 'Failed to load tasks')
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
+      console.error('Failed to load saved filters:', error)
+    }
+  }
+
+  const saveFilters = async () => {
+    try {
+      const filters: TaskFilters = {
+        searchQuery,
+        statusFilter,
+      }
+      await save(STORAGE_KEYS.TASK_FILTERS, filters)
+    } catch (error) {
+      console.error('Failed to save filters:', error)
     }
   }
 
   const filterTasks = () => {
-    if (selectedStatus === 'All') {
-      setFilteredTasks(tasks)
-    } else {
-      setFilteredTasks(tasks.filter(task => task.status === selectedStatus))
+    let filtered = tasks
+
+    // Filter by status
+    if (statusFilter !== 'All') {
+      filtered = filtered.filter((task) => task.status === statusFilter)
     }
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (task) =>
+          task.taskId.toLowerCase().includes(query) ||
+          task.name?.toLowerCase().includes(query) ||
+          task.description.toLowerCase().includes(query)
+      )
+    }
+
+    setFilteredTasks(filtered)
   }
 
-  const onRefresh = () => {
-    setRefreshing(true)
-    loadTasks()
+  const onRefresh = async () => {
+    try {
+      await refetch()
+    } catch (error) {
+      console.error('Failed to refresh tasks:', error)
+    }
   }
 
   const handleTaskPress = (task: Task) => {
@@ -86,28 +138,46 @@ export default function TaskListScreen({ navigation }: any) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Open':
-        return '#3b82f6'
+      case 'Yet to Start':
+        return '#6B7280'
       case 'In Progress':
-        return '#f59e0b'
-      case 'Completed':
-        return '#10b981'
+        return '#3B82F6'
+      case 'Done':
+        return '#10B981'
       case 'Delayed':
-        return '#ef4444'
-      case 'On Hold':
-        return '#6b7280'
-      case 'Cancelled':
-        return '#9ca3af'
+        return '#EF4444'
+      case 'Hold':
+        return '#F59E0B'
+      case 'Cancel':
+        return '#9CA3AF'
+      case 'ReOpened':
+        return '#8B5CF6'
+      case 'Stop':
+        return '#DC2626'
       default:
-        return '#6b7280'
+        return '#6B7280'
     }
   }
 
   const getPriorityColor = (priority: string) => {
-    if (priority.includes('IU&I')) return '#ef4444' // Important & Urgent - Red
-    if (priority.includes('IU&NI')) return '#f59e0b' // Important & Not Urgent - Orange
-    if (priority.includes('NU&I')) return '#3b82f6' // Not Urgent & Important - Blue
-    return '#6b7280' // Not Urgent & Not Important - Gray
+    if (priority === 'U&I') return '#EF4444' // Urgent & Important - Red
+    if (priority === 'NU&I') return '#F59E0B' // Not Urgent & Important - Orange
+    if (priority === 'U&NI') return '#3B82F6' // Urgent & Not Important - Blue
+    if (priority === 'NU&NI') return '#6B7280' // Not Urgent & Not Important - Gray
+    return '#6B7280'
+  }
+
+  const getAssigneeNames = (assignedTo: string | string[]): string => {
+    if (!assignedTo) return 'Unassigned'
+
+    if (Array.isArray(assignedTo)) {
+      if (assignedTo.length === 0) return 'Unassigned'
+      if (assignedTo.length === 1) return assignedTo[0]
+      if (assignedTo.length === 2) return assignedTo.join(', ')
+      return `${assignedTo[0]}, ${assignedTo[1]} +${assignedTo.length - 2} more`
+    }
+
+    return assignedTo
   }
 
   const renderTask = ({ item }: { item: Task }) => (
@@ -121,79 +191,108 @@ export default function TaskListScreen({ navigation }: any) {
           <Text style={styles.statusText}>{item.status}</Text>
         </View>
       </View>
-      
-      <Text style={styles.taskDescription} numberOfLines={2}>
-        {item.name || item.description}
+
+      <Text style={styles.taskName} numberOfLines={1}>
+        {item.name || 'Untitled Task'}
       </Text>
-      
+
+      <Text style={styles.taskDescription} numberOfLines={2}>
+        {item.description}
+      </Text>
+
       <View style={styles.taskMeta}>
         <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) }]}>
           <Text style={styles.priorityText}>{item.priority}</Text>
         </View>
         <Text style={styles.taskDate}>
-          {new Date(item.endDate).toLocaleDateString()}
+          Due: {new Date(item.endDate).toLocaleDateString()}
         </Text>
       </View>
 
-      {item.assignedTo && (
-        <Text style={styles.assignedTo}>
-          Assigned to: {item.assignedTo}
-        </Text>
-      )}
+      <Text style={styles.assignedTo}>
+        👤 {getAssigneeNames(item.assignedTo)}
+      </Text>
     </TouchableOpacity>
   )
 
-  const renderStatusFilter = () => (
-    <View style={styles.filterContainer}>
-      <FlatList
-        horizontal
-        data={statusOptions}
-        keyExtractor={(item) => item}
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              selectedStatus === item && styles.filterButtonActive,
-            ]}
-            onPress={() => setSelectedStatus(item)}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                selectedStatus === item && styles.filterButtonTextActive,
-              ]}
-            >
-              {item}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
-  )
-
-  if (loading) {
+  if (loading && !data) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text style={styles.loadingText}>Loading tasks...</Text>
+      </View>
+    )
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>Failed to load tasks</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
       </View>
     )
   }
 
   return (
     <View style={styles.container}>
-      {renderStatusFilter()}
-      
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search tasks..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor="#9CA3AF"
+        />
+      </View>
+
+      {/* Status Filter */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterContainer}
+        contentContainerStyle={styles.filterContentContainer}
+      >
+        <Text style={styles.filterLabel}>Status:</Text>
+        {statusOptions.map((status) => (
+          <TouchableOpacity
+            key={status}
+            style={[
+              styles.filterButton,
+              statusFilter === status && styles.filterButtonActive,
+            ]}
+            onPress={() => setStatusFilter(status)}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                statusFilter === status && styles.filterButtonTextActive,
+              ]}
+            >
+              {status}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Task List */}
       <FlatList
         data={filteredTasks}
         keyExtractor={(item) => item.taskId}
         renderItem={renderTask}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={loading} onRefresh={onRefresh} />
         }
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No tasks found</Text>
+            <Text style={styles.emptyText}>
+              {searchQuery || statusFilter !== 'All'
+                ? 'No tasks match your filters'
+                : 'No tasks found'}
+            </Text>
           </View>
         }
         contentContainerStyle={styles.listContent}
@@ -212,37 +311,83 @@ export default function TaskListScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F9FAFB',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  searchContainer: {
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  searchInput: {
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    backgroundColor: '#FFFFFF',
   },
   filterContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: '#E5E7EB',
+  },
+  filterContentContainer: {
+    alignItems: 'center',
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginRight: 12,
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginHorizontal: 4,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
   },
   filterButtonActive: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#3B82F6',
   },
   filterButtonText: {
     fontSize: 14,
-    color: '#6b7280',
-    fontWeight: '500',
+    color: '#6B7280',
   },
   filterButtonTextActive: {
-    color: '#fff',
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   listContent: {
     padding: 16,
@@ -279,9 +424,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  taskName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
   taskDescription: {
-    fontSize: 15,
-    color: '#1f2937',
+    fontSize: 14,
+    color: '#6B7280',
     marginBottom: 12,
     lineHeight: 20,
   },

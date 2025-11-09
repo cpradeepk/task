@@ -1,6 +1,15 @@
 /**
  * Bug List Screen
  * Displays all bugs with filters and search
+ *
+ * Features:
+ * - GraphQL-based bug fetching
+ * - FT-/DEV- prefix display
+ * - Type filtering (feature vs testcase)
+ * - Status filtering
+ * - Search functionality
+ * - Filter persistence with AsyncStorage
+ * - Pull-to-refresh
  */
 
 import React, { useState, useEffect } from 'react'
@@ -13,44 +22,90 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
 } from 'react-native'
-import { getAllBugs, Bug } from '../services/bugService'
 import { useNavigation } from '@react-navigation/native'
+import { useQuery } from '@apollo/client'
+import { GET_BUGS } from '../config/graphql-queries'
+import { Bug } from '../../packages/shared/types'
+import { getBugDisplayId, getSeverityColor, getStatusColor } from '../utils/bugHelpers'
+import { save, get, STORAGE_KEYS } from '../utils/secureStorage'
+
+interface BugFilters {
+  searchQuery: string
+  statusFilter: string
+  typeFilter: string
+}
 
 export default function BugListScreen() {
   const navigation = useNavigation()
-  const [bugs, setBugs] = useState<Bug[]>([])
   const [filteredBugs, setFilteredBugs] = useState<Bug[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('All')
+  const [typeFilter, setTypeFilter] = useState<string>('All')
 
+  // GraphQL query for bugs
+  const { data, loading, error, refetch } = useQuery(GET_BUGS, {
+    fetchPolicy: 'cache-and-network',
+  })
+
+  const bugs = data?.bugs || []
+
+  // Load saved filters on mount
   useEffect(() => {
-    loadBugs()
+    loadSavedFilters()
   }, [])
 
+  // Filter bugs when filters or data change
   useEffect(() => {
     filterBugs()
-  }, [bugs, searchQuery, statusFilter])
+  }, [bugs, searchQuery, statusFilter, typeFilter])
 
-  const loadBugs = async () => {
+  // Save filters when they change
+  useEffect(() => {
+    saveFilters()
+  }, [searchQuery, statusFilter, typeFilter])
+
+  const loadSavedFilters = async () => {
     try {
-      setIsLoading(true)
-      const response = await getAllBugs()
-      if (response.success && response.data) {
-        setBugs(response.data)
+      const savedFilters = await get<BugFilters>(STORAGE_KEYS.BUG_FILTERS)
+      if (savedFilters) {
+        setSearchQuery(savedFilters.searchQuery || '')
+        setStatusFilter(savedFilters.statusFilter || 'All')
+        setTypeFilter(savedFilters.typeFilter || 'All')
       }
     } catch (error) {
-      console.error('Failed to load bugs:', error)
-    } finally {
-      setIsLoading(false)
-      setIsRefreshing(false)
+      console.error('Failed to load saved filters:', error)
+    }
+  }
+
+  const saveFilters = async () => {
+    try {
+      const filters: BugFilters = {
+        searchQuery,
+        statusFilter,
+        typeFilter,
+      }
+      await save(STORAGE_KEYS.BUG_FILTERS, filters)
+    } catch (error) {
+      console.error('Failed to save filters:', error)
     }
   }
 
   const filterBugs = () => {
     let filtered = bugs
+
+    // Filter by type
+    if (typeFilter !== 'All') {
+      filtered = filtered.filter((bug) => {
+        if (typeFilter === 'feature') {
+          return bug.type === 'feature'
+        } else if (typeFilter === 'testcase') {
+          return bug.type === 'testcase' || !bug.type
+        }
+        return true
+      })
+    }
 
     // Filter by status
     if (statusFilter !== 'All') {
@@ -71,83 +126,78 @@ export default function BugListScreen() {
     setFilteredBugs(filtered)
   }
 
-  const handleRefresh = () => {
-    setIsRefreshing(true)
-    loadBugs()
-  }
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'Critical':
-        return '#EF4444'
-      case 'Major':
-        return '#F97316'
-      case 'Minor':
-        return '#EAB308'
-      default:
-        return '#6B7280'
+  const handleRefresh = async () => {
+    try {
+      await refetch()
+    } catch (error) {
+      console.error('Failed to refresh bugs:', error)
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'New':
-        return '#3B82F6'
-      case 'In Progress':
-        return '#EAB308'
-      case 'Resolved':
-        return '#10B981'
-      case 'Closed':
-        return '#6B7280'
-      case 'Reopened':
-        return '#EF4444'
-      default:
-        return '#6B7280'
-    }
-  }
+  const renderBugItem = ({ item }: { item: Bug }) => {
+    const displayId = getBugDisplayId(item.bugId, item.type)
 
-  const renderBugItem = ({ item }: { item: Bug }) => (
-    <TouchableOpacity
-      style={styles.bugCard}
-      onPress={() => navigation.navigate('BugDetails' as never, { bugId: item.bugId } as never)}
-    >
-      <View style={styles.bugHeader}>
-        <Text style={styles.bugId}>{item.bugId}</Text>
-        <View style={styles.badges}>
-          <View
-            style={[
-              styles.badge,
-              { backgroundColor: getStatusColor(item.status) },
-            ]}
-          >
-            <Text style={styles.badgeText}>{item.status}</Text>
+    return (
+      <TouchableOpacity
+        style={styles.bugCard}
+        onPress={() => navigation.navigate('BugDetails' as never, { bugId: item.bugId } as never)}
+      >
+        <View style={styles.bugHeader}>
+          <View style={styles.bugIdContainer}>
+            <Text style={styles.bugId}>{displayId}</Text>
+            {item.type === 'feature' && (
+              <View style={styles.featureBadge}>
+                <Text style={styles.featureBadgeText}>Feature</Text>
+              </View>
+            )}
           </View>
-          <View
-            style={[
-              styles.badge,
-              { backgroundColor: getSeverityColor(item.severity) },
-            ]}
-          >
-            <Text style={styles.badgeText}>{item.severity}</Text>
+          <View style={styles.badges}>
+            <View
+              style={[
+                styles.badge,
+                { backgroundColor: getStatusColor(item.status) },
+              ]}
+            >
+              <Text style={styles.badgeText}>{item.status}</Text>
+            </View>
+            <View
+              style={[
+                styles.badge,
+                { backgroundColor: getSeverityColor(item.severity) },
+              ]}
+            >
+              <Text style={styles.badgeText}>{item.severity}</Text>
+            </View>
           </View>
         </View>
-      </View>
-      <Text style={styles.bugTitle} numberOfLines={2}>
-        {item.title}
-      </Text>
-      <View style={styles.bugMeta}>
-        <Text style={styles.metaText}>{item.category}</Text>
-        <Text style={styles.metaText}>•</Text>
-        <Text style={styles.metaText}>{item.platform}</Text>
-      </View>
-    </TouchableOpacity>
-  )
+        <Text style={styles.bugTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
+        <View style={styles.bugMeta}>
+          <Text style={styles.metaText}>{item.category}</Text>
+          <Text style={styles.metaText}>•</Text>
+          <Text style={styles.metaText}>{item.platform}</Text>
+        </View>
+      </TouchableOpacity>
+    )
+  }
 
-  if (isLoading) {
+  if (loading && !data) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#3B82F6" />
         <Text style={styles.loadingText}>Loading bugs...</Text>
+      </View>
+    )
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Failed to load bugs</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
       </View>
     )
   }
@@ -164,9 +214,39 @@ export default function BugListScreen() {
         />
       </View>
 
-      {/* Status Filter */}
+      {/* Type Filter */}
       <View style={styles.filterContainer}>
-        {['All', 'New', 'In Progress', 'Resolved', 'Closed'].map((status) => (
+        <Text style={styles.filterLabel}>Type:</Text>
+        {['All', 'feature', 'testcase'].map((type) => (
+          <TouchableOpacity
+            key={type}
+            style={[
+              styles.filterButton,
+              typeFilter === type && styles.filterButtonActive,
+            ]}
+            onPress={() => setTypeFilter(type)}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                typeFilter === type && styles.filterButtonTextActive,
+              ]}
+            >
+              {type === 'feature' ? 'Feature' : type === 'testcase' ? 'Test Case' : 'All'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Status Filter */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterContainer}
+        contentContainerStyle={styles.filterContentContainer}
+      >
+        <Text style={styles.filterLabel}>Status:</Text>
+        {['All', 'New', 'In Progress', 'Resolved', 'Closed', 'Reopened'].map((status) => (
           <TouchableOpacity
             key={status}
             style={[
@@ -185,7 +265,7 @@ export default function BugListScreen() {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
       {/* Bug List */}
       <FlatList
@@ -194,11 +274,15 @@ export default function BugListScreen() {
         keyExtractor={(item) => item.bugId}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={loading} onRefresh={handleRefresh} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No bugs found</Text>
+            <Text style={styles.emptyText}>
+              {searchQuery || statusFilter !== 'All' || typeFilter !== 'All'
+                ? 'No bugs match your filters'
+                : 'No bugs found'}
+            </Text>
           </View>
         }
       />
@@ -245,10 +329,21 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     flexDirection: 'row',
-    padding: 12,
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+  },
+  filterContentContainer: {
+    alignItems: 'center',
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginRight: 12,
   },
   filterButton: {
     paddingHorizontal: 12,
@@ -285,10 +380,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  bugIdContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   bugId: {
     fontSize: 14,
     fontWeight: '600',
     color: '#3B82F6',
+  },
+  featureBadge: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  featureBadgeText: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   badges: {
     flexDirection: 'row',
@@ -325,6 +436,23 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#9CA3AF',
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   fab: {
     position: 'absolute',
