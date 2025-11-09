@@ -10,7 +10,19 @@ pluginManagement {
   }
 }
 
-plugins { id("com.facebook.react.settings") }
+// Only apply React settings plugin for RN 0.74+
+def getRNMinorVersionForPlugin() {
+  def version = providers.exec {
+    commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
+  }.standardOutput.asText.get().trim()
+  def coreVersion = version.split("-")[0]
+  def (major, minor, patch) = coreVersion.tokenize('.').collect { it.toInteger() }
+  return minor
+}
+
+if (getRNMinorVersionForPlugin() >= 74) {
+  plugins { id("com.facebook.react.settings") }
+}
 
 def getRNMinorVersion() {
   def version = providers.exec {
