@@ -480,3 +480,186 @@ export const GET_DASHBOARD = gql`
   }
 `
 
+// ============================================================================
+// Leave Applications
+// ============================================================================
+
+export const GET_LEAVE_APPLICATIONS = gql`
+  query GetLeaveApplications($employeeId: String, $status: String) {
+    leaveApplications(employeeId: $employeeId, status: $status) {
+      id
+      applicationId
+      employeeId
+      employeeName
+      leaveType
+      reason
+      fromDate
+      toDate
+      isHalfDay
+      emergencyContact
+      status
+      managerId
+      approvedBy
+      approvalDate
+      approvalRemarks
+      createdAt
+      updatedAt
+    }
+  }
+`
+
+export const GET_LEAVE_APPLICATION = gql`
+  query GetLeaveApplication($id: ID!) {
+    leaveApplication(id: $id) {
+      id
+      applicationId
+      employeeId
+      employeeName
+      leaveType
+      reason
+      fromDate
+      toDate
+      isHalfDay
+      emergencyContact
+      status
+      managerId
+      approvedBy
+      approvalDate
+      approvalRemarks
+      createdAt
+      updatedAt
+    }
+  }
+`
+
+export const CREATE_LEAVE_APPLICATION = gql`
+  mutation CreateLeaveApplication($input: CreateLeaveApplicationInput!) {
+    createLeaveApplication(input: $input) {
+      id
+      applicationId
+      status
+      message
+    }
+  }
+`
+
+export const APPROVE_LEAVE = gql`
+  mutation ApproveLeave($id: ID!, $approverId: String!, $remarks: String) {
+    approveLeave(id: $id, approverId: $approverId, remarks: $remarks) {
+      success
+      message
+    }
+  }
+`
+
+export const REJECT_LEAVE = gql`
+  mutation RejectLeave($id: ID!, $approverId: String!, $reason: String!) {
+    rejectLeave(id: $id, approverId: $approverId, reason: $reason) {
+      success
+      message
+    }
+  }
+`
+
+export const DELETE_LEAVE = gql`
+  mutation DeleteLeave($id: ID!) {
+    deleteLeave(id: $id) {
+      success
+      message
+    }
+  }
+`
+
+// ============================================================================
+// WFH Applications
+// ============================================================================
+
+export const GET_WFH_APPLICATIONS = gql`
+  query GetWFHApplications($employeeId: String, $status: String) {
+    wfhApplications(employeeId: $employeeId, status: $status) {
+      id
+      applicationId
+      employeeId
+      employeeName
+      wfhType
+      reason
+      fromDate
+      toDate
+      workLocation
+      availableFrom
+      availableTo
+      contactNumber
+      status
+      managerId
+      approvedBy
+      approvalDate
+      approvalRemarks
+      createdAt
+      updatedAt
+    }
+  }
+`
+
+export const GET_WFH_APPLICATION = gql`
+  query GetWFHApplication($id: ID!) {
+    wfhApplication(id: $id) {
+      id
+      applicationId
+      employeeId
+      employeeName
+      wfhType
+      reason
+      fromDate
+      toDate
+      workLocation
+      availableFrom
+      availableTo
+      contactNumber
+      status
+      managerId
+      approvedBy
+      approvalDate
+      approvalRemarks
+      createdAt
+      updatedAt
+    }
+  }
+`
+
+export const CREATE_WFH_APPLICATION = gql`
+  mutation CreateWFHApplication($input: CreateWFHApplicationInput!) {
+    createWFHApplication(input: $input) {
+      id
+      applicationId
+      status
+      message
+    }
+  }
+`
+
+export const APPROVE_WFH = gql`
+  mutation ApproveWFH($id: ID!, $approverId: String!, $remarks: String) {
+    approveWFH(id: $id, approverId: $approverId, remarks: $remarks) {
+      success
+      message
+    }
+  }
+`
+
+export const REJECT_WFH = gql`
+  mutation RejectWFH($id: ID!, $approverId: String!, $reason: String!) {
+    rejectWFH(id: $id, approverId: $approverId, reason: $reason) {
+      success
+      message
+    }
+  }
+`
+
+export const DELETE_WFH = gql`
+  mutation DeleteWFH($id: ID!) {
+    deleteWFH(id: $id) {
+      success
+      message
+    }
+  }
+`
