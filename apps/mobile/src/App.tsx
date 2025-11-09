@@ -16,6 +16,12 @@ import FeedScreen from './screens/FeedScreen'
 import FeedPostDetailsScreen from './screens/FeedPostDetailsScreen'
 import CreateFeedPostScreen from './screens/CreateFeedPostScreen'
 import NotificationsScreen from './screens/NotificationsScreen'
+import LeaveListScreen from './screens/LeaveListScreen'
+import LeaveDetailsScreen from './screens/LeaveDetailsScreen'
+import CreateLeaveScreen from './screens/CreateLeaveScreen'
+import WFHListScreen from './screens/WFHListScreen'
+import WFHDetailsScreen from './screens/WFHDetailsScreen'
+import CreateWFHScreen from './screens/CreateWFHScreen'
 import NotificationBell from './components/NotificationBell'
 import { ActivityIndicator, View } from 'react-native'
 import { apolloClient } from './config/apollo'
@@ -235,6 +241,48 @@ export default function App() {
                   component={NotificationsScreen}
                   options={{
                     headerTitle: 'Notifications',
+                  }}
+                />
+                <Stack.Screen
+                  name="LeaveList"
+                  component={LeaveListScreen}
+                  options={{
+                    headerTitle: 'Leave Applications',
+                  }}
+                />
+                <Stack.Screen
+                  name="LeaveDetails"
+                  component={LeaveDetailsScreen}
+                  options={{
+                    headerTitle: 'Leave Details',
+                  }}
+                />
+                <Stack.Screen
+                  name="CreateLeave"
+                  component={CreateLeaveScreen}
+                  options={{
+                    headerTitle: 'Apply for Leave',
+                  }}
+                />
+                <Stack.Screen
+                  name="WFHList"
+                  component={WFHListScreen}
+                  options={{
+                    headerTitle: 'WFH Applications',
+                  }}
+                />
+                <Stack.Screen
+                  name="WFHDetails"
+                  component={WFHDetailsScreen}
+                  options={{
+                    headerTitle: 'WFH Details',
+                  }}
+                />
+                <Stack.Screen
+                  name="CreateWFH"
+                  component={CreateWFHScreen}
+                  options={{
+                    headerTitle: 'Apply for WFH',
                   }}
                 />
               </>

@@ -131,6 +131,20 @@ export default function DashboardScreen() {
           <Text style={styles.actionTitle}>📰 Feed</Text>
           <Text style={styles.actionDescription}>View team feed and updates</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => navigation.navigate('LeaveList' as never)}
+        >
+          <Text style={styles.actionTitle}>🏖️ Leave</Text>
+          <Text style={styles.actionDescription}>Apply for leave</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => navigation.navigate('WFHList' as never)}
+        >
+          <Text style={styles.actionTitle}>🏠 WFH</Text>
+          <Text style={styles.actionDescription}>Work from home requests</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
