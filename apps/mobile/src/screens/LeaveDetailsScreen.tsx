@@ -3,7 +3,7 @@
  * Displays full leave application details with approve/reject actions
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import {
 } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 interface LeaveApplication {
   id: string
@@ -41,12 +43,16 @@ export default function LeaveDetailsScreen() {
   const navigation = useNavigation()
   const route = useRoute()
   const { leaveId } = route.params as { leaveId: string }
+  const { colors } = useTheme()
+  const responsive = useResponsive()
 
   const [leave, setLeave] = useState<LeaveApplication | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [remarks, setRemarks] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
+
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
 
   useEffect(() => {
     loadCurrentUser()
@@ -58,12 +64,12 @@ export default function LeaveDetailsScreen() {
     }
   }, [currentUser])
 
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     const user = await getUserData()
     setCurrentUser(user)
-  }
+  }, [])
 
-  const fetchLeaveDetails = async () => {
+  const fetchLeaveDetails = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`http://localhost:3000/api/leaves/${leaveId}`, {
@@ -81,9 +87,9 @@ export default function LeaveDetailsScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [leaveId])
 
-  const canApprove = () => {
+  const canApprove = useCallback(() => {
     if (!currentUser || !leave) return false
     const approverRoles = ['top_management', 'management', 'amtarikshian']
     return (
@@ -91,14 +97,14 @@ export default function LeaveDetailsScreen() {
       leave.status === 'Pending' &&
       leave.employeeId !== currentUser.employeeId
     )
-  }
+  }, [currentUser, leave])
 
-  const canDelete = () => {
+  const canDelete = useCallback(() => {
     if (!currentUser || !leave) return false
     return leave.employeeId === currentUser.employeeId && leave.status === 'Pending'
-  }
+  }, [currentUser, leave])
 
-  const handleApprove = async () => {
+  const handleApprove = useCallback(async () => {
     Alert.alert(
       'Approve Leave',
       'Are you sure you want to approve this leave application?',
@@ -137,9 +143,9 @@ export default function LeaveDetailsScreen() {
         },
       ]
     )
-  }
+  }, [currentUser, leaveId, remarks, navigation])
 
-  const handleReject = async () => {
+  const handleReject = useCallback(async () => {
     if (!remarks.trim()) {
       Alert.alert('Error', 'Please provide a reason for rejection')
       return
@@ -184,9 +190,9 @@ export default function LeaveDetailsScreen() {
         },
       ]
     )
-  }
+  }, [currentUser, leaveId, remarks, navigation])
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     Alert.alert(
       'Delete Leave',
       'Are you sure you want to delete this leave application?',
@@ -218,42 +224,42 @@ export default function LeaveDetailsScreen() {
         },
       ]
     )
-  }
+  }, [leaveId, navigation])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     })
-  }
+  }, [])
 
-  const calculateDays = (fromDate: string, toDate: string) => {
+  const calculateDays = useCallback((fromDate: string, toDate: string) => {
     const from = new Date(fromDate)
     const to = new Date(toDate)
     const diffTime = Math.abs(to.getTime() - from.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
-  }
+  }, [])
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'Pending':
-        return '#F59E0B'
+        return colors.warning
       case 'Approved':
-        return '#10B981'
+        return colors.success
       case 'Rejected':
-        return '#EF4444'
+        return colors.error
       default:
-        return '#6B7280'
+        return colors.textSecondary
     }
-  }
+  }, [colors])
 
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading details...</Text>
       </View>
     )
@@ -434,151 +440,157 @@ export default function LeaveDetailsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#EF4444',
-  },
-  header: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  leaveType: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  applicationId: {
-    fontSize: 14,
-    color: '#9CA3AF',
-  },
-  section: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    marginTop: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    flex: 1,
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#111827',
-    fontWeight: '500',
-    flex: 2,
-    textAlign: 'right',
-  },
-  reasonText: {
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
-  },
-  timelineItem: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  timelineDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#3B82F6',
-    marginRight: 12,
-    marginTop: 4,
-  },
-  timelineContent: {
-    flex: 1,
-  },
-  timelineTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  timelineDate: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  remarksInput: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: '#111827',
-    marginBottom: 16,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  actionButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  approveButton: {
-    backgroundColor: '#10B981',
-  },
-  rejectButton: {
-    backgroundColor: '#EF4444',
-  },
-  deleteButton: {
-    backgroundColor: '#EF4444',
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-})
+const getStyles = (colors: any, responsive: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      maxWidth: responsive.maxContentWidth,
+      alignSelf: 'center',
+      width: '100%',
+    },
+    centered: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+    loadingText: {
+      marginTop: responsive.spacing.md,
+      fontSize: responsive.fontSize.body,
+      color: colors.textSecondary,
+    },
+    errorText: {
+      fontSize: responsive.fontSize.body,
+      color: colors.error,
+    },
+    header: {
+      backgroundColor: colors.card,
+      padding: responsive.containerPadding,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: responsive.spacing.sm,
+    },
+    leaveType: {
+      fontSize: responsive.fontSize.heading,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    statusBadge: {
+      paddingHorizontal: responsive.spacing.md,
+      paddingVertical: responsive.spacing.xs,
+      borderRadius: responsive.isTablet ? 20 : 16,
+    },
+    statusText: {
+      fontSize: responsive.fontSize.small,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+    applicationId: {
+      fontSize: responsive.fontSize.body,
+      color: colors.textTertiary,
+    },
+    section: {
+      backgroundColor: colors.card,
+      padding: responsive.containerPadding,
+      marginTop: responsive.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    sectionTitle: {
+      fontSize: responsive.fontSize.body,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: responsive.spacing.md,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: responsive.spacing.sm,
+    },
+    infoLabel: {
+      fontSize: responsive.fontSize.body,
+      color: colors.textSecondary,
+      flex: 1,
+    },
+    infoValue: {
+      fontSize: responsive.fontSize.body,
+      color: colors.text,
+      fontWeight: '500',
+      flex: 2,
+      textAlign: 'right',
+    },
+    reasonText: {
+      fontSize: responsive.fontSize.body,
+      color: colors.text,
+      lineHeight: 20,
+    },
+    timelineItem: {
+      flexDirection: 'row',
+      marginBottom: responsive.spacing.lg,
+    },
+    timelineDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: colors.primary,
+      marginRight: responsive.spacing.md,
+      marginTop: 4,
+    },
+    timelineContent: {
+      flex: 1,
+    },
+    timelineTitle: {
+      fontSize: responsive.fontSize.body,
+      fontWeight: '500',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    timelineDate: {
+      fontSize: responsive.fontSize.small,
+      color: colors.textTertiary,
+    },
+    remarksInput: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: responsive.isTablet ? 12 : 8,
+      padding: responsive.spacing.md,
+      fontSize: responsive.fontSize.body,
+      color: colors.text,
+      backgroundColor: colors.background,
+      marginBottom: responsive.spacing.lg,
+      minHeight: 80,
+      textAlignVertical: 'top',
+    },
+    actionButtons: {
+      flexDirection: 'row',
+      gap: responsive.spacing.md,
+    },
+    actionButton: {
+      flex: 1,
+      paddingVertical: responsive.spacing.md,
+      borderRadius: responsive.isTablet ? 12 : 8,
+      alignItems: 'center',
+    },
+    approveButton: {
+      backgroundColor: colors.success,
+    },
+    rejectButton: {
+      backgroundColor: colors.error,
+    },
+    deleteButton: {
+      backgroundColor: colors.error,
+    },
+    actionButtonText: {
+      fontSize: responsive.fontSize.body,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+  })
 
 
