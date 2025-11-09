@@ -23,8 +23,9 @@ import WFHListScreen from './screens/WFHListScreen'
 import WFHDetailsScreen from './screens/WFHDetailsScreen'
 import CreateWFHScreen from './screens/CreateWFHScreen'
 import NotificationBell from './components/NotificationBell'
+import { OfflineBanner } from './components/OfflineBanner'
 import { ActivityIndicator, View } from 'react-native'
-import { apolloClient } from './config/apollo'
+import { apolloClient, initializeApollo } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
 import { LOGIN_MUTATION } from './config/graphql-queries'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -66,6 +67,9 @@ export default function App() {
     const bootstrapAsync = async () => {
       let userToken
       try {
+        // Initialize Apollo cache persistence
+        await initializeApollo()
+
         // Use SecureStore instead of AsyncStorage for token
         userToken = await getUserToken()
       } catch (e) {
@@ -143,12 +147,13 @@ export default function App() {
       <ApolloProvider client={apolloClient}>
         <AuthContext.Provider value={authContext}>
           <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{
-              headerShown: true,
-              animationEnabled: true,
-            }}
-          >
+            <OfflineBanner />
+            <Stack.Navigator
+              screenOptions={{
+                headerShown: true,
+                animationEnabled: true,
+              }}
+            >
             {state.userToken == null ? (
               <Stack.Screen
                 name="Login"

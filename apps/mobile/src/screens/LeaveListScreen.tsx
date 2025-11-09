@@ -10,7 +10,7 @@
  * - Navigate to details
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react'
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ import {
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 interface LeaveApplication {
   id: string
@@ -44,13 +45,16 @@ interface LeaveApplication {
 export default function LeaveListScreen() {
   const navigation = useNavigation()
   const { colors } = useTheme()
+  const responsive = useResponsive()
   const [leaves, setLeaves] = useState<LeaveApplication[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState('All')
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
 
-  const statuses = ['All', 'Pending', 'Approved', 'Rejected']
+  const statuses = useMemo(() => ['All', 'Pending', 'Approved', 'Rejected'], [])
 
   useEffect(() => {
     loadCurrentUser()
@@ -62,12 +66,12 @@ export default function LeaveListScreen() {
     }
   }, [currentUser, selectedStatus])
 
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     const user = await getUserData()
     setCurrentUser(user)
-  }
+  }, [])
 
-  const fetchLeaves = async () => {
+  const fetchLeaves = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(
@@ -94,14 +98,21 @@ export default function LeaveListScreen() {
       setLoading(false)
       setRefreshing(false)
     }
-  }
+  }, [currentUser, selectedStatus])
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setRefreshing(true)
+    setPage(1)
     fetchLeaves()
-  }
+  }, [fetchLeaves])
 
-  const getStatusColor = (status: string) => {
+  const handleLoadMore = useCallback(() => {
+    if (!loading && hasMore) {
+      setPage((prev) => prev + 1)
+    }
+  }, [loading, hasMore])
+
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'Pending':
         return '#F59E0B'
@@ -112,65 +123,68 @@ export default function LeaveListScreen() {
       default:
         return '#6B7280'
     }
-  }
+  }, [])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     })
-  }
+  }, [])
 
-  const calculateDays = (fromDate: string, toDate: string) => {
+  const calculateDays = useCallback((fromDate: string, toDate: string) => {
     const from = new Date(fromDate)
     const to = new Date(toDate)
     const diffTime = Math.abs(to.getTime() - from.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
-  }
+  }, [])
 
-  const styles = getStyles(colors)
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
 
-  const renderLeaveItem = ({ item }: { item: LeaveApplication }) => (
-    <TouchableOpacity
-      style={styles.leaveCard}
-      onPress={() =>
-        navigation.navigate('LeaveDetails' as never, { leaveId: item.id } as never)
-      }
-    >
-      <View style={styles.leaveHeader}>
-        <View style={styles.leaveTypeContainer}>
-          <Text style={styles.leaveType}>{item.leaveType}</Text>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(item.status) },
-            ]}
-          >
-            <Text style={styles.statusText}>{item.status}</Text>
+  const renderLeaveItem = useCallback(
+    ({ item }: { item: LeaveApplication }) => (
+      <TouchableOpacity
+        style={styles.leaveCard}
+        onPress={() =>
+          navigation.navigate('LeaveDetails' as never, { leaveId: item.id } as never)
+        }
+      >
+        <View style={styles.leaveHeader}>
+          <View style={styles.leaveTypeContainer}>
+            <Text style={styles.leaveType}>{item.leaveType}</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: getStatusColor(item.status) },
+              ]}
+            >
+              <Text style={styles.statusText}>{item.status}</Text>
+            </View>
           </View>
+          <Text style={styles.leaveId}>{item.applicationId}</Text>
         </View>
-        <Text style={styles.leaveId}>{item.applicationId}</Text>
-      </View>
 
-      <View style={styles.leaveDates}>
-        <Text style={styles.dateText}>
-          {formatDate(item.fromDate)} - {formatDate(item.toDate)}
+        <View style={styles.leaveDates}>
+          <Text style={styles.dateText}>
+            {formatDate(item.fromDate)} - {formatDate(item.toDate)}
+          </Text>
+          <Text style={styles.daysText}>
+            {calculateDays(item.fromDate, item.toDate)} day(s)
+          </Text>
+        </View>
+
+        <Text style={styles.leaveReason} numberOfLines={2}>
+          {item.reason}
         </Text>
-        <Text style={styles.daysText}>
-          {calculateDays(item.fromDate, item.toDate)} day(s)
+
+        <Text style={styles.leaveDate}>
+          Applied: {formatDate(item.createdAt)}
         </Text>
-      </View>
-
-      <Text style={styles.leaveReason} numberOfLines={2}>
-        {item.reason}
-      </Text>
-
-      <Text style={styles.leaveDate}>
-        Applied: {formatDate(item.createdAt)}
-      </Text>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    ),
+    [styles, navigation, getStatusColor, formatDate, calculateDays]
   )
 
   if (loading && !refreshing) {
@@ -221,11 +235,18 @@ export default function LeaveListScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🏖️</Text>
             <Text style={styles.emptyText}>No leave applications found</Text>
           </View>
+        }
+        ListFooterComponent={
+          loading && page > 1 ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ padding: 16 }} />
+          ) : null
         }
       />
 
@@ -240,10 +261,13 @@ export default function LeaveListScreen() {
   )
 }
 
-const getStyles = (colors: any) => StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   centered: {
     flex: 1,
@@ -261,8 +285,8 @@ const getStyles = (colors: any) => StyleSheet.create({
     borderBottomColor: colors.border,
   },
   filterContent: {
-    padding: 16,
-    gap: 8,
+    padding: responsive.containerPadding,
+    gap: responsive.spacing.sm,
   },
   filterButton: {
     paddingHorizontal: 16,
@@ -283,13 +307,13 @@ const getStyles = (colors: any) => StyleSheet.create({
     color: '#FFFFFF',
   },
   listContent: {
-    padding: 16,
+    padding: responsive.containerPadding,
   },
   leaveCard: {
     backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: responsive.isTablet ? 16 : 12,
+    padding: responsive.cardPadding,
+    marginBottom: responsive.spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
   },

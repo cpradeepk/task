@@ -25216,3 +25216,94 @@ Fetching WFH applications from MySQL
 ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
 
  POST /api/graphql [32m200[39m in 264ms[2m (compile: 1627µs, proxy.ts: 3ms, render: 260ms)[22m
+ GET / [32m200[39m in 542ms[2m (compile: 469ms, render: 73ms)[22m
+ GET /api/settings?grouped=true&activeOnly=true [32m200[39m in 61ms[2m (compile: 58ms, proxy.ts: 1305µs, render: 1478µs)[22m
+ GET /dashboard [32m200[39m in 61ms[2m (compile: 45ms, render: 15ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-09T07:15:04.430Z
+🔧 Variables: {
+  "userId": "AM-0001"
+}
+================================================================================
+
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: UnnamedOperation
+⏱️  Timestamp: 2025-11-09T07:15:04.437Z
+🔧 Variables: {
+  "employeeId": "AM-0001",
+  "role": "top_management"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 173ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 179ms[2m (compile: 3ms, proxy.ts: 1477µs, render: 175ms)[22m
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] UnnamedOperation completed in 342ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 349ms[2m (compile: 2ms, proxy.ts: 1466µs, render: 345ms)[22m
+ GET /api/settings [32m200[39m in 8ms[2m (compile: 5ms, proxy.ts: 1755µs, render: 1415µs)[22m
+ GET /api/users [32m200[39m in 216ms[2m (compile: 5ms, proxy.ts: 2ms, render: 208ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 226ms[2m (compile: 56ms, proxy.ts: 2ms, render: 168ms)[22m
+ GET /api/users/AM-0002 [32m200[39m in 229ms[2m (compile: 59ms, proxy.ts: 3ms, render: 166ms)[22m
+ GET /api/users/AM-0006 [32m200[39m in 228ms[2m (compile: 60ms, proxy.ts: 1696µs, render: 166ms)[22m
+ GET /api/users/AM-0001 [32m200[39m in 232ms[2m (compile: 59ms, proxy.ts: 2ms, render: 171ms)[22m
+ GET /api/settings [32m200[39m in 17ms[2m (compile: 10ms, proxy.ts: 5ms, render: 1646µs)[22m
+ GET /api/projects?type=main&status=active [32m200[39m in 182ms[2m (compile: 1539µs, proxy.ts: 4ms, render: 176ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 25ms[2m (compile: 21ms, proxy.ts: 2ms, render: 1900µs)[22m
+ GET /api/users/AM-0002 [32m200[39m in 27ms[2m (compile: 23ms, proxy.ts: 2ms, render: 1898µs)[22m
+ GET /api/users/AM-0006 [32m200[39m in 28ms[2m (compile: 25ms, proxy.ts: 1477µs, render: 1923µs)[22m
+ GET /api/settings [32m200[39m in 16ms[2m (compile: 12ms, proxy.ts: 1937µs, render: 1909µs)[22m
+ GET /api/users [32m200[39m in 39ms[2m (compile: 9ms, proxy.ts: 1373µs, render: 29ms)[22m
+ GET /api/users/AM-0001 [32m200[39m in 33ms[2m (compile: 29ms, proxy.ts: 3ms, render: 1835µs)[22m
+ GET /api/settings [32m200[39m in 18ms[2m (compile: 10ms, proxy.ts: 6ms, render: 1622µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 27ms[2m (compile: 19ms, proxy.ts: 6ms, render: 1661µs)[22m
+ GET /api/users/AM-0006 [32m200[39m in 27ms[2m (compile: 21ms, proxy.ts: 5ms, render: 1545µs)[22m
+ GET /api/users/AM-0001 [32m200[39m in 25ms[2m (compile: 17ms, proxy.ts: 6ms, render: 1585µs)[22m
+ GET /api/projects?type=main&status=active [32m200[39m in 43ms[2m (compile: 11ms, proxy.ts: 5ms, render: 27ms)[22m
+ GET /api/users [32m200[39m in 38ms[2m (compile: 11ms, proxy.ts: 2ms, render: 25ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 20ms[2m (compile: 11ms, proxy.ts: 8ms, render: 1587µs)[22m
+ GET /api/users/AM-0006 [32m200[39m in 16ms[2m (compile: 12ms, proxy.ts: 2ms, render: 1573µs)[22m
+ GET /api/users/AM-0001 [32m200[39m in 19ms[2m (compile: 15ms, proxy.ts: 1805µs, render: 1500µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 14ms[2m (compile: 10ms, proxy.ts: 1981µs, render: 1585µs)[22m
+ GET /api/users/AM-0006 [32m200[39m in 16ms[2m (compile: 12ms, proxy.ts: 2ms, render: 1556µs)[22m
+ GET /api/users/AM-0001 [32m200[39m in 14ms[2m (compile: 10ms, proxy.ts: 1986µs, render: 1562µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 11ms[2m (compile: 8ms, proxy.ts: 1605µs, render: 1515µs)[22m
+ GET /api/users/AM-0006 [32m200[39m in 18ms[2m (compile: 14ms, proxy.ts: 1989µs, render: 1842µs)[22m
+ GET /api/users [32m200[39m in 44ms[2m (compile: 4ms, proxy.ts: 6ms, render: 33ms)[22m
+ GET /api/users/AM-0001 [32m200[39m in 19ms[2m (compile: 15ms, proxy.ts: 1743µs, render: 1560µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 8ms[2m (compile: 5ms, proxy.ts: 1858µs, render: 1440µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1285µs, render: 1497µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1193µs, render: 1527µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1130µs, render: 1612µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1169µs, render: 1726µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 1920µs, proxy.ts: 1199µs, render: 1743µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 3ms, proxy.ts: 1203µs, render: 1609µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1173µs, render: 1608µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1586µs, render: 1794µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1253µs, render: 1675µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1228µs, render: 1776µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1151µs, render: 1609µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 6ms[2m (compile: 3ms, proxy.ts: 1125µs, render: 1569µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1189µs, render: 1443µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 1851µs, proxy.ts: 1331µs, render: 1460µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 1906µs, proxy.ts: 1048µs, render: 1603µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1080µs, render: 1493µs)[22m
+ GET /api/users/AM-0005 [32m200[39m in 53ms[2m (compile: 47ms, proxy.ts: 4ms, render: 2ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 7ms[2m (compile: 3ms, proxy.ts: 1616µs, render: 2ms)[22m
+ GET /api/users/AM-0005 [32m200[39m in 5ms[2m (compile: 2ms, proxy.ts: 1514µs, render: 1699µs)[22m
+❌ Redis Cloud connection error: 008DA96849710000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+❌ Redis Cloud connection error: 007DEDE777740000:error:0A00010B:SSL routines:ssl3_get_record:wrong version number:../deps/openssl/openssl/ssl/record/ssl3_record.c:354:
+
+   Falling back to in-memory cache
+[?25h

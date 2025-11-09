@@ -12,6 +12,8 @@ import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/clien
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
 import * as SecureStore from 'expo-secure-store'
+import { CachePersistor } from 'apollo3-cache-persist'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 // API endpoint - update this to match your backend URL
 const API_URL = __DEV__ 
@@ -74,41 +76,69 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
 })
 
 /**
- * Apollo Client Instance
+ * In-Memory Cache with persistence
  */
-export const apolloClient = new ApolloClient({
-  link: from([errorLink, authLink, httpLink]),
-  cache: new InMemoryCache({
-    typePolicies: {
-      Query: {
-        fields: {
-          // Cache configuration for specific queries
-          tasks: {
-            merge(existing = [], incoming) {
-              return incoming
-            },
+const cache = new InMemoryCache({
+  typePolicies: {
+    Query: {
+      fields: {
+        // Cache configuration for specific queries
+        tasks: {
+          merge(existing = [], incoming) {
+            return incoming
           },
-          bugs: {
-            merge(existing = [], incoming) {
-              return incoming
-            },
+        },
+        bugs: {
+          merge(existing = [], incoming) {
+            return incoming
           },
-          feedPosts: {
-            merge(existing = [], incoming) {
-              return incoming
-            },
+        },
+        feedPosts: {
+          merge(existing = [], incoming) {
+            return incoming
           },
         },
       },
     },
-  }),
+  },
+})
+
+/**
+ * Cache Persistor - saves cache to AsyncStorage for offline support
+ */
+export const persistor = new CachePersistor({
+  cache,
+  storage: AsyncStorage as any,
+  maxSize: 1048576 * 10, // 10 MB
+  debug: __DEV__,
+})
+
+/**
+ * Initialize cache persistence
+ * Call this before rendering the app
+ */
+export async function initializeApollo() {
+  try {
+    await persistor.restore()
+    console.log('Apollo cache restored from storage')
+  } catch (error) {
+    console.error('Failed to restore Apollo cache:', error)
+  }
+}
+
+/**
+ * Apollo Client Instance
+ */
+export const apolloClient = new ApolloClient({
+  link: from([errorLink, authLink, httpLink]),
+  cache,
   defaultOptions: {
     watchQuery: {
       fetchPolicy: 'cache-and-network',
       errorPolicy: 'all',
     },
     query: {
-      fetchPolicy: 'network-only',
+      fetchPolicy: 'cache-first', // Changed to cache-first for offline support
       errorPolicy: 'all',
     },
     mutate: {
