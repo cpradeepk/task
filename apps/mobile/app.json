@@ -15,7 +15,6 @@
       "**/*"
     ],
     "ios": {
-      "supportsTabletMode": true,
       "bundleIdentifier": "com.jsr.taskmanagement"
     },
     "android": {

@@ -13,6 +13,7 @@ import { AuthContext } from '../contexts/AuthContext'
 import { useNavigation } from '@react-navigation/native'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { DebugMenu } from '../components/DebugMenu'
 
 export default function DashboardScreen() {
   const navigation = useNavigation()
@@ -23,6 +24,7 @@ export default function DashboardScreen() {
   const [user, setUser] = useState<any>(null)
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [debugMenuVisible, setDebugMenuVisible] = useState(false)
   const { signOut } = React.useContext(AuthContext)
 
   const loadData = useCallback(async () => {
@@ -78,8 +80,16 @@ export default function DashboardScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.greeting}>Welcome, {user?.name}!</Text>
-        <Text style={styles.role}>{user?.role}</Text>
+        <View>
+          <Text style={styles.greeting}>Welcome, {user?.name}!</Text>
+          <Text style={styles.role}>{user?.role}</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => setDebugMenuVisible(true)}
+          style={styles.debugButton}
+        >
+          <Text style={styles.debugButtonText}>🐛 Debug</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.statsContainer}>
@@ -167,6 +177,11 @@ export default function DashboardScreen() {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
+
+      <DebugMenu
+        visible={debugMenuVisible}
+        onClose={() => setDebugMenuVisible(false)}
+      />
     </ScrollView>
   )
 }
@@ -183,6 +198,20 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     maxWidth: responsive.maxContentWidth,
     alignSelf: 'center',
     width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  debugButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  debugButtonText: {
+    color: colors.card,
+    fontSize: 12,
+    fontWeight: '600',
   },
   greeting: {
     fontSize: responsive.fontSize.xl,

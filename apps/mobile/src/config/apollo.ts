@@ -14,6 +14,7 @@ import { onError } from '@apollo/client/link/error'
 import * as SecureStore from 'expo-secure-store'
 import { CachePersistor } from 'apollo3-cache-persist'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { logger, logApiRequest, logApiResponse, logApiError } from '../utils/debugLogger'
 
 // API endpoint - update this to match your backend URL
 // For physical devices, use your computer's local IP or production URL
@@ -51,25 +52,34 @@ const authLink = setContext(async (_, { headers }) => {
 /**
  * Error Link - handles GraphQL and network errors
  */
-const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+const errorLink = onError((errorResponse) => {
+  const { graphQLErrors, networkError, operation } = errorResponse as any
+
   if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path }) => {
-      console.error(
-        `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`
-      )
+    graphQLErrors.forEach((error: any) => {
+      const { message, locations, path } = error
+      const errorMsg = `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`
+      console.error(errorMsg)
+      logger.error('GraphQL', errorMsg, { operation: operation.operationName })
     })
   }
 
   if (networkError) {
-    console.error(`[Network error]: ${networkError}`)
-    
+    const errorMsg = `[Network error]: ${networkError}`
+    console.error(errorMsg)
+    logger.error('Network', errorMsg, {
+      operation: operation.operationName,
+      error: networkError
+    })
+
     // Handle specific network errors
     if ('statusCode' in networkError) {
       const statusCode = (networkError as any).statusCode
-      
+
       if (statusCode === 401) {
         // Unauthorized - token expired or invalid
         console.log('Token expired or invalid - redirecting to login')
+        logger.warn('Auth', 'Token expired or invalid', { statusCode })
         // You can dispatch a logout action here if using Redux/Context
       }
     }
@@ -120,10 +130,13 @@ export const persistor = new CachePersistor({
  */
 export async function initializeApollo() {
   try {
+    logger.info('Apollo', 'Initializing Apollo Client', { apiUrl: API_URL })
     await persistor.restore()
     console.log('Apollo cache restored from storage')
+    logger.info('Apollo', 'Cache restored from storage')
   } catch (error) {
     console.error('Failed to restore Apollo cache:', error)
+    logger.error('Apollo', 'Failed to restore cache', error)
   }
 }
 
