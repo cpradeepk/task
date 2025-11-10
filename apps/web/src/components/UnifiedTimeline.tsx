@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ActivityLog } from '@/lib/db/activityLog'
-import { Upload, X, Image as ImageIcon, Video, FileText } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Video, FileText, ChevronDown, ChevronUp } from 'lucide-react'
 import RichTextEditor from './RichTextEditor'
 import DOMPurify from 'dompurify'
 import CollapsibleText from './CollapsibleText'
@@ -585,18 +585,10 @@ export default function UnifiedTimeline({
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-gray-900">
-                      {activity.userName || 'Unknown User'}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {formatRelativeTime(activity.createdAt)}
-                    </span>
-                  </div>
                   {/* Render HTML content safely or plain text with collapsible functionality */}
                   {activity.description && (
                     activity.isComment || activity.actionType === 'prompt' ? (
-                      // For comments and prompts, use CollapsibleText
+                      // For comments and prompts, use CollapsibleText with custom button render
                       <CollapsibleText
                         content={activity.description}
                         maxCharacters={collapsibleSettings.maxCharacters}
@@ -608,21 +600,62 @@ export default function UnifiedTimeline({
                         persistState={collapsibleSettings.persistState}
                         storageKey={collapsibleSettings.persistState ? `activity-${activity.id}-expanded` : undefined}
                         renderHtml={/<[a-z][\s\S]*>/i.test(activity.description)}
+                        renderButton={({ isExpanded, needsCollapse, toggleExpanded }) => (
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-900">
+                                {activity.userName || 'Unknown User'}
+                              </span>
+                              <span className="text-sm text-gray-500">
+                                {formatRelativeTime(activity.createdAt)}
+                              </span>
+                            </div>
+                            {needsCollapse && (
+                              <button
+                                onClick={toggleExpanded}
+                                className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary-dark transition-colors flex-shrink-0"
+                                aria-label={isExpanded ? 'Show less' : 'Show more'}
+                              >
+                                {isExpanded ? (
+                                  <>
+                                    <span>Show less</span>
+                                    <ChevronUp className="h-4 w-4" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>Show more</span>
+                                    <ChevronDown className="h-4 w-4" />
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        )}
                       />
                     ) : (
                       // For system activities, render as before (no collapse)
-                      /<[a-z][\s\S]*>/i.test(activity.description) ? (
-                        <div
-                          className="prose prose-sm max-w-none text-gray-700"
-                          dangerouslySetInnerHTML={{
-                            __html: DOMPurify.sanitize(activity.description)
-                          }}
-                        />
-                      ) : (
-                        <p className="text-gray-700 whitespace-pre-wrap break-words">
-                          {activity.description}
-                        </p>
-                      )
+                      <>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-gray-900">
+                            {activity.userName || 'Unknown User'}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {formatRelativeTime(activity.createdAt)}
+                          </span>
+                        </div>
+                        {/<[a-z][\s\S]*>/i.test(activity.description) ? (
+                          <div
+                            className="prose prose-sm max-w-none text-gray-700"
+                            dangerouslySetInnerHTML={{
+                              __html: DOMPurify.sanitize(activity.description)
+                            }}
+                          />
+                        ) : (
+                          <p className="text-gray-700 whitespace-pre-wrap break-words">
+                            {activity.description}
+                          </p>
+                        )}
+                      </>
                     )
                   )}
 

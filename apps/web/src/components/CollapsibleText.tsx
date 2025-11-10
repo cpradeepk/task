@@ -25,6 +25,8 @@ export interface CollapsibleTextProps {
   storageKey?: string
   /** Render HTML content safely (default: false) */
   renderHtml?: boolean
+  /** Custom render function for the expand/collapse button (optional) */
+  renderButton?: (props: { isExpanded: boolean; needsCollapse: boolean; toggleExpanded: () => void }) => React.ReactNode
 }
 
 /**
@@ -73,7 +75,8 @@ export default function CollapsibleText({
   gradientColor = 'white',
   persistState = false,
   storageKey,
-  renderHtml = false
+  renderHtml = false,
+  renderButton
 }: CollapsibleTextProps) {
   // Load initial state from localStorage if persistence is enabled
   const getInitialState = (): boolean => {
@@ -122,8 +125,8 @@ export default function CollapsibleText({
 
   return (
     <div>
-      {/* Title and Expand/Collapse Button */}
-      {(title || needsCollapse) && (
+      {/* Title and Expand/Collapse Button (only if renderButton is not provided) */}
+      {!renderButton && (title || needsCollapse) && (
         <div className={`flex items-center ${buttonAlignClass} mb-2 ${title ? 'justify-between' : ''}`}>
           {title && <h3 className="font-medium text-gray-900">{title}</h3>}
           {needsCollapse && (
@@ -148,6 +151,9 @@ export default function CollapsibleText({
         </div>
       )}
 
+      {/* Custom button render (if provided) */}
+      {renderButton && renderButton({ isExpanded, needsCollapse, toggleExpanded })}
+
       {/* Content */}
       <div className="relative">
         {renderHtml ? (
@@ -162,10 +168,10 @@ export default function CollapsibleText({
             {isExpanded || !needsCollapse ? content : previewContent}
           </p>
         )}
-        
+
         {/* Gradient Overlay */}
         {!isExpanded && needsCollapse && showGradient && (
-          <div 
+          <div
             className={`absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-${gradientColor} to-transparent pointer-events-none`}
             style={{ background: `linear-gradient(to top, ${gradientColor}, transparent)` }}
           />

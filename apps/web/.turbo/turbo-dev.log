@@ -1565,3 +1565,84 @@ Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allow
  GET /api/relationships?id=BUG-0011&type=development [32m200[39m in 50ms[2m (compile: 1573µs, proxy.ts: 1724µs, render: 47ms)[22m
  [32m[1m✓[22m[39m Compiled in 91ms
  [32m[1m✓[22m[39m Compiled in 91ms
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-10T15:59:46.727Z
+🔧 Variables: {
+  "userId": "AM-0002"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 168ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 175ms[2m (compile: 1567µs, proxy.ts: 2ms, render: 171ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-10T16:00:46.731Z
+🔧 Variables: {
+  "userId": "AM-0002"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 184ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 192ms[2m (compile: 1901µs, proxy.ts: 4ms, render: 186ms)[22m
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-10T16:01:46.729Z
+🔧 Variables: {
+  "userId": "AM-0002"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 176ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 183ms[2m (compile: 3ms, proxy.ts: 3ms, render: 178ms)[22m
+ [32m[1m✓[22m[39m Compiled in 94ms
+ [32m[1m✓[22m[39m Compiled in 120ms
+ [32m[1m✓[22m[39m Compiled in 91ms
+
+================================================================================
+🚀 [GraphQL Server] Incoming QUERY: GetUnreadCount
+⏱️  Timestamp: 2025-11-10T16:02:46.729Z
+🔧 Variables: {
+  "userId": "AM-0002"
+}
+================================================================================
+
+
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+✅ [GraphQL Server] GetUnreadCount completed in 239ms
+✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅
+
+ POST /api/graphql [32m200[39m in 245ms[2m (compile: 1600µs, proxy.ts: 1669µs, render: 241ms)[22m
+ [32m[1m✓[22m[39m Compiled in 125ms
+🔍 [ActivityLog] Row 215: isComment raw=1 (type: number), converted=true
+🔍 [ActivityLog] Row 214: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 209: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 208: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 207: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 206: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 204: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 203: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 202: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 201: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 200: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 199: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 176: isComment raw=0 (type: number), converted=false
+🔍 [ActivityLog] Row 175: isComment raw=0 (type: number), converted=false
+✅ [ActivityLog] Fetched 14 activities for bug:BUG-0011
+   Comments: 1, Activities: 13
+ GET /api/activity-log?entityType=bug&entityId=BUG-0011&sortOrder=desc [32m200[39m in 78ms[2m (compile: 1864µs, proxy.ts: 2ms, render: 74ms)[22m
