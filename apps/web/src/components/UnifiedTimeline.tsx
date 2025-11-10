@@ -17,9 +17,9 @@ interface UnifiedTimelineProps {
   showActivity?: boolean // Filter state for activity
   showComments?: boolean // Filter state for comments
   showPrompts?: boolean // Filter state for prompts
-  onToggleActivity?: () => void // Toggle activity filter
-  onToggleComments?: () => void // Toggle comments filter
-  onTogglePrompts?: () => void // Toggle prompts filter
+  onToggleActivity?: (exclusive?: boolean) => void // Toggle activity filter (exclusive mode on single-click)
+  onToggleComments?: (exclusive?: boolean) => void // Toggle comments filter (exclusive mode on single-click)
+  onTogglePrompts?: (exclusive?: boolean) => void // Toggle prompts filter (exclusive mode on single-click)
 }
 
 /**
@@ -58,8 +58,19 @@ export default function UnifiedTimeline({
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Track click timing for double-click detection
+  const clickTimerRef = useRef<{ [key: string]: NodeJS.Timeout | null }>({
+    activity: null,
+    comments: null,
+    prompts: null
+  })
+
   // Apply filter if provided
   const filteredActivities = filterFn ? activities.filter(filterFn) : activities
+
+  // Determine if we should show "Post Prompt" button
+  // Only show "Post Prompt" when Prompts is the ONLY active filter
+  const isPromptMode = showPrompts && !showActivity && !showComments
 
   // Fetch activities
   const fetchActivities = useCallback(async () => {
@@ -220,6 +231,9 @@ export default function UnifiedTimeline({
         setIsUploading(false)
       }
 
+      // Determine if we're posting a prompt or comment based on active filters
+      const isPostingPrompt = isPromptMode
+
       const response = await fetch('/api/activity-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -227,9 +241,9 @@ export default function UnifiedTimeline({
         body: JSON.stringify({
           entityType,
           entityId,
-          actionType: 'comment',
+          actionType: isPostingPrompt ? 'prompt' : 'comment',
           description: commentText.trim(),
-          isComment: true,
+          isComment: !isPostingPrompt, // false for prompts, true for comments
           attachments: attachmentUrls.length > 0 ? attachmentUrls.join(', ') : undefined
         })
       })
@@ -241,19 +255,19 @@ export default function UnifiedTimeline({
         setUploadedFiles([])
         await fetchActivities() // Refresh timeline
       } else {
-        alert(data.error || 'Failed to add comment')
+        alert(data.error || `Failed to add ${isPostingPrompt ? 'prompt' : 'comment'}`)
       }
     } catch (err) {
-      console.error('Error adding comment:', err)
-      alert('Failed to add comment')
+      console.error(`Error adding ${isPromptMode ? 'prompt' : 'comment'}:`, err)
+      alert(`Failed to add ${isPromptMode ? 'prompt' : 'comment'}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Delete comment
+  // Delete comment or prompt
   const handleDeleteComment = async (activityId: number) => {
-    if (!confirm('Are you sure you want to delete this comment?')) return
+    if (!confirm('Are you sure you want to delete this item?')) return
 
     try {
       const response = await fetch(`/api/activity-log/${activityId}`, {
@@ -265,11 +279,45 @@ export default function UnifiedTimeline({
       if (data.success) {
         await fetchActivities() // Refresh timeline
       } else {
-        alert(data.error || 'Failed to delete comment')
+        alert(data.error || 'Failed to delete item')
       }
     } catch (err) {
-      console.error('Error deleting comment:', err)
-      alert('Failed to delete comment')
+      console.error('Error deleting item:', err)
+      alert('Failed to delete item')
+    }
+  }
+
+  // Handle filter button clicks with single-click (exclusive) and double-click (additive) support
+  const handleFilterClick = (filterType: 'activity' | 'comments' | 'prompts') => {
+    const clickTimer = clickTimerRef.current[filterType]
+
+    if (clickTimer) {
+      // Double-click detected - toggle additively
+      clearTimeout(clickTimer)
+      clickTimerRef.current[filterType] = null
+
+      // Call the toggle handler with exclusive=false for additive mode
+      if (filterType === 'activity' && onToggleActivity) {
+        onToggleActivity(false)
+      } else if (filterType === 'comments' && onToggleComments) {
+        onToggleComments(false)
+      } else if (filterType === 'prompts' && onTogglePrompts) {
+        onTogglePrompts(false)
+      }
+    } else {
+      // Single-click - wait to see if it's a double-click
+      clickTimerRef.current[filterType] = setTimeout(() => {
+        clickTimerRef.current[filterType] = null
+
+        // Call the toggle handler with exclusive=true for exclusive mode
+        if (filterType === 'activity' && onToggleActivity) {
+          onToggleActivity(true)
+        } else if (filterType === 'comments' && onToggleComments) {
+          onToggleComments(true)
+        } else if (filterType === 'prompts' && onTogglePrompts) {
+          onTogglePrompts(true)
+        }
+      }, 250) // 250ms delay to detect double-click
     }
   }
 
@@ -346,7 +394,7 @@ export default function UnifiedTimeline({
           <RichTextEditor
             content={commentText}
             onChange={setCommentText}
-            placeholder="Add a comment..."
+            placeholder={isPromptMode ? "Write an AI prompt..." : "Add a comment..."}
             minHeight="100px"
           />
 
@@ -382,40 +430,43 @@ export default function UnifiedTimeline({
 
           <div className="flex justify-between items-center mt-2">
             <div className="flex items-center space-x-2">
-              {/* Filter Toggles */}
+              {/* Filter Toggles - Single-click for exclusive, Double-click for additive */}
               {onToggleActivity && onToggleComments && (
                 <>
                   <button
                     type="button"
-                    onClick={onToggleActivity}
+                    onClick={() => handleFilterClick('activity')}
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                       showActivity
                         ? 'bg-orange-500 text-white hover:bg-orange-600'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
+                    title="Single-click: Show only Activity | Double-click: Toggle Activity"
                   >
                     Activity
                   </button>
                   <button
                     type="button"
-                    onClick={onToggleComments}
+                    onClick={() => handleFilterClick('comments')}
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                       showComments
                         ? 'bg-orange-500 text-white hover:bg-orange-600'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
+                    title="Single-click: Show only Comments | Double-click: Toggle Comments"
                   >
                     Comments
                   </button>
                   {onTogglePrompts && (
                     <button
                       type="button"
-                      onClick={onTogglePrompts}
+                      onClick={() => handleFilterClick('prompts')}
                       className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                         showPrompts
                           ? 'bg-orange-500 text-white hover:bg-orange-600'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
+                      title="Single-click: Show only Prompts | Double-click: Toggle Prompts"
                     >
                       Prompts
                     </button>
@@ -443,13 +494,18 @@ export default function UnifiedTimeline({
               </button>
             </div>
 
-            {/* Post Comment Button - Right aligned */}
+            {/* Post Comment/Prompt Button - Right aligned, text changes based on active filter */}
             <button
               type="submit"
               disabled={isSubmitting || isUploading || !commentText.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              className={`px-4 py-2 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors ${
+                isPromptMode
+                  ? 'bg-purple-600 hover:bg-purple-700'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+              title={isPromptMode ? 'Post as AI Prompt' : 'Post as Comment'}
             >
-              {isUploading ? 'Uploading...' : isSubmitting ? 'Posting...' : 'Post Comment'}
+              {isUploading ? 'Uploading...' : isSubmitting ? 'Posting...' : isPromptMode ? 'Post Prompt' : 'Post Comment'}
             </button>
           </div>
         </form>

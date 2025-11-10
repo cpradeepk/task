@@ -1108,9 +1108,39 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 showActivity={showActivity}
                 showComments={showComments}
                 showPrompts={showPrompts}
-                onToggleActivity={() => setShowActivity(!showActivity)}
-                onToggleComments={() => setShowComments(!showComments)}
-                onTogglePrompts={() => setShowPrompts(!showPrompts)}
+                onToggleActivity={(exclusive = false) => {
+                  if (exclusive) {
+                    // Single-click: Show only Activity
+                    setShowActivity(true)
+                    setShowComments(false)
+                    setShowPrompts(false)
+                  } else {
+                    // Double-click: Toggle Activity
+                    setShowActivity(!showActivity)
+                  }
+                }}
+                onToggleComments={(exclusive = false) => {
+                  if (exclusive) {
+                    // Single-click: Show only Comments
+                    setShowActivity(false)
+                    setShowComments(true)
+                    setShowPrompts(false)
+                  } else {
+                    // Double-click: Toggle Comments
+                    setShowComments(!showComments)
+                  }
+                }}
+                onTogglePrompts={(exclusive = false) => {
+                  if (exclusive) {
+                    // Single-click: Show only Prompts
+                    setShowActivity(false)
+                    setShowComments(false)
+                    setShowPrompts(true)
+                  } else {
+                    // Double-click: Toggle Prompts
+                    setShowPrompts(!showPrompts)
+                  }
+                }}
                 filterFn={(activity) => {
                   // Count how many filters are active
                   const activeFilters = [showActivity, showComments, showPrompts].filter(Boolean).length
