@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "d5eaa1b3-d1a5-4f59-836b-814831a766dd"
+      }
+    },
+    "android": {
+      "package": "com.amtariksha.jsrtaskmanagement"
+    }
+  }
+}
