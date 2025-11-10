@@ -11,7 +11,7 @@
  * - Timer display
  */
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -29,6 +29,8 @@ import { useQuery } from '@apollo/client'
 import { GET_TASKS } from '../config/graphql-queries'
 import { Task } from '../../packages/shared/types'
 import { getUserData, save, get, STORAGE_KEYS } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 interface TaskFilters {
   searchQuery: string
@@ -36,6 +38,10 @@ interface TaskFilters {
 }
 
 export default function TaskListScreen({ navigation }: any) {
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -50,35 +56,16 @@ export default function TaskListScreen({ navigation }: any) {
 
   const tasks = data?.tasks || []
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch()
-    }, [refetch])
-  )
-
-  useEffect(() => {
-    loadCurrentUser()
-    loadSavedFilters()
-  }, [])
-
-  useEffect(() => {
-    filterTasks()
-  }, [tasks, searchQuery, statusFilter])
-
-  useEffect(() => {
-    saveFilters()
-  }, [searchQuery, statusFilter])
-
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     try {
       const userData = await getUserData()
       setCurrentUser(userData)
     } catch (error) {
       console.error('Failed to load user:', error)
     }
-  }
+  }, [])
 
-  const loadSavedFilters = async () => {
+  const loadSavedFilters = useCallback(async () => {
     try {
       const savedFilters = await get<TaskFilters>(STORAGE_KEYS.TASK_FILTERS)
       if (savedFilters) {
@@ -88,9 +75,9 @@ export default function TaskListScreen({ navigation }: any) {
     } catch (error) {
       console.error('Failed to load saved filters:', error)
     }
-  }
+  }, [])
 
-  const saveFilters = async () => {
+  const saveFilters = useCallback(async () => {
     try {
       const filters: TaskFilters = {
         searchQuery,
@@ -100,9 +87,9 @@ export default function TaskListScreen({ navigation }: any) {
     } catch (error) {
       console.error('Failed to save filters:', error)
     }
-  }
+  }, [searchQuery, statusFilter])
 
-  const filterTasks = () => {
+  const filterTasks = useCallback(() => {
     let filtered = tasks
 
     // Filter by status
@@ -122,52 +109,52 @@ export default function TaskListScreen({ navigation }: any) {
     }
 
     setFilteredTasks(filtered)
-  }
+  }, [tasks, searchQuery, statusFilter])
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     try {
       await refetch()
     } catch (error) {
       console.error('Failed to refresh tasks:', error)
     }
-  }
+  }, [refetch])
 
-  const handleTaskPress = (task: Task) => {
+  const handleTaskPress = useCallback((task: Task) => {
     navigation.navigate('TaskDetails', { taskId: task.taskId })
-  }
+  }, [navigation])
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'Yet to Start':
-        return '#6B7280'
+        return colors.textSecondary
       case 'In Progress':
-        return '#3B82F6'
+        return colors.primary
       case 'Done':
-        return '#10B981'
+        return colors.success
       case 'Delayed':
-        return '#EF4444'
+        return colors.error
       case 'Hold':
-        return '#F59E0B'
+        return colors.warning
       case 'Cancel':
-        return '#9CA3AF'
+        return colors.textTertiary
       case 'ReOpened':
         return '#8B5CF6'
       case 'Stop':
         return '#DC2626'
       default:
-        return '#6B7280'
+        return colors.textSecondary
     }
-  }
+  }, [colors])
 
-  const getPriorityColor = (priority: string) => {
-    if (priority === 'U&I') return '#EF4444' // Urgent & Important - Red
-    if (priority === 'NU&I') return '#F59E0B' // Not Urgent & Important - Orange
-    if (priority === 'U&NI') return '#3B82F6' // Urgent & Not Important - Blue
-    if (priority === 'NU&NI') return '#6B7280' // Not Urgent & Not Important - Gray
-    return '#6B7280'
-  }
+  const getPriorityColor = useCallback((priority: string) => {
+    if (priority === 'U&I') return colors.error // Urgent & Important - Red
+    if (priority === 'NU&I') return colors.warning // Not Urgent & Important - Orange
+    if (priority === 'U&NI') return colors.primary // Urgent & Not Important - Blue
+    if (priority === 'NU&NI') return colors.textSecondary // Not Urgent & Not Important - Gray
+    return colors.textSecondary
+  }, [colors])
 
-  const getAssigneeNames = (assignedTo: string | string[]): string => {
+  const getAssigneeNames = useCallback((assignedTo: string | string[]): string => {
     if (!assignedTo) return 'Unassigned'
 
     if (Array.isArray(assignedTo)) {
@@ -178,7 +165,26 @@ export default function TaskListScreen({ navigation }: any) {
     }
 
     return assignedTo
-  }
+  }, [])
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch()
+    }, [refetch])
+  )
+
+  useEffect(() => {
+    loadCurrentUser()
+    loadSavedFilters()
+  }, [loadCurrentUser, loadSavedFilters])
+
+  useEffect(() => {
+    filterTasks()
+  }, [filterTasks])
+
+  useEffect(() => {
+    saveFilters()
+  }, [saveFilters])
 
   const renderTask = ({ item }: { item: Task }) => (
     <TouchableOpacity
@@ -218,7 +224,7 @@ export default function TaskListScreen({ navigation }: any) {
   if (loading && !data) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading tasks...</Text>
       </View>
     )
@@ -283,7 +289,12 @@ export default function TaskListScreen({ navigation }: any) {
         keyExtractor={(item) => item.taskId}
         renderItem={renderTask}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
         }
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
@@ -295,7 +306,6 @@ export default function TaskListScreen({ navigation }: any) {
             </Text>
           </View>
         }
-        contentContainerStyle={styles.listContent}
       />
 
       <TouchableOpacity
@@ -308,95 +318,105 @@ export default function TaskListScreen({ navigation }: any) {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
+    marginTop: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    color: colors.textSecondary,
   },
   errorText: {
-    fontSize: 16,
-    color: '#EF4444',
-    marginBottom: 16,
+    fontSize: responsive.fontSize.md,
+    color: colors.error,
+    marginBottom: responsive.spacing.md,
   },
   retryButton: {
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    paddingHorizontal: responsive.spacing.lg,
+    paddingVertical: responsive.spacing.sm,
+    borderRadius: responsive.borderRadius.md,
   },
   retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.card,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
   },
   searchContainer: {
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: responsive.spacing.md,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   searchInput: {
     height: 40,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    paddingHorizontal: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    backgroundColor: colors.background,
+    color: colors.text,
   },
   filterContainer: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: colors.card,
+    paddingVertical: responsive.spacing.sm,
+    paddingHorizontal: responsive.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   filterContentContainer: {
     alignItems: 'center',
   },
   filterLabel: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
-    color: '#374151',
-    marginRight: 12,
+    color: colors.text,
+    marginRight: responsive.spacing.sm,
   },
   filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-    borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    paddingHorizontal: responsive.spacing.sm,
+    paddingVertical: responsive.spacing.xs,
+    marginRight: responsive.spacing.xs,
+    borderRadius: responsive.borderRadius.full,
+    backgroundColor: colors.backgroundSecondary,
   },
   filterButtonActive: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
   },
   filterButtonText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
   },
   filterButtonTextActive: {
-    color: '#FFFFFF',
+    color: colors.card,
     fontWeight: '600',
   },
   listContent: {
-    padding: 16,
+    padding: responsive.spacing.md,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   taskCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: colors.card,
+    borderRadius: responsive.borderRadius.lg,
+    padding: responsive.spacing.md,
+    marginBottom: responsive.spacing.sm,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -407,76 +427,76 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: responsive.spacing.xs,
   },
   taskId: {
-    fontSize: 12,
+    fontSize: responsive.fontSize.xs,
     fontWeight: '600',
-    color: '#6b7280',
+    color: colors.textSecondary,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: responsive.spacing.xs,
+    paddingVertical: responsive.spacing.xxs,
+    borderRadius: responsive.borderRadius.lg,
   },
   statusText: {
-    fontSize: 11,
-    color: '#fff',
+    fontSize: responsive.fontSize.xs - 1,
+    color: colors.card,
     fontWeight: '600',
   },
   taskName: {
-    fontSize: 16,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
+    color: colors.text,
+    marginBottom: responsive.spacing.xxs,
   },
   taskDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 12,
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: responsive.spacing.sm,
     lineHeight: 20,
   },
   taskMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: responsive.spacing.xs,
   },
   priorityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: responsive.spacing.xs,
+    paddingVertical: responsive.spacing.xxs,
+    borderRadius: responsive.borderRadius.md,
   },
   priorityText: {
-    fontSize: 11,
-    color: '#fff',
+    fontSize: responsive.fontSize.xs - 1,
+    color: colors.card,
     fontWeight: '500',
   },
   taskDate: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: responsive.fontSize.xs,
+    color: colors.textSecondary,
   },
   assignedTo: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginTop: 4,
+    fontSize: responsive.fontSize.xs,
+    color: colors.textSecondary,
+    marginTop: responsive.spacing.xxs,
   },
   emptyContainer: {
-    padding: 32,
+    padding: responsive.spacing.xxl,
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
-    color: '#9ca3af',
+    fontSize: responsive.fontSize.md,
+    color: colors.textTertiary,
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
+    right: responsive.spacing.lg,
+    bottom: responsive.spacing.lg,
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#3b82f6',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -487,7 +507,7 @@ const styles = StyleSheet.create({
   },
   fabText: {
     fontSize: 32,
-    color: '#fff',
+    color: colors.card,
     fontWeight: '300',
   },
 })

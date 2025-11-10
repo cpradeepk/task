@@ -12,7 +12,7 @@
  * - Pull-to-refresh
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -30,6 +30,8 @@ import { GET_BUGS } from '../config/graphql-queries'
 import { Bug } from '../../packages/shared/types'
 import { getBugDisplayId, getSeverityColor, getStatusColor } from '../utils/bugHelpers'
 import { save, get, STORAGE_KEYS } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 interface BugFilters {
   searchQuery: string
@@ -39,6 +41,10 @@ interface BugFilters {
 
 export default function BugListScreen() {
   const navigation = useNavigation()
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+
   const [filteredBugs, setFilteredBugs] = useState<Bug[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('All')
@@ -51,22 +57,7 @@ export default function BugListScreen() {
 
   const bugs = data?.bugs || []
 
-  // Load saved filters on mount
-  useEffect(() => {
-    loadSavedFilters()
-  }, [])
-
-  // Filter bugs when filters or data change
-  useEffect(() => {
-    filterBugs()
-  }, [bugs, searchQuery, statusFilter, typeFilter])
-
-  // Save filters when they change
-  useEffect(() => {
-    saveFilters()
-  }, [searchQuery, statusFilter, typeFilter])
-
-  const loadSavedFilters = async () => {
+  const loadSavedFilters = useCallback(async () => {
     try {
       const savedFilters = await get<BugFilters>(STORAGE_KEYS.BUG_FILTERS)
       if (savedFilters) {
@@ -77,9 +68,9 @@ export default function BugListScreen() {
     } catch (error) {
       console.error('Failed to load saved filters:', error)
     }
-  }
+  }, [])
 
-  const saveFilters = async () => {
+  const saveFilters = useCallback(async () => {
     try {
       const filters: BugFilters = {
         searchQuery,
@@ -90,9 +81,9 @@ export default function BugListScreen() {
     } catch (error) {
       console.error('Failed to save filters:', error)
     }
-  }
+  }, [searchQuery, statusFilter, typeFilter])
 
-  const filterBugs = () => {
+  const filterBugs = useCallback(() => {
     let filtered = bugs
 
     // Filter by type
@@ -124,15 +115,30 @@ export default function BugListScreen() {
     }
 
     setFilteredBugs(filtered)
-  }
+  }, [bugs, searchQuery, statusFilter, typeFilter])
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     try {
       await refetch()
     } catch (error) {
       console.error('Failed to refresh bugs:', error)
     }
-  }
+  }, [refetch])
+
+  // Load saved filters on mount
+  useEffect(() => {
+    loadSavedFilters()
+  }, [loadSavedFilters])
+
+  // Filter bugs when filters or data change
+  useEffect(() => {
+    filterBugs()
+  }, [filterBugs])
+
+  // Save filters when they change
+  useEffect(() => {
+    saveFilters()
+  }, [saveFilters])
 
   const renderBugItem = ({ item }: { item: Bug }) => {
     const displayId = getBugDisplayId(item.bugId, item.type)
@@ -185,7 +191,7 @@ export default function BugListScreen() {
   if (loading && !data) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading bugs...</Text>
       </View>
     )
@@ -274,7 +280,12 @@ export default function BugListScreen() {
         keyExtractor={(item) => item.bugId}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -298,10 +309,10 @@ export default function BugListScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
@@ -309,159 +320,170 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
+    marginTop: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    color: colors.textSecondary,
   },
   searchContainer: {
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: responsive.spacing.md,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   searchInput: {
     height: 40,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    paddingHorizontal: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    color: colors.text,
+    backgroundColor: colors.background,
   },
   filterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
+    paddingVertical: responsive.spacing.sm,
+    paddingHorizontal: responsive.spacing.md,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   filterContentContainer: {
     alignItems: 'center',
   },
   filterLabel: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
-    color: '#374151',
-    marginRight: 12,
+    color: colors.text,
+    marginRight: responsive.spacing.sm,
   },
   filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-    backgroundColor: '#F3F4F6',
+    paddingHorizontal: responsive.spacing.sm,
+    paddingVertical: responsive.spacing.xs,
+    borderRadius: responsive.borderRadius.full,
+    marginRight: responsive.spacing.xs,
+    backgroundColor: colors.backgroundSecondary,
   },
   filterButtonActive: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
   },
   filterButtonText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
   },
   filterButtonTextActive: {
-    color: '#FFFFFF',
+    color: colors.card,
     fontWeight: '600',
   },
   listContent: {
-    padding: 16,
+    padding: responsive.spacing.md,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   bugCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: colors.card,
+    borderRadius: responsive.borderRadius.lg,
+    padding: responsive.spacing.md,
+    marginBottom: responsive.spacing.sm,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   bugHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: responsive.spacing.xs,
   },
   bugIdContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: responsive.spacing.xs,
   },
   bugId: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
-    color: '#3B82F6',
+    color: colors.primary,
   },
   featureBadge: {
-    backgroundColor: '#10B981',
-    paddingHorizontal: 6,
+    backgroundColor: colors.success,
+    paddingHorizontal: responsive.spacing.xs,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: responsive.borderRadius.md,
   },
   featureBadgeText: {
-    fontSize: 10,
-    color: '#FFFFFF',
+    fontSize: responsive.fontSize.xs - 2,
+    color: colors.card,
     fontWeight: '600',
   },
   badges: {
     flexDirection: 'row',
-    gap: 6,
+    gap: responsive.spacing.xs,
   },
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: responsive.spacing.xs,
+    paddingVertical: responsive.spacing.xxs,
+    borderRadius: responsive.borderRadius.lg,
   },
   badgeText: {
-    fontSize: 11,
-    color: '#FFFFFF',
+    fontSize: responsive.fontSize.xs - 1,
+    color: colors.card,
     fontWeight: '600',
   },
   bugTitle: {
-    fontSize: 16,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: responsive.spacing.xs,
   },
   bugMeta: {
     flexDirection: 'row',
-    gap: 8,
+    gap: responsive.spacing.xs,
   },
   metaText: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.xs,
+    color: colors.textSecondary,
   },
   emptyContainer: {
-    padding: 32,
+    padding: responsive.spacing.xxl,
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
-    color: '#9CA3AF',
+    fontSize: responsive.fontSize.md,
+    color: colors.textTertiary,
     textAlign: 'center',
   },
   errorText: {
-    fontSize: 16,
-    color: '#EF4444',
-    marginBottom: 16,
+    fontSize: responsive.fontSize.md,
+    color: colors.error,
+    marginBottom: responsive.spacing.md,
   },
   retryButton: {
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    paddingHorizontal: responsive.spacing.lg,
+    paddingVertical: responsive.spacing.sm,
+    borderRadius: responsive.borderRadius.md,
   },
   retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.card,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
+    right: responsive.spacing.lg,
+    bottom: responsive.spacing.lg,
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -472,7 +494,7 @@ const styles = StyleSheet.create({
   },
   fabText: {
     fontSize: 32,
-    color: '#FFFFFF',
+    color: colors.card,
     fontWeight: '300',
   },
 })

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -11,19 +11,21 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AuthContext } from '../contexts/AuthContext'
 import { useNavigation } from '@react-navigation/native'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 export default function DashboardScreen() {
   const navigation = useNavigation()
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+
   const [user, setUser] = useState<any>(null)
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const { signOut } = React.useContext(AuthContext)
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const userStr = await AsyncStorage.getItem('user')
       const token = await AsyncStorage.getItem('userToken')
@@ -46,9 +48,13 @@ export default function DashboardScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleLogout = async () => {
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  const handleLogout = useCallback(async () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', onPress: () => {} },
       {
@@ -58,12 +64,12 @@ export default function DashboardScreen() {
         },
       },
     ])
-  }
+  }, [signOut])
 
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     )
   }
@@ -164,36 +170,42 @@ export default function DashboardScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: '#007AFF',
-    padding: 20,
-    paddingTop: 40,
+    backgroundColor: colors.primary,
+    padding: responsive.spacing.lg,
+    paddingTop: responsive.spacing.xxl * 2,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   greeting: {
-    fontSize: 24,
+    fontSize: responsive.fontSize.xl,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.card,
   },
   role: {
-    fontSize: 14,
-    color: '#e0e0e0',
-    marginTop: 5,
+    fontSize: responsive.fontSize.sm,
+    color: colors.primaryLight,
+    marginTop: responsive.spacing.xxs,
   },
   statsContainer: {
     flexDirection: 'row',
-    padding: 15,
-    gap: 10,
+    padding: responsive.spacing.md,
+    gap: responsive.spacing.sm,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: colors.card,
+    padding: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -202,49 +214,52 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: responsive.fontSize.xl,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: colors.primary,
   },
   statLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 5,
+    fontSize: responsive.fontSize.xs,
+    color: colors.textSecondary,
+    marginTop: responsive.spacing.xxs,
   },
   section: {
-    padding: 15,
+    padding: responsive.spacing.md,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: responsive.fontSize.lg,
     fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
+    marginBottom: responsive.spacing.sm,
+    color: colors.text,
   },
   taskCard: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
+    backgroundColor: colors.card,
+    padding: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
+    marginBottom: responsive.spacing.sm,
     borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: colors.primary,
   },
   taskTitle: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text,
   },
   taskStatus: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 5,
+    fontSize: responsive.fontSize.xs,
+    color: colors.textSecondary,
+    marginTop: responsive.spacing.xxs,
   },
   actionCard: {
-    backgroundColor: '#fff',
-    padding: 18,
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: colors.card,
+    padding: responsive.spacing.lg,
+    borderRadius: responsive.borderRadius.lg,
+    marginBottom: responsive.spacing.sm,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -252,25 +267,28 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   actionTitle: {
-    fontSize: 18,
+    fontSize: responsive.fontSize.lg,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+    color: colors.text,
+    marginBottom: responsive.spacing.xxs,
   },
   actionDescription: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
   },
   logoutButton: {
-    backgroundColor: '#FF3B30',
-    margin: 15,
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: colors.error,
+    margin: responsive.spacing.md,
+    padding: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   logoutButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: colors.card,
+    fontSize: responsive.fontSize.md,
     fontWeight: 'bold',
   },
 })

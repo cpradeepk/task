@@ -10,7 +10,7 @@
  * - Navigate to related content
  */
 
-import React, { useState } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -28,6 +28,8 @@ import {
   MARK_NOTIFICATION_READ,
   MARK_ALL_NOTIFICATIONS_READ,
 } from '../config/graphql-queries'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 interface Notification {
   id: string
@@ -42,6 +44,9 @@ interface Notification {
 
 export default function NotificationsScreen() {
   const navigation = useNavigation()
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
 
   // GraphQL queries and mutations
   const { data, loading, refetch } = useQuery(GET_NOTIFICATIONS, {
@@ -53,15 +58,15 @@ export default function NotificationsScreen() {
 
   const notifications = data?.notifications || []
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     try {
       await refetch()
     } catch (error) {
       console.error('Failed to refresh notifications:', error)
     }
-  }
+  }, [refetch])
 
-  const handleNotificationPress = async (notification: Notification) => {
+  const handleNotificationPress = useCallback(async (notification: Notification) => {
     // Mark as read
     if (!notification.isRead) {
       try {
@@ -82,9 +87,9 @@ export default function NotificationsScreen() {
     } else if (notification.relatedType === 'bug' && notification.relatedId) {
       navigation.navigate('BugDetails' as never, { bugId: notification.relatedId } as never)
     }
-  }
+  }, [markAsRead, refetch, navigation])
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     try {
       await markAllAsRead()
       refetch()
@@ -92,9 +97,9 @@ export default function NotificationsScreen() {
     } catch (error) {
       Alert.alert('Error', 'Failed to mark all as read')
     }
-  }
+  }, [markAllAsRead, refetch])
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = useCallback((type: string) => {
     switch (type) {
       case 'mention':
         return '👤'
@@ -111,9 +116,9 @@ export default function NotificationsScreen() {
       default:
         return '🔔'
     }
-  }
+  }, [])
 
-  const renderNotification = ({ item }: { item: Notification }) => (
+  const renderNotification = useCallback(({ item }: { item: Notification }) => (
     <TouchableOpacity
       style={[
         styles.notificationCard,
@@ -139,12 +144,12 @@ export default function NotificationsScreen() {
       </View>
       {!item.isRead && <View style={styles.unreadDot} />}
     </TouchableOpacity>
-  )
+  ), [styles, handleNotificationPress, getNotificationIcon])
 
   if (loading && !data) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading notifications...</Text>
       </View>
     )
@@ -168,7 +173,12 @@ export default function NotificationsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -181,10 +191,13 @@ export default function NotificationsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   centered: {
     flex: 1,
@@ -192,53 +205,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
+    marginTop: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    color: colors.textSecondary,
   },
   header: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    backgroundColor: colors.card,
+    padding: responsive.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
     alignItems: 'flex-end',
   },
   markAllButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#3B82F6',
-    borderRadius: 8,
+    paddingHorizontal: responsive.spacing.md,
+    paddingVertical: responsive.spacing.xs,
+    backgroundColor: colors.primary,
+    borderRadius: responsive.borderRadius.md,
   },
   markAllButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: colors.card,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
   },
   listContent: {
-    padding: 16,
+    padding: responsive.spacing.md,
   },
   notificationCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: colors.card,
+    borderRadius: responsive.borderRadius.lg,
+    padding: responsive.spacing.md,
+    marginBottom: responsive.spacing.sm,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     alignItems: 'center',
   },
   notificationCardUnread: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#3B82F6',
+    backgroundColor: colors.primaryLight,
+    borderColor: colors.primary,
   },
   notificationIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: responsive.spacing.sm,
   },
   iconText: {
     fontSize: 20,
@@ -247,36 +260,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   notificationMessage: {
-    fontSize: 15,
-    color: '#374151',
-    marginBottom: 4,
+    fontSize: responsive.fontSize.md,
+    color: colors.text,
+    marginBottom: responsive.spacing.xxs,
   },
   notificationMessageUnread: {
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
   notificationDate: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: responsive.fontSize.xs,
+    color: colors.textTertiary,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3B82F6',
-    marginLeft: 8,
+    backgroundColor: colors.primary,
+    marginLeft: responsive.spacing.xs,
   },
   emptyContainer: {
-    padding: 48,
+    padding: responsive.spacing.xxl,
     alignItems: 'center',
   },
   emptyIcon: {
     fontSize: 64,
-    marginBottom: 16,
+    marginBottom: responsive.spacing.md,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#9CA3AF',
+    fontSize: responsive.fontSize.md,
+    color: colors.textTertiary,
     textAlign: 'center',
   },
 })

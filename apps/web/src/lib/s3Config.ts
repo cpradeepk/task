@@ -54,8 +54,63 @@ export const ALLOWED_FILE_TYPES = [
   'video/mp4',
   'video/quicktime',
   'video/x-msvideo',
-  'video/webm'
+  'video/webm',
+  // Documents
+  'text/plain',                    // .txt
+  'text/markdown',                 // .md
+  'application/octet-stream',      // .prd (generic binary)
+  // Code files
+  'application/json',              // .json
+  'text/javascript',               // .js
+  'application/javascript',        // .js (alternative)
+  'text/jsx',                      // .jsx
+  'text/typescript',               // .ts
+  'text/tsx',                      // .tsx
+  // SQL
+  'application/sql',               // .sql
+  'text/x-sql'                     // .sql (alternative)
 ]
+
+// File extension to MIME type mapping (for files with ambiguous MIME types)
+export const FILE_EXTENSION_MIME_MAP: Record<string, string[]> = {
+  '.txt': ['text/plain'],
+  '.md': ['text/markdown', 'text/plain'],
+  '.prd': ['application/octet-stream', 'text/plain'],
+  '.json': ['application/json', 'text/plain'],
+  '.js': ['text/javascript', 'application/javascript', 'text/plain'],
+  '.jsx': ['text/jsx', 'text/javascript', 'text/plain'],
+  '.ts': ['text/typescript', 'text/plain'],
+  '.tsx': ['text/tsx', 'text/typescript', 'text/plain'],
+  '.sql': ['application/sql', 'text/x-sql', 'text/plain'],
+  '.png': ['image/png'],
+  '.jpg': ['image/jpeg'],
+  '.jpeg': ['image/jpeg'],
+  '.gif': ['image/gif'],
+  '.webp': ['image/webp'],
+  '.mp4': ['video/mp4'],
+  '.mov': ['video/quicktime'],
+  '.avi': ['video/x-msvideo'],
+  '.webm': ['video/webm']
+}
+
+// Helper function to validate file type by extension and MIME type
+export function isValidFileType(filename: string, mimeType: string): boolean {
+  // Get file extension
+  const ext = filename.toLowerCase().match(/\.[^.]+$/)?.[0]
+
+  if (!ext) {
+    return false
+  }
+
+  // Check if extension is supported
+  const allowedMimeTypes = FILE_EXTENSION_MIME_MAP[ext]
+  if (!allowedMimeTypes) {
+    return false
+  }
+
+  // Check if MIME type matches or is in allowed list
+  return allowedMimeTypes.includes(mimeType) || ALLOWED_FILE_TYPES.includes(mimeType)
+}
 
 // Check if S3 is configured
 export function isS3Configured(): boolean {

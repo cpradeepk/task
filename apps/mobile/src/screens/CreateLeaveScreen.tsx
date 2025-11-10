@@ -3,7 +3,7 @@
  * Form to create new leave application
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -17,6 +17,8 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 const LEAVE_TYPES = [
   'Sick Leave',
@@ -29,6 +31,10 @@ const LEAVE_TYPES = [
 
 export default function CreateLeaveScreen() {
   const navigation = useNavigation()
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [leaveType, setLeaveType] = useState('')
   const [fromDate, setFromDate] = useState(new Date())
@@ -44,12 +50,12 @@ export default function CreateLeaveScreen() {
     loadCurrentUser()
   }, [])
 
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     const user = await getUserData()
     setCurrentUser(user)
-  }
+  }, [])
 
-  const handleFromDateChange = (event: any, selectedDate?: Date) => {
+  const handleFromDateChange = useCallback((event: any, selectedDate?: Date) => {
     setShowFromDatePicker(Platform.OS === 'ios')
     if (selectedDate) {
       setFromDate(selectedDate)
@@ -58,22 +64,22 @@ export default function CreateLeaveScreen() {
         setToDate(selectedDate)
       }
     }
-  }
+  }, [toDate])
 
-  const handleToDateChange = (event: any, selectedDate?: Date) => {
+  const handleToDateChange = useCallback((event: any, selectedDate?: Date) => {
     setShowToDatePicker(Platform.OS === 'ios')
     if (selectedDate) {
       setToDate(selectedDate)
     }
-  }
+  }, [])
 
-  const calculateDays = () => {
+  const calculateDays = useCallback(() => {
     const diffTime = Math.abs(toDate.getTime() - fromDate.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
-  }
+  }, [fromDate, toDate])
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     if (!leaveType) {
       Alert.alert('Error', 'Please select leave type')
       return false
@@ -87,9 +93,9 @@ export default function CreateLeaveScreen() {
       return false
     }
     return true
-  }
+  }, [leaveType, reason, fromDate, toDate])
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!validateForm()) return
 
     try {
@@ -131,15 +137,15 @@ export default function CreateLeaveScreen() {
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [validateForm, currentUser, leaveType, reason, fromDate, toDate, isHalfDay, emergencyContact, navigation])
 
-  const formatDate = (date: Date) => {
+  const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     })
-  }
+  }, [])
 
   return (
     <ScrollView style={styles.container}>
@@ -278,82 +284,85 @@ export default function CreateLeaveScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   form: {
-    padding: 20,
+    padding: responsive.spacing.lg,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   field: {
-    marginBottom: 24,
+    marginBottom: responsive.spacing.xl,
   },
   label: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: responsive.spacing.xs,
   },
   required: {
-    color: '#EF4444',
+    color: colors.error,
   },
   typeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: responsive.spacing.xs,
   },
   typeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingHorizontal: responsive.spacing.md,
+    paddingVertical: responsive.spacing.sm,
+    borderRadius: responsive.borderRadius.md,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    backgroundColor: colors.card,
   },
   typeButtonActive: {
-    borderColor: '#3B82F6',
-    backgroundColor: '#EFF6FF',
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
   },
   typeButtonText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
   },
   typeButtonTextActive: {
-    color: '#3B82F6',
+    color: colors.primary,
     fontWeight: '600',
   },
   dateRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: responsive.spacing.sm,
   },
   dateButton: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
   },
   dateLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginBottom: 4,
+    fontSize: responsive.fontSize.xs,
+    color: colors.textTertiary,
+    marginBottom: responsive.spacing.xxs,
   },
   dateValue: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '500',
-    color: '#111827',
+    color: colors.text,
   },
   daysInfo: {
-    marginTop: 8,
-    padding: 12,
-    backgroundColor: '#EFF6FF',
-    borderRadius: 8,
+    marginTop: responsive.spacing.xs,
+    padding: responsive.spacing.sm,
+    backgroundColor: colors.primaryLight,
+    borderRadius: responsive.borderRadius.md,
   },
   daysText: {
-    fontSize: 14,
-    color: '#3B82F6',
+    fontSize: responsive.fontSize.sm,
+    color: colors.primary,
     fontWeight: '500',
   },
   checkboxRow: {
@@ -364,59 +373,59 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
-    borderRadius: 4,
-    marginRight: 12,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.sm,
+    marginRight: responsive.spacing.sm,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   checkmark: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: colors.card,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
   },
   checkboxLabel: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: '#111827',
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
   },
   textArea: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: '#111827',
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
     minHeight: 100,
     textAlignVertical: 'top',
   },
   submitButton: {
-    backgroundColor: '#3B82F6',
-    paddingVertical: 14,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    paddingVertical: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: responsive.spacing.xs,
   },
   submitButtonDisabled: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: colors.textTertiary,
   },
   submitButtonText: {
-    fontSize: 16,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.card,
   },
 })
 

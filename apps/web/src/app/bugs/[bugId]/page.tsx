@@ -19,6 +19,7 @@ import BugChecklistManager from '@/components/bugs/BugChecklistManager'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import ImageLightbox from '@/components/bugs/ImageLightbox'
+import AttachmentDisplay from '@/components/bugs/AttachmentDisplay'
 import TimerButton from '@/components/TimerButton'
 import RelatedItemsManager from '@/components/relationships/RelatedItemsManager'
 import SubtasksList from '@/components/subtasks/SubtasksList'
@@ -1035,41 +1036,44 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                       ? bug.attachments.split(',').map(u => u.trim()).filter(u => u)
                       : []
 
+                  // Separate image attachments for lightbox
+                  const imageUrls = attachmentUrls.filter(url => {
+                    const ext = url.match(/\.([^.?]+)(\?|$)/)?.[1]?.toLowerCase()
+                    return ext && ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)
+                  })
+
                   return attachmentUrls.length > 0 && (
                     <div>
                       <h3 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
-                        <ImageIcon className="h-5 w-5" />
-                        <span>Attachments</span>
+                        <Paperclip className="h-5 w-5" />
+                        <span>Attachments ({attachmentUrls.length})</span>
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {attachmentUrls.map((url, index) => {
                           const trimmedUrl = typeof url === 'string' ? url.trim() : url
                           if (!trimmedUrl) return null
 
+                          // Check if this is an image for lightbox
+                          const ext = trimmedUrl.match(/\.([^.?]+)(\?|$)/)?.[1]?.toLowerCase()
+                          const isImage = ext && ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)
+
                           return (
-                            <button
+                            <AttachmentDisplay
                               key={index}
-                              onClick={() => {
-                                setLightboxImages(attachmentUrls)
-                                setLightboxIndex(index)
+                              url={trimmedUrl}
+                              index={index}
+                              onImageClick={isImage ? () => {
+                                setLightboxImages(imageUrls)
+                                setLightboxIndex(imageUrls.indexOf(trimmedUrl))
                                 setShowLightbox(true)
-                              }}
-                              className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-500 transition-all hover:shadow-lg"
-                            >
-                              <img
-                                src={trimmedUrl}
-                                alt={`Attachment ${index + 1}`}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
-                              />
-                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
-                                <ExternalLink className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </div>
-                            </button>
-                        )
-                      })}
+                              } : undefined}
+                            />
+                          )
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )})()}
+                  )
+                })()}
               </div>
             </div>
 

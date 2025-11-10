@@ -10,7 +10,7 @@
  * - Real-time updates
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -26,9 +26,14 @@ import { useQuery } from '@apollo/client'
 import { GET_FEED_POSTS, GET_FEED_TOPICS } from '../config/graphql-queries'
 import { FeedPost, FeedTopic } from '../../packages/shared/types'
 import { getUserData } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 export default function FeedScreen() {
   const navigation = useNavigation()
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null)
 
@@ -45,38 +50,38 @@ export default function FeedScreen() {
   const topics = topicsData?.feedTopics || []
   const posts = postsData?.feedPosts || []
 
-  useEffect(() => {
-    loadCurrentUser()
-  }, [])
-
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     try {
       const userData = await getUserData()
       setCurrentUser(userData)
     } catch (error) {
       console.error('Failed to load user:', error)
     }
-  }
+  }, [])
 
-  const handleRefresh = async () => {
+  useEffect(() => {
+    loadCurrentUser()
+  }, [loadCurrentUser])
+
+  const handleRefresh = useCallback(async () => {
     try {
       await refetch()
     } catch (error) {
       console.error('Failed to refresh feed:', error)
     }
-  }
+  }, [refetch])
 
-  const handleTopicPress = (topicId: string | null) => {
+  const handleTopicPress = useCallback((topicId: string | null) => {
     setSelectedTopicId(topicId)
-  }
+  }, [])
 
-  const handlePostPress = (post: FeedPost) => {
+  const handlePostPress = useCallback((post: FeedPost) => {
     navigation.navigate('FeedPostDetails' as never, { postId: post.id } as never)
-  }
+  }, [navigation])
 
-  const handleCreatePost = () => {
+  const handleCreatePost = useCallback(() => {
     navigation.navigate('CreateFeedPost' as never, { topicId: selectedTopicId } as never)
-  }
+  }, [navigation, selectedTopicId])
 
   const renderTopic = ({ item }: { item: FeedTopic }) => (
     <TouchableOpacity
@@ -149,7 +154,7 @@ export default function FeedScreen() {
   if (topicsLoading && !topicsData) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading feed...</Text>
       </View>
     )
@@ -192,7 +197,12 @@ export default function FeedScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={postsLoading} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={postsLoading}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -211,78 +221,81 @@ export default function FeedScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
+    marginTop: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    color: colors.textSecondary,
   },
   topicContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   topicContentContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: responsive.spacing.md,
+    paddingVertical: responsive.spacing.sm,
     alignItems: 'center',
   },
   topicButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    paddingHorizontal: responsive.spacing.md,
+    paddingVertical: responsive.spacing.xs,
+    marginRight: responsive.spacing.xs,
+    borderRadius: responsive.borderRadius.full,
+    backgroundColor: colors.backgroundSecondary,
   },
   topicButtonActive: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
   },
   topicButtonText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   topicButtonTextActive: {
-    color: '#FFFFFF',
+    color: colors.card,
     fontWeight: '600',
   },
   topicBadge: {
-    marginLeft: 6,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    paddingHorizontal: 6,
+    marginLeft: responsive.spacing.xxs,
+    backgroundColor: colors.card,
+    borderRadius: responsive.borderRadius.md,
+    paddingHorizontal: responsive.spacing.xxs,
     paddingVertical: 2,
   },
   topicBadgeText: {
-    fontSize: 11,
-    color: '#3B82F6',
+    fontSize: responsive.fontSize.xs,
+    color: colors.primary,
     fontWeight: '600',
   },
   listContent: {
-    padding: 16,
+    padding: responsive.spacing.md,
   },
   postCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: colors.card,
+    borderRadius: responsive.borderRadius.lg,
+    padding: responsive.spacing.md,
+    marginBottom: responsive.spacing.sm,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   postHeader: {
-    marginBottom: 12,
+    marginBottom: responsive.spacing.sm,
   },
   postAuthor: {
     flexDirection: 'row',
@@ -292,73 +305,73 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: responsive.spacing.sm,
   },
   avatarText: {
-    fontSize: 18,
-    color: '#FFFFFF',
+    fontSize: responsive.fontSize.lg,
+    color: colors.card,
     fontWeight: '600',
   },
   authorName: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
   postDate: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.xs,
+    color: colors.textSecondary,
   },
   postContent: {
-    fontSize: 15,
-    color: '#374151',
+    fontSize: responsive.fontSize.md,
+    color: colors.text,
     lineHeight: 22,
-    marginBottom: 12,
+    marginBottom: responsive.spacing.sm,
   },
   contentTypeBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: colors.backgroundSecondary,
+    paddingHorizontal: responsive.spacing.sm,
+    paddingVertical: responsive.spacing.xxs,
+    borderRadius: responsive.borderRadius.lg,
+    marginBottom: responsive.spacing.sm,
   },
   contentTypeText: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.xs,
+    color: colors.textSecondary,
   },
   postFooter: {
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    paddingTop: 12,
+    borderTopColor: colors.backgroundSecondary,
+    paddingTop: responsive.spacing.sm,
   },
   postStats: {
     flexDirection: 'row',
-    gap: 16,
+    gap: responsive.spacing.md,
   },
   statText: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
   },
   emptyContainer: {
-    padding: 32,
+    padding: responsive.spacing.xl,
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
-    color: '#9CA3AF',
+    fontSize: responsive.fontSize.md,
+    color: colors.textTertiary,
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
+    right: responsive.spacing.lg,
+    bottom: responsive.spacing.lg,
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
@@ -369,7 +382,7 @@ const styles = StyleSheet.create({
   },
   fabText: {
     fontSize: 32,
-    color: '#FFFFFF',
+    color: colors.card,
     fontWeight: '300',
   },
 })

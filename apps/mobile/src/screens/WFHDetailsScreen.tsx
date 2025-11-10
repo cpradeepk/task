@@ -3,7 +3,7 @@
  * Displays full WFH application details with approve/reject actions
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import {
 } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 interface WFHApplication {
   id: string
@@ -43,6 +45,9 @@ export default function WFHDetailsScreen() {
   const navigation = useNavigation()
   const route = useRoute()
   const { wfhId } = route.params as { wfhId: string }
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
 
   const [wfh, setWFH] = useState<WFHApplication | null>(null)
   const [loading, setLoading] = useState(true)
@@ -50,22 +55,12 @@ export default function WFHDetailsScreen() {
   const [remarks, setRemarks] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
 
-  useEffect(() => {
-    loadCurrentUser()
-  }, [])
-
-  useEffect(() => {
-    if (currentUser) {
-      fetchWFHDetails()
-    }
-  }, [currentUser])
-
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     const user = await getUserData()
     setCurrentUser(user)
-  }
+  }, [])
 
-  const fetchWFHDetails = async () => {
+  const fetchWFHDetails = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`http://localhost:3000/api/wfh/${wfhId}`, {
@@ -83,9 +78,9 @@ export default function WFHDetailsScreen() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [wfhId])
 
-  const canApprove = () => {
+  const canApprove = useCallback(() => {
     if (!currentUser || !wfh) return false
     const approverRoles = ['top_management', 'management', 'amtarikshian']
     return (
@@ -93,14 +88,24 @@ export default function WFHDetailsScreen() {
       wfh.status === 'Pending' &&
       wfh.employeeId !== currentUser.employeeId
     )
-  }
+  }, [currentUser, wfh])
 
-  const canDelete = () => {
+  const canDelete = useCallback(() => {
     if (!currentUser || !wfh) return false
     return wfh.employeeId === currentUser.employeeId && wfh.status === 'Pending'
-  }
+  }, [currentUser, wfh])
 
-  const handleApprove = async () => {
+  useEffect(() => {
+    loadCurrentUser()
+  }, [loadCurrentUser])
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchWFHDetails()
+    }
+  }, [currentUser, fetchWFHDetails])
+
+  const handleApprove = useCallback(async () => {
     Alert.alert(
       'Approve WFH',
       'Are you sure you want to approve this WFH application?',
@@ -139,9 +144,9 @@ export default function WFHDetailsScreen() {
         },
       ]
     )
-  }
+  }, [wfhId, currentUser, remarks, navigation])
 
-  const handleReject = async () => {
+  const handleReject = useCallback(async () => {
     if (!remarks.trim()) {
       Alert.alert('Error', 'Please provide a reason for rejection')
       return
@@ -186,9 +191,9 @@ export default function WFHDetailsScreen() {
         },
       ]
     )
-  }
+  }, [wfhId, currentUser, remarks, navigation])
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     Alert.alert(
       'Delete WFH',
       'Are you sure you want to delete this WFH application?',
@@ -220,60 +225,60 @@ export default function WFHDetailsScreen() {
         },
       ]
     )
-  }
+  }, [wfhId, navigation])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     })
-  }
+  }, [])
 
-  const formatTime = (timeString: string | null) => {
+  const formatTime = useCallback((timeString: string | null) => {
     if (!timeString) return 'N/A'
     return timeString
-  }
+  }, [])
 
-  const calculateDays = (fromDate: string, toDate: string) => {
+  const calculateDays = useCallback((fromDate: string, toDate: string) => {
     const from = new Date(fromDate)
     const to = new Date(toDate)
     const diffTime = Math.abs(to.getTime() - from.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
-  }
+  }, [])
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'Pending':
-        return '#F59E0B'
+        return colors.warning
       case 'Approved':
-        return '#10B981'
+        return colors.success
       case 'Rejected':
-        return '#EF4444'
+        return colors.error
       default:
-        return '#6B7280'
+        return colors.textSecondary
     }
-  }
+  }, [colors])
 
-  const getWFHTypeColor = (type: string) => {
+  const getWFHTypeColor = useCallback((type: string) => {
     switch (type) {
       case 'Full Day':
-        return '#3B82F6'
+        return colors.primary
       case 'Half Day':
-        return '#8B5CF6'
+        return colors.purple
       case 'Flexible Hours':
-        return '#EC4899'
+        return colors.pink
       default:
-        return '#6B7280'
+        return colors.textSecondary
     }
-  }
+  }, [colors])
 
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading details...</Text>
       </View>
     )
@@ -479,35 +484,161 @@ export default function WFHDetailsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { marginTop: 12, fontSize: 16, color: '#6B7280' },
-  errorText: { fontSize: 16, color: '#EF4444' },
-  header: { backgroundColor: '#FFFFFF', padding: 20, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  headerTop: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  typeBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
-  typeText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
-  statusText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
-  applicationId: { fontSize: 14, color: '#9CA3AF' },
-  section: { backgroundColor: '#FFFFFF', padding: 20, marginTop: 12, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#111827', marginBottom: 12 },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  infoLabel: { fontSize: 14, color: '#6B7280', flex: 1 },
-  infoValue: { fontSize: 14, color: '#111827', fontWeight: '500', flex: 2, textAlign: 'right' },
-  reasonText: { fontSize: 14, color: '#374151', lineHeight: 20 },
-  timelineItem: { flexDirection: 'row', marginBottom: 16 },
-  timelineDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#3B82F6', marginRight: 12, marginTop: 4 },
-  timelineContent: { flex: 1 },
-  timelineTitle: { fontSize: 14, fontWeight: '500', color: '#111827', marginBottom: 4 },
-  timelineDate: { fontSize: 12, color: '#9CA3AF' },
-  remarksInput: { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, padding: 12, fontSize: 14, color: '#111827', marginBottom: 16, minHeight: 80, textAlignVertical: 'top' },
-  actionButtons: { flexDirection: 'row', gap: 12 },
-  actionButton: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
-  approveButton: { backgroundColor: '#10B981' },
-  rejectButton: { backgroundColor: '#EF4444' },
-  deleteButton: { backgroundColor: '#EF4444' },
-  actionButtonText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    color: colors.textSecondary,
+  },
+  errorText: {
+    fontSize: responsive.fontSize.md,
+    color: colors.error,
+  },
+  header: {
+    backgroundColor: colors.card,
+    padding: responsive.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    gap: responsive.spacing.xs,
+    marginBottom: responsive.spacing.xs,
+  },
+  typeBadge: {
+    paddingHorizontal: responsive.spacing.sm,
+    paddingVertical: responsive.spacing.xxs,
+    borderRadius: responsive.borderRadius.full,
+  },
+  typeText: {
+    fontSize: responsive.fontSize.xs,
+    fontWeight: '600',
+    color: colors.card,
+  },
+  statusBadge: {
+    paddingHorizontal: responsive.spacing.sm,
+    paddingVertical: responsive.spacing.xxs,
+    borderRadius: responsive.borderRadius.full,
+  },
+  statusText: {
+    fontSize: responsive.fontSize.xs,
+    fontWeight: '600',
+    color: colors.card,
+  },
+  applicationId: {
+    fontSize: responsive.fontSize.sm,
+    color: colors.textTertiary,
+  },
+  section: {
+    backgroundColor: colors.card,
+    padding: responsive.spacing.lg,
+    marginTop: responsive.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  sectionTitle: {
+    fontSize: responsive.fontSize.md,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: responsive.spacing.sm,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: responsive.spacing.xs,
+  },
+  infoLabel: {
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
+    flex: 1,
+  },
+  infoValue: {
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
+    fontWeight: '500',
+    flex: 2,
+    textAlign: 'right',
+  },
+  reasonText: {
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    marginBottom: responsive.spacing.md,
+  },
+  timelineDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.primary,
+    marginRight: responsive.spacing.sm,
+    marginTop: responsive.spacing.xxs,
+  },
+  timelineContent: {
+    flex: 1,
+  },
+  timelineTitle: {
+    fontSize: responsive.fontSize.sm,
+    fontWeight: '500',
+    color: colors.text,
+    marginBottom: responsive.spacing.xxs,
+  },
+  timelineDate: {
+    fontSize: responsive.fontSize.xs,
+    color: colors.textTertiary,
+  },
+  remarksInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
+    marginBottom: responsive.spacing.md,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    backgroundColor: colors.card,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: responsive.spacing.sm,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: responsive.spacing.sm,
+    borderRadius: responsive.borderRadius.md,
+    alignItems: 'center',
+  },
+  approveButton: {
+    backgroundColor: colors.success,
+  },
+  rejectButton: {
+    backgroundColor: colors.error,
+  },
+  deleteButton: {
+    backgroundColor: colors.error,
+  },
+  actionButtonText: {
+    fontSize: responsive.fontSize.md,
+    fontWeight: '600',
+    color: colors.card,
+  },
 })
 

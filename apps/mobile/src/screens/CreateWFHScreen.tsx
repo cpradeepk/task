@@ -3,7 +3,7 @@
  * Form to create new WFH application
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -17,11 +17,17 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 const WFH_TYPES = ['Full Day', 'Half Day', 'Flexible Hours']
 
 export default function CreateWFHScreen() {
   const navigation = useNavigation()
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [wfhType, setWFHType] = useState('')
   const [fromDate, setFromDate] = useState(new Date())
@@ -37,16 +43,16 @@ export default function CreateWFHScreen() {
   const [showAvailableToPicker, setShowAvailableToPicker] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => {
-    loadCurrentUser()
-  }, [])
-
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     const user = await getUserData()
     setCurrentUser(user)
-  }
+  }, [])
 
-  const handleFromDateChange = (event: any, selectedDate?: Date) => {
+  useEffect(() => {
+    loadCurrentUser()
+  }, [loadCurrentUser])
+
+  const handleFromDateChange = useCallback((event: any, selectedDate?: Date) => {
     setShowFromDatePicker(Platform.OS === 'ios')
     if (selectedDate) {
       setFromDate(selectedDate)
@@ -54,44 +60,44 @@ export default function CreateWFHScreen() {
         setToDate(selectedDate)
       }
     }
-  }
+  }, [toDate])
 
-  const handleToDateChange = (event: any, selectedDate?: Date) => {
+  const handleToDateChange = useCallback((event: any, selectedDate?: Date) => {
     setShowToDatePicker(Platform.OS === 'ios')
     if (selectedDate) {
       setToDate(selectedDate)
     }
-  }
+  }, [])
 
-  const handleAvailableFromChange = (event: any, selectedTime?: Date) => {
+  const handleAvailableFromChange = useCallback((event: any, selectedTime?: Date) => {
     setShowAvailableFromPicker(Platform.OS === 'ios')
     if (selectedTime) {
       setAvailableFrom(selectedTime)
     }
-  }
+  }, [])
 
-  const handleAvailableToChange = (event: any, selectedTime?: Date) => {
+  const handleAvailableToChange = useCallback((event: any, selectedTime?: Date) => {
     setShowAvailableToPicker(Platform.OS === 'ios')
     if (selectedTime) {
       setAvailableTo(selectedTime)
     }
-  }
+  }, [])
 
-  const calculateDays = () => {
+  const calculateDays = useCallback(() => {
     const diffTime = Math.abs(toDate.getTime() - fromDate.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
-  }
+  }, [fromDate, toDate])
 
-  const formatTime = (date: Date) => {
+  const formatTime = useCallback((date: Date) => {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
     })
-  }
+  }, [])
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     if (!wfhType) {
       Alert.alert('Error', 'Please select WFH type')
       return false
@@ -113,9 +119,9 @@ export default function CreateWFHScreen() {
       return false
     }
     return true
-  }
+  }, [wfhType, workLocation, contactNumber, reason, fromDate, toDate])
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!validateForm()) return
 
     try {
@@ -165,15 +171,15 @@ export default function CreateWFHScreen() {
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [validateForm, currentUser, wfhType, reason, fromDate, toDate, workLocation, contactNumber, availableFrom, availableTo, navigation])
 
-  const formatDate = (date: Date) => {
+  const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     })
-  }
+  }, [])
 
   return (
     <ScrollView style={styles.container}>
@@ -354,27 +360,121 @@ export default function CreateWFHScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  form: { padding: 20 },
-  field: { marginBottom: 24 },
-  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
-  required: { color: '#EF4444' },
-  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  typeButton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#D1D5DB', backgroundColor: '#FFFFFF' },
-  typeButtonActive: { borderColor: '#3B82F6', backgroundColor: '#EFF6FF' },
-  typeButtonText: { fontSize: 14, color: '#6B7280' },
-  typeButtonTextActive: { color: '#3B82F6', fontWeight: '600' },
-  dateRow: { flexDirection: 'row', gap: 12 },
-  dateButton: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, padding: 12 },
-  dateLabel: { fontSize: 12, color: '#9CA3AF', marginBottom: 4 },
-  dateValue: { fontSize: 14, fontWeight: '500', color: '#111827' },
-  daysInfo: { marginTop: 8, padding: 12, backgroundColor: '#EFF6FF', borderRadius: 8 },
-  daysText: { fontSize: 14, color: '#3B82F6', fontWeight: '500' },
-  input: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, padding: 12, fontSize: 14, color: '#111827' },
-  textArea: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, padding: 12, fontSize: 14, color: '#111827', minHeight: 100, textAlignVertical: 'top' },
-  submitButton: { backgroundColor: '#3B82F6', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 8 },
-  submitButtonDisabled: { backgroundColor: '#9CA3AF' },
-  submitButtonText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  form: {
+    padding: responsive.spacing.lg,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  field: {
+    marginBottom: responsive.spacing.xl,
+  },
+  label: {
+    fontSize: responsive.fontSize.sm,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: responsive.spacing.xs,
+  },
+  required: {
+    color: colors.error,
+  },
+  typeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: responsive.spacing.xs,
+  },
+  typeButton: {
+    paddingHorizontal: responsive.spacing.md,
+    paddingVertical: responsive.spacing.sm,
+    borderRadius: responsive.borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  typeButtonActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
+  },
+  typeButtonText: {
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
+  },
+  typeButtonTextActive: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    gap: responsive.spacing.sm,
+  },
+  dateButton: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+  },
+  dateLabel: {
+    fontSize: responsive.fontSize.xs,
+    color: colors.textTertiary,
+    marginBottom: responsive.spacing.xxs,
+  },
+  dateValue: {
+    fontSize: responsive.fontSize.sm,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  daysInfo: {
+    marginTop: responsive.spacing.xs,
+    padding: responsive.spacing.sm,
+    backgroundColor: colors.primaryLight,
+    borderRadius: responsive.borderRadius.md,
+  },
+  daysText: {
+    fontSize: responsive.fontSize.sm,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  input: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
+  },
+  textArea: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  submitButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
+    alignItems: 'center',
+    marginTop: responsive.spacing.xs,
+  },
+  submitButtonDisabled: {
+    backgroundColor: colors.textTertiary,
+  },
+  submitButtonText: {
+    fontSize: responsive.fontSize.md,
+    fontWeight: '600',
+    color: colors.card,
+  },
 })
 

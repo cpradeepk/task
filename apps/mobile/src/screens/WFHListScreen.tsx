@@ -3,7 +3,7 @@
  * Displays list of WFH applications with filtering
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -15,6 +15,8 @@ import {
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 interface WFHApplication {
   id: string
@@ -40,6 +42,10 @@ interface WFHApplication {
 
 export default function WFHListScreen() {
   const navigation = useNavigation()
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+
   const [wfhApplications, setWFHApplications] = useState<WFHApplication[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -48,22 +54,12 @@ export default function WFHListScreen() {
 
   const statuses = ['All', 'Pending', 'Approved', 'Rejected']
 
-  useEffect(() => {
-    loadCurrentUser()
-  }, [])
-
-  useEffect(() => {
-    if (currentUser) {
-      fetchWFHApplications()
-    }
-  }, [currentUser, selectedStatus])
-
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     const user = await getUserData()
     setCurrentUser(user)
-  }
+  }, [])
 
-  const fetchWFHApplications = async () => {
+  const fetchWFHApplications = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(
@@ -90,28 +86,38 @@ export default function WFHListScreen() {
       setLoading(false)
       setRefreshing(false)
     }
-  }
+  }, [currentUser, selectedStatus])
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true)
     fetchWFHApplications()
-  }
+  }, [fetchWFHApplications])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     })
-  }
+  }, [])
 
-  const calculateDays = (fromDate: string, toDate: string) => {
+  const calculateDays = useCallback((fromDate: string, toDate: string) => {
     const from = new Date(fromDate)
     const to = new Date(toDate)
     const diffTime = Math.abs(to.getTime() - from.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
-  }
+  }, [])
+
+  useEffect(() => {
+    loadCurrentUser()
+  }, [loadCurrentUser])
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchWFHApplications()
+    }
+  }, [currentUser, fetchWFHApplications])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -238,7 +244,7 @@ export default function WFHListScreen() {
       {/* WFH List */}
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading WFH applications...</Text>
         </View>
       ) : (
@@ -249,7 +255,12 @@ export default function WFHListScreen() {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={renderEmptyState}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
           }
         />
       )}
@@ -265,40 +276,40 @@ export default function WFHListScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   filterContainer: {
     flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: responsive.spacing.md,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    gap: 8,
+    borderBottomColor: colors.border,
+    gap: responsive.spacing.xs,
   },
   filterButton: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: responsive.spacing.xs,
+    paddingHorizontal: responsive.spacing.sm,
+    borderRadius: responsive.borderRadius.md,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    backgroundColor: colors.card,
     alignItems: 'center',
   },
   filterButtonActive: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   filterButtonText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   filterButtonTextActive: {
-    color: '#FFFFFF',
+    color: colors.card,
   },
   centered: {
     flex: 1,
@@ -306,20 +317,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
+    marginTop: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    color: colors.textSecondary,
   },
   listContent: {
-    padding: 16,
+    padding: responsive.spacing.md,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   wfhCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: colors.card,
+    borderRadius: responsive.borderRadius.lg,
+    padding: responsive.spacing.md,
+    marginBottom: responsive.spacing.sm,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -327,110 +341,110 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   wfhHeader: {
-    marginBottom: 12,
+    marginBottom: responsive.spacing.sm,
   },
   typeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
+    marginBottom: responsive.spacing.xs,
+    gap: responsive.spacing.xs,
   },
   typeBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: responsive.spacing.sm,
+    paddingVertical: responsive.spacing.xxs,
+    borderRadius: responsive.borderRadius.full,
   },
   typeText: {
-    fontSize: 12,
+    fontSize: responsive.fontSize.xs,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.card,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: responsive.spacing.sm,
+    paddingVertical: responsive.spacing.xxs,
+    borderRadius: responsive.borderRadius.full,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: responsive.fontSize.xs,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.card,
   },
   wfhId: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: responsive.fontSize.xs,
+    color: colors.textTertiary,
   },
   wfhBody: {
-    gap: 8,
+    gap: responsive.spacing.xs,
   },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: responsive.spacing.xxs,
   },
   dateLabel: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
   },
   dateText: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
     fontWeight: '500',
   },
   daysText: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: responsive.fontSize.xs,
+    color: colors.textTertiary,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: responsive.spacing.xxs,
   },
   locationLabel: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
   },
   locationText: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
     flex: 1,
   },
   reasonText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
     lineHeight: 20,
   },
   appliedText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 4,
+    fontSize: responsive.fontSize.xs,
+    color: colors.textTertiary,
+    marginTop: responsive.spacing.xxs,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: responsive.spacing.xxl * 2,
   },
   emptyIcon: {
     fontSize: 64,
-    marginBottom: 16,
+    marginBottom: responsive.spacing.md,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: responsive.fontSize.lg,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: responsive.spacing.xs,
   },
   emptyDescription: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
+    right: responsive.spacing.lg,
+    bottom: responsive.spacing.lg,
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -441,7 +455,7 @@ const styles = StyleSheet.create({
   },
   fabIcon: {
     fontSize: 32,
-    color: '#FFFFFF',
+    color: colors.card,
     fontWeight: '300',
   },
 })

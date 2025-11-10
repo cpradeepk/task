@@ -16,7 +16,8 @@ import {
   generateCommentAttachmentKey,
   ALLOWED_FILE_TYPES,
   MAX_FILE_SIZE,
-  getS3FileUrl
+  getS3FileUrl,
+  isValidFileType
 } from '@/lib/s3Config'
 import { getAuthUser } from '@/lib/auth-server'
 
@@ -87,9 +88,9 @@ export async function POST(request: NextRequest) {
       try {
         const { name, type, size } = file
 
-        // Validate file type
-        if (!ALLOWED_FILE_TYPES.includes(type)) {
-          errors.push(`${name}: Invalid file type. Only images and videos are allowed.`)
+        // Validate file type using both extension and MIME type
+        if (!isValidFileType(name, type)) {
+          errors.push(`${name}: Invalid file type. Supported: images, videos, documents (.md, .txt, .prd), code files (.js, .jsx, .ts, .tsx, .json, .sql)`)
           continue
         }
 

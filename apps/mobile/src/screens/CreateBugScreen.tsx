@@ -3,7 +3,7 @@
  * Create new bugs with all required fields
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -20,9 +20,14 @@ import { getProjectHierarchy, ProjectHierarchy } from '../services/projectServic
 import { getAllSettings, GroupedSettings } from '../services/settingsService'
 import { getAllUsers, getCurrentUser, User } from '../services/userService'
 import { useNavigation } from '@react-navigation/native'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 export default function CreateBugScreen() {
   const navigation = useNavigation()
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
   
   // Form state
   const [title, setTitle] = useState('')
@@ -45,11 +50,7 @@ export default function CreateBugScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
       const [user, projectsRes, settingsRes, usersRes] = await Promise.all([
@@ -78,9 +79,13 @@ export default function CreateBugScreen() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const handleSubmit = async () => {
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  const handleSubmit = useCallback(async () => {
     // Validation
     if (!title.trim()) {
       Alert.alert('Validation Error', 'Feature is required')
@@ -148,15 +153,15 @@ export default function CreateBugScreen() {
     } finally {
       setIsSubmitting(false)
     }
-  }
+  }, [title, description, projectId, subprojectId, severity, category, platform, environment, browser, device, assignedTo, currentUser, navigation])
 
-  const selectedProject = projects.find((p) => p.projectId === projectId)
-  const subprojects = selectedProject?.subprojects || []
+  const selectedProject = useMemo(() => projects.find((p) => p.projectId === projectId), [projects, projectId])
+  const subprojects = useMemo(() => selectedProject?.subprojects || [], [selectedProject])
 
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading form...</Text>
       </View>
     )
@@ -349,10 +354,13 @@ export default function CreateBugScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   centered: {
     flex: 1,
@@ -360,32 +368,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
+    marginTop: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    color: colors.textSecondary,
   },
   form: {
-    padding: 16,
+    padding: responsive.spacing.md,
   },
   field: {
-    marginBottom: 20,
+    marginBottom: responsive.spacing.lg,
   },
   label: {
-    fontSize: 15,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: responsive.spacing.xs,
   },
   required: {
-    color: '#EF4444',
+    color: colors.error,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    backgroundColor: colors.card,
+    color: colors.text,
   },
   textArea: {
     minHeight: 100,
@@ -393,28 +402,29 @@ const styles = StyleSheet.create({
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    backgroundColor: colors.card,
     overflow: 'hidden',
   },
   picker: {
     height: 50,
+    color: colors.text,
   },
   submitButton: {
-    backgroundColor: '#3B82F6',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    padding: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 32,
+    marginTop: responsive.spacing.xs,
+    marginBottom: responsive.spacing.xl,
   },
   submitButtonDisabled: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: colors.textTertiary,
   },
   submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 17,
+    color: colors.card,
+    fontSize: responsive.fontSize.lg,
     fontWeight: '600',
   },
 })

@@ -21,8 +21,17 @@ export default function FileUpload({
   maxFiles = 5,
   maxSizeMB = 10,
   acceptedTypes = [
+    // Images
     'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp',
-    'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'
+    // Videos
+    'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm',
+    // Documents
+    'text/plain', 'text/markdown', 'application/octet-stream',
+    // Code files
+    'application/json', 'text/javascript', 'application/javascript',
+    'text/jsx', 'text/typescript', 'text/tsx',
+    // SQL
+    'application/sql', 'text/x-sql'
   ]
 }: FileUploadProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
@@ -31,9 +40,19 @@ export default function FileUpload({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const validateFile = (file: File): string | null => {
-    // Check file type
-    if (!acceptedTypes.includes(file.type)) {
-      return `File type ${file.type} is not supported. Please upload images or videos only.`
+    // Get file extension
+    const ext = file.name.toLowerCase().match(/\.[^.]+$/)?.[0]
+
+    // Check file type - validate by extension for better compatibility
+    const isValidExtension = ext && [
+      '.png', '.jpg', '.jpeg', '.gif', '.webp',  // Images
+      '.mp4', '.mov', '.avi', '.webm',           // Videos
+      '.txt', '.md', '.prd',                     // Documents
+      '.json', '.js', '.jsx', '.ts', '.tsx', '.sql'  // Code files
+    ].includes(ext)
+
+    if (!isValidExtension && !acceptedTypes.includes(file.type)) {
+      return `File type not supported. Supported: images, videos, documents (.md, .txt, .prd), code files (.js, .jsx, .ts, .tsx, .json, .sql)`
     }
 
     // Check file size
@@ -43,6 +62,26 @@ export default function FileUpload({
     }
 
     return null
+  }
+
+  // Helper function to get file icon based on extension
+  const getFileIcon = (filename: string) => {
+    const ext = filename.toLowerCase().match(/\.[^.]+$/)?.[0]
+
+    if (['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext || '')) {
+      return <ImageIcon className="h-12 w-12 text-blue-500" />
+    }
+    if (['.mp4', '.mov', '.avi', '.webm'].includes(ext || '')) {
+      return <Video className="h-12 w-12 text-purple-500" />
+    }
+    if (['.md', '.txt', '.prd'].includes(ext || '')) {
+      return <FileText className="h-12 w-12 text-gray-500" />
+    }
+    if (['.json', '.js', '.jsx', '.ts', '.tsx', '.sql'].includes(ext || '')) {
+      return <FileText className="h-12 w-12 text-green-500" />
+    }
+
+    return <FileText className="h-12 w-12 text-gray-400" />
   }
 
   const handleFiles = (files: FileList | null) => {
@@ -156,18 +195,18 @@ export default function FileUpload({
           ref={fileInputRef}
           type="file"
           multiple
-          accept={acceptedTypes.join(',')}
+          accept=".png,.jpg,.jpeg,.gif,.webp,.mp4,.mov,.avi,.webm,.txt,.md,.prd,.json,.js,.jsx,.ts,.tsx,.sql"
           onChange={handleFileInputChange}
           className="hidden"
         />
-        
+
         <Upload className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-        
+
         <p className="text-sm font-medium text-gray-700 mb-1">
           Click to upload or drag and drop
         </p>
         <p className="text-xs text-gray-500">
-          Images (PNG, JPG, GIF, WEBP) or Videos (MP4, MOV, AVI, WEBM) up to {maxSizeMB}MB (max {maxFiles} files)
+          Images, videos, documents (.md, .txt, .prd), or code files (.js, .jsx, .ts, .tsx, .json, .sql) up to {maxSizeMB}MB (max {maxFiles} files)
         </p>
       </div>
 
@@ -205,15 +244,19 @@ export default function FileUpload({
                           <Video className="h-12 w-12 text-white" />
                         </div>
                       </div>
-                    ) : (
+                    ) : uploadedFile.file.type.startsWith('image/') ? (
                       <img
                         src={uploadedFile.preview}
                         alt={uploadedFile.file.name}
                         className="w-full h-full object-cover"
                       />
+                    ) : (
+                      // Document/code file - show icon
+                      getFileIcon(uploadedFile.file.name)
                     )
                   ) : (
-                    <FileText className="h-12 w-12 text-gray-400" />
+                    // No preview available - show icon based on file type
+                    getFileIcon(uploadedFile.file.name)
                   )}
                 </div>
 

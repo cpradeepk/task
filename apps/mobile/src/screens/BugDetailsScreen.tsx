@@ -3,7 +3,7 @@
  * View bug details, comments, subtasks, timer, log hours
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -25,10 +25,16 @@ import {
 import { getCurrentUser, User } from '../services/userService'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import BugSubtasks from '../components/BugSubtasks'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 export default function BugDetailsScreen() {
   const route = useRoute()
   const navigation = useNavigation()
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+
   const { bugId } = route.params as { bugId: string }
 
   const [bug, setBug] = useState<Bug | null>(null)
@@ -38,11 +44,7 @@ export default function BugDetailsScreen() {
   const [newComment, setNewComment] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
 
-  useEffect(() => {
-    loadData()
-  }, [bugId])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
       const user = await getCurrentUser()
@@ -66,9 +68,13 @@ export default function BugDetailsScreen() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [bugId])
 
-  const handleAddComment = async () => {
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  const handleAddComment = useCallback(async () => {
     if (!newComment.trim() || !currentUser) return
 
     try {
@@ -95,9 +101,9 @@ export default function BugDetailsScreen() {
     } finally {
       setIsSubmittingComment(false)
     }
-  }
+  }, [newComment, currentUser, bugId, loadData])
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = useCallback(async (newStatus: string) => {
     if (!bug) return
 
     try {
@@ -112,39 +118,39 @@ export default function BugDetailsScreen() {
       console.error('Failed to update status:', error)
       Alert.alert('Error', 'Failed to update status')
     }
-  }
+  }, [bug, bugId])
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = useCallback((severity: string) => {
     switch (severity) {
       case 'Critical':
-        return '#EF4444'
+        return colors.error
       case 'Major':
         return '#F97316'
       case 'Minor':
-        return '#EAB308'
+        return colors.warning
       default:
-        return '#6B7280'
+        return colors.textSecondary
     }
-  }
+  }, [colors])
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'New':
-        return '#3B82F6'
+        return colors.primary
       case 'In Progress':
-        return '#EAB308'
+        return colors.warning
       case 'Resolved':
-        return '#10B981'
+        return colors.success
       case 'Closed':
-        return '#6B7280'
+        return colors.textSecondary
       case 'Reopened':
-        return '#EF4444'
+        return colors.error
       default:
-        return '#6B7280'
+        return colors.textSecondary
     }
-  }
+  }, [colors])
 
-  const formatTime = (milliseconds?: number): string => {
+  const formatTime = useCallback((milliseconds?: number): string => {
     if (!milliseconds) return '00:00:00'
     const totalSeconds = Math.floor(milliseconds / 1000)
     const hours = Math.floor(totalSeconds / 3600)
@@ -153,12 +159,12 @@ export default function BugDetailsScreen() {
     return `${hours.toString().padStart(2, '0')}:${minutes
       .toString()
       .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-  }
+  }, [])
 
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading bug details...</Text>
       </View>
     )
@@ -328,10 +334,13 @@ export default function BugDetailsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   centered: {
     flex: 1,
@@ -339,13 +348,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#6B7280',
+    marginTop: responsive.spacing.sm,
+    fontSize: responsive.fontSize.md,
+    color: colors.textSecondary,
   },
   errorText: {
-    fontSize: 16,
-    color: '#EF4444',
+    fontSize: responsive.fontSize.md,
+    color: colors.error,
   },
   scrollView: {
     flex: 1,
@@ -354,160 +363,162 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: responsive.spacing.md,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.border,
   },
   bugId: {
-    fontSize: 18,
+    fontSize: responsive.fontSize.lg,
     fontWeight: '700',
-    color: '#3B82F6',
+    color: colors.primary,
   },
   badges: {
     flexDirection: 'row',
-    gap: 8,
+    gap: responsive.spacing.xs,
   },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 12,
+    borderRadius: responsive.borderRadius.lg,
   },
   badgeText: {
-    fontSize: 12,
+    fontSize: responsive.fontSize.xs,
     color: '#FFFFFF',
     fontWeight: '600',
   },
   title: {
-    fontSize: 20,
+    fontSize: responsive.fontSize.xl,
     fontWeight: '700',
-    color: '#111827',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    color: colors.text,
+    padding: responsive.spacing.md,
+    backgroundColor: colors.card,
   },
   section: {
-    marginTop: 8,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    marginTop: responsive.spacing.xs,
+    padding: responsive.spacing.md,
+    backgroundColor: colors.card,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 12,
+    color: colors.text,
+    marginBottom: responsive.spacing.sm,
   },
   description: {
-    fontSize: 15,
-    color: '#374151',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
     lineHeight: 22,
   },
   infoGrid: {
-    gap: 12,
+    gap: responsive.spacing.sm,
   },
   infoItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: responsive.spacing.xs,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.border,
   },
   infoLabel: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   infoValue: {
-    fontSize: 14,
-    color: '#111827',
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
     fontWeight: '600',
   },
   timeContainer: {
     flexDirection: 'row',
-    gap: 16,
+    gap: responsive.spacing.md,
   },
   timeItem: {
     flex: 1,
-    padding: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
+    padding: responsive.spacing.sm,
+    backgroundColor: colors.background,
+    borderRadius: responsive.borderRadius.md,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border,
   },
   timeLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
+    fontSize: responsive.fontSize.xs,
+    color: colors.textSecondary,
+    marginBottom: responsive.spacing.xxs,
   },
   timeValue: {
-    fontSize: 18,
+    fontSize: responsive.fontSize.lg,
     fontWeight: '700',
-    color: '#111827',
+    color: colors.text,
   },
   comment: {
-    padding: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
-    marginBottom: 8,
+    padding: responsive.spacing.sm,
+    backgroundColor: colors.background,
+    borderRadius: responsive.borderRadius.md,
+    marginBottom: responsive.spacing.xs,
   },
   commentUser: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
+    color: colors.text,
+    marginBottom: responsive.spacing.xxs,
   },
   commentText: {
-    fontSize: 14,
-    color: '#374151',
-    marginBottom: 4,
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: responsive.spacing.xxs,
   },
   commentDate: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: responsive.fontSize.xs,
+    color: colors.textTertiary,
   },
   addCommentContainer: {
-    marginTop: 12,
+    marginTop: responsive.spacing.sm,
   },
   commentInput: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+    fontSize: responsive.fontSize.sm,
     minHeight: 80,
     textAlignVertical: 'top',
-    marginBottom: 8,
+    marginBottom: responsive.spacing.xs,
+    color: colors.text,
+    backgroundColor: colors.card,
   },
   commentButton: {
-    backgroundColor: '#3B82F6',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    padding: responsive.spacing.sm,
+    borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
   },
   commentButtonDisabled: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: colors.textTertiary,
   },
   commentButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
   },
   actionBar: {
     flexDirection: 'row',
-    padding: 12,
-    gap: 12,
-    backgroundColor: '#FFFFFF',
+    padding: responsive.spacing.sm,
+    gap: responsive.spacing.sm,
+    backgroundColor: colors.card,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
   },
   actionButton: {
     flex: 1,
-    padding: 14,
-    borderRadius: 8,
+    padding: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
   },
   actionButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
   },
 })

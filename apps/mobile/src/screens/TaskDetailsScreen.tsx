@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -13,30 +13,30 @@ import { Picker } from '@react-native-picker/picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getTaskById, updateTask, deleteTask, Task } from '../services/taskService'
 import { get } from '../services/apiClient'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 export default function TaskDetailsScreen({ route, navigation }: any) {
   const { taskId } = route.params
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+
   const [task, setTask] = useState<Task | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  
+
   // Edit form state
   const [editedStatus, setEditedStatus] = useState('')
   const [editedPriority, setEditedPriority] = useState('')
   const [editedDescription, setEditedDescription] = useState('')
   const [editedRemarks, setEditedRemarks] = useState('')
-  
+
   const [settings, setSettings] = useState<any>({})
   const [currentUser, setCurrentUser] = useState<any>(null)
 
-  useEffect(() => {
-    loadTaskDetails()
-    loadSettings()
-    loadCurrentUser()
-  }, [taskId])
-
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     try {
       const userStr = await AsyncStorage.getItem('user')
       if (userStr) {
@@ -45,9 +45,9 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
     } catch (error) {
       console.error('Failed to load user:', error)
     }
-  }
+  }, [])
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       const response = await get('/api/settings')
       if (response.success && response.data) {
@@ -60,13 +60,13 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
     } catch (error) {
       console.error('Failed to load settings:', error)
     }
-  }
+  }, [])
 
-  const loadTaskDetails = async () => {
+  const loadTaskDetails = useCallback(async () => {
     try {
       setLoading(true)
       const response = await getTaskById(taskId)
-      
+
       if (response.success && response.data) {
         setTask(response.data)
         setEditedStatus(response.data.status)
@@ -84,14 +84,20 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [taskId, navigation])
 
-  const handleSave = async () => {
+  useEffect(() => {
+    loadTaskDetails()
+    loadSettings()
+    loadCurrentUser()
+  }, [loadTaskDetails, loadSettings, loadCurrentUser])
+
+  const handleSave = useCallback(async () => {
     if (!task) return
 
     try {
       setIsSaving(true)
-      
+
       const updates: Partial<Task> = {
         status: editedStatus,
         priority: editedPriority,
@@ -114,9 +120,9 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
     } finally {
       setIsSaving(false)
     }
-  }
+  }, [task, editedStatus, editedPriority, editedDescription, editedRemarks, taskId, loadTaskDetails])
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     Alert.alert(
       'Delete Task',
       'Are you sure you want to delete this task?',
@@ -142,41 +148,48 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
         },
       ]
     )
-  }
+  }, [taskId, navigation])
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'Open':
-        return '#3b82f6'
+        return colors.primary
       case 'In Progress':
-        return '#f59e0b'
+        return colors.warning
       case 'Completed':
-        return '#10b981'
+        return colors.success
       case 'Delayed':
-        return '#ef4444'
+        return colors.error
       case 'On Hold':
-        return '#6b7280'
+        return colors.textSecondary
       case 'Cancelled':
-        return '#9ca3af'
+        return colors.textTertiary
       default:
-        return '#6b7280'
+        return colors.textSecondary
     }
-  }
+  }, [colors])
 
-  const getPriorityColor = (priority: string) => {
-    if (priority.includes('IU&I')) return '#ef4444'
-    if (priority.includes('IU&NI')) return '#f59e0b'
-    if (priority.includes('NU&I')) return '#3b82f6'
-    return '#6b7280'
-  }
+  const getPriorityColor = useCallback((priority: string) => {
+    if (priority.includes('IU&I')) return colors.error
+    if (priority.includes('IU&NI')) return colors.warning
+    if (priority.includes('NU&I')) return colors.primary
+    return colors.textSecondary
+  }, [colors])
 
-  const taskStatuses = settings.task_statuses || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed']
-  const taskPriorities = settings.task_priorities || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)']
+  const taskStatuses = useMemo(() =>
+    settings.task_statuses || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'],
+    [settings.task_statuses]
+  )
+
+  const taskPriorities = useMemo(() =>
+    settings.task_priorities || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)'],
+    [settings.task_priorities]
+  )
 
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     )
   }
@@ -391,10 +404,13 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   centerContainer: {
     flex: 1,
@@ -402,38 +418,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   content: {
-    padding: 16,
+    padding: responsive.spacing.md,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: responsive.spacing.md,
   },
   taskId: {
-    fontSize: 18,
+    fontSize: responsive.fontSize.lg,
     fontWeight: '700',
-    color: '#1f2937',
+    color: colors.text,
   },
   headerActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: responsive.spacing.xs,
   },
   editButton: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    paddingHorizontal: responsive.spacing.md,
+    paddingVertical: responsive.spacing.xs,
+    borderRadius: responsive.borderRadius.md,
   },
   editButtonText: {
     color: '#fff',
     fontWeight: '600',
   },
   deleteButton: {
-    backgroundColor: '#ef4444',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: colors.error,
+    paddingHorizontal: responsive.spacing.md,
+    paddingVertical: responsive.spacing.xs,
+    borderRadius: responsive.borderRadius.md,
   },
   deleteButtonText: {
     color: '#fff',
@@ -441,109 +457,111 @@ const styles = StyleSheet.create({
   },
   badges: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 24,
+    gap: responsive.spacing.xs,
+    marginBottom: responsive.spacing.lg,
   },
   statusBadge: {
-    paddingHorizontal: 12,
+    paddingHorizontal: responsive.spacing.sm,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: responsive.borderRadius.full,
   },
   priorityBadge: {
-    paddingHorizontal: 12,
+    paddingHorizontal: responsive.spacing.sm,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: responsive.borderRadius.full,
   },
   badgeText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: responsive.fontSize.xs,
     fontWeight: '600',
   },
   section: {
-    marginBottom: 24,
+    marginBottom: responsive.spacing.lg,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
-    color: '#6b7280',
-    marginBottom: 8,
+    color: colors.textSecondary,
+    marginBottom: responsive.spacing.xs,
     textTransform: 'uppercase',
   },
   sectionContent: {
-    fontSize: 15,
-    color: '#1f2937',
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
     lineHeight: 22,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
   },
   pickerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
     overflow: 'hidden',
   },
   picker: {
     height: 50,
+    color: colors.text,
   },
   dateRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: responsive.spacing.xs,
   },
   dateLabel: {
-    fontSize: 14,
-    color: '#6b7280',
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
     width: 60,
   },
   dateValue: {
-    fontSize: 14,
-    color: '#1f2937',
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
     fontWeight: '500',
   },
   errorText: {
-    fontSize: 16,
-    color: '#9ca3af',
+    fontSize: responsive.fontSize.md,
+    color: colors.textTertiary,
   },
   editActions: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
+    gap: responsive.spacing.sm,
+    marginTop: responsive.spacing.lg,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: colors.border,
+    padding: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#6b7280',
-    fontSize: 16,
+    color: colors.textSecondary,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#3b82f6',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    padding: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
   },
   saveButtonDisabled: {
-    backgroundColor: '#93c5fd',
+    backgroundColor: colors.primaryLight,
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
   },
 })

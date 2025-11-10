@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -13,8 +13,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createTask } from '../services/taskService'
 import { getAllUsers } from '../services/userService'
 import { get } from '../services/apiClient'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
 
 export default function CreateTaskScreen({ navigation }: any) {
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
   const [description, setDescription] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -32,20 +37,7 @@ export default function CreateTaskScreen({ navigation }: any) {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
-    loadInitialData()
-  }, [])
-
-  useEffect(() => {
-    if (projectId) {
-      loadSubprojects(projectId)
-    } else {
-      setSubprojects([])
-      setSubprojectId('')
-    }
-  }, [projectId])
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       // Get current user
       const userStr = await AsyncStorage.getItem('user')
@@ -85,9 +77,9 @@ export default function CreateTaskScreen({ navigation }: any) {
       console.error('Failed to load initial data:', error)
       Alert.alert('Error', 'Failed to load data')
     }
-  }
+  }, [])
 
-  const loadSubprojects = async (parentId: string) => {
+  const loadSubprojects = useCallback(async (parentId: string) => {
     try {
       const response = await get(`/api/projects?parentId=${parentId}`)
       if (response.success && response.data) {
@@ -96,9 +88,22 @@ export default function CreateTaskScreen({ navigation }: any) {
     } catch (error) {
       console.error('Failed to load subprojects:', error)
     }
-  }
+  }, [])
 
-  const validateTimeFormat = (time: string): boolean => {
+  useEffect(() => {
+    loadInitialData()
+  }, [loadInitialData])
+
+  useEffect(() => {
+    if (projectId) {
+      loadSubprojects(projectId)
+    } else {
+      setSubprojects([])
+      setSubprojectId('')
+    }
+  }, [projectId, loadSubprojects])
+
+  const validateTimeFormat = useCallback((time: string): boolean => {
     const timeRegex = /^(\d{1,2}):(\d{2}):(\d{2})$/
     const match = time.match(timeRegex)
     
@@ -107,16 +112,16 @@ export default function CreateTaskScreen({ navigation }: any) {
     const hours = parseInt(match[1], 10)
     const minutes = parseInt(match[2], 10)
     const seconds = parseInt(match[3], 10)
-    
-    return minutes < 60 && seconds < 60
-  }
 
-  const convertTimeToHours = (time: string): number => {
+    return minutes < 60 && seconds < 60
+  }, [])
+
+  const convertTimeToHours = useCallback((time: string): number => {
     const [hours, minutes, seconds] = time.split(':').map(Number)
     return hours + (minutes / 60) + (seconds / 3600)
-  }
+  }, [])
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     // Validation
     if (!description.trim()) {
       Alert.alert('Error', 'Please enter task description')
@@ -185,10 +190,10 @@ export default function CreateTaskScreen({ navigation }: any) {
     } finally {
       setIsSubmitting(false)
     }
-  }
+  }, [description, startDate, endDate, priority, estimatedHours, assignedTo, currentUser, projectId, subprojectId, status, convertTimeToHours, validateTimeFormat, navigation])
 
-  const taskStatuses = settings.task_statuses || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed']
-  const taskPriorities = settings.task_priorities || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)']
+  const taskStatuses = useMemo(() => settings.task_statuses || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'], [settings])
+  const taskPriorities = useMemo(() => settings.task_priorities || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)'], [settings])
 
   return (
     <ScrollView style={styles.container}>
@@ -372,67 +377,72 @@ export default function CreateTaskScreen({ navigation }: any) {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   form: {
-    padding: 16,
+    padding: responsive.spacing.md,
   },
   field: {
-    marginBottom: 16,
+    marginBottom: responsive.spacing.md,
   },
   label: {
-    fontSize: 14,
+    fontSize: responsive.fontSize.sm,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: responsive.spacing.xs,
   },
   required: {
-    color: '#ef4444',
+    color: colors.error,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
+    padding: responsive.spacing.sm,
+    fontSize: responsive.fontSize.sm,
+    color: colors.text,
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
   },
   pickerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: responsive.borderRadius.md,
     overflow: 'hidden',
   },
   picker: {
     height: 50,
+    color: colors.text,
   },
   submitButton: {
-    backgroundColor: '#3b82f6',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    padding: responsive.spacing.md,
+    borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: responsive.spacing.xs,
   },
   submitButtonDisabled: {
-    backgroundColor: '#93c5fd',
+    backgroundColor: colors.primaryLight,
   },
   submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: colors.card,
+    fontSize: responsive.fontSize.md,
     fontWeight: '600',
   },
   helpText: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+    fontSize: responsive.fontSize.xs,
+    color: colors.textSecondary,
+    marginTop: responsive.spacing.xxs,
   },
 })
 
