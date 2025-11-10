@@ -32,11 +32,12 @@ export default function RichTextEditor({
           class: 'text-blue-600 underline hover:text-blue-800'
         }
       }),
-      Placeholder.configure({ 
-        placeholder 
+      Placeholder.configure({
+        placeholder
       })
     ],
     content,
+    immediatelyRender: false, // Fix SSR hydration mismatch in Next.js
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
