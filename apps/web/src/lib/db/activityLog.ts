@@ -366,7 +366,7 @@ export async function deleteActivityLog(id: number, userId: string): Promise<boo
 
     const result = await withTimeout(
       query<any>(
-        'DELETE FROM activity_log WHERE id = $1 AND user_id = $2 AND is_comment = 1',
+        'DELETE FROM activity_log WHERE id = ? AND user_id = ? AND is_comment = 1',
         [id, userId]
       ),
       10000,
