@@ -16,9 +16,10 @@ import { CachePersistor } from 'apollo3-cache-persist'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 // API endpoint - update this to match your backend URL
-const API_URL = __DEV__ 
-  ? 'http://localhost:3000/api/graphql'  // Development (local)
-  : 'https://your-production-url.vercel.app/api/graphql'  // Production
+// For physical devices, use your computer's local IP or production URL
+const API_URL = __DEV__
+  ? 'http://192.168.0.13:3000/api/graphql'  // Development (your local IP)
+  : 'https://task.amtariksha.com/api/graphql'  // Production (verified working)
 
 /**
  * HTTP Link - connects to GraphQL endpoint

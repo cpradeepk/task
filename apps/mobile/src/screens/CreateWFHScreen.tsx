@@ -150,7 +150,8 @@ export default function CreateWFHScreen() {
         managerId: currentUser.managerId || null,
       }
 
-      const response = await fetch('http://localhost:3000/api/wfh', {
+      const { buildApiUrl } = require('../config/api')
+      const response = await fetch(buildApiUrl('/api/wfh'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(wfhData),

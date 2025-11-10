@@ -35,8 +35,9 @@ export default function DashboardScreen() {
       }
 
       if (token) {
-        // Fetch tasks
-        const response = await fetch('http://localhost:3000/api/tasks', {
+        // Fetch tasks using API client
+        const { buildApiUrl } = require('../config/api')
+        const response = await fetch(buildApiUrl('/api/tasks'), {
           headers: { Authorization: `Bearer ${token}` },
         })
         const data = await response.json()
