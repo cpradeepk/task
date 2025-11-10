@@ -22,8 +22,8 @@
     "turbo": "^2.5.8"
   },
   "overrides": {
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react": "$react",
+    "react-dom": "$react-dom"
   },
   "engines": {
     "node": ">=18.0.0",
