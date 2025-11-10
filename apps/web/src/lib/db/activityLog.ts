@@ -342,38 +342,89 @@ export async function getSystemActivitiesByEntity(
 
 /**
  * Delete an activity log entry (soft delete - not implemented, hard delete for now)
- * Only comments should be deletable, system activities should be immutable
- * 
+ * Only comments and prompts should be deletable, system activities should be immutable
+ *
  * @param id - Activity log ID
  * @param userId - User ID requesting deletion (for authorization)
  * @returns True if deleted successfully
  */
 export async function deleteActivityLog(id: number, userId: string): Promise<boolean> {
   return withRetry(async () => {
-    // Only allow deletion of comments by the original author
+    // Only allow deletion of comments/prompts by the original author
     const entry = await getActivityLogById(id)
     if (!entry) {
       throw new Error('Activity log entry not found')
     }
 
-    if (!entry.isComment) {
+    // Allow deletion of comments and prompts only
+    if (!entry.isComment && entry.actionType !== 'prompt') {
       throw new Error('Cannot delete system-generated activities')
     }
 
     if (entry.userId !== userId) {
-      throw new Error('You can only delete your own comments')
+      throw new Error('You can only delete your own comments/prompts')
     }
 
     const result = await withTimeout(
       query<any>(
-        'DELETE FROM activity_log WHERE id = ? AND user_id = ? AND is_comment = 1',
-        [id, userId]
+        'DELETE FROM activity_log WHERE id = ? AND user_id = ? AND (is_comment = 1 OR action_type = ?)',
+        [id, userId, 'prompt']
       ),
       10000,
       'Failed to delete activity log entry'
     )
 
     return result.affectedRows > 0
+  })
+}
+
+/**
+ * Get all prompts for a specific entity
+ * Returns only AI agent prompts (action_type = 'prompt')
+ *
+ * @param entityType - Type of entity (task, bug, leave, wfh)
+ * @param entityId - ID of the entity
+ * @param sortOrder - Sort order: 'asc' (oldest first) or 'desc' (newest first)
+ * @returns Array of prompt entries
+ */
+export async function getPromptsByEntity(
+  entityType: 'task' | 'bug' | 'leave' | 'wfh',
+  entityId: string,
+  sortOrder: 'asc' | 'desc' = 'desc'
+): Promise<ActivityLog[]> {
+  return withRetry(async () => {
+    const order = sortOrder === 'asc' ? 'ASC' : 'DESC'
+
+    const rows = await withTimeout(
+      query<any[]>(
+        `SELECT
+          al.id,
+          al.entity_type as "entityType",
+          al.entity_id as "entityId",
+          al.user_id as "userId",
+          u.name as "userName",
+          al.action_type as "actionType",
+          al.field_name as "fieldName",
+          al.old_value as "oldValue",
+          al.new_value as "newValue",
+          al.description,
+          al.is_comment as "isComment",
+          al.attachments,
+          al.created_at as "createdAt"
+        FROM activity_log al
+        LEFT JOIN users u ON al.user_id = u.employee_id
+        WHERE al.entity_type = ? AND al.entity_id = ? AND al.action_type = ?
+        ORDER BY al.created_at ${order}`,
+        [entityType, entityId, 'prompt']
+      ),
+      15000,
+      'Failed to fetch prompts'
+    )
+
+    return rows.map(row => ({
+      ...row,
+      isComment: Boolean(row.isComment)
+    }))
   })
 }
 

@@ -158,6 +158,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   // Activity log filter state - default to showing only comments
   const [showActivity, setShowActivity] = useState(false)
   const [showComments, setShowComments] = useState(true)
+  const [showPrompts, setShowPrompts] = useState(false)
 
   // Related items state (tasks and bugs)
   const [relatedItemsData, setRelatedItemsData] = useState<Array<Bug | any>>([])
@@ -1106,21 +1107,39 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 autoRefresh={false}
                 showActivity={showActivity}
                 showComments={showComments}
+                showPrompts={showPrompts}
                 onToggleActivity={() => setShowActivity(!showActivity)}
                 onToggleComments={() => setShowComments(!showComments)}
+                onTogglePrompts={() => setShowPrompts(!showPrompts)}
                 filterFn={(activity) => {
-                  // If both toggles are ON or both are OFF, show all
-                  if ((showActivity && showComments) || (!showActivity && !showComments)) {
+                  // Count how many filters are active
+                  const activeFilters = [showActivity, showComments, showPrompts].filter(Boolean).length
+
+                  // If all are OFF or all are ON, show everything
+                  if (activeFilters === 0 || activeFilters === 3) {
                     return true
                   }
-                  // If only Activity is ON, show only non-comments
-                  if (showActivity && !showComments) {
-                    return !activity.isComment
+
+                  // If only one filter is active, show only that type
+                  if (activeFilters === 1) {
+                    if (showActivity) return !activity.isComment && activity.actionType !== 'prompt'
+                    if (showComments) return activity.isComment
+                    if (showPrompts) return activity.actionType === 'prompt'
                   }
-                  // If only Comments is ON, show only comments
-                  if (!showActivity && showComments) {
-                    return activity.isComment
+
+                  // If two filters are active, show both types
+                  if (activeFilters === 2) {
+                    if (showActivity && showComments) {
+                      return activity.isComment || (!activity.isComment && activity.actionType !== 'prompt')
+                    }
+                    if (showActivity && showPrompts) {
+                      return activity.actionType === 'prompt' || (!activity.isComment && activity.actionType !== 'prompt')
+                    }
+                    if (showComments && showPrompts) {
+                      return activity.isComment || activity.actionType === 'prompt'
+                    }
                   }
+
                   return true
                 }}
               />

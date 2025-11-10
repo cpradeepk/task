@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ActivityLog } from '@/lib/db/activityLog'
 import { Upload, X, Image as ImageIcon, Video, FileText } from 'lucide-react'
+import RichTextEditor from './RichTextEditor'
+import DOMPurify from 'dompurify'
 
 interface UnifiedTimelineProps {
   entityType: 'task' | 'bug' | 'leave' | 'wfh'
@@ -14,8 +16,10 @@ interface UnifiedTimelineProps {
   filterFn?: (activity: ActivityLog) => boolean // Optional filter function
   showActivity?: boolean // Filter state for activity
   showComments?: boolean // Filter state for comments
+  showPrompts?: boolean // Filter state for prompts
   onToggleActivity?: () => void // Toggle activity filter
   onToggleComments?: () => void // Toggle comments filter
+  onTogglePrompts?: () => void // Toggle prompts filter
 }
 
 /**
@@ -40,8 +44,10 @@ export default function UnifiedTimeline({
   filterFn,
   showActivity = false,
   showComments = true,
+  showPrompts = false,
   onToggleActivity,
-  onToggleComments
+  onToggleComments,
+  onTogglePrompts
 }: UnifiedTimelineProps) {
   const [activities, setActivities] = useState<ActivityLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -103,13 +109,33 @@ export default function UnifiedTimeline({
     if (!files) return
 
     const newFiles = Array.from(files).filter(file => {
-      // Validate file type
-      const allowedTypes = [
+      // Get file extension
+      const ext = file.name.toLowerCase().match(/\.[^.]+$/)?.[0]
+
+      // Validate file type - check by extension for better compatibility
+      const isValidExtension = ext && [
+        '.png', '.jpg', '.jpeg', '.gif', '.webp',  // Images
+        '.mp4', '.mov', '.avi', '.webm',           // Videos
+        '.txt', '.md', '.prd',                     // Documents
+        '.json', '.js', '.jsx', '.ts', '.tsx', '.sql'  // Code files
+      ].includes(ext)
+
+      const allowedMimeTypes = [
+        // Images
         'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp',
-        'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'
+        // Videos
+        'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm',
+        // Documents
+        'text/plain', 'text/markdown', 'application/octet-stream',
+        // Code files
+        'application/json', 'text/javascript', 'application/javascript',
+        'text/jsx', 'text/typescript', 'text/tsx',
+        // SQL
+        'application/sql', 'text/x-sql'
       ]
-      if (!allowedTypes.includes(file.type)) {
-        alert(`${file.name}: Invalid file type. Only images and videos are allowed.`)
+
+      if (!isValidExtension && !allowedMimeTypes.includes(file.type)) {
+        alert(`${file.name}: Invalid file type. Supported: images, videos, documents (.md, .txt, .prd), code files (.js, .jsx, .ts, .tsx, .json, .sql)`)
         return false
       }
 
@@ -317,13 +343,11 @@ export default function UnifiedTimeline({
       {/* Comment Input */}
       {showCommentInput && (
         <form onSubmit={handleSubmitComment} className="bg-white rounded-lg border border-gray-200 p-4">
-          <textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
+          <RichTextEditor
+            content={commentText}
+            onChange={setCommentText}
             placeholder="Add a comment..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            rows={3}
-            disabled={isSubmitting}
+            minHeight="100px"
           />
 
           {/* File Upload Section */}
@@ -383,6 +407,19 @@ export default function UnifiedTimeline({
                   >
                     Comments
                   </button>
+                  {onTogglePrompts && (
+                    <button
+                      type="button"
+                      onClick={onTogglePrompts}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        showPrompts
+                          ? 'bg-orange-500 text-white hover:bg-orange-600'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      Prompts
+                    </button>
+                  )}
                 </>
               )}
 
@@ -391,7 +428,7 @@ export default function UnifiedTimeline({
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept="image/*,video/*"
+                accept=".png,.jpg,.jpeg,.gif,.webp,.mp4,.mov,.avi,.webm,.txt,.md,.prd,.json,.js,.jsx,.ts,.tsx,.sql"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -458,9 +495,19 @@ export default function UnifiedTimeline({
                       {formatRelativeTime(activity.createdAt)}
                     </span>
                   </div>
-                  <p className="text-gray-700 whitespace-pre-wrap break-words">
-                    {activity.description}
-                  </p>
+                  {/* Render HTML content safely or plain text */}
+                  {activity.description && /<[a-z][\s\S]*>/i.test(activity.description) ? (
+                    <div
+                      className="prose prose-sm max-w-none text-gray-700"
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(activity.description)
+                      }}
+                    />
+                  ) : (
+                    <p className="text-gray-700 whitespace-pre-wrap break-words">
+                      {activity.description}
+                    </p>
+                  )}
 
                   {/* Attachments */}
                   {activity.attachments && (
