@@ -24,6 +24,7 @@ import TimerButton from '@/components/TimerButton'
 import RelatedItemsManager from '@/components/relationships/RelatedItemsManager'
 import SubtasksList from '@/components/subtasks/SubtasksList'
 import SubtaskBreadcrumb from '@/components/subtasks/SubtaskBreadcrumb'
+import CollapsibleText from '@/components/CollapsibleText'
 import { QUERIES } from '@/lib/graphql-queries'
 import { getBugDisplayId } from '@/lib/data'
 import {
@@ -109,66 +110,6 @@ function formatMillisecondsToTime(ms: number): string {
   const m = Math.floor((totalSeconds % 3600) / 60)
   const s = totalSeconds % 60
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-}
-
-// Collapsible Description Component
-function CollapsibleDescription({ title, content }: { title: string; content: string }) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const PREVIEW_LENGTH = 300 // Characters to show in preview
-  const LINE_PREVIEW_COUNT = 5 // Lines to show in preview
-
-  // Check if content is long enough to need collapsing
-  const lines = content.split('\n')
-  const needsCollapse = content.length > PREVIEW_LENGTH || lines.length > LINE_PREVIEW_COUNT
-
-  // Get preview content
-  const getPreviewContent = () => {
-    if (!needsCollapse) return content
-
-    // Take first N lines or first N characters, whichever is shorter
-    const linePreview = lines.slice(0, LINE_PREVIEW_COUNT).join('\n')
-    if (linePreview.length <= PREVIEW_LENGTH) {
-      return linePreview
-    }
-    return content.substring(0, PREVIEW_LENGTH)
-  }
-
-  const previewContent = getPreviewContent()
-  const hiddenLinesCount = lines.length - LINE_PREVIEW_COUNT
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-medium text-gray-900">{title}</h3>
-        {needsCollapse && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary-dark transition-colors"
-          >
-            {isExpanded ? (
-              <>
-                <span>Show less</span>
-                <ChevronUp className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                <span>Show more ({hiddenLinesCount > 0 ? `${hiddenLinesCount} more lines` : 'full content'})</span>
-                <ChevronDown className="h-4 w-4" />
-              </>
-            )}
-          </button>
-        )}
-      </div>
-      <div className="relative">
-        <p className="text-gray-700 whitespace-pre-wrap">
-          {isExpanded || !needsCollapse ? content : previewContent}
-        </p>
-        {!isExpanded && needsCollapse && (
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
-        )}
-      </div>
-    </div>
-  )
 }
 
 // Helper function to convert hh:mm:ss to decimal hours
@@ -1026,9 +967,16 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               </div>
 
               <div className="space-y-4">
-                <CollapsibleDescription
+                <CollapsibleText
                   title={bug.type === 'feature' ? 'Feature Description' : 'Steps to Reproduce'}
                   content={bug.description}
+                  maxCharacters={300}
+                  maxLines={5}
+                  textClassName="text-gray-700"
+                  buttonPosition="right"
+                  showGradient={true}
+                  gradientColor="white"
+                  persistState={false}
                 />
 
                 {bug.expectedBehavior && (

@@ -5,6 +5,7 @@ import { ActivityLog } from '@/lib/db/activityLog'
 import { Upload, X, Image as ImageIcon, Video, FileText } from 'lucide-react'
 import RichTextEditor from './RichTextEditor'
 import DOMPurify from 'dompurify'
+import CollapsibleText from './CollapsibleText'
 
 interface UnifiedTimelineProps {
   entityType: 'task' | 'bug' | 'leave' | 'wfh'
@@ -58,6 +59,13 @@ export default function UnifiedTimeline({
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Collapsible text settings (default values, can be fetched from settings API)
+  const [collapsibleSettings, setCollapsibleSettings] = useState({
+    maxCharacters: 300,
+    maxLines: 5,
+    persistState: false
+  })
+
   // Track click timing for double-click detection
   const clickTimerRef = useRef<{ [key: string]: NodeJS.Timeout | null }>({
     activity: null,
@@ -97,6 +105,40 @@ export default function UnifiedTimeline({
       setIsLoading(false)
     }
   }, [entityType, entityId, sortOrder])
+
+  // Fetch collapsible text settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings?keys=collapsible_text_thresholds,collapsible_text_persist_state', {
+          credentials: 'include',
+          cache: 'no-store'
+        })
+        const data = await response.json()
+
+        if (data.success && data.data) {
+          const thresholds = data.data.collapsible_text_thresholds?.activity_description ||
+                           data.data.collapsible_text_thresholds?.default ||
+                           { maxCharacters: 300, maxLines: 5 }
+
+          const persistState = data.data.collapsible_text_persist_state?.activity_description ||
+                              data.data.collapsible_text_persist_state?.default ||
+                              false
+
+          setCollapsibleSettings({
+            maxCharacters: thresholds.maxCharacters,
+            maxLines: thresholds.maxLines,
+            persistState
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch collapsible text settings:', error)
+        // Use default values on error
+      }
+    }
+
+    fetchSettings()
+  }, [])
 
   // Initial load
   useEffect(() => {
@@ -551,18 +593,37 @@ export default function UnifiedTimeline({
                       {formatRelativeTime(activity.createdAt)}
                     </span>
                   </div>
-                  {/* Render HTML content safely or plain text */}
-                  {activity.description && /<[a-z][\s\S]*>/i.test(activity.description) ? (
-                    <div
-                      className="prose prose-sm max-w-none text-gray-700"
-                      dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(activity.description)
-                      }}
-                    />
-                  ) : (
-                    <p className="text-gray-700 whitespace-pre-wrap break-words">
-                      {activity.description}
-                    </p>
+                  {/* Render HTML content safely or plain text with collapsible functionality */}
+                  {activity.description && (
+                    activity.isComment || activity.actionType === 'prompt' ? (
+                      // For comments and prompts, use CollapsibleText
+                      <CollapsibleText
+                        content={activity.description}
+                        maxCharacters={collapsibleSettings.maxCharacters}
+                        maxLines={collapsibleSettings.maxLines}
+                        textClassName="text-gray-700"
+                        buttonPosition="right"
+                        showGradient={true}
+                        gradientColor="white"
+                        persistState={collapsibleSettings.persistState}
+                        storageKey={collapsibleSettings.persistState ? `activity-${activity.id}-expanded` : undefined}
+                        renderHtml={/<[a-z][\s\S]*>/i.test(activity.description)}
+                      />
+                    ) : (
+                      // For system activities, render as before (no collapse)
+                      /<[a-z][\s\S]*>/i.test(activity.description) ? (
+                        <div
+                          className="prose prose-sm max-w-none text-gray-700"
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(activity.description)
+                          }}
+                        />
+                      ) : (
+                        <p className="text-gray-700 whitespace-pre-wrap break-words">
+                          {activity.description}
+                        </p>
+                      )
+                    )
                   )}
 
                   {/* Attachments */}

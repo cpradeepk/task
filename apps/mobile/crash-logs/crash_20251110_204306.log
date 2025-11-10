@@ -1,0 +1,57 @@
+--------- beginning of system
+11-10 20:42:39.615  1616  1839 E KernelCpuSpeedReader: Failed to read cpu-freq: /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state: open failed: ENOENT (No such file or directory)
+11-10 20:42:39.615  1616  1839 E KernelCpuSpeedReader: Failed to read cpu-freq: /sys/devices/system/cpu/cpu4/cpufreq/stats/time_in_state: open failed: ENOENT (No such file or directory)
+--------- beginning of main
+11-10 20:42:40.892  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:42:40.894  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:42:40.897  2659  2863 D ApfFilter: (wlan0): Adding RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:42:40.904  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:42:40.989  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:42:40.991  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:42:41.494 30528 30528 W ThreadPoolForeg: type=1400 audit(0.0:21557): avc: denied { write } for name="traced_producer" dev="tmpfs" ino=20105 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:traced_producer_socket:s0 tclass=sock_file permissive=0 app=com.google.android.gms
+11-10 20:42:41.514 13577 13577 W ThreadPoolForeg: type=1400 audit(0.0:21558): avc: denied { write } for name="traced_producer" dev="tmpfs" ino=20105 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:traced_producer_socket:s0 tclass=sock_file permissive=0 app=com.google.android.gms
+11-10 20:42:44.066  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:42:44.068  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:42:44.070  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:42:44.072  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:42:44.168  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:42:44.170  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:42:48.968 19424 19424 D WM-DelayedWorkTracker: Scheduling work 54d6a72b-9a53-43ec-b3c2-5073bfffeaeb
+11-10 20:42:48.970 19424 19424 D WM-GreedyScheduler: Starting work for 54d6a72b-9a53-43ec-b3c2-5073bfffeaeb
+11-10 20:42:48.977 19424 19496 D WM-Processor: Processor: processing WorkGenerationalId(workSpecId=54d6a72b-9a53-43ec-b3c2-5073bfffeaeb, generation=0)
+11-10 20:42:48.985 19424 19424 D WM-WorkerWrapper: Starting work for com.hmdglobal.support.features.notifications.worker.NotificationUpdateWorker
+11-10 20:42:48.994 19424 19496 I WM-WorkerWrapper: Worker result SUCCESS for Work [ id=54d6a72b-9a53-43ec-b3c2-5073bfffeaeb, tags={ com.hmdglobal.support.features.notifications.worker.NotificationUpdateWorker,com.hmdglobal.support:NOTIFICATION_UPDATE_WORKER } ]
+11-10 20:42:48.997 19424 19424 D WM-Processor: Processor 54d6a72b-9a53-43ec-b3c2-5073bfffeaeb executed; reschedule = false
+11-10 20:42:49.004 19424 19496 D WM-GreedyScheduler: Cancelling work ID 54d6a72b-9a53-43ec-b3c2-5073bfffeaeb
+11-10 20:42:49.009 19424 19496 D WM-SystemJobScheduler: Scheduling work ID 54d6a72b-9a53-43ec-b3c2-5073bfffeaebJob ID 1286
+11-10 20:42:50.721  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:42:50.723  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:42:50.724  2659  2863 D ApfFilter: (wlan0): Adding RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:42:50.730  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:42:50.823  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:42:50.825  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:42:59.466 15362 21343 W HttpCallTransport: Fail read Http response and forward to Cello
+11-10 20:42:59.473 15362 15501 E Cello   : [15501:NonCelloThread] drive_v2_cloud_store.cc:6718:DumpToLog Request 0xb4000078617f0e70: 0 transport: drive::ds::Status::UNAVAILABLE_WHILE_OFFLINE reader: drive::ds::Status::SUCCESS url: https://play.googleapis.com/log
+11-10 20:42:59.473 15362 15501 E Cello   : [15501:NonCelloThread] drive_v2_cloud_store.cc:6718:DumpToLog req.hdr 0xb4000078617f0e70: Content-Type=
+11-10 20:42:59.473 15362 15501 E Cello   : [15501:NonCelloThread] drive_v2_cloud_store.cc:6718:DumpToLog Response body 0xb4000078617f0e70: (no response body)
+11-10 20:42:59.474 15362 15515 E Cello   : [15515:MetricsTransportThread-CELLO] metrics_transport.cc:242:SendRequest Request failed: drive::ds::Status::UNAVAILABLE_WHILE_OFFLINE
+11-10 20:42:59.474 15362 15515 I Cello   : [15515:MetricsTransportThread-CELLO] metrics_transport.cc:469:ProcessRequestsOnBackgroundThread Metrics failed to send, drive::ds::Status::UNAVAILABLE_WHILE_OFFLINE
+11-10 20:42:59.487 15362 15442 W Binder  : Caught a RuntimeException from the binder stub implementation.
+11-10 20:42:59.487 15362 15442 W Binder  : java.lang.UnsupportedOperationException
+11-10 20:42:59.487 15362 15442 W Binder  : 	at mtn.a(PG:3)
+11-10 20:42:59.487 15362 15442 W Binder  : 	at mtn.dispatchTransaction(PG:58)
+11-10 20:42:59.487 15362 15442 W Binder  : 	at gni.onTransact(PG:13)
+11-10 20:42:59.487 15362 15442 W Binder  : 	at android.os.Binder.execTransactInternal(Binder.java:1184)
+11-10 20:42:59.487 15362 15442 W Binder  : 	at android.os.Binder.execTransact(Binder.java:1143)
+11-10 20:43:00.756  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:43:00.758  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:43:00.759  2659  2863 D ApfFilter: (wlan0): Adding RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:43:00.765  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:43:00.861  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:43:00.863  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:43:06.595  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:43:06.597  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:43:06.598  2659  2863 D ApfFilter: (wlan0): Adding RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:43:06.604  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
+11-10 20:43:06.692  2659  2863 W AlarmManager: Unrecognized alarm listener com.android.networkstack.android.net.ip.IpClientLinkObserver$Dhcp6PdPreferredPrefixAlarmListener@bf17db0
+11-10 20:43:06.693  2659  2863 D ApfFilter: (wlan0): Ignoring RA RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64  which matches RA fe80::7ef1:7eff:fed0:f677 -> ff02::1 30s 2406:7400:113:b5e7::/64 86400s/14400s RIO 30s 2406:7400:113:b5e7::/64 
