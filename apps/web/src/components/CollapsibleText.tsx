@@ -139,7 +139,7 @@ export default function CollapsibleText({
                 </>
               ) : (
                 <>
-                  <span>Show more ({hiddenLinesCount > 0 ? `${hiddenLinesCount} more lines` : 'full content'})</span>
+                  <span>Show more </span>
                   <ChevronDown className="h-4 w-4" />
                 </>
               )}
