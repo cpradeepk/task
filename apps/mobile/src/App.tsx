@@ -28,7 +28,7 @@ import { ActivityIndicator, View } from 'react-native'
 import { apolloClient, initializeApollo } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
 import { LOGIN_MUTATION } from './config/graphql-queries'
-import { ThemeProvider } from './contexts/ThemeContext'
+import { ThemeProvider } from './contexts/Providers'
 
 const Stack = createNativeStackNavigator()
 

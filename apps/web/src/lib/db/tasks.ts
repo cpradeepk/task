@@ -101,6 +101,20 @@ function rowToTask(row: TaskRow): Task {
     assignedTo = []
   }
 
+  // Convert MySQL DATE columns to ISO 8601 strings for consistency
+  // MySQL returns dates as Date objects or timestamps, we need ISO strings
+  const startDate = row.start_date instanceof Date
+    ? row.start_date.toISOString()
+    : (typeof row.start_date === 'number'
+      ? new Date(row.start_date).toISOString()
+      : row.start_date)
+
+  const endDate = row.end_date instanceof Date
+    ? row.end_date.toISOString()
+    : (typeof row.end_date === 'number'
+      ? new Date(row.end_date).toISOString()
+      : row.end_date)
+
   return {
     id: row.internal_id,
     taskId: row.task_id,
@@ -111,8 +125,8 @@ function rowToTask(row: TaskRow): Task {
     assignedTo: assignedTo,
     assignedBy: row.assigned_by,
     support: support,
-    startDate: row.start_date,
-    endDate: row.end_date,
+    startDate: startDate,
+    endDate: endDate,
     priority: row.priority as Task['priority'],
     estimatedHours: row.estimated_hours,
     actualHours: row.actual_hours || undefined,

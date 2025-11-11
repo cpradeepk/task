@@ -15,6 +15,7 @@ node_modules/
 
 # Production
 /build
+/apps/mobile/build
 
 # Misc
 .DS_Store

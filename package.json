@@ -4,7 +4,7 @@
   "private": true,
   "description": "JSR Task Management System - Monorepo with Web and Mobile Apps",
   "workspaces": [
-    "apps/*",
+    "apps/web",
     "packages/*"
   ],
   "scripts": {
@@ -20,10 +20,6 @@
   },
   "devDependencies": {
     "turbo": "^2.5.8"
-  },
-  "overrides": {
-    "react": "$react",
-    "react-dom": "$react-dom"
   },
   "engines": {
     "node": ">=18.0.0",
