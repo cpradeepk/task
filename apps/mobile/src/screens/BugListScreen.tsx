@@ -27,7 +27,7 @@ import {
 import { useNavigation } from '@react-navigation/native'
 import { useQuery } from '@apollo/client'
 import { GET_BUGS } from '../config/graphql-queries'
-import { Bug } from '../../packages/shared/types'
+import { Bug } from '../types'
 import { getBugDisplayId, getSeverityColor, getStatusColor } from '../utils/bugHelpers'
 import { save, get, STORAGE_KEYS } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'

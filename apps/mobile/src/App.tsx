@@ -22,13 +22,42 @@ import CreateLeaveScreen from './screens/CreateLeaveScreen'
 import WFHListScreen from './screens/WFHListScreen'
 import WFHDetailsScreen from './screens/WFHDetailsScreen'
 import CreateWFHScreen from './screens/CreateWFHScreen'
-import NotificationBell from './components/NotificationBell'
-import { OfflineBanner } from './components/OfflineBanner'
-import { ActivityIndicator, View } from 'react-native'
+// import NotificationBell from './components/NotificationBell'
+// import { OfflineBanner } from './components/OfflineBanner'
+import { ActivityIndicator, View, LogBox } from 'react-native'
 import { apolloClient, initializeApollo } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
 import { LOGIN_MUTATION } from './config/graphql-queries'
 import { ThemeProvider } from './contexts/Providers'
+
+// Disable dev tools warnings in production builds
+if (!__DEV__) {
+  LogBox.ignoreAllLogs(true)
+  // Suppress console warnings about devtools in production
+  const originalWarn = console.warn
+  console.warn = (...args) => {
+    if (
+      args[0]?.includes?.('devtools') ||
+      args[0]?.includes?.('websocket') ||
+      args[0]?.includes?.('runtime not ready')
+    ) {
+      return
+    }
+    originalWarn(...args)
+  }
+
+  const originalError = console.error
+  console.error = (...args) => {
+    if (
+      args[0]?.includes?.('devtools') ||
+      args[0]?.includes?.('websocket') ||
+      args[0]?.includes?.('runtime not ready')
+    ) {
+      return
+    }
+    originalError(...args)
+  }
+}
 
 const Stack = createNativeStackNavigator()
 
@@ -147,7 +176,7 @@ export default function App() {
       <ApolloProvider client={apolloClient}>
         <AuthContext.Provider value={authContext}>
           <NavigationContainer>
-            <OfflineBanner />
+            {/* <OfflineBanner /> */}
             <Stack.Navigator
               screenOptions={{
                 headerShown: true,
@@ -170,7 +199,7 @@ export default function App() {
                   component={DashboardScreen}
                   options={{
                     headerTitle: 'JSR Task Management',
-                    headerRight: () => <NotificationBell />,
+                    // headerRight: () => <NotificationBell />,
                   }}
                 />
                 <Stack.Screen

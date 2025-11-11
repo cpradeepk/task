@@ -27,7 +27,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native'
 import { useQuery } from '@apollo/client'
 import { GET_TASKS } from '../config/graphql-queries'
-import { Task } from '../../packages/shared/types'
+import { Task } from '../types'
 import { getUserData, save, get, STORAGE_KEYS } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'

@@ -24,7 +24,7 @@ import {
 import { useNavigation } from '@react-navigation/native'
 import { useQuery } from '@apollo/client'
 import { GET_FEED_POSTS, GET_FEED_TOPICS } from '../config/graphql-queries'
-import { FeedPost, FeedTopic } from '../../packages/shared/types'
+import { FeedPost, FeedTopic } from '../types'
 import { getUserData } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
