@@ -25,7 +25,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
-import { useQuery } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
 import { GET_TASKS } from '../config/graphql-queries'
 import { Task } from '../types'
 import { getUserData, save, get, STORAGE_KEYS } from '../utils/secureStorage'

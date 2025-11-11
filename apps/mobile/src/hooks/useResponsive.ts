@@ -45,6 +45,14 @@ export const useResponsive = () => {
     xxl: isTablet ? 34 : 24,
   }
 
+  // Border radius
+  const borderRadius = {
+    sm: isTablet ? 6 : 4,
+    md: isTablet ? 10 : 8,
+    lg: isTablet ? 14 : 12,
+    xl: isTablet ? 18 : 16,
+  }
+
   return {
     width,
     height,
@@ -60,6 +68,7 @@ export const useResponsive = () => {
     maxContentWidth,
     gridColumns,
     spacing,
+    borderRadius,
   }
 }
 

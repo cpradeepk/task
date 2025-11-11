@@ -11,7 +11,7 @@
 import React, { useEffect, useState } from 'react'
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
-import { useQuery } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
 import { GET_UNREAD_COUNT } from '../config/graphql-queries'
 
 export default function NotificationBell() {

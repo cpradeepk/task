@@ -1,6 +1,6 @@
 {
    "git": {
-    "deploymentEnabled": true
+    "deploymentEnabled": false
   },
   "buildCommand": "cd apps/web && npm run build",
   "outputDirectory": "apps/web/.next",

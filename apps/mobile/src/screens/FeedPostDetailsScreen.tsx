@@ -21,7 +21,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native'
-import { useQuery, useMutation } from '@apollo/client'
+import { useQuery, useMutation } from '@apollo/client/react'
 import {
   GET_FEED_POST,
   CREATE_FEED_COMMENT,

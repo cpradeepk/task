@@ -22,7 +22,7 @@ import {
   Alert,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
-import { useQuery, useMutation } from '@apollo/client'
+import { useQuery, useMutation } from '@apollo/client/react'
 import {
   GET_NOTIFICATIONS,
   MARK_NOTIFICATION_READ,

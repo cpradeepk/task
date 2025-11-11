@@ -25,7 +25,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
-import { useQuery } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
 import { GET_BUGS } from '../config/graphql-queries'
 import { Bug } from '../types'
 import { getBugDisplayId, getSeverityColor, getStatusColor } from '../utils/bugHelpers'
