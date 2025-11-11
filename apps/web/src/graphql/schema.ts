@@ -298,12 +298,14 @@ export const typeDefs = `#graphql
       assignedBy: String
       status: String
       priority: String
+      limit: Int
+      offset: Int
     ): [Task!]!
     task(taskId: ID!): Task
-    
+
     # Subtasks
     subtasks(parentTaskId: ID!): [SubTask!]!
-    
+
     # Bugs
     bugs(
       assignedTo: String
@@ -311,6 +313,8 @@ export const typeDefs = `#graphql
       status: String
       severity: String
       category: String
+      limit: Int
+      offset: Int
     ): [Bug!]!
     bug(bugId: ID!): Bug
     

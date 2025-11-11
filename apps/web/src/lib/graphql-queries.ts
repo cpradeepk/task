@@ -141,10 +141,10 @@ export const QUERIES = {
     }
   `,
 
-  // Get all tasks with optional filters
+  // Get all tasks with optional filters and pagination
   GET_TASKS: `
-    query GetTasks($assignedTo: String, $status: String, $priority: String) {
-      tasks(assignedTo: $assignedTo, status: $status, priority: $priority) {
+    query GetTasks($assignedTo: String, $status: String, $priority: String, $limit: Int, $offset: Int) {
+      tasks(assignedTo: $assignedTo, status: $status, priority: $priority, limit: $limit, offset: $offset) {
         id
         taskId
         name
@@ -270,10 +270,10 @@ export const QUERIES = {
     }
   `,
 
-  // Get all bugs with optional filters
+  // Get all bugs with optional filters and pagination
   GET_BUGS: `
-    query GetBugs($assignedTo: String, $status: String, $severity: String) {
-      bugs(assignedTo: $assignedTo, status: $status, severity: $severity) {
+    query GetBugs($assignedTo: String, $status: String, $severity: String, $limit: Int, $offset: Int) {
+      bugs(assignedTo: $assignedTo, status: $status, severity: $severity, limit: $limit, offset: $offset) {
         id
         bugId
         title

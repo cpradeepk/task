@@ -266,6 +266,16 @@ export const resolvers = {
 
         query += ' ORDER BY updated_at DESC'
 
+        // Add pagination
+        if (filters.limit) {
+          query += ` LIMIT $${paramIndex++}`
+          params.push(filters.limit)
+        }
+        if (filters.offset) {
+          query += ` OFFSET $${paramIndex++}`
+          params.push(filters.offset)
+        }
+
         const dbStart = logDatabaseQuery(query, params, 'tasks')
         const result = await getPoolInstance().query(query, params)
         logDatabaseResult(result.rows.length, dbStart.startTime, 'tasks')
@@ -324,6 +334,16 @@ export const resolvers = {
       }
 
       query += ' ORDER BY updated_at DESC'
+
+      // Add pagination
+      if (filters.limit) {
+        query += ` LIMIT $${paramIndex++}`
+        params.push(filters.limit)
+      }
+      if (filters.offset) {
+        query += ` OFFSET $${paramIndex++}`
+        params.push(filters.offset)
+      }
 
       const result = await getPoolInstance().query(query, params)
       return result.rows
