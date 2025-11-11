@@ -720,8 +720,20 @@ export const resolvers = {
 
       return []
     },
-    startDate: (task: any) => task.start_date,
-    endDate: (task: any) => task.end_date,
+    startDate: (task: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!task.start_date) return null
+      if (task.start_date instanceof Date) return task.start_date.toISOString()
+      if (typeof task.start_date === 'number') return new Date(task.start_date).toISOString()
+      return task.start_date
+    },
+    endDate: (task: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!task.end_date) return null
+      if (task.end_date instanceof Date) return task.end_date.toISOString()
+      if (typeof task.end_date === 'number') return new Date(task.end_date).toISOString()
+      return task.end_date
+    },
     priority: (task: any) => task.priority,
     estimatedHours: (task: any) => task.estimated_hours,
     actualHours: (task: any) => task.actual_hours,
@@ -831,8 +843,20 @@ export const resolvers = {
     description: (subtask: any) => subtask.description,
     assignedTo: (subtask: any) => subtask.assigned_to,
     assignedBy: (subtask: any) => subtask.assigned_by || subtask.created_by || null, // ✅ FIXED: Column doesn't exist, fallback to created_by
-    startDate: (subtask: any) => subtask.start_date || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
-    endDate: (subtask: any) => subtask.end_date || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
+    startDate: (subtask: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!subtask.start_date) return null
+      if (subtask.start_date instanceof Date) return subtask.start_date.toISOString()
+      if (typeof subtask.start_date === 'number') return new Date(subtask.start_date).toISOString()
+      return subtask.start_date
+    },
+    endDate: (subtask: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!subtask.end_date) return null
+      if (subtask.end_date instanceof Date) return subtask.end_date.toISOString()
+      if (typeof subtask.end_date === 'number') return new Date(subtask.end_date).toISOString()
+      return subtask.end_date
+    },
     priority: (subtask: any) => subtask.priority || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
     estimatedHours: (subtask: any) => subtask.estimated_hours || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
     actualHours: (subtask: any) => subtask.actual_hours || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
@@ -894,8 +918,20 @@ export const resolvers = {
     assignedTo: (bug: any) => bug.assigned_to,
     assignedBy: (bug: any) => bug.assigned_by,
     reportedBy: (bug: any) => bug.reported_by,
-    reportedDate: (bug: any) => bug.reported_date,
-    resolvedDate: (bug: any) => bug.resolved_date,
+    reportedDate: (bug: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!bug.reported_date) return null
+      if (bug.reported_date instanceof Date) return bug.reported_date.toISOString()
+      if (typeof bug.reported_date === 'number') return new Date(bug.reported_date).toISOString()
+      return bug.reported_date
+    },
+    resolvedDate: (bug: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!bug.resolved_date) return null
+      if (bug.resolved_date instanceof Date) return bug.resolved_date.toISOString()
+      if (typeof bug.resolved_date === 'number') return new Date(bug.resolved_date).toISOString()
+      return bug.resolved_date
+    },
     estimatedHours: (bug: any) => bug.estimated_hours,
     actualHours: (bug: any) => bug.actual_hours,
     remarks: (bug: any) => bug.remarks,
@@ -976,8 +1012,20 @@ export const resolvers = {
     description: (subtask: any) => subtask.description,
     assignedTo: (subtask: any) => subtask.assigned_to,
     assignedBy: (subtask: any) => subtask.assigned_by || subtask.created_by || null, // ✅ FIXED: Column doesn't exist, fallback to created_by
-    startDate: (subtask: any) => subtask.start_date || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
-    endDate: (subtask: any) => subtask.end_date || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
+    startDate: (subtask: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!subtask.start_date) return null
+      if (subtask.start_date instanceof Date) return subtask.start_date.toISOString()
+      if (typeof subtask.start_date === 'number') return new Date(subtask.start_date).toISOString()
+      return subtask.start_date
+    },
+    endDate: (subtask: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!subtask.end_date) return null
+      if (subtask.end_date instanceof Date) return subtask.end_date.toISOString()
+      if (typeof subtask.end_date === 'number') return new Date(subtask.end_date).toISOString()
+      return subtask.end_date
+    },
     priority: (subtask: any) => subtask.priority || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
     estimatedHours: (subtask: any) => subtask.estimated_hours || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
     actualHours: (subtask: any) => subtask.actual_hours || null, // ✅ FIXED: Column doesn't exist in PostgreSQL
