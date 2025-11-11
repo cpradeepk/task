@@ -85,6 +85,13 @@ export default function BugsPage() {
   const [isOnline, setIsOnline] = useState(true)
   const hasLoadedData = useRef(false)
 
+  // Infinite scroll state
+  const [hasMore, setHasMore] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [offset, setOffset] = useState(0)
+  const loadMoreTriggerRef = useRef<HTMLDivElement>(null)
+  const ITEMS_PER_PAGE = 10
+
   // Settings data from database
   const [settingsData, setSettingsData] = useState<{
     bugStatuses: Array<{ value: string; icon: string }>;
@@ -208,25 +215,68 @@ export default function BugsPage() {
     loadSettings()
   }, [])
 
-  const loadBugs = useCallback(async (isRetry = false) => {
+  const loadBugs = useCallback(async (isRetry = false, loadMore = false) => {
     try {
-      setIsLoading(true)
+      if (loadMore) {
+        setIsLoadingMore(true)
+      } else {
+        setIsLoading(true)
+        setOffset(0)
+        setHasMore(true)
+      }
       setError(null)
 
+      const currentOffset = loadMore ? offset : 0
       let bugsData: Bug[] = []
 
-      // Try GraphQL first
+      // Build filter variables for GraphQL
+      const variables: any = {
+        limit: ITEMS_PER_PAGE,
+        offset: currentOffset
+      }
+
+      // Add filters if they're not 'all'
+      if (assigneeFilter && assigneeFilter !== 'all') {
+        variables.assignedTo = assigneeFilter
+      }
+      if (statusFilter && statusFilter !== 'all') {
+        variables.status = statusFilter
+      }
+      if (severityFilter && severityFilter !== 'all') {
+        variables.severity = severityFilter
+      }
+
+      // Try GraphQL first with pagination and filters
       try {
-        console.log('🔵 [Bugs] Attempting GraphQL query...')
-        const data = await executeGraphQLQuery(QUERIES.GET_BUGS, {})
+        console.log('🔵 [Bugs] Attempting GraphQL query with pagination and filters...', variables)
+        const data = await executeGraphQLQuery(QUERIES.GET_BUGS, variables)
         bugsData = data.bugs || []
         console.log('✅ [Bugs] GraphQL query successful:', bugsData.length, 'bugs')
       } catch (graphqlError) {
         console.warn('⚠️ [Bugs] GraphQL failed, falling back to REST:', graphqlError)
 
-        // Fallback to REST API
-        bugsData = await getAllBugs()
+        // Fallback to REST API with pagination and filters
+        const params = new URLSearchParams({
+          limit: ITEMS_PER_PAGE.toString(),
+          offset: currentOffset.toString()
+        })
+        if (assigneeFilter && assigneeFilter !== 'all') params.append('assignedTo', assigneeFilter)
+        if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter)
+        if (severityFilter && severityFilter !== 'all') params.append('severity', severityFilter)
+
+        const response = await fetch(`/api/bugs?${params.toString()}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch bugs')
+        }
+
+        const result = await response.json()
+        bugsData = result.data || []
         console.log('✅ [Bugs] REST API successful:', bugsData.length, 'bugs')
+      }
+
+      // Check if there are more items to load
+      if (bugsData.length < ITEMS_PER_PAGE) {
+        setHasMore(false)
       }
 
       // Note: Role-based filtering is NOT applied here anymore
@@ -234,12 +284,21 @@ export default function BugsPage() {
       // The assignee filter dropdown allows users to filter by specific assignees
       // This ensures consistent bug visibility across all users and matches task behavior
 
-      // Set bugs data directly without any field swapping
-      setBugs(bugsData)
+      if (loadMore) {
+        // Append new bugs to existing ones
+        setBugs(prev => [...prev, ...bugsData])
+        setOffset(prev => prev + ITEMS_PER_PAGE)
+      } else {
+        // Replace bugs (initial load or filter change)
+        setBugs(bugsData)
+        setOffset(ITEMS_PER_PAGE)
+      }
 
-      // Calculate statistics from filtered bugs (user's visible bugs)
-      const stats = calculateStatistics(bugsData)
-      setStatistics(stats)
+      // Calculate statistics from all loaded bugs
+      setStatistics(prev => {
+        const allBugs = loadMore ? [...bugs, ...bugsData] : bugsData
+        return calculateStatistics(allBugs)
+      })
 
       setError(null) // Clear any previous errors
       setRetryCount(0) // Reset retry count on success
@@ -261,8 +320,43 @@ export default function BugsPage() {
       }
     } finally {
       setIsLoading(false)
+      setIsLoadingMore(false)
     }
-  }, [])
+  }, [offset, assigneeFilter, statusFilter, severityFilter, bugs, ITEMS_PER_PAGE])
+
+  // Reload bugs when filters change (reset pagination)
+  useEffect(() => {
+    if (!initialized) return // Don't reload during initial mount
+
+    console.log('🔵 [Bugs] Filters changed, reloading bugs from beginning...')
+    loadBugs(false, false) // Reset to first page
+  }, [statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, initialized])
+
+  // Intersection Observer for infinite scroll (trigger at 80% scroll)
+  useEffect(() => {
+    if (!loadMoreTriggerRef.current || !hasMore || isLoadingMore) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+        if (entry.isIntersecting && hasMore && !isLoadingMore) {
+          console.log('🔵 [Bugs] Load more trigger reached, loading next batch...')
+          loadBugs(false, true) // loadMore = true
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: '0px 0px 200px 0px', // Trigger 200px before reaching the element (approximately 80% scroll)
+        threshold: 0.1
+      }
+    )
+
+    observer.observe(loadMoreTriggerRef.current)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [hasMore, isLoadingMore, loadBugs])
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -364,13 +458,15 @@ export default function BugsPage() {
   }, [currentUser, router, isHydrated]) // Stable dependencies only
 
   // Memoized filtered bugs for better performance and to prevent infinite loops
+  // Note: Status, severity, and assignee filters are now handled server-side for pagination
+  // Only client-side search filter, category filter, type filter, and subtask filtering remain
   const filteredBugs = useMemo(() => {
     let filtered = bugs
 
     // Filter out subtasks - only show root bugs (bugs without parent_dev_id)
     filtered = filtered.filter(bug => !bug.parentDevId)
 
-    // Search filter
+    // Search filter (client-side only)
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(bug =>
@@ -380,22 +476,12 @@ export default function BugsPage() {
       )
     }
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(bug => bug.status === statusFilter)
-    }
-
-    // Severity filter
-    if (severityFilter !== 'all') {
-      filtered = filtered.filter(bug => bug.severity === severityFilter)
-    }
-
-    // Category filter
+    // Category filter (client-side only - not supported in GraphQL yet)
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(bug => bug.category === categoryFilter)
     }
 
-    // Type filter (Bug, Feature, Testcase, Other)
+    // Type filter (client-side only - not supported in GraphQL yet)
     if (typeFilter !== 'all') {
       if (typeFilter === 'bug') {
         // Show bugs that are NOT features (null, 'testcase', 'other')
@@ -412,19 +498,10 @@ export default function BugsPage() {
       }
     }
 
-    // Assignee filter
-    if (assigneeFilter !== 'all') {
-      if (assigneeFilter === 'me') {
-        // Filter for current user's bugs
-        filtered = filtered.filter(bug => bug.assignedTo === currentUser?.employeeId)
-      } else {
-        // Filter for specific assignee
-        filtered = filtered.filter(bug => bug.assignedTo === assigneeFilter)
-      }
-    }
+    // Note: Server already returns bugs sorted by updated_at DESC
+    // We don't need additional sorting here
 
-    // Sort bugs: Closed bugs should appear last
-    filtered = filtered.sort((a, b) => {
+    return filtered
       // If both are closed or both are not closed, maintain original order
       if ((a.status === 'Closed' && b.status === 'Closed') ||
           (a.status !== 'Closed' && b.status !== 'Closed')) {
@@ -862,20 +939,41 @@ export default function BugsPage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredBugs.map((bug) => (
-              <HierarchicalBugRow
-                key={bug.bugId}
-                bug={bug}
-                getStatusColor={getStatusColor}
-                getPriorityColor={getPriorityColor}
-                getSeverityColor={getSeverityColor}
-                getStatusIcon={getStatusIcon}
-                UserName={UserName}
-                ProjectDisplay={ProjectDisplay}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4">
+              {filteredBugs.map((bug) => (
+                <HierarchicalBugRow
+                  key={bug.bugId}
+                  bug={bug}
+                  getStatusColor={getStatusColor}
+                  getPriorityColor={getPriorityColor}
+                  getSeverityColor={getSeverityColor}
+                  getStatusIcon={getStatusIcon}
+                  UserName={UserName}
+                  ProjectDisplay={ProjectDisplay}
+                />
+              ))}
+            </div>
+
+            {/* Infinite scroll trigger element */}
+            {hasMore && (
+              <div ref={loadMoreTriggerRef} className="py-8 text-center">
+                {isLoadingMore && (
+                  <div className="flex items-center justify-center space-x-2 text-gray-600">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <span>Loading more bugs...</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* End of list indicator */}
+            {!hasMore && bugs.length > 0 && (
+              <div className="py-8 text-center text-gray-500 text-sm">
+                <p>You've reached the end of the list</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
