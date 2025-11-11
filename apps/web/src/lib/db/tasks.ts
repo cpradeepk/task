@@ -14,8 +14,8 @@ interface TaskRow  {
   assigned_to: string
   assigned_by: string
   support: string
-  start_date: string
-  end_date: string
+  start_date: string | Date | number
+  end_date: string | Date | number
   priority: string
   estimated_hours: number
   actual_hours: number
