@@ -767,16 +767,19 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
 
               {/* Task Description */}
               {task.description && task.name && (
-                <CollapsibleText
-                  content={task.description}
-                  maxCharacters={300}
-                  maxLines={5}
-                  textClassName="text-sm text-gray-700"
-                  buttonPosition="right"
-                  showGradient={true}
-                  gradientColor="white"
-                  persistState={false}
-                />
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-gray-600">Description</h3>
+                  <CollapsibleText
+                    content={task.description}
+                    maxCharacters={300}
+                    maxLines={5}
+                    textClassName="text-sm text-gray-700"
+                    buttonPosition="right"
+                    showGradient={true}
+                    gradientColor="white"
+                    persistState={false}
+                  />
+                </div>
               )}
 
               <div className="space-y-4">
@@ -792,13 +795,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                   </div>
                 </div>
 
-                {/* Project */}
-                {task.projectId && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Project:</span>
-                    <span className="ml-2 text-sm text-gray-900">{projectName || task.projectId}</span>
-                  </div>
-                )}
+          
 
                 {/* Remarks */}
                 {task.remarks && (

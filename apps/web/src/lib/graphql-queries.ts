@@ -353,6 +353,8 @@ export const QUERIES = {
         reportedBy
         reportedDate
         resolvedDate
+        startDate
+        endDate
         estimatedHours
         actualHours
         remarks

@@ -90,6 +90,8 @@ export const typeDefs = `#graphql
     reportedBy: String
     reportedDate: String
     resolvedDate: String
+    startDate: String
+    endDate: String
     estimatedHours: Float
     actualHours: Float
     remarks: String
@@ -437,6 +439,8 @@ export const typeDefs = `#graphql
     actualHours: Float
     remarks: String
     resolvedDate: String
+    startDate: String
+    endDate: String
   }
 
   input CreateUserInput {

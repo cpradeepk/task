@@ -46,8 +46,39 @@ import {
   Image as ImageIcon,
   Pencil,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Calendar
 } from 'lucide-react'
+
+// Helper function to safely format dates in dd-mm-yyyy format
+function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return 'Not set'
+
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'Invalid Date'
+
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+
+    return `${day}-${month}-${year}`
+  } catch (error) {
+    return 'Invalid Date'
+  }
+}
+
+// Helper function to convert date to yyyy-MM-dd format for input
+function formatDateForInput(dateString: string | null | undefined): string {
+  if (!dateString) return ''
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return ''
+    return date.toISOString().split('T')[0]
+  } catch (error) {
+    return ''
+  }
+}
 
 // Helper function to execute GraphQL queries
 async function executeGraphQLQuery(query: string, variables: any) {
@@ -144,6 +175,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
   const [isEditingCategory, setIsEditingCategory] = useState(false)
   const [isEditingPlatform, setIsEditingPlatform] = useState(false)
   const [isEditingEnvironment, setIsEditingEnvironment] = useState(false)
+  const [isEditingStartDate, setIsEditingStartDate] = useState(false)
+  const [isEditingEndDate, setIsEditingEndDate] = useState(false)
+  const [tempStartDate, setTempStartDate] = useState('')
+  const [tempEndDate, setTempEndDate] = useState('')
 
   // Log hours modal (keeping this one as it has multiple fields)
   const [showHoursModal, setShowHoursModal] = useState(false)
@@ -726,6 +761,60 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     }
   }
 
+  const handleStartDateChange = async (newStartDate: string) => {
+    if (!bug || !currentUser) return
+
+    setIsUpdating(true)
+    try {
+      const updates: Partial<Bug> = {
+        startDate: newStartDate ? new Date(newStartDate).toISOString() : undefined,
+        updatedAt: new Date().toISOString()
+      }
+
+      // Update UI immediately
+      setBug({ ...bug, ...updates })
+      setIsEditingStartDate(false)
+
+      // Update backend
+      try {
+        await updateBug(bug.bugId, updates)
+      } catch (error) {
+        console.warn('Backend update failed, but UI updated:', error)
+      }
+    } catch (error) {
+      console.error('Failed to update start date:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleEndDateChange = async (newEndDate: string) => {
+    if (!bug || !currentUser) return
+
+    setIsUpdating(true)
+    try {
+      const updates: Partial<Bug> = {
+        endDate: newEndDate ? new Date(newEndDate).toISOString() : undefined,
+        updatedAt: new Date().toISOString()
+      }
+
+      // Update UI immediately
+      setBug({ ...bug, ...updates })
+      setIsEditingEndDate(false)
+
+      // Update backend
+      try {
+        await updateBug(bug.bugId, updates)
+      } catch (error) {
+        console.warn('Backend update failed, but UI updated:', error)
+      }
+    } catch (error) {
+      console.error('Failed to update end date:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'Critical': return 'text-red-600 bg-red-100'
@@ -978,6 +1067,95 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                   gradientColor="white"
                   persistState={false}
                 />
+
+                {/* Dates Section - Inline Editable */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Start Date */}
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Start Date:</span>
+                    {isEditingStartDate ? (
+                      <div className="flex items-center space-x-2 mt-1">
+                        <input
+                          type="date"
+                          value={tempStartDate}
+                          onChange={(e) => setTempStartDate(e.target.value)}
+                          className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleStartDateChange(tempStartDate)}
+                          disabled={isUpdating}
+                          className="px-2 py-1 bg-primary text-white rounded text-xs hover:bg-primary-dark disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsEditingStartDate(false)
+                            setTempStartDate(formatDateForInput(bug.startDate))
+                          }}
+                          className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setTempStartDate(formatDateForInput(bug.startDate))
+                          setIsEditingStartDate(true)
+                        }}
+                        className="ml-2 text-sm text-gray-900 hover:text-primary transition-colors group inline-flex items-center space-x-1"
+                      >
+                        <span>{formatDate(bug.startDate)}</span>
+                        <Pencil className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* End Date */}
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">End Date:</span>
+                    {isEditingEndDate ? (
+                      <div className="flex items-center space-x-2 mt-1">
+                        <input
+                          type="date"
+                          value={tempEndDate}
+                          onChange={(e) => setTempEndDate(e.target.value)}
+                          className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleEndDateChange(tempEndDate)}
+                          disabled={isUpdating}
+                          className="px-2 py-1 bg-primary text-white rounded text-xs hover:bg-primary-dark disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsEditingEndDate(false)
+                            setTempEndDate(formatDateForInput(bug.endDate))
+                          }}
+                          className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setTempEndDate(formatDateForInput(bug.endDate))
+                          setIsEditingEndDate(true)
+                        }}
+                        className="ml-2 text-sm text-gray-900 hover:text-primary transition-colors group inline-flex items-center space-x-1"
+                      >
+                        <span>{formatDate(bug.endDate)}</span>
+                        <Pencil className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    )}
+                  </div>
+                </div>
 
                 {bug.expectedBehavior && (
                   <div>

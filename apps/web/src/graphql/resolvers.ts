@@ -932,6 +932,20 @@ export const resolvers = {
       if (typeof bug.resolved_date === 'number') return new Date(bug.resolved_date).toISOString()
       return bug.resolved_date
     },
+    startDate: (bug: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!bug.start_date) return null
+      if (bug.start_date instanceof Date) return bug.start_date.toISOString()
+      if (typeof bug.start_date === 'number') return new Date(bug.start_date).toISOString()
+      return bug.start_date
+    },
+    endDate: (bug: any) => {
+      // Convert MySQL DATE to ISO 8601 string
+      if (!bug.end_date) return null
+      if (bug.end_date instanceof Date) return bug.end_date.toISOString()
+      if (typeof bug.end_date === 'number') return new Date(bug.end_date).toISOString()
+      return bug.end_date
+    },
     estimatedHours: (bug: any) => bug.estimated_hours,
     actualHours: (bug: any) => bug.actual_hours,
     remarks: (bug: any) => bug.remarks,

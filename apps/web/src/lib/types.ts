@@ -266,6 +266,8 @@ export interface Bug {
   attachments?: string      // Optional: URL or file path to screenshots/videos
   estimatedHours?: number   // Optional: Estimated time to fix (in hours)
   actualHours?: number      // Optional: Actual time spent fixing (in hours)
+  startDate?: string        // Optional: When work on bug should start
+  endDate?: string          // Optional: When work on bug should end
   resolvedDate?: string     // Optional: When bug was resolved
   closedDate?: string       // Optional: When bug was closed
   reopenedCount: number     // Number of times bug was reopened (default: 0)
