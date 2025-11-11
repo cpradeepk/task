@@ -155,6 +155,8 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
         feature: bug.feature || '',
         type: bug.type || null,
         developmentPrompt: bug.developmentPrompt || '',
+        startDate: bug.startDate,
+        endDate: bug.endDate,
       })
 
       // Load subprojects for the bug's project when modal opens
@@ -445,6 +447,84 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
             </select>
           </div>
 
+          {/* Browser and Device Information */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <Monitor className="h-4 w-4 inline mr-2" />
+                Browser Information
+              </label>
+              <select
+                value={formData.browserInfo?.includes('Chrome') ? 'Chrome' :
+                       formData.browserInfo?.includes('Firefox') ? 'Firefox' :
+                       formData.browserInfo?.includes('Safari') ? 'Safari' :
+                       formData.browserInfo?.includes('Edge') ? 'Edge' :
+                       formData.browserInfo ? 'Other' : ''}
+                onChange={(e) => {
+                  if (e.target.value === 'Other' || e.target.value === '') {
+                    setFormData({ ...formData, browserInfo: '' })
+                  } else {
+                    setFormData({ ...formData, browserInfo: e.target.value })
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="">Select browser...</option>
+                <option value="Chrome">Chrome</option>
+                <option value="Firefox">Firefox</option>
+                <option value="Safari">Safari</option>
+                <option value="Edge">Edge</option>
+                <option value="Other">Other</option>
+              </select>
+              {(formData.browserInfo && !['Chrome', 'Firefox', 'Safari', 'Edge'].some(b => formData.browserInfo === b)) && (
+                <input
+                  type="text"
+                  value={formData.browserInfo || ''}
+                  onChange={(e) => setFormData({ ...formData, browserInfo: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="e.g., Chrome 120.0.0, Firefox 115.0"
+                />
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <Monitor className="h-4 w-4 inline mr-2" />
+                Device Information
+              </label>
+              <select
+                value={formData.deviceInfo?.includes('Desktop') ? 'Desktop' :
+                       formData.deviceInfo?.includes('iPhone') ? 'iPhone' :
+                       formData.deviceInfo?.includes('iPad') ? 'iPad' :
+                       formData.deviceInfo?.includes('Android') ? 'Android' :
+                       formData.deviceInfo ? 'Other' : ''}
+                onChange={(e) => {
+                  if (e.target.value === 'Other' || e.target.value === '') {
+                    setFormData({ ...formData, deviceInfo: '' })
+                  } else {
+                    setFormData({ ...formData, deviceInfo: e.target.value })
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="">Select device...</option>
+                <option value="Desktop">Desktop</option>
+                <option value="iPhone">iPhone</option>
+                <option value="iPad">iPad</option>
+                <option value="Android">Android</option>
+                <option value="Other">Other</option>
+              </select>
+              {(formData.deviceInfo && !['Desktop', 'iPhone', 'iPad', 'Android'].some(d => formData.deviceInfo === d)) && (
+                <input
+                  type="text"
+                  value={formData.deviceInfo || ''}
+                  onChange={(e) => setFormData({ ...formData, deviceInfo: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="e.g., iPhone 15 Pro, Samsung Galaxy S23"
+                />
+              )}
+            </div>
+          </div>
+
           {/* Assigned To and Type */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -577,6 +657,34 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
               placeholder="login, authentication, security"
             />
             <p className="text-xs text-gray-500">Comma-separated tags</p>
+          </div>
+
+          {/* Start Date and End Date */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <Clock className="h-4 w-4 inline mr-2" />
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ''}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <Clock className="h-4 w-4 inline mr-2" />
+                End Date
+              </label>
+              <input
+                type="date"
+                value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ''}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
           </div>
 
           {/* Related Items (Tasks/Bugs) */}
