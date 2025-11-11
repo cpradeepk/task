@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Component, ErrorInfo, ReactNode } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { ApolloProvider } from '@apollo/client'
+import { ApolloProvider } from '@apollo/client/react'
 import { AuthContext } from './contexts/AuthContext'
 import LoginScreen from './screens/LoginScreen'
 import DashboardScreen from './screens/DashboardScreen'
@@ -23,8 +23,8 @@ import WFHListScreen from './screens/WFHListScreen'
 import WFHDetailsScreen from './screens/WFHDetailsScreen'
 import CreateWFHScreen from './screens/CreateWFHScreen'
 import NotificationBell from './components/NotificationBell'
-import { OfflineBanner } from './components/OfflineBanner'
-import { ActivityIndicator, View, LogBox } from 'react-native'
+// import { OfflineBanner } from './components/OfflineBanner'
+import { ActivityIndicator, View, LogBox, Text } from 'react-native'
 import { apolloClient, initializeApollo } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
 import { LOGIN_MUTATION } from './config/graphql-queries'
@@ -242,158 +242,172 @@ export default function App() {
         <ApolloProvider client={apolloClient}>
           <AuthContext.Provider value={authContext}>
             <NavigationContainer>
-            {/* <OfflineBanner /> */}
-            <Stack.Navigator
-              screenOptions={{
-                headerShown: true,
-                animationEnabled: true,
-              }}
-            >
-            {state.userToken == null ? (
-              <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-                options={{
-                  headerShown: false,
-                  animationEnabled: false,
+              {/* <OfflineBanner /> */}
+              <Stack.Navigator
+                screenOptions={{
+                  headerShown: true,
+                  animationEnabled: true,
                 }}
-              />
-            ) : (
-              <>
-                <Stack.Screen
-                  name="Dashboard"
-                  component={DashboardScreen}
-                  options={{
-                    headerTitle: 'JSR Task Management',
-                    // headerRight: () => <NotificationBell />,
-                  }}
-                />
-                <Stack.Screen
-                  name="BugList"
-                  component={BugListScreen}
-                  options={{
-                    headerTitle: 'Bugs',
-                  }}
-                />
-                <Stack.Screen
-                  name="BugDetails"
-                  component={BugDetailsScreen}
-                  options={{
-                    headerTitle: 'Bug Details',
-                  }}
-                />
-                <Stack.Screen
-                  name="CreateBug"
-                  component={CreateBugScreen}
-                  options={{
-                    headerTitle: 'Create Bug',
-                  }}
-                />
-                <Stack.Screen
-                  name="TaskList"
-                  component={TaskListScreen}
-                  options={{
-                    headerTitle: 'Tasks',
-                  }}
-                />
-                <Stack.Screen
-                  name="TaskDetails"
-                  component={TaskDetailsScreen}
-                  options={{
-                    headerTitle: 'Task Details',
-                  }}
-                />
-                <Stack.Screen
-                  name="CreateTask"
-                  component={CreateTaskScreen}
-                  options={{
-                    headerTitle: 'Create Task',
-                  }}
-                />
-                <Stack.Screen
-                  name="Settings"
-                  component={SettingsScreen}
-                  options={{
-                    headerTitle: 'Settings',
-                  }}
-                />
-                <Stack.Screen
-                  name="Feed"
-                  component={FeedScreen}
-                  options={{
-                    headerTitle: 'Feed',
-                  }}
-                />
-                <Stack.Screen
-                  name="FeedPostDetails"
-                  component={FeedPostDetailsScreen}
-                  options={{
-                    headerTitle: 'Post Details',
-                  }}
-                />
-                <Stack.Screen
-                  name="CreateFeedPost"
-                  component={CreateFeedPostScreen}
-                  options={{
-                    headerTitle: 'Create Post',
-                  }}
-                />
-                <Stack.Screen
-                  name="Notifications"
-                  component={NotificationsScreen}
-                  options={{
-                    headerTitle: 'Notifications',
-                  }}
-                />
-                <Stack.Screen
-                  name="LeaveList"
-                  component={LeaveListScreen}
-                  options={{
-                    headerTitle: 'Leave Applications',
-                  }}
-                />
-                <Stack.Screen
-                  name="LeaveDetails"
-                  component={LeaveDetailsScreen}
-                  options={{
-                    headerTitle: 'Leave Details',
-                  }}
-                />
-                <Stack.Screen
-                  name="CreateLeave"
-                  component={CreateLeaveScreen}
-                  options={{
-                    headerTitle: 'Apply for Leave',
-                  }}
-                />
-                <Stack.Screen
-                  name="WFHList"
-                  component={WFHListScreen}
-                  options={{
-                    headerTitle: 'WFH Applications',
-                  }}
-                />
-                <Stack.Screen
-                  name="WFHDetails"
-                  component={WFHDetailsScreen}
-                  options={{
-                    headerTitle: 'WFH Details',
-                  }}
-                />
-                <Stack.Screen
-                  name="CreateWFH"
-                  component={CreateWFHScreen}
-                  options={{
-                    headerTitle: 'Apply for WFH',
-                  }}
-                />
-              </>
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
-      </AuthContext.Provider>
-    </ApolloProvider>
-    </ThemeProvider>
+              >
+                {state.userToken == null ? (
+                  <Stack.Screen
+                    name="Login"
+                    component={LoginScreen}
+                    options={{
+                      headerShown: false,
+                      animationEnabled: false,
+                    }}
+                  />
+                ) : (
+                  <>
+                    <Stack.Screen
+                      name="Dashboard"
+                      component={DashboardScreen}
+                      options={{
+                        headerTitle: 'JSR Task Management',
+                        headerRight: () => <NotificationBell />,
+                      }}
+                    />
+
+                    {/* Task Screens */}
+                    <Stack.Screen
+                      name="TaskList"
+                      component={TaskListScreen}
+                      options={{
+                        headerTitle: 'Tasks',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="TaskDetails"
+                      component={TaskDetailsScreen}
+                      options={{
+                        headerTitle: 'Task Details',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="CreateTask"
+                      component={CreateTaskScreen}
+                      options={{
+                        headerTitle: 'Create Task',
+                      }}
+                    />
+
+                    {/* Bug Screens */}
+                    <Stack.Screen
+                      name="BugList"
+                      component={BugListScreen}
+                      options={{
+                        headerTitle: 'Bugs',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="BugDetails"
+                      component={BugDetailsScreen}
+                      options={{
+                        headerTitle: 'Bug Details',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="CreateBug"
+                      component={CreateBugScreen}
+                      options={{
+                        headerTitle: 'Create Bug',
+                      }}
+                    />
+
+                    {/* Feed Screens */}
+                    <Stack.Screen
+                      name="Feed"
+                      component={FeedScreen}
+                      options={{
+                        headerTitle: 'Feed',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="FeedPostDetails"
+                      component={FeedPostDetailsScreen}
+                      options={{
+                        headerTitle: 'Post Details',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="CreateFeedPost"
+                      component={CreateFeedPostScreen}
+                      options={{
+                        headerTitle: 'Create Post',
+                      }}
+                    />
+
+                    {/* Notification Screen */}
+                    <Stack.Screen
+                      name="Notifications"
+                      component={NotificationsScreen}
+                      options={{
+                        headerTitle: 'Notifications',
+                      }}
+                    />
+
+                    {/* Leave Screens */}
+                    <Stack.Screen
+                      name="LeaveList"
+                      component={LeaveListScreen}
+                      options={{
+                        headerTitle: 'Leave Applications',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="LeaveDetails"
+                      component={LeaveDetailsScreen}
+                      options={{
+                        headerTitle: 'Leave Details',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="CreateLeave"
+                      component={CreateLeaveScreen}
+                      options={{
+                        headerTitle: 'Apply for Leave',
+                      }}
+                    />
+
+                    {/* WFH Screens */}
+                    <Stack.Screen
+                      name="WFHList"
+                      component={WFHListScreen}
+                      options={{
+                        headerTitle: 'WFH Applications',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="WFHDetails"
+                      component={WFHDetailsScreen}
+                      options={{
+                        headerTitle: 'WFH Details',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="CreateWFH"
+                      component={CreateWFHScreen}
+                      options={{
+                        headerTitle: 'Apply for WFH',
+                      }}
+                    />
+
+                    {/* Settings Screen */}
+                    <Stack.Screen
+                      name="Settings"
+                      component={SettingsScreen}
+                      options={{
+                        headerTitle: 'Settings',
+                      }}
+                    />
+                  </>
+                )}
+              </Stack.Navigator>
+            </NavigationContainer>
+          </AuthContext.Provider>
+        </ApolloProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   )
 }

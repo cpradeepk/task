@@ -51,9 +51,11 @@ export const GET_TASKS = gql`
       priority
       estimatedHours
       actualHours
+      dailyHours
       status
       remarks
       difficulties
+      relatedTasks
       projectId
       subprojectId
       parentTaskId
@@ -82,9 +84,11 @@ export const GET_TASK = gql`
       priority
       estimatedHours
       actualHours
+      dailyHours
       status
       remarks
       difficulties
+      relatedTasks
       projectId
       subprojectId
       parentTaskId
@@ -94,12 +98,21 @@ export const GET_TASK = gql`
       updatedAt
       subtasks {
         id
+        subTaskId
         description
         assignedTo
+        assignedBy
+        startDate
+        endDate
+        priority
+        estimatedHours
+        actualHours
         status
+        remarks
         isCompleted
         displayOrder
         createdAt
+        updatedAt
       }
     }
   }
@@ -151,14 +164,24 @@ export const GET_BUGS = gql`
       category
       platform
       assignedTo
+      assignedBy
       reportedBy
+      reportedDate
+      resolvedDate
+      startDate
+      endDate
       environment
       type
       feature
       projectId
       subprojectId
+      relatedBugs
+      bugType
+      criticality
       estimatedHours
       actualHours
+      remarks
+      timerState
       createdAt
       updatedAt
     }
@@ -179,21 +202,27 @@ export const GET_BUG = gql`
       assignedTo
       assignedBy
       reportedBy
+      reportedDate
+      resolvedDate
+      startDate
+      endDate
       environment
-      browserInfo
-      deviceInfo
-      stepsToReproduce
-      expectedBehavior
-      actualBehavior
-      serverLogs
-      frontendLogs
       attachments
       type
       feature
       projectId
       subprojectId
+      relatedBugs
+      bugType
+      criticality
+      parentDevId
       estimatedHours
       actualHours
+      remarks
+      timerState
+      timerStartTime
+      timerPausedTime
+      timerTotalTime
       createdAt
       updatedAt
       subtasks {
@@ -201,10 +230,18 @@ export const GET_BUG = gql`
         subTaskId
         description
         assignedTo
+        assignedBy
+        startDate
+        endDate
+        priority
+        estimatedHours
+        actualHours
         status
+        remarks
         isCompleted
         displayOrder
         createdAt
+        updatedAt
       }
     }
   }

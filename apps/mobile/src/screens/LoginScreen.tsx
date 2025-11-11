@@ -151,7 +151,9 @@ export default function LoginScreen() {
         </TouchableOpacity>
       )}
 
-      <Text style={styles.demoText}>Demo: admin-001 / 1234</Text>
+      <Text style={styles.helperText}>
+        Use your Employee ID (e.g., AM-0001) to login
+      </Text>
     </View>
   )
 }
@@ -214,10 +216,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  demoText: {
+  helperText: {
     textAlign: 'center',
     marginTop: 20,
-    color: '#999',
-    fontSize: 12,
+    color: '#666',
+    fontSize: 14,
   },
 })
