@@ -72,7 +72,15 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
-  const [statistics, setStatistics] = useState<any>(null)
+
+  // Type for task statistics
+  type TaskStatistics = {
+    total: number
+    byStatus: Record<string, number>
+    byPriority: Record<string, number>
+  } | null
+
+  const [statistics, setStatistics] = useState<TaskStatistics>(null)
   const [isHydrated, setIsHydrated] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [users, setUsers] = useState<any[]>([])
