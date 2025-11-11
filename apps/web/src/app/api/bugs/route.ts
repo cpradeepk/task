@@ -14,8 +14,10 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const severity = searchParams.get('severity')
     const category = searchParams.get('category')
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+    const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined
 
-    console.log('Fetching bugs data from MySQL')
+    console.log('Fetching bugs data from MySQL with pagination:', { limit, offset })
     let bugs: Bug[]
 
     if (assignedTo) {
@@ -25,7 +27,7 @@ export async function GET(request: NextRequest) {
     } else if (status) {
       bugs = await getBugsByStatus(status as Bug['status'])
     } else {
-      bugs = await getAllBugs()
+      bugs = await getAllBugs({ limit, offset })
     }
 
     // Apply additional filters

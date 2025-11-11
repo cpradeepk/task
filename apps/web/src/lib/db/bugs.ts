@@ -135,12 +135,23 @@ function rowToBugComment(row: BugCommentRow): BugComment {
   }
 }
 
-// Get all bugs
-export async function getAllBugs(): Promise<Bug[]> {
+// Get all bugs with optional pagination
+export async function getAllBugs(options?: { limit?: number; offset?: number }): Promise<Bug[]> {
   return withRetry(async () => {
-    const rows = await query<BugRow[]>(
-      'SELECT * FROM bugs ORDER BY created_at DESC'
-    )
+    let sql = 'SELECT * FROM bugs ORDER BY updated_at DESC'
+    const params: any[] = []
+
+    if (options?.limit) {
+      sql += ` LIMIT $${params.length + 1}`
+      params.push(options.limit)
+    }
+
+    if (options?.offset) {
+      sql += ` OFFSET $${params.length + 1}`
+      params.push(options.offset)
+    }
+
+    const rows = await query<BugRow[]>(sql, params)
     return rows.map(rowToBug)
   })
 }

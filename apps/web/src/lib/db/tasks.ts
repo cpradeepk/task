@@ -146,12 +146,23 @@ function rowToTask(row: TaskRow): Task {
   }
 }
 
-// Get all tasks (excluding soft-deleted)
-export async function getAllTasks(): Promise<Task[]> {
+// Get all tasks (excluding soft-deleted) with optional pagination
+export async function getAllTasks(options?: { limit?: number; offset?: number }): Promise<Task[]> {
   return withRetry(async () => {
-    const rows = await query<TaskRow[]>(
-      'SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY created_at DESC'
-    )
+    let sql = 'SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY updated_at DESC'
+    const params: any[] = []
+
+    if (options?.limit) {
+      sql += ` LIMIT $${params.length + 1}`
+      params.push(options.limit)
+    }
+
+    if (options?.offset) {
+      sql += ` OFFSET $${params.length + 1}`
+      params.push(options.offset)
+    }
+
+    const rows = await query<TaskRow[]>(sql, params)
     return rows.map(rowToTask)
   })
 }

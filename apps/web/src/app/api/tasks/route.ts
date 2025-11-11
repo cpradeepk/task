@@ -6,14 +6,21 @@ import { withTimeout } from '@/lib/db/config'
 import { createActivityLog } from '@/lib/db/activityLog'
 import { generateSequentialTaskId } from '@/lib/data'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   console.log('🔵 [TASKS-GET] API called')
 
   try {
+    // Parse pagination parameters from query string
+    const { searchParams } = new URL(request.url)
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+    const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined
+
+    console.log('🔵 [TASKS-GET] Pagination params:', { limit, offset })
+
     // Get tasks from MySQL with timeout
     console.log('🔵 [TASKS-GET] Fetching tasks from database...')
     const tasks = await withTimeout(
-      getAllTasks(),
+      getAllTasks({ limit, offset }),
       10000,
       'Failed to fetch tasks - database timeout'
     )
