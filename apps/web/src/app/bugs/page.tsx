@@ -77,7 +77,21 @@ export default function BugsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all') // New: Bug type filter
-  const [statistics, setStatistics] = useState<any>(null)
+
+  // Type for bug statistics
+  type BugStatistics = {
+    total: number
+    byStatus: Record<string, number>
+    bySeverity: Record<string, number>
+    byCategory: Record<string, number>
+    byPlatform: Record<string, number>
+    byType: {
+      bug: number
+      feature: number
+    }
+  } | null
+
+  const [statistics, setStatistics] = useState<BugStatistics>(null)
   const [isHydrated, setIsHydrated] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [users, setUsers] = useState<any[]>([])
