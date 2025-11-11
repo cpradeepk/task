@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Component, ErrorInfo, ReactNode } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ApolloProvider } from '@apollo/client'
@@ -60,6 +60,71 @@ if (!__DEV__) {
 }
 
 const Stack = createNativeStackNavigator()
+
+// Error Boundary to catch and log component errors
+interface ErrorBoundaryProps {
+  children: ReactNode
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean
+  error: Error | null
+  errorInfo: ErrorInfo | null
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false, error: null, errorInfo: null }
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error, errorInfo: null }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Log detailed error information
+    console.error('🔴 ERROR BOUNDARY CAUGHT ERROR:')
+    console.error('Error:', error)
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
+    console.error('Component stack:', errorInfo.componentStack)
+
+    // Try to identify which component failed
+    const componentStack = errorInfo.componentStack
+    if (componentStack) {
+      const lines = componentStack.split('\n')
+      console.error('🎯 Component hierarchy (top to bottom):')
+      lines.forEach((line, index) => {
+        if (line.trim()) {
+          console.error(`  ${index}: ${line.trim()}`)
+        }
+      })
+    }
+
+    this.setState({ error, errorInfo })
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#fff' }}>
+          <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#d32f2f', marginBottom: 10 }}>
+            Component Error Detected
+          </Text>
+          <Text style={{ fontSize: 14, color: '#666', marginBottom: 20, textAlign: 'center' }}>
+            {this.state.error?.message || 'Unknown error'}
+          </Text>
+          <Text style={{ fontSize: 12, color: '#999', textAlign: 'center' }}>
+            Check console logs for detailed error information
+          </Text>
+        </View>
+      )
+    }
+
+    return this.props.children
+  }
+}
 
 export default function App() {
   const [state, dispatch] = React.useReducer(
@@ -172,11 +237,12 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider>
-      <ApolloProvider client={apolloClient}>
-        <AuthContext.Provider value={authContext}>
-          <NavigationContainer>
-            <OfflineBanner />
+    <ErrorBoundary>
+      <ThemeProvider>
+        <ApolloProvider client={apolloClient}>
+          <AuthContext.Provider value={authContext}>
+            <NavigationContainer>
+            {/* <OfflineBanner /> */}
             <Stack.Navigator
               screenOptions={{
                 headerShown: true,
@@ -199,7 +265,7 @@ export default function App() {
                   component={DashboardScreen}
                   options={{
                     headerTitle: 'JSR Task Management',
-                    headerRight: () => <NotificationBell />,
+                    // headerRight: () => <NotificationBell />,
                   }}
                 />
                 <Stack.Screen
@@ -328,5 +394,6 @@ export default function App() {
       </AuthContext.Provider>
     </ApolloProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   )
 }

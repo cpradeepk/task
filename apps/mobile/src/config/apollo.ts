@@ -16,13 +16,9 @@ import { CachePersistor } from 'apollo3-cache-persist'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { logger, logApiRequest, logApiResponse, logApiError } from '../utils/debugLogger'
 
-// API endpoint - update this to match your backend URL
-// For physical devices, use your computer's local IP or production URL
-// IMPORTANT: Set USE_LOCAL_DEV to true only when testing with local dev server
-const USE_LOCAL_DEV = false  // Set to true to use local development server
-const API_URL = __DEV__ && USE_LOCAL_DEV
-  ? 'http://192.168.0.13:3000/api/graphql'  // Development (your local IP)
-  : 'https://task.amtariksha.com/api/graphql'  // Production (verified working)
+// API endpoint - ALWAYS use production URL for stability
+// Production URL works for both development and production builds
+const API_URL = 'https://task.amtariksha.com/api/graphql'
 
 /**
  * HTTP Link - connects to GraphQL endpoint

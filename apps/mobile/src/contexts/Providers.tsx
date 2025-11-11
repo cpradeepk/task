@@ -110,8 +110,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     isDark,
   }
 
-  const Provider = ThemeContext.Provider
-  return React.createElement(Provider, { value }, children)
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
 // Export colors for direct use
