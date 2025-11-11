@@ -502,19 +502,7 @@ export default function BugsPage() {
     // We don't need additional sorting here
 
     return filtered
-      // If both are closed or both are not closed, maintain original order
-      if ((a.status === 'Closed' && b.status === 'Closed') ||
-          (a.status !== 'Closed' && b.status !== 'Closed')) {
-        return 0
-      }
-      // If a is closed and b is not, a should come after b
-      if (a.status === 'Closed') return 1
-      // If b is closed and a is not, b should come after a
-      return -1
-    })
-
-    return filtered
-  }, [bugs, searchTerm, statusFilter, severityFilter, categoryFilter, typeFilter, assigneeFilter, currentUser])
+  }, [bugs, searchTerm, categoryFilter, typeFilter, currentUser])
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
