@@ -231,6 +231,8 @@ export const QUERIES = {
         difficulties
         relatedTasks
         projectId
+        subprojectId
+        department
         createdAt
         updatedAt
         assignedToUser {

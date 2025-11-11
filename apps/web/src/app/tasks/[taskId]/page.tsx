@@ -49,6 +49,24 @@ async function executeGraphQLQuery(query: string, variables: any) {
   return result.data
 }
 
+// Helper function to safely format dates in dd-mm-yyyy format
+function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return 'N/A'
+
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'Invalid Date'
+
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+
+    return `${day}-${month}-${year}`
+  } catch (error) {
+    return 'Invalid Date'
+  }
+}
+
 // Component to handle async user name fetching
 function UserName({ employeeId }: { employeeId: string }) {
   const [name, setName] = useState<string>(employeeId)
@@ -766,11 +784,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-sm font-medium text-gray-600">Start Date:</span>
-                    <span className="ml-2 text-sm text-gray-900">{new Date(task.startDate).toLocaleDateString()}</span>
+                    <span className="ml-2 text-sm text-gray-900">{formatDate(task.startDate)}</span>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-600">End Date:</span>
-                    <span className="ml-2 text-sm text-gray-900">{new Date(task.endDate).toLocaleDateString()}</span>
+                    <span className="ml-2 text-sm text-gray-900">{formatDate(task.endDate)}</span>
                   </div>
                 </div>
 
