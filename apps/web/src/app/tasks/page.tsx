@@ -80,6 +80,13 @@ export default function TasksPage() {
   const [isOnline, setIsOnline] = useState(true)
   const hasLoadedData = useRef(false)
 
+  // Infinite scroll state
+  const [hasMore, setHasMore] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [offset, setOffset] = useState(0)
+  const loadMoreTriggerRef = useRef<HTMLDivElement>(null)
+  const ITEMS_PER_PAGE = 10
+
   // Settings data from database
   const [settingsData, setSettingsData] = useState<{
     taskStatuses: Array<{ value: string; icon: string }>;
@@ -187,24 +194,56 @@ export default function TasksPage() {
     loadSettings()
   }, [])
 
-  const loadTasks = useCallback(async (isRetry = false) => {
+  const loadTasks = useCallback(async (isRetry = false, loadMore = false) => {
     try {
-      setIsLoading(true)
+      if (loadMore) {
+        setIsLoadingMore(true)
+      } else {
+        setIsLoading(true)
+        setOffset(0)
+        setHasMore(true)
+      }
       setError(null)
 
+      const currentOffset = loadMore ? offset : 0
       let tasksData: Task[] = []
 
-      // Try GraphQL first
+      // Build filter variables for GraphQL
+      const variables: any = {
+        limit: ITEMS_PER_PAGE,
+        offset: currentOffset
+      }
+
+      // Add filters if they're not 'all'
+      if (assigneeFilter && assigneeFilter !== 'all') {
+        variables.assignedTo = assigneeFilter
+      }
+      if (statusFilter && statusFilter !== 'all') {
+        variables.status = statusFilter
+      }
+      if (priorityFilter && priorityFilter !== 'all') {
+        variables.priority = priorityFilter
+      }
+
+      // Try GraphQL first with pagination and filters
       try {
-        console.log('🔵 [Tasks] Attempting GraphQL query...')
-        const data = await executeGraphQLQuery(QUERIES.GET_TASKS, {})
+        console.log('🔵 [Tasks] Attempting GraphQL query with pagination and filters...', variables)
+        const data = await executeGraphQLQuery(QUERIES.GET_TASKS, variables)
         tasksData = data.tasks || []
         console.log('✅ [Tasks] GraphQL query successful:', tasksData.length, 'tasks')
       } catch (graphqlError) {
         console.warn('⚠️ [Tasks] GraphQL failed, falling back to REST:', graphqlError)
 
-        // Fallback to REST API
-        const response = await fetch('/api/tasks')
+        // Fallback to REST API with pagination and filters
+        const params = new URLSearchParams({
+          limit: ITEMS_PER_PAGE.toString(),
+          offset: currentOffset.toString()
+        })
+        if (assigneeFilter && assigneeFilter !== 'all') params.append('assignedTo', assigneeFilter)
+        if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter)
+        if (priorityFilter && priorityFilter !== 'all') params.append('priority', priorityFilter)
+
+        const response = await fetch(`/api/tasks?${params.toString()}`)
         if (!response.ok) {
           throw new Error('Failed to fetch tasks')
         }
@@ -214,16 +253,31 @@ export default function TasksPage() {
         console.log('✅ [Tasks] REST API successful:', tasksData.length, 'tasks')
       }
 
+      // Check if there are more items to load
+      if (tasksData.length < ITEMS_PER_PAGE) {
+        setHasMore(false)
+      }
+
       // Note: Role-based filtering is NOT applied here anymore
       // All users can see all tasks in the system
       // The assignee filter dropdown allows users to filter by specific assignees
       // This ensures consistent task visibility across all users
 
-      setTasks(tasksData)
+      if (loadMore) {
+        // Append new tasks to existing ones
+        setTasks(prev => [...prev, ...tasksData])
+        setOffset(prev => prev + ITEMS_PER_PAGE)
+      } else {
+        // Replace tasks (initial load or filter change)
+        setTasks(tasksData)
+        setOffset(ITEMS_PER_PAGE)
+      }
 
-      // Calculate statistics from filtered tasks
-      const stats = calculateStatistics(tasksData)
-      setStatistics(stats)
+      // Calculate statistics from all loaded tasks
+      setStatistics(prev => {
+        const allTasks = loadMore ? [...tasks, ...tasksData] : tasksData
+        return calculateStatistics(allTasks)
+      })
 
       setError(null)
       setRetryCount(0)
@@ -245,8 +299,9 @@ export default function TasksPage() {
       }
     } finally {
       setIsLoading(false)
+      setIsLoadingMore(false)
     }
-  }, [currentUser])
+  }, [currentUser, offset, assigneeFilter, statusFilter, priorityFilter, tasks, ITEMS_PER_PAGE])
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -264,6 +319,40 @@ export default function TasksPage() {
       console.error('Failed to save filters:', error)
     }
   }, [searchTerm, statusFilter, priorityFilter, assigneeFilter, isHydrated])
+
+  // Reload tasks when filters change (reset pagination)
+  useEffect(() => {
+    if (!initialized) return // Don't reload during initial mount
+
+    console.log('🔵 [Tasks] Filters changed, reloading tasks from beginning...')
+    loadTasks(false, false) // Reset to first page
+  }, [statusFilter, priorityFilter, assigneeFilter, initialized])
+
+  // Intersection Observer for infinite scroll (trigger at 80% scroll)
+  useEffect(() => {
+    if (!loadMoreTriggerRef.current || !hasMore || isLoadingMore) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+        if (entry.isIntersecting && hasMore && !isLoadingMore) {
+          console.log('🔵 [Tasks] Load more trigger reached, loading next batch...')
+          loadTasks(false, true) // loadMore = true
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: '0px 0px 200px 0px', // Trigger 200px before reaching the element (approximately 80% scroll)
+        threshold: 0.1
+      }
+    )
+
+    observer.observe(loadMoreTriggerRef.current)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [hasMore, isLoadingMore, loadTasks])
 
   // Calculate statistics from filtered tasks
   const calculateStatistics = useCallback((tasksData: Task[]) => {
@@ -322,13 +411,15 @@ export default function TasksPage() {
   }, [currentUser, router, isHydrated])
 
   // Memoized filtered tasks
+  // Note: Status, priority, and assignee filters are now handled server-side for pagination
+  // Only client-side search filter and subtask filtering remain
   const filteredTasks = useMemo(() => {
     let filtered = tasks
 
     // Filter out subtasks - only show root tasks (tasks without parent_task_id)
     filtered = filtered.filter(task => !task.parentTaskId)
 
-    // Search filter
+    // Search filter (client-side only)
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(task =>
@@ -338,45 +429,8 @@ export default function TasksPage() {
       )
     }
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(task => task.status === statusFilter)
-    }
-
-    // Priority filter
-    if (priorityFilter !== 'all') {
-      filtered = filtered.filter(task => task.priority === priorityFilter)
-    }
-
-    // Assignee filter
-    if (assigneeFilter !== 'all') {
-      if (assigneeFilter === 'me') {
-        filtered = filtered.filter(task =>
-          Array.isArray(task.assignedTo)
-            ? task.assignedTo.includes(currentUser?.employeeId || '')
-            : task.assignedTo === currentUser?.employeeId
-        )
-      } else {
-        filtered = filtered.filter(task =>
-          Array.isArray(task.assignedTo)
-            ? task.assignedTo.includes(assigneeFilter)
-            : task.assignedTo === assigneeFilter
-        )
-      }
-    }
-
-    // Sort tasks: Completed/Cancelled tasks should appear last
-    filtered = filtered.sort((a, b) => {
-      const completedStatuses = ['Done', 'Completed', 'Cancel', 'Cancelled']
-      const aCompleted = completedStatuses.includes(a.status)
-      const bCompleted = completedStatuses.includes(b.status)
-
-      if ((aCompleted && bCompleted) || (!aCompleted && !bCompleted)) {
-        return 0
-      }
-      if (aCompleted) return 1
-      return -1
-    })
+    // Note: Server already returns tasks sorted by updated_at DESC
+    // We don't need additional sorting here
 
     return filtered
   }, [tasks, searchTerm, statusFilter, priorityFilter, assigneeFilter, currentUser])
@@ -775,19 +829,40 @@ export default function TasksPage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredTasks.map((task) => (
-              <HierarchicalTaskRow
-                key={task.taskId}
-                task={task}
-                currentUserId={currentUser.employeeId}
-                getStatusColor={getStatusColor}
-                getPriorityColor={getPriorityColor}
-                getStatusIcon={getStatusIcon}
-                ProjectDisplay={ProjectDisplay}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4">
+              {filteredTasks.map((task) => (
+                <HierarchicalTaskRow
+                  key={task.taskId}
+                  task={task}
+                  currentUserId={currentUser.employeeId}
+                  getStatusColor={getStatusColor}
+                  getPriorityColor={getPriorityColor}
+                  getStatusIcon={getStatusIcon}
+                  ProjectDisplay={ProjectDisplay}
+                />
+              ))}
+            </div>
+
+            {/* Infinite scroll trigger element */}
+            {hasMore && (
+              <div ref={loadMoreTriggerRef} className="py-8 text-center">
+                {isLoadingMore && (
+                  <div className="flex items-center justify-center space-x-2 text-gray-600">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <span>Loading more tasks...</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* End of list indicator */}
+            {!hasMore && tasks.length > 0 && (
+              <div className="py-8 text-center text-gray-500 text-sm">
+                <p>You've reached the end of the list</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
