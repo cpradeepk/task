@@ -1396,6 +1396,63 @@ export const resolvers = {
 
   // Mutations
   Mutation: {
+    // Authentication mutations
+    login: async (_: any, { employeeId, password }: any) => {
+      const { startTime } = logResolverStart('login', { employeeId })
+
+      try {
+        // Query user from database
+        const dbStart = logDatabaseQuery(
+          'SELECT * FROM users WHERE employee_id = $1 AND status = $2',
+          [employeeId, 'active'],
+          'login'
+        )
+
+        const result = await getPoolInstance().query(
+          'SELECT * FROM users WHERE employee_id = $1 AND status = $2',
+          [employeeId, 'active']
+        )
+
+        logDatabaseResult(result.rows.length, dbStart.startTime, 'login')
+
+        if (result.rows.length === 0) {
+          logResolverError('login', new Error('User not found or inactive'), startTime)
+          throw new Error('Invalid credentials')
+        }
+
+        const user = result.rows[0]
+
+        // Verify password (plain text comparison for now)
+        if (user.password !== password) {
+          logResolverError('login', new Error('Invalid password'), startTime)
+          throw new Error('Invalid credentials')
+        }
+
+        // Generate JWT token
+        const jwt = require('jsonwebtoken')
+        const token = jwt.sign(
+          {
+            employeeId: user.employee_id,
+            role: user.role,
+            name: user.name
+          },
+          process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
+          { expiresIn: '7d' }
+        )
+
+        const response = {
+          token,
+          user: user
+        }
+
+        logResolverSuccess('login', response, startTime)
+        return response
+      } catch (error) {
+        logResolverError('login', error, startTime)
+        throw error
+      }
+    },
+
     // Task mutations
     createTask: async (_: any, { input }: any) => {
       const taskId = `TSK-${Date.now()}`

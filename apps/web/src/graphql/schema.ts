@@ -357,17 +357,25 @@ export const typeDefs = `#graphql
     settings: [Setting!]!
   }
 
+  type LoginResponse {
+    token: String!
+    user: User!
+  }
+
   type Mutation {
+    # Authentication
+    login(employeeId: String!, password: String!): LoginResponse!
+
     # Tasks
     createTask(input: CreateTaskInput!): Task!
     updateTask(taskId: ID!, input: UpdateTaskInput!): Task!
     deleteTask(taskId: ID!): Boolean!
-    
+
     # Bugs
     createBug(input: CreateBugInput!): Bug!
     updateBug(bugId: ID!, input: UpdateBugInput!): Bug!
     deleteBug(bugId: ID!): Boolean!
-    
+
     # Users
     createUser(input: CreateUserInput!): User!
     updateUser(employeeId: ID!, input: UpdateUserInput!): User!
