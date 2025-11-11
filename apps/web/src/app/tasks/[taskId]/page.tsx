@@ -768,7 +768,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
               {/* Task Description */}
               {task.description && task.name && (
                 <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-gray-600">Description</h3>
+                  <h3 className="text-sm font-bold text-gray-900">Description:</h3>
                   <CollapsibleText
                     content={task.description}
                     maxCharacters={300}

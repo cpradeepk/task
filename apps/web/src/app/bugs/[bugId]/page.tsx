@@ -1195,22 +1195,22 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
 
                 {/* Browser and Device Information */}
-            {(bug.browserInfo || bug.deviceInfo) && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <div className="grid grid-cols-2 gap-4">
-                  {bug.browserInfo && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Browser:</span>
-                      <span className="ml-2 text-sm text-gray-900">{bug.browserInfo}</span>
+                {(bug.browserInfo || bug.deviceInfo) && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      {bug.browserInfo && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Browser:</span>
+                          <span className="ml-2 text-sm text-gray-900">{bug.browserInfo}</span>
+                        </div>
+                      )}
+                      {bug.deviceInfo && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Device:</span>
+                          <span className="ml-2 text-sm text-gray-900">{bug.deviceInfo}</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {bug.deviceInfo && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Device:</span>
-                      <span className="ml-2 text-sm text-gray-900">{bug.deviceInfo}</span>
-                    </div>
-                  )}
-                </div>
                   </div>
                 )}
 
