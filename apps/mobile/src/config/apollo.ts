@@ -18,7 +18,9 @@ import { logger, logApiRequest, logApiResponse, logApiError } from '../utils/deb
 
 // API endpoint - update this to match your backend URL
 // For physical devices, use your computer's local IP or production URL
-const API_URL = __DEV__
+// IMPORTANT: Set USE_LOCAL_DEV to true only when testing with local dev server
+const USE_LOCAL_DEV = false  // Set to true to use local development server
+const API_URL = __DEV__ && USE_LOCAL_DEV
   ? 'http://192.168.0.13:3000/api/graphql'  // Development (your local IP)
   : 'https://task.amtariksha.com/api/graphql'  // Production (verified working)
 
