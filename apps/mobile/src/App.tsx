@@ -23,7 +23,7 @@ import WFHListScreen from './screens/WFHListScreen'
 import WFHDetailsScreen from './screens/WFHDetailsScreen'
 import CreateWFHScreen from './screens/CreateWFHScreen'
 import NotificationBell from './components/NotificationBell'
-// import { OfflineBanner } from './components/OfflineBanner'
+import { OfflineBanner } from './components/OfflineBanner'
 import { ActivityIndicator, View, LogBox, Text } from 'react-native'
 import { apolloClient, initializeApollo } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
@@ -242,7 +242,7 @@ export default function App() {
         <ApolloProvider client={apolloClient}>
           <AuthContext.Provider value={authContext}>
             <NavigationContainer>
-              {/* <OfflineBanner /> */}
+              <OfflineBanner />
               <Stack.Navigator
                 screenOptions={{
                   headerShown: true,

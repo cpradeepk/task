@@ -1,38 +1,95 @@
 /**
- * Offline Banner Component
- * Displays a banner when the device is offline
+ * Offline Banner Component - Material Design 3
+ * Displays an animated banner when the device is offline
  */
 
-import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import React, { useEffect, useRef } from 'react'
+import { View, Text, StyleSheet, Animated } from 'react-native'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
-import { useTheme } from '../contexts/ThemeContext'
+import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 
 export const OfflineBanner: React.FC = () => {
   const { isOffline } = useNetworkStatus()
-  const { colors } = useTheme()
+  const slideAnim = useRef(new Animated.Value(-100)).current
+
+  useEffect(() => {
+    if (isOffline) {
+      // Slide in animation
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 8,
+      }).start()
+    } else {
+      // Slide out animation
+      Animated.timing(slideAnim, {
+        toValue: -100,
+        duration: 200,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [isOffline, slideAnim])
 
   if (!isOffline) {
     return null
   }
 
   return (
-    <View style={[styles.banner, { backgroundColor: colors.warning }]}>
-      <Text style={styles.text}>📡 You're offline. Some features may be limited.</Text>
-    </View>
+    <Animated.View
+      style={[
+        styles.banner,
+        {
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
+      <View style={styles.content}>
+        <View style={styles.iconContainer}>
+          <Text style={styles.icon}>📡</Text>
+        </View>
+        <View style={styles.textContainer}>
+          <Text style={styles.title}>You're offline</Text>
+          <Text style={styles.subtitle}>Some features may be limited</Text>
+        </View>
+      </View>
+    </Animated.View>
   )
 }
 
 const styles = StyleSheet.create({
   banner: {
-    padding: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: materialColors.warning,
+    paddingVertical: materialSpacing.md,
+    paddingHorizontal: materialSpacing.md,
+    elevation: materialElevation.level2,
+    shadowColor: materialColors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    zIndex: 1000,
   },
-  text: {
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    marginRight: materialSpacing.sm,
+  },
+  icon: {
+    fontSize: 24,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  title: {
+    ...materialTypography.titleMedium,
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    marginBottom: 2,
+  },
+  subtitle: {
+    ...materialTypography.bodySmall,
+    color: 'rgba(255, 255, 255, 0.9)',
   },
 })
 
