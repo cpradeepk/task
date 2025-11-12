@@ -35,8 +35,8 @@ export const LOGIN_MUTATION = gql`
 // ============================================================================
 
 export const GET_TASKS = gql`
-  query GetTasks($assignedTo: String, $status: String, $priority: String) {
-    tasks(assignedTo: $assignedTo, status: $status, priority: $priority) {
+  query GetTasks($assignedTo: String, $status: String, $priority: String, $limit: Int, $offset: Int) {
+    tasks(assignedTo: $assignedTo, status: $status, priority: $priority, limit: $limit, offset: $offset) {
       id
       taskId
       name
@@ -63,6 +63,21 @@ export const GET_TASKS = gql`
       timerState
       createdAt
       updatedAt
+      assignedToUsers {
+        employeeId
+        name
+        email
+      }
+      assignedByUser {
+        employeeId
+        name
+        email
+      }
+      project {
+        projectId
+        projectName
+        parentProjectId
+      }
     }
   }
 `
@@ -153,8 +168,8 @@ export const UPDATE_TASK = gql`
 // ============================================================================
 
 export const GET_BUGS = gql`
-  query GetBugs($assignedTo: String, $status: String, $severity: String, $category: String) {
-    bugs(assignedTo: $assignedTo, status: $status, severity: $severity, category: $category) {
+  query GetBugs($assignedTo: String, $status: String, $severity: String, $category: String, $limit: Int, $offset: Int) {
+    bugs(assignedTo: $assignedTo, status: $status, severity: $severity, category: $category, limit: $limit, offset: $offset) {
       bugId
       title
       description
@@ -184,6 +199,26 @@ export const GET_BUGS = gql`
       timerState
       createdAt
       updatedAt
+      assignedToUser {
+        employeeId
+        name
+        email
+      }
+      assignedByUser {
+        employeeId
+        name
+        email
+      }
+      reportedByUser {
+        employeeId
+        name
+        email
+      }
+      project {
+        projectId
+        projectName
+        parentProjectId
+      }
     }
   }
 `
@@ -272,6 +307,38 @@ export const UPDATE_BUG = gql`
       status
       remarks
       actualHours
+    }
+  }
+`
+
+// ============================================================================
+// PROJECTS
+// ============================================================================
+
+export const GET_PROJECTS = gql`
+  query GetProjects {
+    projects {
+      id
+      projectId
+      projectName
+      description
+      parentProjectId
+      createdAt
+      updatedAt
+    }
+  }
+`
+
+export const GET_PROJECT = gql`
+  query GetProject($projectId: ID!) {
+    project(projectId: $projectId) {
+      id
+      projectId
+      projectName
+      description
+      parentProjectId
+      createdAt
+      updatedAt
     }
   }
 `

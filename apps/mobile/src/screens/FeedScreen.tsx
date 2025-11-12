@@ -48,7 +48,7 @@ export default function FeedScreen() {
   })
 
   const topics = topicsData?.feedTopics || []
-  const posts = postsData?.feedPosts || []
+  const posts = postsData?.feedPosts?.posts || []
 
   const loadCurrentUser = useCallback(async () => {
     try {
@@ -75,15 +75,15 @@ export default function FeedScreen() {
     setSelectedTopicId(topicId)
   }, [])
 
-  const handlePostPress = useCallback((post: FeedPost) => {
-    navigation.navigate('FeedPostDetails' as never, { postId: post.id } as never)
+  const handlePostPress = useCallback((post: any) => {
+    navigation.navigate('FeedPostDetails' as never, { postId: post.postId } as never)
   }, [navigation])
 
   const handleCreatePost = useCallback(() => {
     navigation.navigate('CreateFeedPost' as never, { topicId: selectedTopicId } as never)
   }, [navigation, selectedTopicId])
 
-  const renderTopic = ({ item }: { item: FeedTopic }) => (
+  const renderTopic = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={[
         styles.topicButton,
@@ -97,7 +97,7 @@ export default function FeedScreen() {
           selectedTopicId === item.id && styles.topicButtonTextActive,
         ]}
       >
-        {item.name}
+        {item.topicName}
       </Text>
       {item.postCount > 0 && (
         <View style={styles.topicBadge}>
@@ -107,49 +107,62 @@ export default function FeedScreen() {
     </TouchableOpacity>
   )
 
-  const renderPost = ({ item }: { item: FeedPost }) => (
-    <TouchableOpacity style={styles.postCard} onPress={() => handlePostPress(item)}>
-      <View style={styles.postHeader}>
-        <View style={styles.postAuthor}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {item.createdBy?.charAt(0).toUpperCase()}
+  const renderPost = ({ item }: { item: any }) => {
+    const authorName = item.author?.name || 'Unknown'
+    const topicNames = item.topics?.map((t: any) => t.topicName).join(', ') || ''
+
+    return (
+      <TouchableOpacity style={styles.postCard} onPress={() => handlePostPress(item)}>
+        <View style={styles.postHeader}>
+          <View style={styles.postAuthor}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {authorName.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View>
+              <Text style={styles.authorName}>{authorName}</Text>
+              <Text style={styles.postDate}>
+                {new Date(item.createdAt).toLocaleDateString()}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {topicNames && (
+          <View style={styles.topicsContainer}>
+            <Text style={styles.topicsText}>📌 {topicNames}</Text>
+          </View>
+        )}
+
+        <Text style={styles.postContent} numberOfLines={4}>
+          {item.content}
+        </Text>
+
+        {item.contentType !== 'text' && (
+          <View style={styles.contentTypeBadge}>
+            <Text style={styles.contentTypeText}>
+              {item.contentType === 'link' && '🔗 Link'}
+              {item.contentType === 'pdf' && '📄 PDF'}
+              {item.contentType === 'youtube' && '▶️ Video'}
+              {item.contentType === 'image' && '🖼️ Image'}
+              {item.contentType === 'video' && '🎥 Video'}
             </Text>
           </View>
-          <View>
-            <Text style={styles.authorName}>{item.createdBy}</Text>
-            <Text style={styles.postDate}>
-              {new Date(item.createdAt).toLocaleDateString()}
+        )}
+
+        <View style={styles.postFooter}>
+          <View style={styles.postStats}>
+            <Text style={styles.statText}>
+              ❤️ {item.reactions?.reduce((sum: number, r: any) => sum + r.count, 0) || 0}
             </Text>
+            <Text style={styles.statText}>💬 {item.commentCount || 0}</Text>
+            <Text style={styles.statText}>👁️ {item.viewCount || 0}</Text>
           </View>
         </View>
-      </View>
-
-      <Text style={styles.postContent} numberOfLines={4}>
-        {item.content}
-      </Text>
-
-      {item.contentType !== 'text' && (
-        <View style={styles.contentTypeBadge}>
-          <Text style={styles.contentTypeText}>
-            {item.contentType === 'link' && '🔗 Link'}
-            {item.contentType === 'pdf' && '📄 PDF'}
-            {item.contentType === 'youtube' && '▶️ Video'}
-            {item.contentType === 'image' && '🖼️ Image'}
-            {item.contentType === 'video' && '🎥 Video'}
-          </Text>
-        </View>
-      )}
-
-      <View style={styles.postFooter}>
-        <View style={styles.postStats}>
-          <Text style={styles.statText}>❤️ {item.reactionCount || 0}</Text>
-          <Text style={styles.statText}>💬 {item.commentCount || 0}</Text>
-          <Text style={styles.statText}>👁️ {item.viewCount || 0}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  )
+      </TouchableOpacity>
+    )
+  }
 
   if (topicsLoading && !topicsData) {
     return (
@@ -323,6 +336,14 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   postDate: {
     fontSize: responsive.fontSize.xs,
     color: colors.textSecondary,
+  },
+  topicsContainer: {
+    marginBottom: responsive.spacing.xs,
+  },
+  topicsText: {
+    fontSize: responsive.fontSize.xs,
+    color: colors.primary,
+    fontWeight: '500',
   },
   postContent: {
     fontSize: responsive.fontSize.md,

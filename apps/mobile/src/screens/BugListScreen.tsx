@@ -140,8 +140,10 @@ export default function BugListScreen() {
     saveFilters()
   }, [saveFilters])
 
-  const renderBugItem = ({ item }: { item: Bug }) => {
+  const renderBugItem = ({ item }: { item: any }) => {
     const displayId = getBugDisplayId(item.bugId, item.type)
+    const assignedToName = item.assignedToUser?.name || item.assignedTo || 'Unassigned'
+    const projectName = item.project?.projectName || ''
 
     return (
       <TouchableOpacity
@@ -179,10 +181,17 @@ export default function BugListScreen() {
         <Text style={styles.bugTitle} numberOfLines={2}>
           {item.title}
         </Text>
+        {projectName && (
+          <Text style={styles.projectName} numberOfLines={1}>
+            📁 {projectName}
+          </Text>
+        )}
         <View style={styles.bugMeta}>
           <Text style={styles.metaText}>{item.category}</Text>
           <Text style={styles.metaText}>•</Text>
           <Text style={styles.metaText}>{item.platform}</Text>
+          <Text style={styles.metaText}>•</Text>
+          <Text style={styles.metaText}>👤 {assignedToName}</Text>
         </View>
       </TouchableOpacity>
     )
@@ -443,9 +452,17 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     color: colors.text,
     marginBottom: responsive.spacing.xs,
   },
+  projectName: {
+    fontSize: responsive.fontSize.xs,
+    color: colors.primary,
+    marginBottom: responsive.spacing.xxs,
+    fontWeight: '500',
+  },
   bugMeta: {
     flexDirection: 'row',
     gap: responsive.spacing.xs,
+    flexWrap: 'wrap',
+    alignItems: 'center',
   },
   metaText: {
     fontSize: responsive.fontSize.xs,

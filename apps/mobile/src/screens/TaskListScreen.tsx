@@ -186,40 +186,52 @@ export default function TaskListScreen({ navigation }: any) {
     saveFilters()
   }, [saveFilters])
 
-  const renderTask = ({ item }: { item: Task }) => (
-    <TouchableOpacity
-      style={styles.taskCard}
-      onPress={() => handleTaskPress(item)}
-    >
-      <View style={styles.taskHeader}>
-        <Text style={styles.taskId}>{item.taskId}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-          <Text style={styles.statusText}>{item.status}</Text>
+  const renderTask = ({ item }: { item: any }) => {
+    const projectName = item.project?.projectName || ''
+    const assigneeNames = item.assignedToUsers?.map((u: any) => u.name).join(', ') ||
+                         getAssigneeNames(item.assignedTo)
+
+    return (
+      <TouchableOpacity
+        style={styles.taskCard}
+        onPress={() => handleTaskPress(item)}
+      >
+        <View style={styles.taskHeader}>
+          <Text style={styles.taskId}>{item.taskId}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+            <Text style={styles.statusText}>{item.status}</Text>
+          </View>
         </View>
-      </View>
 
-      <Text style={styles.taskName} numberOfLines={1}>
-        {item.name || 'Untitled Task'}
-      </Text>
-
-      <Text style={styles.taskDescription} numberOfLines={2}>
-        {item.description}
-      </Text>
-
-      <View style={styles.taskMeta}>
-        <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) }]}>
-          <Text style={styles.priorityText}>{item.priority}</Text>
-        </View>
-        <Text style={styles.taskDate}>
-          Due: {new Date(item.endDate).toLocaleDateString()}
+        <Text style={styles.taskName} numberOfLines={1}>
+          {item.name || 'Untitled Task'}
         </Text>
-      </View>
 
-      <Text style={styles.assignedTo}>
-        👤 {getAssigneeNames(item.assignedTo)}
-      </Text>
-    </TouchableOpacity>
-  )
+        {projectName && (
+          <Text style={styles.projectName} numberOfLines={1}>
+            📁 {projectName}
+          </Text>
+        )}
+
+        <Text style={styles.taskDescription} numberOfLines={2}>
+          {item.description}
+        </Text>
+
+        <View style={styles.taskMeta}>
+          <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) }]}>
+            <Text style={styles.priorityText}>{item.priority}</Text>
+          </View>
+          <Text style={styles.taskDate}>
+            Due: {new Date(item.endDate).toLocaleDateString()}
+          </Text>
+        </View>
+
+        <Text style={styles.assignedTo}>
+          👤 {assigneeNames}
+        </Text>
+      </TouchableOpacity>
+    )
+  }
 
   if (loading && !data) {
     return (
@@ -449,6 +461,12 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
     marginBottom: responsive.spacing.xxs,
+  },
+  projectName: {
+    fontSize: responsive.fontSize.xs,
+    color: colors.primary,
+    marginBottom: responsive.spacing.xxs,
+    fontWeight: '500',
   },
   taskDescription: {
     fontSize: responsive.fontSize.sm,
