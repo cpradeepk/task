@@ -1,12 +1,13 @@
 # JSR Task Management - Developer Guide
 
-**Version:** 1.0  
-**Last Updated:** 2025-11-12  
+**Version:** 1.1
+**Last Updated:** 2025-11-13
 **Document Owner:** JSR Development Team
 
 ---
 
 ## Changelog
+- **2025-11-13**: Added push notification setup instructions, testing procedures, debugging tips, and common issues
 - **2025-11-12**: Initial Developer Guide creation - Setup instructions, code patterns, conventions, best practices
 
 ---
@@ -180,6 +181,94 @@ cd android
 ```
 
 APK location: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+#### 5. Push Notifications Setup
+
+**Prerequisites:**
+- Expo account (free)
+- Expo CLI installed globally: `npm install -g expo-cli`
+
+**Configuration:**
+
+Push notifications are configured in `apps/mobile/app.json`:
+
+```json
+{
+  "expo": {
+    "scheme": "jsrtask",
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FFA301",
+          "sounds": [],
+          "mode": "production"
+        }
+      ]
+    ],
+    "android": {
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "com.google.android.c2dm.permission.RECEIVE"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [{ "scheme": "jsrtask" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    }
+  }
+}
+```
+
+**Testing Push Notifications:**
+
+1. **Build and install APK** (push notifications don't work in Expo Go):
+   ```bash
+   cd apps/mobile
+   npx expo export:embed
+   cd android
+   ./gradlew assembleDebug --no-daemon
+   adb install -r app/build/outputs/apk/debug/app-debug.apk
+   ```
+
+2. **Login to app** - Push token will be automatically registered
+
+3. **Trigger a notification** (e.g., assign a task to yourself from web app)
+
+4. **Check notification** - Should appear in notification tray
+
+**Debugging:**
+
+```bash
+# Check device logs
+adb logcat | grep -i "expo\|notification\|push"
+
+# Check push token registration
+# Look for console logs in app:
+# "Push token obtained: ExponentPushToken[...]"
+# "Push token registered with backend"
+```
+
+**Deep Linking:**
+
+Test deep linking by tapping notifications:
+- Task notification → Opens TaskDetailsScreen
+- Bug notification → Opens BugDetailsScreen
+- Feed notification → Opens FeedScreen or FeedPostDetailsScreen
+
+**Common Issues:**
+
+- **No push token**: Check permissions in device settings
+- **Token not registered**: Check GraphQL mutation logs in backend
+- **Notifications not received**: Check Expo Push API response in backend logs
+- **Deep linking not working**: Verify `scheme: "jsrtask"` in app.json
+
+---
 
 ### Database Setup
 

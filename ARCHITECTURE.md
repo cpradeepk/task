@@ -1,8 +1,9 @@
 # JSR Task Management - System Architecture
 
-**Last Updated:** 2025-11-12
+**Last Updated:** 2025-11-13
 
 ## Changelog
+- **2025-11-13**: Added push notification system (push_tokens table, GraphQL mutations, Expo Push Notification Service integration)
 - **2025-11-12**: Initial creation - Complete system architecture, database schema, GraphQL API documentation
 
 ---
@@ -670,6 +671,38 @@ Stores work-from-home applications with approval workflow.
 
 ---
 
+### Notification Tables
+
+#### push_tokens
+Stores push notification tokens for mobile devices.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | SERIAL | PRIMARY KEY | Auto-increment ID |
+| user_id | VARCHAR(50) | NOT NULL | User's employee_id |
+| push_token | TEXT | NOT NULL | Expo push token |
+| device_type | VARCHAR(20) | NOT NULL | Device type (android, ios) |
+| device_id | TEXT | | Device identifier |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Token creation timestamp |
+| updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Last update timestamp |
+| last_used_at | TIMESTAMP | | Last time token was used |
+| is_active | BOOLEAN | DEFAULT true | Token active status |
+
+**Indexes:**
+- `push_tokens_pkey` (id)
+- `idx_push_tokens_user_id` (user_id)
+- `idx_push_tokens_is_active` (is_active)
+
+**Unique Constraints:**
+- `push_tokens_user_id_push_token_key` (user_id, push_token) UNIQUE
+
+**Notes:**
+- Users can have multiple active push tokens (one per device)
+- Tokens are marked inactive (is_active = false) instead of deleted for audit trail
+- Invalid tokens (DeviceNotRegistered errors from Expo) are automatically marked inactive
+
+---
+
 ### Configuration Tables
 
 #### settings
@@ -710,6 +743,7 @@ erDiagram
     users ||--o{ wfh_applications : "applies"
     users ||--o{ feed_posts : "creates"
     users ||--o{ feed_comments : "creates"
+    users ||--o{ push_tokens : "has"
 
     projects ||--o{ tasks : "belongs_to"
     projects ||--o{ bugs : "belongs_to"
@@ -987,6 +1021,37 @@ mutation StopTimer($entityType: String!, $entityId: String!) {
 }
 ```
 
+#### registerPushToken / unregisterPushToken
+Manage push notification tokens for mobile devices.
+
+```graphql
+mutation RegisterPushToken(
+  $userId: String!
+  $pushToken: String!
+  $deviceType: String!
+  $deviceId: String
+) {
+  registerPushToken(
+    userId: $userId
+    pushToken: $pushToken
+    deviceType: $deviceType
+    deviceId: $deviceId
+  )
+}
+
+mutation UnregisterPushToken($userId: String!, $pushToken: String!) {
+  unregisterPushToken(userId: $userId, pushToken: $pushToken)
+}
+```
+
+**Notes:**
+- `registerPushToken` upserts the token (insert or update if exists)
+- `unregisterPushToken` marks the token as inactive instead of deleting
+- Push notifications are sent automatically when in-app notifications are created
+- Expo Push Notification Service is used for delivery
+
+---
+
 ### Field Resolvers
 
 GraphQL uses field resolvers to fetch related data efficiently:
@@ -1118,7 +1183,13 @@ GraphQL uses field resolvers to fetch related data efficiently:
 3. Client uploads file directly to S3
 4. Client saves S3 URL to database (bugs.attachments, activity_log.attachments)
 
-### Email Notifications
+### Notifications
+
+**Last Updated:** 2025-11-13
+
+The system provides two notification channels:
+
+#### Email Notifications
 
 **Configuration:**
 - SMTP: smtp.gmail.com:465 (SSL)
@@ -1129,6 +1200,24 @@ GraphQL uses field resolvers to fetch related data efficiently:
 - Task assignment
 - Leave application submitted/approved/rejected
 - WFH application submitted/approved/rejected
+
+#### Push Notifications (Mobile App)
+
+**Configuration:**
+- Service: Expo Push Notification Service
+- Endpoint: https://exp.host/--/api/v2/push/send
+- Deep Linking Scheme: `jsrtask://`
+
+**Triggers:**
+- All in-app notification events (tasks, bugs, leave, WFH, feed mentions/comments/reactions)
+- Sent automatically when in-app notifications are created
+
+**Implementation:**
+- Push tokens stored in `push_tokens` table
+- Tokens registered on login, unregistered on logout
+- Invalid tokens automatically marked inactive
+- Supports multiple devices per user
+- Deep linking navigates to relevant screen on notification tap
 - Mentions in feed posts/comments
 
 ---

@@ -14,16 +14,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   FlatList,
-  TouchableOpacity,
-  Alert,
   StyleSheet,
   RefreshControl,
-  ActivityIndicator,
-  TextInput,
   ScrollView,
 } from 'react-native'
+import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Button } from 'react-native-paper'
 import { useFocusEffect } from '@react-navigation/native'
 import { useQuery } from '@apollo/client/react'
 import { GET_TASKS } from '../config/graphql-queries'
@@ -31,6 +27,8 @@ import { Task } from '../types'
 import { getUserData, save, get, STORAGE_KEYS } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 interface TaskFilters {
   searchQuery: string
@@ -41,6 +39,7 @@ export default function TaskListScreen({ navigation }: any) {
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+  const { isOffline } = useNetworkStatus()
 
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -192,51 +191,62 @@ export default function TaskListScreen({ navigation }: any) {
                          getAssigneeNames(item.assignedTo)
 
     return (
-      <TouchableOpacity
+      <Card
         style={styles.taskCard}
+        elevation={1}
         onPress={() => handleTaskPress(item)}
       >
-        <View style={styles.taskHeader}>
-          <Text style={styles.taskId}>{item.taskId}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-            <Text style={styles.statusText}>{item.status}</Text>
+        <Card.Content>
+          <View style={styles.taskHeader}>
+            <Text style={styles.taskId}>{item.taskId}</Text>
+            <Chip
+              style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) }]}
+              textStyle={styles.statusText}
+              compact
+            >
+              {item.status}
+            </Chip>
           </View>
-        </View>
 
-        <Text style={styles.taskName} numberOfLines={1}>
-          {item.name || 'Untitled Task'}
-        </Text>
-
-        {projectName && (
-          <Text style={styles.projectName} numberOfLines={1}>
-            📁 {projectName}
+          <Text style={styles.taskName} numberOfLines={1}>
+            {item.name || 'Untitled Task'}
           </Text>
-        )}
 
-        <Text style={styles.taskDescription} numberOfLines={2}>
-          {item.description}
-        </Text>
+          {projectName && (
+            <Text style={styles.projectName} numberOfLines={1}>
+              📁 {projectName}
+            </Text>
+          )}
 
-        <View style={styles.taskMeta}>
-          <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) }]}>
-            <Text style={styles.priorityText}>{item.priority}</Text>
+          <Text style={styles.taskDescription} numberOfLines={2}>
+            {item.description}
+          </Text>
+
+          <View style={styles.taskMeta}>
+            <Chip
+              style={[styles.priorityChip, { backgroundColor: getPriorityColor(item.priority) }]}
+              textStyle={styles.priorityText}
+              compact
+            >
+              {item.priority}
+            </Chip>
+            <Text style={styles.taskDate}>
+              Due: {new Date(item.endDate).toLocaleDateString()}
+            </Text>
           </View>
-          <Text style={styles.taskDate}>
-            Due: {new Date(item.endDate).toLocaleDateString()}
-          </Text>
-        </View>
 
-        <Text style={styles.assignedTo}>
-          👤 {assigneeNames}
-        </Text>
-      </TouchableOpacity>
+          <Text style={styles.assignedTo}>
+            👤 {assigneeNames}
+          </Text>
+        </Card.Content>
+      </Card>
     )
   }
 
   if (loading && !data) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={materialColors.primary} />
         <Text style={styles.loadingText}>Loading tasks...</Text>
       </View>
     )
@@ -246,9 +256,14 @@ export default function TaskListScreen({ navigation }: any) {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorText}>Failed to load tasks</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
+        <Button
+          mode="contained"
+          onPress={onRefresh}
+          style={styles.retryButton}
+          disabled={isOffline}
+        >
+          Retry
+        </Button>
       </View>
     )
   }
@@ -257,12 +272,13 @@ export default function TaskListScreen({ navigation }: any) {
     <View style={styles.container}>
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
+        <Searchbar
           placeholder="Search tasks..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#9CA3AF"
+          style={styles.searchBar}
+          iconColor={materialColors.primary}
+          placeholderTextColor={materialColors.textSecondary}
         />
       </View>
 
@@ -275,23 +291,22 @@ export default function TaskListScreen({ navigation }: any) {
       >
         <Text style={styles.filterLabel}>Status:</Text>
         {statusOptions.map((status) => (
-          <TouchableOpacity
+          <Chip
             key={status}
-            style={[
-              styles.filterButton,
-              statusFilter === status && styles.filterButtonActive,
-            ]}
+            selected={statusFilter === status}
             onPress={() => setStatusFilter(status)}
+            style={[
+              styles.filterChip,
+              statusFilter === status && styles.filterChipActive,
+            ]}
+            textStyle={[
+              styles.filterChipText,
+              statusFilter === status && styles.filterChipTextActive,
+            ]}
+            compact
           >
-            <Text
-              style={[
-                styles.filterButtonText,
-                statusFilter === status && styles.filterButtonTextActive,
-              ]}
-            >
-              {status}
-            </Text>
-          </TouchableOpacity>
+            {status}
+          </Chip>
         ))}
       </ScrollView>
 
@@ -304,8 +319,8 @@ export default function TaskListScreen({ navigation }: any) {
           <RefreshControl
             refreshing={loading}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+            tintColor={materialColors.primary}
+            colors={[materialColors.primary]}
           />
         }
         contentContainerStyle={styles.listContent}
@@ -320,12 +335,13 @@ export default function TaskListScreen({ navigation }: any) {
         }
       />
 
-      <TouchableOpacity
+      <FAB
+        icon="plus"
         style={styles.fab}
         onPress={() => navigation.navigate('CreateTask')}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+        disabled={isOffline}
+        color={materialColors.surface}
+      />
     </View>
   )
 }
@@ -333,200 +349,140 @@ export default function TaskListScreen({ navigation }: any) {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: materialColors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: materialColors.background,
   },
   loadingText: {
-    marginTop: responsive.spacing.sm,
-    fontSize: responsive.fontSize.md,
-    color: colors.textSecondary,
+    ...materialTypography.bodyLarge,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.md,
   },
   errorText: {
-    fontSize: responsive.fontSize.md,
-    color: colors.error,
-    marginBottom: responsive.spacing.md,
+    ...materialTypography.bodyLarge,
+    color: materialColors.error,
+    marginBottom: materialSpacing.md,
   },
   retryButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: responsive.spacing.lg,
-    paddingVertical: responsive.spacing.sm,
-    borderRadius: responsive.borderRadius.md,
-  },
-  retryButtonText: {
-    color: colors.card,
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
+    borderRadius: 8,
   },
   searchContainer: {
-    padding: responsive.spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    padding: materialSpacing.md,
+    backgroundColor: materialColors.surface,
+    elevation: materialElevation.level1,
   },
-  searchInput: {
-    height: 40,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    paddingHorizontal: responsive.spacing.sm,
-    fontSize: responsive.fontSize.md,
-    backgroundColor: colors.background,
-    color: colors.text,
+  searchBar: {
+    backgroundColor: materialColors.surfaceVariant,
+    elevation: 0,
   },
   filterContainer: {
-    backgroundColor: colors.card,
-    paddingVertical: responsive.spacing.sm,
-    paddingHorizontal: responsive.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    backgroundColor: materialColors.surface,
+    paddingVertical: materialSpacing.sm,
+    paddingHorizontal: materialSpacing.md,
+    elevation: materialElevation.level1,
   },
   filterContentContainer: {
     alignItems: 'center',
   },
   filterLabel: {
-    fontSize: responsive.fontSize.sm,
-    fontWeight: '600',
-    color: colors.text,
-    marginRight: responsive.spacing.sm,
+    ...materialTypography.labelLarge,
+    color: materialColors.text,
+    marginRight: materialSpacing.sm,
   },
-  filterButton: {
-    paddingHorizontal: responsive.spacing.sm,
-    paddingVertical: responsive.spacing.xs,
-    marginRight: responsive.spacing.xs,
-    borderRadius: responsive.borderRadius.full,
-    backgroundColor: colors.backgroundSecondary,
+  filterChip: {
+    marginRight: materialSpacing.xs,
+    backgroundColor: materialColors.surfaceVariant,
   },
-  filterButtonActive: {
-    backgroundColor: colors.primary,
+  filterChipActive: {
+    backgroundColor: materialColors.primary,
   },
-  filterButtonText: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
+  filterChipText: {
+    ...materialTypography.labelSmall,
+    color: materialColors.textSecondary,
   },
-  filterButtonTextActive: {
-    color: colors.card,
-    fontWeight: '600',
+  filterChipTextActive: {
+    color: materialColors.surface,
   },
   listContent: {
-    padding: responsive.spacing.md,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    padding: materialSpacing.md,
   },
   taskCard: {
-    backgroundColor: colors.card,
-    borderRadius: responsive.borderRadius.lg,
-    padding: responsive.spacing.md,
-    marginBottom: responsive.spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+    marginBottom: materialSpacing.sm,
   },
   taskHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: responsive.spacing.xs,
+    marginBottom: materialSpacing.xs,
   },
   taskId: {
-    fontSize: responsive.fontSize.xs,
-    fontWeight: '600',
-    color: colors.textSecondary,
+    ...materialTypography.labelMedium,
+    color: materialColors.textSecondary,
   },
-  statusBadge: {
-    paddingHorizontal: responsive.spacing.xs,
-    paddingVertical: responsive.spacing.xxs,
-    borderRadius: responsive.borderRadius.lg,
+  statusChip: {
+    height: 24,
   },
   statusText: {
-    fontSize: responsive.fontSize.xs - 1,
-    color: colors.card,
-    fontWeight: '600',
+    ...materialTypography.labelSmall,
+    color: materialColors.surface,
   },
   taskName: {
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: responsive.spacing.xxs,
+    ...materialTypography.titleMedium,
+    color: materialColors.text,
+    marginBottom: materialSpacing.xs,
   },
   projectName: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.primary,
-    marginBottom: responsive.spacing.xxs,
-    fontWeight: '500',
+    ...materialTypography.bodySmall,
+    color: materialColors.primary,
+    marginBottom: materialSpacing.xs,
   },
   taskDescription: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
-    marginBottom: responsive.spacing.sm,
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
+    marginBottom: materialSpacing.sm,
     lineHeight: 20,
   },
   taskMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: responsive.spacing.xs,
+    marginBottom: materialSpacing.xs,
   },
-  priorityBadge: {
-    paddingHorizontal: responsive.spacing.xs,
-    paddingVertical: responsive.spacing.xxs,
-    borderRadius: responsive.borderRadius.md,
+  priorityChip: {
+    height: 24,
   },
   priorityText: {
-    fontSize: responsive.fontSize.xs - 1,
-    color: colors.card,
-    fontWeight: '500',
+    ...materialTypography.labelSmall,
+    color: materialColors.surface,
   },
   taskDate: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textSecondary,
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
   },
   assignedTo: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textSecondary,
-    marginTop: responsive.spacing.xxs,
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.xs,
   },
   emptyContainer: {
-    padding: responsive.spacing.xxl,
+    padding: materialSpacing.xxl,
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: responsive.fontSize.md,
-    color: colors.textTertiary,
+    ...materialTypography.bodyLarge,
+    color: materialColors.textSecondary,
   },
   fab: {
     position: 'absolute',
-    right: responsive.spacing.lg,
-    bottom: responsive.spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  fabText: {
-    fontSize: 32,
-    color: colors.card,
-    fontWeight: '300',
+    right: materialSpacing.lg,
+    bottom: materialSpacing.lg,
+    backgroundColor: materialColors.primary,
   },
 })
 

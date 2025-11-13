@@ -1,8 +1,9 @@
 # JSR Task Management - Quick Reference
 
-**Last Updated:** 2025-11-12
+**Last Updated:** 2025-11-13
 
 ## Changelog
+- **2025-11-13**: Added push notification testing commands and troubleshooting
 - **2025-11-12**: Initial creation - Common commands, file locations, troubleshooting
 
 ---
@@ -38,6 +39,16 @@ cd apps/mobile/android
 # Install on Device
 adb devices                            # List connected devices
 adb install -r app/build/outputs/apk/debug/app-debug.apk
+
+# Push Notifications (requires APK build, doesn't work in Expo Go)
+cd apps/mobile
+npx expo export:embed              # Prepare for native build
+cd android
+./gradlew assembleDebug --no-daemon
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+
+# Debug Push Notifications
+adb logcat | grep -i "expo\|notification\|push"  # View logs
 ```
 
 ### Git Workflow
@@ -124,6 +135,25 @@ adb kill-server
 adb start-server
 adb devices
 ```
+
+**Push notifications not working:**
+- Push notifications require APK build (don't work in Expo Go)
+- Check permissions in device settings (Notifications enabled for JSR Task Management)
+- Verify push token registered: Look for "Push token registered with backend" in logs
+- Check backend logs for Expo API errors
+- Test with: `adb logcat | grep -i "expo\|notification\|push"`
+
+**Push notifications received but deep linking not working:**
+- Verify `scheme: "jsrtask"` in `apps/mobile/app.json`
+- Check `intentFilters` in `app.json` android section
+- Rebuild APK after changing app.json
+- Test deep link: `adb shell am start -W -a android.intent.action.VIEW -d "jsrtask://task/TASK-123"`
+
+**Push token not registered:**
+- Check GraphQL mutation logs in backend
+- Verify user is logged in (push token registration happens on login)
+- Check network connectivity
+- Look for errors in app logs
 
 ### Database Issues
 

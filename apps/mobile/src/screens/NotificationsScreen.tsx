@@ -13,14 +13,12 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   Alert,
 } from 'react-native'
+import { Card, Text, Button, ActivityIndicator, Chip } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { useQuery, useMutation } from '@apollo/client/react'
 import {
@@ -30,6 +28,8 @@ import {
 } from '../config/graphql-queries'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 interface Notification {
   id: string

@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
-  TextInput,
   ScrollView,
-  TouchableOpacity,
   Alert,
   StyleSheet,
 } from 'react-native'
+import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
 import { Picker } from '@react-native-picker/picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createTask } from '../services/taskService'
@@ -15,11 +13,14 @@ import { getAllUsers } from '../services/userService'
 import { get } from '../services/apiClient'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 export default function CreateTaskScreen({ navigation }: any) {
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+  const { isOffline } = useNetworkStatus()
   const [description, setDescription] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -197,21 +198,21 @@ export default function CreateTaskScreen({ navigation }: any) {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.form}>
+      <Surface style={styles.form} elevation={0}>
         {/* Description */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Description <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Enter task description"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={4}
-          />
-        </View>
+        <TextInput
+          mode="outlined"
+          label="Description *"
+          placeholder="Enter task description"
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          numberOfLines={4}
+          style={styles.input}
+          outlineColor={materialColors.outline}
+          activeOutlineColor={materialColors.primary}
+          disabled={isOffline}
+        />
 
         {/* Project */}
         <View style={styles.field}>
@@ -321,58 +322,59 @@ export default function CreateTaskScreen({ navigation }: any) {
         </View>
 
         {/* Start Date */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Start Date <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="YYYY-MM-DD"
-            value={startDate}
-            onChangeText={setStartDate}
-          />
-        </View>
+        <TextInput
+          mode="outlined"
+          label="Start Date *"
+          placeholder="YYYY-MM-DD"
+          value={startDate}
+          onChangeText={setStartDate}
+          style={styles.input}
+          outlineColor={materialColors.outline}
+          activeOutlineColor={materialColors.primary}
+          disabled={isOffline}
+        />
 
         {/* End Date */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            End Date <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="YYYY-MM-DD"
-            value={endDate}
-            onChangeText={setEndDate}
-          />
-        </View>
+        <TextInput
+          mode="outlined"
+          label="End Date *"
+          placeholder="YYYY-MM-DD"
+          value={endDate}
+          onChangeText={setEndDate}
+          style={styles.input}
+          outlineColor={materialColors.outline}
+          activeOutlineColor={materialColors.primary}
+          disabled={isOffline}
+        />
 
         {/* Estimated Hours */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Estimated Hours (hh:mm:ss) <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="02:30:00"
-            value={estimatedHours}
-            onChangeText={setEstimatedHours}
-          />
-          <Text style={styles.helpText}>
-            Enter time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
-          </Text>
-        </View>
+        <TextInput
+          mode="outlined"
+          label="Estimated Hours (hh:mm:ss) *"
+          placeholder="02:30:00"
+          value={estimatedHours}
+          onChangeText={setEstimatedHours}
+          style={styles.input}
+          outlineColor={materialColors.outline}
+          activeOutlineColor={materialColors.primary}
+          disabled={isOffline}
+        />
+        <Text style={styles.helpText}>
+          Enter time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
+        </Text>
 
         {/* Submit Button */}
-        <TouchableOpacity
-          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+        <Button
+          mode="contained"
           onPress={handleSubmit}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isOffline}
+          loading={isSubmitting}
+          style={styles.submitButton}
+          buttonColor={materialColors.primary}
         >
-          <Text style={styles.submitButtonText}>
-            {isSubmitting ? 'Creating...' : 'Create Task'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {isSubmitting ? 'Creating...' : 'Create Task'}
+        </Button>
+      </Surface>
     </ScrollView>
   )
 }
@@ -380,69 +382,44 @@ export default function CreateTaskScreen({ navigation }: any) {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    backgroundColor: materialColors.background,
   },
   form: {
-    padding: responsive.spacing.md,
+    padding: materialSpacing.md,
+    gap: materialSpacing.md,
   },
   field: {
-    marginBottom: responsive.spacing.md,
+    marginBottom: materialSpacing.md,
   },
   label: {
-    fontSize: responsive.fontSize.sm,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: responsive.spacing.xs,
+    ...materialTypography.labelLarge,
+    color: materialColors.text,
+    marginBottom: materialSpacing.xs,
   },
   required: {
-    color: colors.error,
+    color: materialColors.error,
   },
   input: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    padding: responsive.spacing.sm,
-    fontSize: responsive.fontSize.sm,
-    color: colors.text,
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
+    backgroundColor: materialColors.surface,
   },
   pickerContainer: {
-    backgroundColor: colors.card,
+    backgroundColor: materialColors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
+    borderColor: materialColors.outline,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   picker: {
     height: 50,
-    color: colors.text,
+    color: materialColors.text,
   },
   submitButton: {
-    backgroundColor: colors.primary,
-    padding: responsive.spacing.md,
-    borderRadius: responsive.borderRadius.md,
-    alignItems: 'center',
-    marginTop: responsive.spacing.xs,
-  },
-  submitButtonDisabled: {
-    backgroundColor: colors.primaryLight,
-  },
-  submitButtonText: {
-    color: colors.card,
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
+    marginTop: materialSpacing.md,
   },
   helpText: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textSecondary,
-    marginTop: responsive.spacing.xxs,
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.xs,
   },
 })
 

@@ -6,19 +6,19 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
-  TextInput,
   Alert,
   Platform,
 } from 'react-native'
+import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 const LEAVE_TYPES = [
   'Sick Leave',

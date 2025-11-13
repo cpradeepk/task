@@ -14,18 +14,18 @@ export const OfflineBanner: React.FC = () => {
 
   useEffect(() => {
     if (isOffline) {
-      // Slide in animation
+      // Slide in animation (faster spring)
       Animated.spring(slideAnim, {
         toValue: 0,
         useNativeDriver: true,
-        tension: 50,
-        friction: 8,
+        tension: 70,
+        friction: 7,
       }).start()
     } else {
-      // Slide out animation
+      // Slide out animation (faster: 150ms instead of 200ms)
       Animated.timing(slideAnim, {
         toValue: -100,
-        duration: 200,
+        duration: 150,
         useNativeDriver: true,
       }).start()
     }

@@ -6,18 +6,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   Alert,
-  TextInput,
 } from 'react-native'
+import { Card, Text, Surface, Button, TextInput, ActivityIndicator, Chip, Divider } from 'react-native-paper'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 interface WFHApplication {
   id: string

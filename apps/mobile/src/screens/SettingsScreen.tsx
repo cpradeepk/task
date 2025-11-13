@@ -11,16 +11,15 @@
 import React, { useState, useEffect } from 'react'
 import {
   View,
-  Text,
   StyleSheet,
   Switch,
-  TouchableOpacity,
   Alert,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native'
+import { Card, Text, Button, ActivityIndicator, Surface, Divider } from 'react-native-paper'
 import { AuthContext } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
+import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import {
   isBiometricSupported,
   isBiometricEnrolled,

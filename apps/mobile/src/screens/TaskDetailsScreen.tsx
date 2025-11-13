@@ -1,31 +1,41 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   ScrollView,
-  TouchableOpacity,
   Alert,
   StyleSheet,
-  ActivityIndicator,
-  TextInput,
 } from 'react-native'
+import { Card, Text, Button, ActivityIndicator, TextInput as PaperTextInput, Chip, IconButton, List, Divider } from 'react-native-paper'
 import { Picker } from '@react-native-picker/picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getTaskById, updateTask, deleteTask, Task } from '../services/taskService'
 import { get } from '../services/apiClient'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 export default function TaskDetailsScreen({ route, navigation }: any) {
   const { taskId } = route.params
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+  const { isOffline } = useNetworkStatus()
 
   const [task, setTask] = useState<Task | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+
+  // Collapsible sections state
+  const [expandedSections, setExpandedSections] = useState({
+    description: true,
+    timeline: false,
+    assignment: false,
+    hours: false,
+    remarks: false,
+    project: false,
+  })
 
   // Edit form state
   const [editedStatus, setEditedStatus] = useState('')
@@ -35,6 +45,10 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
 
   const [settings, setSettings] = useState<any>({})
   const [currentUser, setCurrentUser] = useState<any>(null)
+
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
+  }
 
   const loadCurrentUser = useCallback(async () => {
     try {
@@ -189,7 +203,8 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={materialColors.primary} />
+        <Text style={styles.loadingText}>Loading task details...</Text>
       </View>
     )
   }
@@ -198,6 +213,9 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorText}>Task not found</Text>
+        <Button mode="contained" onPress={() => navigation.goBack()} style={styles.backButton}>
+          Go Back
+        </Button>
       </View>
     )
   }
@@ -205,179 +223,255 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.taskId}>{task.taskId}</Text>
-          <View style={styles.headerActions}>
-            {!isEditing && (
-              <>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => setIsEditing(true)}
-                >
-                  <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={handleDelete}
-                >
-                  <Text style={styles.deleteButtonText}>Delete</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
+        {/* Header Card */}
+        <Card style={styles.headerCard} elevation={2}>
+          <Card.Content>
+            <View style={styles.header}>
+              <Text style={styles.taskId}>{task.taskId}</Text>
+              <View style={styles.headerActions}>
+                {!isEditing && (
+                  <>
+                    <IconButton
+                      icon="pencil"
+                      size={20}
+                      iconColor={materialColors.primary}
+                      onPress={() => setIsEditing(true)}
+                      disabled={isOffline}
+                    />
+                    <IconButton
+                      icon="delete"
+                      size={20}
+                      iconColor={materialColors.error}
+                      onPress={handleDelete}
+                      disabled={isOffline}
+                    />
+                  </>
+                )}
+              </View>
+            </View>
 
-        {/* Status and Priority */}
-        <View style={styles.badges}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(task.status) }]}>
-            <Text style={styles.badgeText}>{task.status}</Text>
-          </View>
-          <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(task.priority) }]}>
-            <Text style={styles.badgeText}>{task.priority}</Text>
-          </View>
-        </View>
+            {/* Status and Priority Chips */}
+            <View style={styles.badges}>
+              <Chip
+                style={[styles.statusChip, { backgroundColor: getStatusColor(task.status) }]}
+                textStyle={styles.chipText}
+              >
+                {task.status}
+              </Chip>
+              <Chip
+                style={[styles.priorityChip, { backgroundColor: getPriorityColor(task.priority) }]}
+                textStyle={styles.chipText}
+              >
+                {task.priority}
+              </Chip>
+            </View>
+          </Card.Content>
+        </Card>
 
-        {/* Description */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description</Text>
-          {isEditing ? (
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={editedDescription}
-              onChangeText={setEditedDescription}
-              multiline
-              numberOfLines={4}
-            />
-          ) : (
-            <Text style={styles.sectionContent}>{task.description}</Text>
-          )}
-        </View>
+        {/* Description Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <List.Accordion
+            title="Description"
+            expanded={expandedSections.description}
+            onPress={() => toggleSection('description')}
+            titleStyle={styles.accordionTitle}
+            style={styles.accordion}
+          >
+            <Card.Content>
+              {isEditing ? (
+                <PaperTextInput
+                  value={editedDescription}
+                  onChangeText={setEditedDescription}
+                  multiline
+                  numberOfLines={4}
+                  mode="outlined"
+                  disabled={isOffline}
+                  style={styles.textInput}
+                />
+              ) : (
+                <Text style={styles.sectionContent}>{task.description}</Text>
+              )}
+            </Card.Content>
+          </List.Accordion>
+        </Card>
 
         {/* Status (Edit Mode) */}
         {isEditing && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Status</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={editedStatus}
-                onValueChange={setEditedStatus}
-                style={styles.picker}
-              >
-                {taskStatuses.map((s) => (
-                  <Picker.Item key={s} label={s} value={s} />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Status</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={editedStatus}
+                  onValueChange={setEditedStatus}
+                  style={styles.picker}
+                  enabled={!isOffline}
+                >
+                  {taskStatuses.map((s) => (
+                    <Picker.Item key={s} label={s} value={s} />
+                  ))}
+                </Picker>
+              </View>
+            </Card.Content>
+          </Card>
         )}
 
         {/* Priority (Edit Mode) */}
         {isEditing && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Priority</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={editedPriority}
-                onValueChange={setEditedPriority}
-                style={styles.picker}
-              >
-                {taskPriorities.map((p) => (
-                  <Picker.Item key={p} label={p} value={p} />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Priority</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={editedPriority}
+                  onValueChange={setEditedPriority}
+                  style={styles.picker}
+                  enabled={!isOffline}
+                >
+                  {taskPriorities.map((p) => (
+                    <Picker.Item key={p} label={p} value={p} />
+                  ))}
+                </Picker>
+              </View>
+            </Card.Content>
+          </Card>
         )}
 
-        {/* Dates */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Timeline</Text>
-          <View style={styles.dateRow}>
-            <Text style={styles.dateLabel}>Start:</Text>
-            <Text style={styles.dateValue}>
-              {new Date(task.startDate).toLocaleDateString()}
-            </Text>
-          </View>
-          <View style={styles.dateRow}>
-            <Text style={styles.dateLabel}>End:</Text>
-            <Text style={styles.dateValue}>
-              {new Date(task.endDate).toLocaleDateString()}
-            </Text>
-          </View>
-        </View>
+        {/* Timeline Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <List.Accordion
+            title="Timeline"
+            expanded={expandedSections.timeline}
+            onPress={() => toggleSection('timeline')}
+            titleStyle={styles.accordionTitle}
+            style={styles.accordion}
+          >
+            <Card.Content>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Start:</Text>
+                <Text style={styles.infoValue}>
+                  {new Date(task.startDate).toLocaleDateString()}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>End:</Text>
+                <Text style={styles.infoValue}>
+                  {new Date(task.endDate).toLocaleDateString()}
+                </Text>
+              </View>
+            </Card.Content>
+          </List.Accordion>
+        </Card>
 
-        {/* Assignment */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Assignment</Text>
-          <View style={styles.dateRow}>
-            <Text style={styles.dateLabel}>Assigned To:</Text>
-            <Text style={styles.dateValue}>{task.assignedTo}</Text>
-          </View>
-          <View style={styles.dateRow}>
-            <Text style={styles.dateLabel}>Assigned By:</Text>
-            <Text style={styles.dateValue}>{task.assignedBy}</Text>
-          </View>
-        </View>
+        {/* Assignment Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <List.Accordion
+            title="Assignment"
+            expanded={expandedSections.assignment}
+            onPress={() => toggleSection('assignment')}
+            titleStyle={styles.accordionTitle}
+            style={styles.accordion}
+          >
+            <Card.Content>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Assigned To:</Text>
+                <Text style={styles.infoValue}>{task.assignedTo}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Assigned By:</Text>
+                <Text style={styles.infoValue}>{task.assignedBy}</Text>
+              </View>
+            </Card.Content>
+          </List.Accordion>
+        </Card>
 
-        {/* Hours */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Hours</Text>
-          <View style={styles.dateRow}>
-            <Text style={styles.dateLabel}>Estimated:</Text>
-            <Text style={styles.dateValue}>{task.estimatedHours || 0} hrs</Text>
-          </View>
-          {task.actualHours !== undefined && (
-            <View style={styles.dateRow}>
-              <Text style={styles.dateLabel}>Actual:</Text>
-              <Text style={styles.dateValue}>{task.actualHours} hrs</Text>
-            </View>
-          )}
-        </View>
+        {/* Hours Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <List.Accordion
+            title="Hours"
+            expanded={expandedSections.hours}
+            onPress={() => toggleSection('hours')}
+            titleStyle={styles.accordionTitle}
+            style={styles.accordion}
+          >
+            <Card.Content>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Estimated:</Text>
+                <Text style={styles.infoValue}>{task.estimatedHours || 0} hrs</Text>
+              </View>
+              {task.actualHours !== undefined && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Actual:</Text>
+                  <Text style={styles.infoValue}>{task.actualHours} hrs</Text>
+                </View>
+              )}
+            </Card.Content>
+          </List.Accordion>
+        </Card>
 
-        {/* Remarks */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Remarks</Text>
-          {isEditing ? (
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={editedRemarks}
-              onChangeText={setEditedRemarks}
-              multiline
-              numberOfLines={3}
-              placeholder="Add remarks..."
-            />
-          ) : (
-            <Text style={styles.sectionContent}>
-              {task.remarks || 'No remarks'}
-            </Text>
-          )}
-        </View>
+        {/* Remarks Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <List.Accordion
+            title="Remarks"
+            expanded={expandedSections.remarks}
+            onPress={() => toggleSection('remarks')}
+            titleStyle={styles.accordionTitle}
+            style={styles.accordion}
+          >
+            <Card.Content>
+              {isEditing ? (
+                <PaperTextInput
+                  value={editedRemarks}
+                  onChangeText={setEditedRemarks}
+                  multiline
+                  numberOfLines={3}
+                  placeholder="Add remarks..."
+                  mode="outlined"
+                  disabled={isOffline}
+                  style={styles.textInput}
+                />
+              ) : (
+                <Text style={styles.sectionContent}>
+                  {task.remarks || 'No remarks'}
+                </Text>
+              )}
+            </Card.Content>
+          </List.Accordion>
+        </Card>
 
-        {/* Project Info */}
+        {/* Project Info Section */}
         {(task.projectId || task.subprojectId) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Project</Text>
-            {task.projectId && (
-              <View style={styles.dateRow}>
-                <Text style={styles.dateLabel}>Project:</Text>
-                <Text style={styles.dateValue}>{task.projectId}</Text>
-              </View>
-            )}
-            {task.subprojectId && (
-              <View style={styles.dateRow}>
-                <Text style={styles.dateLabel}>Subproject:</Text>
-                <Text style={styles.dateValue}>{task.subprojectId}</Text>
-              </View>
-            )}
-          </View>
+          <Card style={styles.sectionCard} elevation={1}>
+            <List.Accordion
+              title="Project"
+              expanded={expandedSections.project}
+              onPress={() => toggleSection('project')}
+              titleStyle={styles.accordionTitle}
+              style={styles.accordion}
+            >
+              <Card.Content>
+                {task.projectId && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Project:</Text>
+                    <Text style={styles.infoValue}>{task.projectId}</Text>
+                  </View>
+                )}
+                {task.subprojectId && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Subproject:</Text>
+                    <Text style={styles.infoValue}>{task.subprojectId}</Text>
+                  </View>
+                )}
+              </Card.Content>
+            </List.Accordion>
+          </Card>
         )}
 
         {/* Edit Mode Actions */}
         {isEditing && (
           <View style={styles.editActions}>
-            <TouchableOpacity
-              style={styles.cancelButton}
+            <Button
+              mode="outlined"
               onPress={() => {
                 setIsEditing(false)
                 setEditedStatus(task.status)
@@ -385,18 +479,19 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
                 setEditedDescription(task.description)
                 setEditedRemarks(task.remarks || '')
               }}
+              style={styles.cancelButton}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+              Cancel
+            </Button>
+            <Button
+              mode="contained"
               onPress={handleSave}
-              disabled={isSaving}
+              loading={isSaving}
+              disabled={isSaving || isOffline}
+              style={styles.saveButton}
             >
-              <Text style={styles.saveButtonText}>
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </Text>
-            </TouchableOpacity>
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
           </View>
         )}
       </View>
@@ -407,162 +502,125 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    backgroundColor: materialColors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: materialColors.background,
+    padding: materialSpacing.lg,
+  },
+  loadingText: {
+    ...materialTypography.bodyLarge,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.md,
+  },
+  errorText: {
+    ...materialTypography.bodyLarge,
+    color: materialColors.error,
+    marginBottom: materialSpacing.md,
+  },
+  backButton: {
+    borderRadius: 8,
   },
   content: {
-    padding: responsive.spacing.md,
+    padding: materialSpacing.md,
+  },
+  headerCard: {
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+    marginBottom: materialSpacing.sm,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: responsive.spacing.md,
   },
   taskId: {
-    fontSize: responsive.fontSize.lg,
-    fontWeight: '700',
-    color: colors.text,
+    ...materialTypography.headlineMedium,
+    color: materialColors.text,
   },
   headerActions: {
     flexDirection: 'row',
-    gap: responsive.spacing.xs,
-  },
-  editButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: responsive.spacing.md,
-    paddingVertical: responsive.spacing.xs,
-    borderRadius: responsive.borderRadius.md,
-  },
-  editButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  deleteButton: {
-    backgroundColor: colors.error,
-    paddingHorizontal: responsive.spacing.md,
-    paddingVertical: responsive.spacing.xs,
-    borderRadius: responsive.borderRadius.md,
-  },
-  deleteButtonText: {
-    color: '#fff',
-    fontWeight: '600',
   },
   badges: {
     flexDirection: 'row',
-    gap: responsive.spacing.xs,
-    marginBottom: responsive.spacing.lg,
+    gap: materialSpacing.xs,
+    marginTop: materialSpacing.md,
   },
-  statusBadge: {
-    paddingHorizontal: responsive.spacing.sm,
-    paddingVertical: 6,
-    borderRadius: responsive.borderRadius.full,
+  statusChip: {
+    marginRight: materialSpacing.xs,
   },
-  priorityBadge: {
-    paddingHorizontal: responsive.spacing.sm,
-    paddingVertical: 6,
-    borderRadius: responsive.borderRadius.full,
+  priorityChip: {
   },
-  badgeText: {
-    color: '#fff',
-    fontSize: responsive.fontSize.xs,
-    fontWeight: '600',
+  chipText: {
+    ...materialTypography.labelSmall,
+    color: materialColors.surface,
   },
-  section: {
-    marginBottom: responsive.spacing.lg,
+  sectionCard: {
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+    marginBottom: materialSpacing.sm,
+  },
+  accordion: {
+    backgroundColor: materialColors.surface,
+  },
+  accordionTitle: {
+    ...materialTypography.titleMedium,
+    color: materialColors.text,
   },
   sectionTitle: {
-    fontSize: responsive.fontSize.sm,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: responsive.spacing.xs,
+    ...materialTypography.titleSmall,
+    color: materialColors.textSecondary,
+    marginBottom: materialSpacing.sm,
     textTransform: 'uppercase',
   },
   sectionContent: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.text,
+    ...materialTypography.bodyMedium,
+    color: materialColors.text,
     lineHeight: 22,
   },
-  input: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    padding: responsive.spacing.sm,
-    fontSize: responsive.fontSize.sm,
-    color: colors.text,
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
+  textInput: {
+    backgroundColor: materialColors.surface,
   },
   pickerContainer: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
+    backgroundColor: materialColors.surfaceVariant,
+    borderRadius: 8,
     overflow: 'hidden',
+    marginTop: materialSpacing.xs,
   },
   picker: {
     height: 50,
-    color: colors.text,
+    color: materialColors.text,
   },
-  dateRow: {
+  infoRow: {
     flexDirection: 'row',
-    marginBottom: responsive.spacing.xs,
+    marginBottom: materialSpacing.sm,
   },
-  dateLabel: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
-    width: 60,
+  infoLabel: {
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
+    width: 120,
   },
-  dateValue: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.text,
+  infoValue: {
+    ...materialTypography.bodyMedium,
+    color: materialColors.text,
     fontWeight: '500',
-  },
-  errorText: {
-    fontSize: responsive.fontSize.md,
-    color: colors.textTertiary,
+    flex: 1,
   },
   editActions: {
     flexDirection: 'row',
-    gap: responsive.spacing.sm,
-    marginTop: responsive.spacing.lg,
+    gap: materialSpacing.sm,
+    marginTop: materialSpacing.lg,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: colors.border,
-    padding: responsive.spacing.md,
-    borderRadius: responsive.borderRadius.md,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: colors.textSecondary,
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
+    borderRadius: 8,
   },
   saveButton: {
     flex: 1,
-    backgroundColor: colors.primary,
-    padding: responsive.spacing.md,
-    borderRadius: responsive.borderRadius.md,
-    alignItems: 'center',
-  },
-  saveButtonDisabled: {
-    backgroundColor: colors.primaryLight,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
+    borderRadius: 8,
   },
 })
 

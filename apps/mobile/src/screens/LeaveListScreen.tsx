@@ -13,18 +13,18 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react'
 import {
   View,
-  Text,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
 } from 'react-native'
+import { Card, Text, Chip, FAB, ActivityIndicator, Searchbar } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 interface LeaveApplication {
   id: string
@@ -46,6 +46,8 @@ export default function LeaveListScreen() {
   const navigation = useNavigation()
   const { colors } = useTheme()
   const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+  const { isOffline } = useNetworkStatus()
   const [leaves, setLeaves] = useState<LeaveApplication[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -145,44 +147,47 @@ export default function LeaveListScreen() {
 
   const renderLeaveItem = useCallback(
     ({ item }: { item: LeaveApplication }) => (
-      <TouchableOpacity
+      <Card
         style={styles.leaveCard}
+        elevation={1}
         onPress={() =>
           navigation.navigate('LeaveDetails' as never, { leaveId: item.id } as never)
         }
       >
-        <View style={styles.leaveHeader}>
-          <View style={styles.leaveTypeContainer}>
-            <Text style={styles.leaveType}>{item.leaveType}</Text>
-            <View
-              style={[
-                styles.statusBadge,
-                { backgroundColor: getStatusColor(item.status) },
-              ]}
-            >
-              <Text style={styles.statusText}>{item.status}</Text>
+        <Card.Content>
+          <View style={styles.leaveHeader}>
+            <View style={styles.leaveTypeContainer}>
+              <Text style={styles.leaveType}>{item.leaveType}</Text>
+              <Chip
+                mode="flat"
+                compact
+                style={{ backgroundColor: getStatusColor(item.status) }}
+                textStyle={styles.statusText}
+              >
+                {item.status}
+              </Chip>
             </View>
+            <Text style={styles.leaveId}>{item.applicationId}</Text>
           </View>
-          <Text style={styles.leaveId}>{item.applicationId}</Text>
-        </View>
 
-        <View style={styles.leaveDates}>
-          <Text style={styles.dateText}>
-            {formatDate(item.fromDate)} - {formatDate(item.toDate)}
+          <View style={styles.leaveDates}>
+            <Text style={styles.dateText}>
+              {formatDate(item.fromDate)} - {formatDate(item.toDate)}
+            </Text>
+            <Text style={styles.daysText}>
+              {calculateDays(item.fromDate, item.toDate)} day(s)
+            </Text>
+          </View>
+
+          <Text style={styles.leaveReason} numberOfLines={2}>
+            {item.reason}
           </Text>
-          <Text style={styles.daysText}>
-            {calculateDays(item.fromDate, item.toDate)} day(s)
+
+          <Text style={styles.leaveDate}>
+            Applied: {formatDate(item.createdAt)}
           </Text>
-        </View>
-
-        <Text style={styles.leaveReason} numberOfLines={2}>
-          {item.reason}
-        </Text>
-
-        <Text style={styles.leaveDate}>
-          Applied: {formatDate(item.createdAt)}
-        </Text>
-      </TouchableOpacity>
+        </Card.Content>
+      </Card>
     ),
     [styles, navigation, getStatusColor, formatDate, calculateDays]
   )
@@ -190,7 +195,7 @@ export default function LeaveListScreen() {
   if (loading && !refreshing) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={materialColors.primary} />
         <Text style={styles.loadingText}>Loading leaves...</Text>
       </View>
     )
@@ -206,23 +211,16 @@ export default function LeaveListScreen() {
         contentContainerStyle={styles.filterContent}
       >
         {statuses.map((status) => (
-          <TouchableOpacity
+          <Chip
             key={status}
-            style={[
-              styles.filterButton,
-              selectedStatus === status && styles.filterButtonActive,
-            ]}
+            mode={selectedStatus === status ? 'flat' : 'outlined'}
+            selected={selectedStatus === status}
             onPress={() => setSelectedStatus(status)}
+            style={styles.filterButton}
+            selectedColor={materialColors.surface}
           >
-            <Text
-              style={[
-                styles.filterText,
-                selectedStatus === status && styles.filterTextActive,
-              ]}
-            >
-              {status}
-            </Text>
-          </TouchableOpacity>
+            {status}
+          </Chip>
         ))}
       </ScrollView>
 
@@ -245,18 +243,19 @@ export default function LeaveListScreen() {
         }
         ListFooterComponent={
           loading && page > 1 ? (
-            <ActivityIndicator size="small" color={colors.primary} style={{ padding: 16 }} />
+            <ActivityIndicator size="small" color={materialColors.primary} style={{ padding: materialSpacing.md }} />
           ) : null
         }
       />
 
       {/* Create Leave FAB */}
-      <TouchableOpacity
+      <FAB
+        icon="plus"
         style={styles.fab}
         onPress={() => navigation.navigate('CreateLeave' as never)}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+        color={materialColors.surface}
+        disabled={isOffline}
+      />
     </View>
   )
 }
@@ -264,147 +263,118 @@ export default function LeaveListScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    backgroundColor: materialColors.background,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: materialColors.background,
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: colors.textSecondary,
+    ...materialTypography.bodyLarge,
+    marginTop: materialSpacing.md,
+    color: materialColors.textSecondary,
   },
   filterContainer: {
-    backgroundColor: colors.card,
+    backgroundColor: materialColors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: materialColors.outline,
+    paddingVertical: materialSpacing.sm,
   },
   filterContent: {
-    padding: responsive.containerPadding,
-    gap: responsive.spacing.sm,
+    paddingHorizontal: materialSpacing.md,
+    gap: materialSpacing.sm,
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.borderLight,
-    marginRight: 8,
+    marginRight: materialSpacing.sm,
   },
   filterButtonActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: materialColors.primary,
   },
   filterText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.textSecondary,
+    ...materialTypography.labelMedium,
   },
   filterTextActive: {
-    color: '#FFFFFF',
+    color: materialColors.surface,
   },
   listContent: {
-    padding: responsive.containerPadding,
+    padding: materialSpacing.md,
   },
   leaveCard: {
-    backgroundColor: colors.card,
-    borderRadius: responsive.isTablet ? 16 : 12,
-    padding: responsive.cardPadding,
-    marginBottom: responsive.spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+    marginBottom: materialSpacing.md,
   },
   leaveHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: materialSpacing.sm,
   },
   leaveTypeContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: materialSpacing.sm,
   },
   leaveType: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
+    ...materialTypography.titleMedium,
+    color: materialColors.text,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: materialSpacing.sm,
+    paddingVertical: materialSpacing.xs,
     borderRadius: 12,
   },
   statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    ...materialTypography.labelSmall,
+    color: materialColors.surface,
   },
   leaveId: {
-    fontSize: 12,
-    color: colors.textTertiary,
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
   },
   leaveDates: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: materialSpacing.sm,
   },
   dateText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: '500',
+    ...materialTypography.bodyMedium,
+    color: materialColors.text,
   },
   daysText: {
-    fontSize: 12,
-    color: colors.textSecondary,
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
   },
   leaveReason: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 8,
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
+    marginBottom: materialSpacing.sm,
   },
   leaveDate: {
-    fontSize: 12,
-    color: colors.textTertiary,
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
   },
   emptyContainer: {
-    padding: 48,
+    padding: materialSpacing.xxl,
     alignItems: 'center',
   },
   emptyIcon: {
     fontSize: 64,
-    marginBottom: 16,
+    marginBottom: materialSpacing.md,
   },
   emptyText: {
-    fontSize: 16,
-    color: colors.textTertiary,
+    ...materialTypography.bodyLarge,
+    color: materialColors.textSecondary,
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  fabText: {
-    fontSize: 32,
-    color: '#FFFFFF',
-    fontWeight: '300',
+    right: materialSpacing.md,
+    bottom: materialSpacing.md,
   },
 })
 

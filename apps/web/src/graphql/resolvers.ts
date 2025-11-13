@@ -10,6 +10,7 @@ import {
 } from '@/lib/graphql-logger'
 import { mentionQueries, mentionMutations, mentionFieldResolvers } from './mention-resolvers'
 import { notificationQueries, notificationMutations, FeedNotificationFieldResolvers, createNotificationLoader } from './notification-resolvers'
+import { pushTokenMutations } from './push-token-resolvers'
 import { parseMentions, storeMentions } from '@/lib/mention-parser'
 import { createCommentNotification, createReactionNotification, createPostStatusNotification } from '@/lib/notification-helper'
 
@@ -2290,7 +2291,10 @@ export const resolvers = {
     ...mentionMutations,
 
     // Notification Mutations
-    ...notificationMutations
+    ...notificationMutations,
+
+    // Push Token Mutations
+    ...pushTokenMutations
   },
 
   // Field Resolvers

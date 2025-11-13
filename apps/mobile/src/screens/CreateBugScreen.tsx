@@ -6,14 +6,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   ScrollView,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   Alert,
 } from 'react-native'
+import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
 import { Picker } from '@react-native-picker/picker'
 import { createBug } from '../services/bugService'
 import { getProjectHierarchy, ProjectHierarchy } from '../services/projectService'
@@ -22,13 +19,16 @@ import { getAllUsers, getCurrentUser, User } from '../services/userService'
 import { useNavigation } from '@react-navigation/native'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 export default function CreateBugScreen() {
   const navigation = useNavigation()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
-  
+  const { isOffline } = useNetworkStatus()
+
   // Form state
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -160,8 +160,8 @@ export default function CreateBugScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={materialColors.primary} />
         <Text style={styles.loadingText}>Loading form...</Text>
       </View>
     )
@@ -169,7 +169,7 @@ export default function CreateBugScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.form}>
+      <Surface style={styles.form} elevation={0}>
         {/* Project */}
         <View style={styles.field}>
           <Text style={styles.label}>
@@ -221,33 +221,32 @@ export default function CreateBugScreen() {
         </View>
 
         {/* Feature (Title) */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Feature <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Enter feature name"
-          />
-        </View>
+        <TextInput
+          mode="outlined"
+          label="Feature *"
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Enter feature name"
+          style={styles.input}
+          outlineColor={materialColors.outline}
+          activeOutlineColor={materialColors.primary}
+          disabled={isOffline}
+        />
 
         {/* Description */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Description <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Describe the bug in detail"
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
+        <TextInput
+          mode="outlined"
+          label="Description *"
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Describe the bug in detail"
+          multiline
+          numberOfLines={4}
+          style={styles.input}
+          outlineColor={materialColors.outline}
+          activeOutlineColor={materialColors.primary}
+          disabled={isOffline}
+        />
 
         {/* Criticality (Severity) */}
         <View style={styles.field}>
@@ -340,16 +339,17 @@ export default function CreateBugScreen() {
         </View>
 
         {/* Submit Button */}
-        <TouchableOpacity
-          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+        <Button
+          mode="contained"
           onPress={handleSubmit}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isOffline}
+          loading={isSubmitting}
+          style={styles.submitButton}
+          buttonColor={materialColors.primary}
         >
-          <Text style={styles.submitButtonText}>
-            {isSubmitting ? 'Creating...' : 'Create Bug'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {isSubmitting ? 'Creating...' : 'Create Bug'}
+        </Button>
+      </Surface>
     </ScrollView>
   )
 }
@@ -357,75 +357,51 @@ export default function CreateBugScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    backgroundColor: materialColors.background,
   },
-  centered: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: materialColors.background,
   },
   loadingText: {
-    marginTop: responsive.spacing.sm,
-    fontSize: responsive.fontSize.md,
-    color: colors.textSecondary,
+    ...materialTypography.bodyLarge,
+    marginTop: materialSpacing.md,
+    color: materialColors.textSecondary,
   },
   form: {
-    padding: responsive.spacing.md,
+    padding: materialSpacing.md,
+    gap: materialSpacing.md,
   },
   field: {
-    marginBottom: responsive.spacing.lg,
+    marginBottom: materialSpacing.md,
   },
   label: {
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: responsive.spacing.xs,
+    ...materialTypography.labelLarge,
+    color: materialColors.text,
+    marginBottom: materialSpacing.xs,
   },
   required: {
-    color: colors.error,
+    color: materialColors.error,
   },
   input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    padding: responsive.spacing.sm,
-    fontSize: responsive.fontSize.md,
-    backgroundColor: colors.card,
-    color: colors.text,
-  },
-  textArea: {
-    minHeight: 100,
-    textAlignVertical: 'top',
+    backgroundColor: materialColors.surface,
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    backgroundColor: colors.card,
+    borderColor: materialColors.outline,
+    borderRadius: 4,
+    backgroundColor: materialColors.surface,
     overflow: 'hidden',
   },
   picker: {
     height: 50,
-    color: colors.text,
+    color: materialColors.text,
   },
   submitButton: {
-    backgroundColor: colors.primary,
-    padding: responsive.spacing.md,
-    borderRadius: responsive.borderRadius.md,
-    alignItems: 'center',
-    marginTop: responsive.spacing.xs,
-    marginBottom: responsive.spacing.xl,
-  },
-  submitButtonDisabled: {
-    backgroundColor: colors.textTertiary,
-  },
-  submitButtonText: {
-    color: colors.card,
-    fontSize: responsive.fontSize.lg,
-    fontWeight: '600',
+    marginTop: materialSpacing.md,
+    marginBottom: materialSpacing.xl,
   },
 })
 

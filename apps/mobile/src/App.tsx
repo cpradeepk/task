@@ -1,5 +1,5 @@
-import React, { useEffect, useState, Component, ErrorInfo, ReactNode } from 'react'
-import { NavigationContainer } from '@react-navigation/native'
+import React, { useEffect, useState, Component, ErrorInfo, ReactNode, useRef } from 'react'
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ApolloProvider } from '@apollo/client/react'
 import { AuthContext } from './contexts/AuthContext'
@@ -23,12 +23,18 @@ import WFHListScreen from './screens/WFHListScreen'
 import WFHDetailsScreen from './screens/WFHDetailsScreen'
 import CreateWFHScreen from './screens/CreateWFHScreen'
 import NotificationBell from './components/NotificationBell'
+import CustomDrawerContent from './components/CustomDrawerContent'
 import { OfflineBanner } from './components/OfflineBanner'
 import { ActivityIndicator, View, LogBox, Text } from 'react-native'
+import { IconButton } from 'react-native-paper'
 import { apolloClient, initializeApollo } from './config/apollo'
-import { getUserToken, saveUserToken, saveUserData, clearSecureData } from './utils/secureStorage'
-import { LOGIN_MUTATION } from './config/graphql-queries'
+import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData } from './utils/secureStorage'
+import { LOGIN_MUTATION, REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN } from './config/graphql-queries'
 import { ThemeProvider } from './contexts/Providers'
+import { registerForPushNotifications, setupNotificationListeners } from './services/pushNotificationService'
+import * as Notifications from 'expo-notifications'
+import Constants from 'expo-constants'
+import { Platform } from 'react-native'
 
 // Disable dev tools warnings in production builds
 if (!__DEV__) {
@@ -157,6 +163,60 @@ export default function App() {
     }
   )
 
+  const [menuVisible, setMenuVisible] = React.useState(false)
+  const [pushToken, setPushToken] = React.useState<string | null>(null)
+  const navigationRef = useRef<NavigationContainerRef<any>>(null)
+
+  // Helper function to handle notification navigation
+  const handleNotificationNavigation = (data: any) => {
+    if (!navigationRef.current) {
+      console.warn('Navigation ref not ready')
+      return
+    }
+
+    const { type, taskId, bugId, leaveId, wfhId, postId } = data
+
+    try {
+      switch (type) {
+        case 'task':
+          if (taskId) {
+            navigationRef.current.navigate('TaskDetails' as never, { taskId } as never)
+          }
+          break
+        case 'bug':
+          if (bugId) {
+            navigationRef.current.navigate('BugDetails' as never, { bugId } as never)
+          }
+          break
+        case 'leave':
+          if (leaveId) {
+            navigationRef.current.navigate('LeaveDetails' as never, { leaveId } as never)
+          }
+          break
+        case 'wfh':
+          if (wfhId) {
+            navigationRef.current.navigate('WFHDetails' as never, { wfhId } as never)
+          }
+          break
+        case 'feed':
+        case 'mention':
+        case 'comment':
+        case 'reaction':
+          if (postId) {
+            navigationRef.current.navigate('FeedPostDetails' as never, { postId } as never)
+          } else {
+            navigationRef.current.navigate('Feed' as never)
+          }
+          break
+        default:
+          // Navigate to notifications screen if type is unknown
+          navigationRef.current.navigate('Notifications' as never)
+      }
+    } catch (error) {
+      console.error('Navigation error:', error)
+    }
+  }
+
   useEffect(() => {
     const bootstrapAsync = async () => {
       let userToken
@@ -175,6 +235,77 @@ export default function App() {
 
     bootstrapAsync()
   }, [])
+
+  // Initialize push notifications when user is authenticated
+  useEffect(() => {
+    if (!state.userToken) {
+      return
+    }
+
+    let cleanupListeners: (() => void) | undefined
+
+    const initPushNotifications = async () => {
+      try {
+        // Get user data to get employee ID
+        const userData = await getUserData()
+        if (!userData?.employeeId) {
+          console.warn('No user data found, skipping push notification registration')
+          return
+        }
+
+        // Register for push notifications and get token
+        const token = await registerForPushNotifications()
+        if (token) {
+          setPushToken(token)
+          console.log('Push token obtained:', token.substring(0, 20) + '...')
+
+          // Send token to backend
+          try {
+            await apolloClient.mutate({
+              mutation: REGISTER_PUSH_TOKEN,
+              variables: {
+                userId: userData.employeeId,
+                pushToken: token,
+                deviceType: Platform.OS,
+                deviceId: Constants.deviceName || Platform.OS
+              }
+            })
+            console.log('Push token registered with backend')
+          } catch (error) {
+            console.error('Failed to register push token with backend:', error)
+          }
+        }
+
+        // Setup notification listeners
+        cleanupListeners = setupNotificationListeners(
+          // Foreground notification handler
+          (notification) => {
+            console.log('Foreground notification:', notification)
+            // Notification is automatically shown by Notifications.setNotificationHandler
+          },
+          // Notification tap handler
+          (response) => {
+            console.log('Notification tapped:', response)
+            const data = response.notification.request.content.data
+            if (data) {
+              handleNotificationNavigation(data)
+            }
+          }
+        )
+      } catch (error) {
+        console.error('Failed to initialize push notifications:', error)
+      }
+    }
+
+    initPushNotifications()
+
+    // Cleanup listeners on unmount or logout
+    return () => {
+      if (cleanupListeners) {
+        cleanupListeners()
+      }
+    }
+  }, [state.userToken])
 
   const authContext = React.useMemo(
     () => ({
@@ -208,6 +339,34 @@ export default function App() {
       },
       signOut: async () => {
         try {
+          // Unregister push token from backend
+          if (pushToken) {
+            try {
+              const userData = await getUserData()
+              if (userData?.employeeId) {
+                await apolloClient.mutate({
+                  mutation: UNREGISTER_PUSH_TOKEN,
+                  variables: {
+                    userId: userData.employeeId,
+                    pushToken: pushToken
+                  }
+                })
+                console.log('Push token unregistered from backend')
+              }
+            } catch (error) {
+              console.error('Failed to unregister push token:', error)
+            }
+          }
+
+          // Clear push token state
+          setPushToken(null)
+
+          // Cancel all scheduled notifications
+          await Notifications.cancelAllScheduledNotificationsAsync()
+
+          // Clear badge count
+          await Notifications.setBadgeCountAsync(0)
+
           // Clear all secure data
           await clearSecureData()
 
@@ -241,12 +400,14 @@ export default function App() {
       <ThemeProvider>
         <ApolloProvider client={apolloClient}>
           <AuthContext.Provider value={authContext}>
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
               <OfflineBanner />
               <Stack.Navigator
                 screenOptions={{
                   headerShown: true,
                   animationEnabled: true,
+                  animation: 'slide_from_right',
+                  animationDuration: 250,
                 }}
               >
                 {state.userToken == null ? (
@@ -265,6 +426,23 @@ export default function App() {
                       component={DashboardScreen}
                       options={{
                         headerTitle: 'JSR Task Management',
+                        headerStyle: {
+                          backgroundColor: '#FFA301',
+                        },
+                        headerTintColor: '#000000',
+                        headerTitleStyle: {
+                          fontWeight: '600',
+                          color: '#000000',
+                        },
+                        headerLeft: () => (
+                          <IconButton
+                            icon="menu"
+                            size={28}
+                            iconColor="#FFFFFF"
+                            onPress={() => setMenuVisible(true)}
+                            style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
+                          />
+                        ),
                         headerRight: () => <NotificationBell />,
                       }}
                     />
@@ -404,6 +582,10 @@ export default function App() {
                   </>
                 )}
               </Stack.Navigator>
+              <CustomDrawerContent
+                visible={menuVisible}
+                onClose={() => setMenuVisible(false)}
+              />
             </NavigationContainer>
           </AuthContext.Provider>
         </ApolloProvider>

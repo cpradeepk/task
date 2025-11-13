@@ -1,12 +1,13 @@
 # JSR Task Management - System Requirements Specification (SRS)
 
-**Version:** 1.0  
-**Last Updated:** 2025-11-12  
+**Version:** 1.1
+**Last Updated:** 2025-11-13
 **Document Owner:** JSR Development Team
 
 ---
 
 ## Changelog
+- **2025-11-13**: Added push notification requirements for mobile app (Expo Push Notifications, deep linking, notification channels)
 - **2025-11-12**: Initial SRS creation - Complete system requirements for all features
 
 ---
@@ -1006,10 +1007,12 @@ In Progress → Completed
 
 ## Notifications
 
-**Last Updated:** 2025-11-12
+**Last Updated:** 2025-11-13
 
 ### Overview
-The system sends email notifications for important events to keep users informed.
+The system provides two notification channels to keep users informed:
+1. **Email Notifications**: Sent for important events (tasks, bugs, leave, WFH)
+2. **Push Notifications**: Real-time mobile app notifications (available on mobile app only)
 
 ### Email Configuration
 
@@ -1058,6 +1061,109 @@ The system sends email notifications for important events to keep users informed
 - `{{status}}`: Current status
 - `{{reason}}`: Reason (for leave/WFH)
 - `{{rejectionReason}}`: Rejection reason
+
+---
+
+### Push Notifications (Mobile App)
+
+**Last Updated:** 2025-11-13
+
+#### Overview
+The mobile app receives real-time push notifications using Expo Push Notification Service. Push notifications are sent automatically whenever an in-app notification is created.
+
+#### Configuration
+
+- **Service**: Expo Push Notification Service
+- **Endpoint**: https://exp.host/--/api/v2/push/send
+- **Token Format**: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+- **Platforms**: Android, iOS
+- **Deep Linking Scheme**: `jsrtask://`
+
+#### Notification Channels (Android)
+
+1. **Default Channel**
+   - ID: `default`
+   - Name: General Notifications
+   - Importance: Default
+   - Sound: Default notification sound
+
+2. **Tasks Channel**
+   - ID: `tasks`
+   - Name: Task Notifications
+   - Importance: High
+   - LED Color: Orange (#FFA301)
+   - Sound: Default notification sound
+
+3. **Bugs Channel**
+   - ID: `bugs`
+   - Name: Bug Notifications
+   - Importance: High
+   - LED Color: Red (#FF0000)
+   - Sound: Default notification sound
+
+4. **Social Channel**
+   - ID: `social`
+   - Name: Social Feed
+   - Importance: Default
+   - LED Color: Blue (#0000FF)
+   - Sound: Default notification sound
+
+#### Push Notification Triggers
+
+Push notifications are sent for the same events as in-app notifications:
+
+**Task Notifications:**
+- Task assigned to user
+- Task status changed
+- Task comment added
+- Task mentioned in feed
+
+**Bug Notifications:**
+- Bug assigned to user
+- Bug status changed
+- Bug comment added
+- Bug mentioned in feed
+
+**Leave Notifications:**
+- Leave application approved
+- Leave application rejected
+
+**WFH Notifications:**
+- WFH application approved
+- WFH application rejected
+
+**Feed Notifications:**
+- User mentioned in post
+- User mentioned in comment
+- Comment on user's post
+- Reaction to user's post
+- Reaction to user's comment
+
+#### Deep Linking
+
+When user taps a push notification, the app opens and navigates to the relevant screen:
+
+- **Task Notification** → TaskDetailsScreen (with taskId)
+- **Bug Notification** → BugDetailsScreen (with bugId)
+- **Leave Notification** → LeaveDetailsScreen (with leaveId)
+- **WFH Notification** → WFHDetailsScreen (with wfhId)
+- **Feed Notification** → FeedPostDetailsScreen (with postId) or FeedScreen
+
+#### User Experience
+
+1. **Permission Request**: On first login, app requests notification permissions
+2. **Foreground Notifications**: Shown as banner when app is open
+3. **Background Notifications**: Shown in notification tray when app is minimized
+4. **Killed App Notifications**: Shown in notification tray when app is closed
+5. **Badge Count**: Updated with unread notification count
+6. **Notification Tap**: Opens app and navigates to relevant content
+
+#### Token Management
+
+- **Registration**: Push token registered with backend on login
+- **Unregistration**: Push token marked inactive on logout
+- **Multi-Device**: Users can have multiple active push tokens (one per device)
+- **Invalid Tokens**: Automatically marked inactive when Expo returns DeviceNotRegistered error
 
 ---
 

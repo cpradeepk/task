@@ -1,39 +1,40 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { AuthContext } from '../contexts/AuthContext'
+import { Card, Text, ActivityIndicator, IconButton, Surface } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { DebugMenu } from '../components/DebugMenu'
+import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import { getUserToken, getUserData } from '../utils/secureStorage'
 
 export default function DashboardScreen() {
   const navigation = useNavigation()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+  const { isOffline } = useNetworkStatus()
 
   const [user, setUser] = useState<any>(null)
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [debugMenuVisible, setDebugMenuVisible] = useState(false)
-  const { signOut } = React.useContext(AuthContext)
 
   const loadData = useCallback(async () => {
     try {
-      const userStr = await AsyncStorage.getItem('user')
-      const token = await AsyncStorage.getItem('userToken')
+      const userData = await getUserData()
+      const token = await getUserToken()
 
-      if (userStr) {
-        setUser(JSON.parse(userStr))
+      if (userData) {
+        setUser(userData)
       }
 
       if (token) {
@@ -57,268 +58,297 @@ export default function DashboardScreen() {
     loadData()
   }, [loadData])
 
-  const handleLogout = useCallback(async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', onPress: () => {} },
-      {
-        text: 'Logout',
-        onPress: async () => {
-          await signOut()
-        },
-      },
-    ])
-  }, [signOut])
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await loadData()
+    setRefreshing(false)
+  }, [loadData])
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={materialColors.primary} />
+        <Text style={styles.loadingText}>Loading dashboard...</Text>
       </View>
     )
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Welcome, {user?.name}!</Text>
-          <Text style={styles.role}>{user?.role}</Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => setDebugMenuVisible(true)}
-          style={styles.debugButton}
-        >
-          <Text style={styles.debugButtonText}>🐛 Debug</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{tasks.length}</Text>
-          <Text style={styles.statLabel}>Total Tasks</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>
-            {tasks.filter((t) => t.status === 'In Progress').length}
-          </Text>
-          <Text style={styles.statLabel}>In Progress</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>
-            {tasks.filter((t) => t.status === 'Done').length}
-          </Text>
-          <Text style={styles.statLabel}>Completed</Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={() => navigation.navigate('TaskList' as never)}
-        >
-          <Text style={styles.actionTitle}>📋 Tasks</Text>
-          <Text style={styles.actionDescription}>View and manage tasks</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={() => navigation.navigate('CreateTask' as never)}
-        >
-          <Text style={styles.actionTitle}>➕ Create Task</Text>
-          <Text style={styles.actionDescription}>Create a new task</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={() => navigation.navigate('BugList' as never)}
-        >
-          <Text style={styles.actionTitle}>🐛 Bugs</Text>
-          <Text style={styles.actionDescription}>View and manage bugs</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={() => navigation.navigate('CreateBug' as never)}
-        >
-          <Text style={styles.actionTitle}>➕ Report Bug</Text>
-          <Text style={styles.actionDescription}>Create a new bug report</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={() => navigation.navigate('Feed' as never)}
-        >
-          <Text style={styles.actionTitle}>📰 Feed</Text>
-          <Text style={styles.actionDescription}>View team feed and updates</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={() => navigation.navigate('LeaveList' as never)}
-        >
-          <Text style={styles.actionTitle}>🏖️ Leave</Text>
-          <Text style={styles.actionDescription}>Apply for leave</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={() => navigation.navigate('WFHList' as never)}
-        >
-          <Text style={styles.actionTitle}>🏠 WFH</Text>
-          <Text style={styles.actionDescription}>Work from home requests</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Tasks</Text>
-        {tasks.slice(0, 5).map((task) => (
-          <View key={task.taskId} style={styles.taskCard}>
-            <Text style={styles.taskTitle}>{task.name || task.description}</Text>
-            <Text style={styles.taskStatus}>{task.status}</Text>
+    <View style={styles.container}>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[materialColors.primary]}
+            tintColor={materialColors.primary}
+          />
+        }
+      >
+        {/* Header */}
+        <Surface style={styles.header} elevation={2}>
+          <View style={styles.headerTextContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.greetingScroll}>
+              <Text style={styles.greeting}>Welcome, {user?.name}!</Text>
+            </ScrollView>
+            <Text style={styles.role}>{user?.role}</Text>
           </View>
-        ))}
-      </View>
+          <IconButton
+            icon="bug"
+            size={24}
+            iconColor={materialColors.surface}
+            onPress={() => setDebugMenuVisible(true)}
+            style={styles.debugButton}
+          />
+        </Surface>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Logout</Text>
-      </TouchableOpacity>
+        {/* Statistics Cards */}
+        <View style={styles.statsContainer}>
+          <Card style={styles.statCard} elevation={1}>
+            <Card.Content style={styles.statCardContent}>
+              <Text style={styles.statNumber}>{tasks.length}</Text>
+              <Text style={styles.statLabel}>Total Tasks</Text>
+            </Card.Content>
+          </Card>
+          <Card style={styles.statCard} elevation={1}>
+            <Card.Content style={styles.statCardContent}>
+              <Text style={styles.statNumber}>
+                {tasks.filter((t) => t.status === 'In Progress').length}
+              </Text>
+              <Text style={styles.statLabel}>In Progress</Text>
+            </Card.Content>
+          </Card>
+          <Card style={styles.statCard} elevation={1}>
+            <Card.Content style={styles.statCardContent}>
+              <Text style={styles.statNumber}>
+                {tasks.filter((t) => t.status === 'Done').length}
+              </Text>
+              <Text style={styles.statLabel}>Completed</Text>
+            </Card.Content>
+          </Card>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.actionsScrollView}
+            contentContainerStyle={styles.actionsScrollContent}
+          >
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('TaskList' as never)}>
+              <Card.Content>
+                <Text style={styles.actionTitle}>📋 Tasks</Text>
+                <Text style={styles.actionDescription}>View and manage tasks</Text>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('CreateTask' as never)}>
+              <Card.Content>
+                <Text style={styles.actionTitle}>➕ Create Task</Text>
+                <Text style={styles.actionDescription}>Create a new task</Text>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('BugList' as never)}>
+              <Card.Content>
+                <Text style={styles.actionTitle}>🐛 Bugs</Text>
+                <Text style={styles.actionDescription}>View and manage bugs</Text>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('CreateBug' as never)}>
+              <Card.Content>
+                <Text style={styles.actionTitle}>➕ Report Bug</Text>
+                <Text style={styles.actionDescription}>Create a new bug report</Text>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('Feed' as never)}>
+              <Card.Content>
+                <Text style={styles.actionTitle}>📰 Feed</Text>
+                <Text style={styles.actionDescription}>View team feed and updates</Text>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('LeaveList' as never)}>
+              <Card.Content>
+                <Text style={styles.actionTitle}>🏖️ Leave</Text>
+                <Text style={styles.actionDescription}>Apply for leave</Text>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('WFHList' as never)}>
+              <Card.Content>
+                <Text style={styles.actionTitle}>🏠 WFH</Text>
+                <Text style={styles.actionDescription}>Work from home requests</Text>
+              </Card.Content>
+            </Card>
+          </ScrollView>
+        </View>
+
+        {/* Recent Tasks */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recent Tasks</Text>
+          {tasks.length === 0 ? (
+            <Card style={styles.emptyCard} elevation={0}>
+              <Card.Content>
+                <Text style={styles.emptyText}>No tasks yet</Text>
+              </Card.Content>
+            </Card>
+          ) : (
+            tasks.slice(0, 5).map((task) => (
+              <Card key={task.taskId} style={styles.taskCard} elevation={1}>
+                <Card.Content>
+                  <Text style={styles.taskTitle}>{task.name || task.description}</Text>
+                  <Text style={styles.taskStatus}>{task.status}</Text>
+                </Card.Content>
+              </Card>
+            ))
+          )}
+        </View>
+
+      </ScrollView>
 
       <DebugMenu
         visible={debugMenuVisible}
         onClose={() => setDebugMenuVisible(false)}
       />
-    </ScrollView>
+    </View>
   )
 }
 
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: materialColors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: materialColors.background,
+  },
+  loadingText: {
+    ...materialTypography.bodyLarge,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.md,
   },
   header: {
-    backgroundColor: colors.primary,
-    padding: responsive.spacing.lg,
-    paddingTop: responsive.spacing.xxl * 2,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    backgroundColor: materialColors.primary,
+    padding: materialSpacing.lg,
+    paddingTop: materialSpacing.xxl * 2,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerTextContainer: {
+    flex: 1,
+    marginRight: materialSpacing.md,
+    maxWidth: '80%',
+  },
+  greetingScroll: {
+    flexGrow: 0,
+    maxWidth: '100%',
+  },
   debugButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  debugButtonText: {
-    color: colors.card,
-    fontSize: 12,
-    fontWeight: '600',
   },
   greeting: {
-    fontSize: responsive.fontSize.xl,
-    fontWeight: 'bold',
-    color: colors.card,
+    ...materialTypography.headlineMedium,
+    color: materialColors.surface,
   },
   role: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.primaryLight,
-    marginTop: responsive.spacing.xxs,
+    ...materialTypography.bodyMedium,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: materialSpacing.xs,
   },
   statsContainer: {
     flexDirection: 'row',
-    padding: responsive.spacing.md,
-    gap: responsive.spacing.sm,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    padding: materialSpacing.md,
+    gap: materialSpacing.sm,
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.card,
-    padding: responsive.spacing.md,
-    borderRadius: responsive.borderRadius.md,
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+  },
+  statCardContent: {
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
   },
   statNumber: {
-    fontSize: responsive.fontSize.xl,
-    fontWeight: 'bold',
-    color: colors.primary,
+    ...materialTypography.headlineLarge,
+    color: materialColors.primary,
   },
   statLabel: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textSecondary,
-    marginTop: responsive.spacing.xxs,
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.xs,
   },
   section: {
-    padding: responsive.spacing.md,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    padding: materialSpacing.md,
   },
   sectionTitle: {
-    fontSize: responsive.fontSize.lg,
-    fontWeight: 'bold',
-    marginBottom: responsive.spacing.sm,
-    color: colors.text,
+    ...materialTypography.titleLarge,
+    color: materialColors.text,
+    marginBottom: materialSpacing.md,
   },
-  taskCard: {
-    backgroundColor: colors.card,
-    padding: responsive.spacing.md,
-    borderRadius: responsive.borderRadius.md,
-    marginBottom: responsive.spacing.sm,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.primary,
+  actionsScrollView: {
+    flexGrow: 0,
   },
-  taskTitle: {
-    fontSize: responsive.fontSize.sm,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  taskStatus: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textSecondary,
-    marginTop: responsive.spacing.xxs,
+  actionsScrollContent: {
+    paddingVertical: materialSpacing.xs,
+    paddingRight: materialSpacing.md,
   },
   actionCard: {
-    backgroundColor: colors.card,
-    padding: responsive.spacing.lg,
-    borderRadius: responsive.borderRadius.lg,
-    marginBottom: responsive.spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+    marginBottom: materialSpacing.sm,
+  },
+  actionCardHorizontal: {
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+    marginRight: materialSpacing.md,
+    width: 200,
   },
   actionTitle: {
-    fontSize: responsive.fontSize.lg,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: responsive.spacing.xxs,
+    ...materialTypography.titleMedium,
+    color: materialColors.text,
+    marginBottom: materialSpacing.xs,
   },
   actionDescription: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
+  },
+  taskCard: {
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+    marginBottom: materialSpacing.sm,
+    borderLeftWidth: 4,
+    borderLeftColor: materialColors.primary,
+  },
+  taskTitle: {
+    ...materialTypography.bodyLarge,
+    color: materialColors.text,
+    fontWeight: '600',
+  },
+  taskStatus: {
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.xs,
+  },
+  emptyCard: {
+    backgroundColor: materialColors.surfaceVariant,
+    borderRadius: 12,
+  },
+  emptyText: {
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
+    textAlign: 'center',
   },
   logoutButton: {
-    backgroundColor: colors.error,
-    margin: responsive.spacing.md,
-    padding: responsive.spacing.md,
-    borderRadius: responsive.borderRadius.md,
-    alignItems: 'center',
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  logoutButtonText: {
-    color: colors.card,
-    fontSize: responsive.fontSize.md,
-    fontWeight: 'bold',
+    borderRadius: 8,
   },
 })

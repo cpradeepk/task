@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import {
   View,
-  TextInput,
-  TouchableOpacity,
-  Text,
   StyleSheet,
   Alert,
-  ActivityIndicator,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  TouchableOpacity,
 } from 'react-native'
+import { TextInput, Button, Text, Surface } from 'react-native-paper'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { AuthContext } from '../contexts/AuthContext'
 import {
   isBiometricSupported,
@@ -17,6 +20,8 @@ import {
   getBiometricTypeName
 } from '../utils/biometricAuth'
 import { getUserToken, getUserData } from '../utils/secureStorage'
+import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 export default function LoginScreen() {
   const [employeeId, setEmployeeId] = useState('')
@@ -24,11 +29,32 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false)
   const [biometricAvailable, setBiometricAvailable] = useState(false)
   const [biometricType, setBiometricType] = useState('Biometric')
+  const [showPassword, setShowPassword] = useState(false)
   const { signIn } = React.useContext(AuthContext)
+  const { isOffline } = useNetworkStatus()
+
+  // Animation values
+  const fadeAnim = React.useRef(new Animated.Value(0)).current
+  const slideAnim = React.useRef(new Animated.Value(50)).current
 
   // Check biometric availability on mount
   useEffect(() => {
     checkBiometricAvailability()
+
+    // Fade in animation (faster: 300ms instead of 600ms)
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 65,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start()
   }, [])
 
   const checkBiometricAvailability = async () => {
@@ -104,122 +130,242 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>JSR Task Management</Text>
-      <Text style={styles.subtitle}>Mobile App</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Employee ID"
-        value={employeeId}
-        onChangeText={setEmployeeId}
-        editable={!loading}
-        placeholderTextColor="#999"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        editable={!loading}
-        placeholderTextColor="#999"
-      />
-
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleLogin}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
-      </TouchableOpacity>
-
-      {biometricAvailable && (
-        <TouchableOpacity
-          style={[styles.biometricButton, loading && styles.buttonDisabled]}
-          onPress={handleBiometricLogin}
-          disabled={loading}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.content}>
+        <Animated.View
+          style={[
+            styles.formContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
         >
-          <Text style={styles.biometricButtonText}>
-            🔐 Login with {biometricType}
-          </Text>
-        </TouchableOpacity>
-      )}
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <View style={styles.logoTextContainer}>
+                <Text style={styles.logoText}>AMTARIKSHA</Text>
+              </View>
+            </View>
+            <Text style={styles.title}>JSR Task Management</Text>
+            <Text style={styles.subtitle}>Sign in to continue</Text>
+          </View>
 
-      <Text style={styles.helperText}>
-        Use your Employee ID (e.g., AM-0001) to login
-      </Text>
-    </View>
+          {/* Login Form Card */}
+          <Surface style={styles.card} elevation={2}>
+            <TextInput
+              label="Employee ID"
+              value={employeeId}
+              onChangeText={setEmployeeId}
+              mode="outlined"
+              disabled={loading || isOffline}
+              autoCapitalize="characters"
+              placeholder="e.g., AM-0001"
+              left={<TextInput.Icon icon="account" />}
+              style={styles.input}
+              outlineColor={materialColors.outline}
+              activeOutlineColor={materialColors.primary}
+            />
+
+            <View style={styles.passwordContainer}>
+              <TextInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                mode="outlined"
+                disabled={loading || isOffline}
+                secureTextEntry={!showPassword}
+                placeholder="Enter your password"
+                left={<TextInput.Icon icon="lock" color={materialColors.primary} />}
+                style={[styles.input, styles.passwordInput]}
+                outlineColor={materialColors.outline}
+                activeOutlineColor={materialColors.primary}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIconButton}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={24}
+                  color={materialColors.primary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <Button
+              mode="contained"
+              onPress={handleLogin}
+              loading={loading}
+              disabled={loading || isOffline || !employeeId || !password}
+              style={styles.loginButton}
+              contentStyle={styles.buttonContent}
+              labelStyle={styles.buttonLabel}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+
+            {biometricAvailable && (
+              <Button
+                mode="outlined"
+                onPress={handleBiometricLogin}
+                disabled={loading || isOffline}
+                style={styles.biometricButton}
+                contentStyle={styles.buttonContent}
+                labelStyle={styles.biometricButtonLabel}
+                icon="fingerprint"
+              >
+                Login with {biometricType}
+              </Button>
+            )}
+
+            {isOffline && (
+              <View style={styles.offlineNotice}>
+                <Text style={styles.offlineText}>
+                  📡 You're offline. Please connect to the internet to login.
+                </Text>
+              </View>
+            )}
+          </Surface>
+
+          {/* Helper Text */}
+          <Text style={styles.helperText}>
+            Use your Employee ID (e.g., AM-0001) to login
+          </Text>
+        </Animated.View>
+      </View>
+    </KeyboardAvoidingView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: materialColors.background,
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    padding: materialSpacing.lg,
+  },
+  formContainer: {
+    width: '100%',
+  },
+  header: {
+    marginBottom: materialSpacing.xl,
+    alignItems: 'center',
+  },
+  logoContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: materialSpacing.lg,
+    backgroundColor: '#FFFFFF',
+    padding: materialSpacing.lg,
+    borderRadius: 12,
+    borderWidth: 3,
+    borderColor: materialColors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  logoTextContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: materialColors.primary,
+    letterSpacing: 2,
+  },
+  logo: {
+    width: 320,
+    height: 80,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    ...materialTypography.headlineLarge,
+    color: materialColors.text,
     textAlign: 'center',
-    marginBottom: 10,
-    color: '#333',
+    marginBottom: materialSpacing.xs,
   },
   subtitle: {
-    fontSize: 16,
+    ...materialTypography.bodyLarge,
+    color: materialColors.textSecondary,
     textAlign: 'center',
-    marginBottom: 40,
-    color: '#666',
+  },
+  card: {
+    backgroundColor: materialColors.surface,
+    borderRadius: 16,
+    padding: materialSpacing.lg,
+    elevation: materialElevation.level2,
+    shadowColor: materialColors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 15,
-    marginBottom: 15,
+    marginBottom: materialSpacing.md,
+    backgroundColor: materialColors.surface,
+  },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: materialSpacing.md,
+  },
+  passwordInput: {
+    marginBottom: 0,
+    paddingRight: 48,
+  },
+  eyeIconButton: {
+    position: 'absolute',
+    right: 8,
+    top: 12,
+    padding: 12,
+    zIndex: 10,
+    backgroundColor: 'rgba(255, 163, 1, 0.1)',
+    borderRadius: 20,
+  },
+  loginButton: {
+    marginTop: materialSpacing.sm,
     borderRadius: 8,
-    backgroundColor: '#fff',
-    fontSize: 16,
+    backgroundColor: materialColors.primary,
   },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
+  buttonContent: {
+    paddingVertical: materialSpacing.xs,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+  buttonLabel: {
+    ...materialTypography.labelLarge,
   },
   biometricButton: {
-    backgroundColor: '#fff',
-    padding: 15,
+    marginTop: materialSpacing.md,
     borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 15,
-    borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: materialColors.primary,
   },
-  biometricButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+  biometricButtonLabel: {
+    ...materialTypography.labelLarge,
+    color: materialColors.primary,
+  },
+  offlineNotice: {
+    marginTop: materialSpacing.md,
+    padding: materialSpacing.sm,
+    backgroundColor: materialColors.warningContainer,
+    borderRadius: 8,
+  },
+  offlineText: {
+    ...materialTypography.bodySmall,
+    color: materialColors.onWarningContainer,
+    textAlign: 'center',
   },
   helperText: {
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
     textAlign: 'center',
-    marginTop: 20,
-    color: '#666',
-    fontSize: 14,
+    marginTop: materialSpacing.lg,
   },
 })

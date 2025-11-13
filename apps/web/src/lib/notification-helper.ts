@@ -5,6 +5,7 @@
  */
 
 import { getPool } from '@/lib/db'
+import { sendPushNotification, getNotificationPriority } from './push-notification-service'
 
 const getPoolInstance = () => getPool()
 
@@ -68,6 +69,23 @@ export async function createNotification(params: CreateNotificationParams): Prom
       metadata ? JSON.stringify(metadata) : null
     ]
   )
+
+  // Send push notification (don't await - fire and forget)
+  sendPushNotification(userId, {
+    title,
+    body: message || title,
+    data: {
+      notificationId,
+      type: notificationType === 'mention' || notificationType === 'comment' || notificationType === 'reaction' ? 'feed' : notificationType,
+      postId,
+      commentId,
+      linkUrl
+    },
+    priority: getNotificationPriority(notificationType)
+  }).catch(error => {
+    // Don't fail the notification creation if push notification fails
+    console.error('[createNotification] Failed to send push notification:', error)
+  })
 
   return result.rows[0]?.notification_id || ''
 }

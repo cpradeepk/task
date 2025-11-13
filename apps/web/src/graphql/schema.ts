@@ -400,6 +400,10 @@ export const typeDefs = `#graphql
     markNotificationAsRead(notificationId: ID!): FeedNotification!
     markAllNotificationsAsRead(userId: String!): Boolean!
     deleteNotification(notificationId: ID!): Boolean!
+
+    # Push Notifications
+    registerPushToken(userId: String!, pushToken: String!, deviceType: String!, deviceId: String): Boolean!
+    unregisterPushToken(userId: String!, pushToken: String!): Boolean!
   }
 
   input CreateTaskInput {

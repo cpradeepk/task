@@ -5,17 +5,17 @@
 
 import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper'
 
-// Material Design 3 Color Palette
+// Material Design 3 Color Palette (matching web app orange theme)
 export const materialColors = {
-  // Primary colors
-  primary: '#1976D2',       // Blue 700
-  primaryLight: '#42A5F5',  // Blue 400
-  primaryDark: '#0D47A1',   // Blue 900
-  
+  // Primary colors (orange to match web app)
+  primary: '#FFA301',       // Orange (web app primary)
+  primaryLight: '#FFCA1A',  // Orange 400
+  primaryDark: '#CC8200',   // Orange 700
+
   // Secondary colors
-  secondary: '#FF6F00',     // Orange 900
-  secondaryLight: '#FFA726', // Orange 400
-  secondaryDark: '#E65100',  // Orange 900 Dark
+  secondary: '#1976D2',     // Blue 700
+  secondaryLight: '#42A5F5', // Blue 400
+  secondaryDark: '#0D47A1',  // Blue 900
   
   // Surface colors
   surface: '#FFFFFF',

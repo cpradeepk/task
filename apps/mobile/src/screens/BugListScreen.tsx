@@ -15,15 +15,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   FlatList,
-  TouchableOpacity,
-  TextInput,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
 } from 'react-native'
+import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Surface } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { useQuery } from '@apollo/client/react'
 import { GET_BUGS } from '../config/graphql-queries'
@@ -32,6 +29,8 @@ import { getBugDisplayId, getSeverityColor, getStatusColor } from '../utils/bugH
 import { save, get, STORAGE_KEYS } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 interface BugFilters {
   searchQuery: string
@@ -44,6 +43,7 @@ export default function BugListScreen() {
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+  const { isOffline } = useNetworkStatus()
 
   const [filteredBugs, setFilteredBugs] = useState<Bug[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -146,61 +146,64 @@ export default function BugListScreen() {
     const projectName = item.project?.projectName || ''
 
     return (
-      <TouchableOpacity
+      <Card
         style={styles.bugCard}
+        elevation={1}
         onPress={() => navigation.navigate('BugDetails' as never, { bugId: item.bugId } as never)}
       >
-        <View style={styles.bugHeader}>
-          <View style={styles.bugIdContainer}>
-            <Text style={styles.bugId}>{displayId}</Text>
-            {item.type === 'feature' && (
-              <View style={styles.featureBadge}>
-                <Text style={styles.featureBadgeText}>Feature</Text>
-              </View>
-            )}
-          </View>
-          <View style={styles.badges}>
-            <View
-              style={[
-                styles.badge,
-                { backgroundColor: getStatusColor(item.status) },
-              ]}
-            >
-              <Text style={styles.badgeText}>{item.status}</Text>
+        <Card.Content>
+          <View style={styles.bugHeader}>
+            <View style={styles.bugIdContainer}>
+              <Text style={styles.bugId}>{displayId}</Text>
+              {item.type === 'feature' && (
+                <Chip mode="flat" compact style={styles.featureChip} textStyle={styles.featureChipText}>
+                  Feature
+                </Chip>
+              )}
             </View>
-            <View
-              style={[
-                styles.badge,
-                { backgroundColor: getSeverityColor(item.severity) },
-              ]}
-            >
-              <Text style={styles.badgeText}>{item.severity}</Text>
+            <View style={styles.badges}>
+              <Chip
+                mode="flat"
+                compact
+                style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) }]}
+                textStyle={styles.chipText}
+              >
+                {item.status}
+              </Chip>
+              <Chip
+                mode="flat"
+                compact
+                style={[styles.severityChip, { backgroundColor: getSeverityColor(item.severity) }]}
+                textStyle={styles.chipText}
+              >
+                {item.severity}
+              </Chip>
             </View>
           </View>
-        </View>
-        <Text style={styles.bugTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-        {projectName && (
-          <Text style={styles.projectName} numberOfLines={1}>
-            📁 {projectName}
+          <Text style={styles.bugTitle} numberOfLines={2}>
+            {item.title}
           </Text>
-        )}
-        <View style={styles.bugMeta}>
-          <Text style={styles.metaText}>{item.category}</Text>
-          <Text style={styles.metaText}>•</Text>
-          <Text style={styles.metaText}>{item.platform}</Text>
-          <Text style={styles.metaText}>•</Text>
-          <Text style={styles.metaText}>👤 {assignedToName}</Text>
-        </View>
-      </TouchableOpacity>
+          {projectName && (
+            <Text style={styles.projectName} numberOfLines={1}>
+              📁 {projectName}
+            </Text>
+          )}
+          <View style={styles.bugMeta}>
+            <Text style={styles.metaText}>{item.category}</Text>
+            <Text style={styles.metaText}>•</Text>
+            <Text style={styles.metaText}>{item.platform}</Text>
+            <Text style={styles.metaText}>•</Text>
+            <Text style={styles.metaText}>👤 {assignedToName}</Text>
+          </View>
+        </Card.Content>
+      </Card>
     )
   }
 
   if (loading && !data) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={materialColors.primary} />
         <Text style={styles.loadingText}>Loading bugs...</Text>
       </View>
     )
@@ -208,77 +211,70 @@ export default function BugListScreen() {
 
   if (error) {
     return (
-      <View style={styles.centered}>
+      <Surface style={styles.errorContainer} elevation={0}>
         <Text style={styles.errorText}>Failed to load bugs</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
+        <Text style={styles.errorSubtext}>{error.message}</Text>
+      </Surface>
     )
   }
 
   return (
     <View style={styles.container}>
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
+      <Surface style={styles.searchContainer} elevation={0}>
+        <Searchbar
           placeholder="Search bugs..."
           value={searchQuery}
           onChangeText={setSearchQuery}
+          style={styles.searchBar}
+          iconColor={materialColors.primary}
+          inputStyle={materialTypography.bodyMedium}
         />
-      </View>
+      </Surface>
 
       {/* Type Filter */}
-      <View style={styles.filterContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterRow}
+        contentContainerStyle={styles.filterRowContent}
+      >
         <Text style={styles.filterLabel}>Type:</Text>
         {['All', 'feature', 'testcase'].map((type) => (
-          <TouchableOpacity
+          <Chip
             key={type}
-            style={[
-              styles.filterButton,
-              typeFilter === type && styles.filterButtonActive,
-            ]}
+            mode={typeFilter === type ? 'flat' : 'outlined'}
+            selected={typeFilter === type}
             onPress={() => setTypeFilter(type)}
+            style={styles.filterChip}
+            textStyle={styles.filterChipText}
+            selectedColor={materialColors.surface}
           >
-            <Text
-              style={[
-                styles.filterButtonText,
-                typeFilter === type && styles.filterButtonTextActive,
-              ]}
-            >
-              {type === 'feature' ? 'Feature' : type === 'testcase' ? 'Test Case' : 'All'}
-            </Text>
-          </TouchableOpacity>
+            {type === 'feature' ? 'Feature' : type === 'testcase' ? 'Test Case' : 'All'}
+          </Chip>
         ))}
-      </View>
+      </ScrollView>
 
       {/* Status Filter */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.filterContainer}
-        contentContainerStyle={styles.filterContentContainer}
+        style={styles.filterRow}
+        contentContainerStyle={styles.filterRowContent}
       >
         <Text style={styles.filterLabel}>Status:</Text>
         {['All', 'New', 'In Progress', 'Resolved', 'Closed', 'Reopened'].map((status) => (
-          <TouchableOpacity
+          <Chip
             key={status}
-            style={[
-              styles.filterButton,
-              statusFilter === status && styles.filterButtonActive,
-            ]}
+            mode={statusFilter === status ? 'flat' : 'outlined'}
+            selected={statusFilter === status}
             onPress={() => setStatusFilter(status)}
+            style={styles.filterChip}
+            textStyle={styles.filterChipText}
+            selectedColor={materialColors.surface}
           >
-            <Text
-              style={[
-                styles.filterButtonText,
-                statusFilter === status && styles.filterButtonTextActive,
-              ]}
-            >
-              {status}
-            </Text>
-          </TouchableOpacity>
+            {status}
+          </Chip>
         ))}
       </ScrollView>
 
@@ -292,8 +288,8 @@ export default function BugListScreen() {
           <RefreshControl
             refreshing={loading}
             onRefresh={handleRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+            tintColor={materialColors.primary}
+            colors={[materialColors.primary]}
           />
         }
         ListEmptyComponent={
@@ -307,13 +303,14 @@ export default function BugListScreen() {
         }
       />
 
-      {/* Create Bug Button */}
-      <TouchableOpacity
+      {/* Create Bug FAB */}
+      <FAB
+        icon="plus"
         style={styles.fab}
         onPress={() => navigation.navigate('CreateBug' as never)}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+        color={materialColors.surface}
+        disabled={isOffline}
+      />
     </View>
   )
 }
@@ -321,198 +318,147 @@ export default function BugListScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: materialColors.background,
   },
-  centered: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: materialColors.background,
   },
   loadingText: {
-    marginTop: responsive.spacing.sm,
-    fontSize: responsive.fontSize.md,
-    color: colors.textSecondary,
+    ...materialTypography.bodyLarge,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.md,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: materialColors.background,
+    padding: materialSpacing.xl,
+  },
+  errorText: {
+    ...materialTypography.headlineSmall,
+    color: materialColors.error,
+    marginBottom: materialSpacing.sm,
+    textAlign: 'center',
+  },
+  errorSubtext: {
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
+    textAlign: 'center',
   },
   searchContainer: {
-    padding: responsive.spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    padding: materialSpacing.md,
+    backgroundColor: materialColors.surface,
   },
-  searchInput: {
-    height: 40,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    paddingHorizontal: responsive.spacing.sm,
-    fontSize: responsive.fontSize.md,
-    color: colors.text,
-    backgroundColor: colors.background,
+  searchBar: {
+    backgroundColor: materialColors.surfaceVariant,
+    borderRadius: 28,
   },
-  filterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: responsive.spacing.sm,
-    paddingHorizontal: responsive.spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+  filterRow: {
+    flexGrow: 0,
+    backgroundColor: materialColors.surface,
+    paddingVertical: materialSpacing.xs,
   },
-  filterContentContainer: {
+  filterRowContent: {
+    paddingHorizontal: materialSpacing.md,
     alignItems: 'center',
   },
   filterLabel: {
-    fontSize: responsive.fontSize.sm,
-    fontWeight: '600',
-    color: colors.text,
-    marginRight: responsive.spacing.sm,
+    ...materialTypography.labelLarge,
+    color: materialColors.text,
+    marginRight: materialSpacing.sm,
   },
-  filterButton: {
-    paddingHorizontal: responsive.spacing.sm,
-    paddingVertical: responsive.spacing.xs,
-    borderRadius: responsive.borderRadius.full,
-    marginRight: responsive.spacing.xs,
-    backgroundColor: colors.backgroundSecondary,
+  filterChip: {
+    marginRight: materialSpacing.xs,
+    height: 32,
   },
-  filterButtonActive: {
-    backgroundColor: colors.primary,
-  },
-  filterButtonText: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
-  },
-  filterButtonTextActive: {
-    color: colors.card,
-    fontWeight: '600',
+  filterChipText: {
+    ...materialTypography.labelMedium,
   },
   listContent: {
-    padding: responsive.spacing.md,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    padding: materialSpacing.md,
   },
   bugCard: {
-    backgroundColor: colors.card,
-    borderRadius: responsive.borderRadius.lg,
-    padding: responsive.spacing.md,
-    marginBottom: responsive.spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+    marginBottom: materialSpacing.md,
   },
   bugHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: responsive.spacing.xs,
+    alignItems: 'flex-start',
+    marginBottom: materialSpacing.sm,
   },
   bugIdContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: responsive.spacing.xs,
+    gap: materialSpacing.xs,
+    flex: 1,
   },
   bugId: {
-    fontSize: responsive.fontSize.sm,
+    ...materialTypography.labelLarge,
+    color: materialColors.primary,
     fontWeight: '600',
-    color: colors.primary,
   },
-  featureBadge: {
-    backgroundColor: colors.success,
-    paddingHorizontal: responsive.spacing.xs,
-    paddingVertical: 2,
-    borderRadius: responsive.borderRadius.md,
+  featureChip: {
+    height: 24,
+    backgroundColor: materialColors.success,
   },
-  featureBadgeText: {
-    fontSize: responsive.fontSize.xs - 2,
-    color: colors.card,
-    fontWeight: '600',
+  featureChipText: {
+    ...materialTypography.labelSmall,
+    color: materialColors.surface,
   },
   badges: {
     flexDirection: 'row',
-    gap: responsive.spacing.xs,
+    gap: materialSpacing.xs,
   },
-  badge: {
-    paddingHorizontal: responsive.spacing.xs,
-    paddingVertical: responsive.spacing.xxs,
-    borderRadius: responsive.borderRadius.lg,
+  statusChip: {
+    height: 24,
   },
-  badgeText: {
-    fontSize: responsive.fontSize.xs - 1,
-    color: colors.card,
-    fontWeight: '600',
+  severityChip: {
+    height: 24,
+  },
+  chipText: {
+    ...materialTypography.labelSmall,
+    color: materialColors.surface,
   },
   bugTitle: {
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: responsive.spacing.xs,
+    ...materialTypography.titleMedium,
+    color: materialColors.text,
+    marginBottom: materialSpacing.xs,
   },
   projectName: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.primary,
-    marginBottom: responsive.spacing.xxs,
-    fontWeight: '500',
+    ...materialTypography.bodySmall,
+    color: materialColors.primary,
+    marginBottom: materialSpacing.xs,
   },
   bugMeta: {
     flexDirection: 'row',
-    gap: responsive.spacing.xs,
+    gap: materialSpacing.xs,
     flexWrap: 'wrap',
     alignItems: 'center',
   },
   metaText: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textSecondary,
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
   },
   emptyContainer: {
-    padding: responsive.spacing.xxl,
+    padding: materialSpacing.xxl,
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: responsive.fontSize.md,
-    color: colors.textTertiary,
+    ...materialTypography.bodyLarge,
+    color: materialColors.textTertiary,
     textAlign: 'center',
-  },
-  errorText: {
-    fontSize: responsive.fontSize.md,
-    color: colors.error,
-    marginBottom: responsive.spacing.md,
-  },
-  retryButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: responsive.spacing.lg,
-    paddingVertical: responsive.spacing.sm,
-    borderRadius: responsive.borderRadius.md,
-  },
-  retryButtonText: {
-    color: colors.card,
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
   },
   fab: {
     position: 'absolute',
-    right: responsive.spacing.lg,
-    bottom: responsive.spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  fabText: {
-    fontSize: 32,
-    color: colors.card,
-    fontWeight: '300',
+    right: materialSpacing.lg,
+    bottom: materialSpacing.lg,
+    backgroundColor: materialColors.primary,
   },
 })
 

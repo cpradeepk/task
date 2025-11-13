@@ -1,11 +1,12 @@
 # Future Improvements - JSR Task Management System
 
-**Last Updated:** 2025-11-12
+**Last Updated:** 2025-11-13
 
 ---
 
 ## Changelog
 
+- **2025-11-13**: Added detailed Task 5 (Offline Functionality) implementation plan with subtasks, acceptance criteria, and timelines. Added Mobile App - Feed Features section.
 - **2025-11-12**: Initial document created with offline handling improvements for mobile app
 
 ---
@@ -13,24 +14,27 @@
 ## Table of Contents
 
 1. [Mobile App - Offline Handling](#mobile-app---offline-handling)
-2. [Task Management](#task-management)
-3. [Bug Tracking](#bug-tracking)
-4. [Social Feed](#social-feed)
-5. [Leave & WFH Management](#leave--wfh-management)
-6. [Performance & Optimization](#performance--optimization)
-7. [Security & Authentication](#security--authentication)
-8. [Developer Experience](#developer-experience)
+2. [Mobile App - Feed Features](#mobile-app---feed-features)
+3. [Task Management](#task-management)
+4. [Bug Tracking](#bug-tracking)
+5. [Social Feed](#social-feed)
+6. [Leave & WFH Management](#leave--wfh-management)
+7. [Performance & Optimization](#performance--optimization)
+8. [Security & Authentication](#security--authentication)
+9. [Developer Experience](#developer-experience)
 
 ---
 
 ## Mobile App - Offline Handling
 
-**Last Updated:** 2025-11-12  
-**Category:** Mobile App  
-**Priority:** 🔴 High  
-**Status:** Planned  
-**Estimated Effort:** 13-19 hours  
+**Last Updated:** 2025-11-13
+**Category:** Mobile App
+**Priority:** 🔴 High
+**Status:** Planned (Deferred from Task 5)
+**Estimated Effort:** 14.5 hours (6 subtasks)
 **Reference:** See `apps/mobile/OFFLINE_HANDLING_AUDIT.md` for detailed implementation roadmap
+
+**Note:** This was originally Task 5 in the push notification implementation plan. It has been deferred to future development to prioritize push notifications (Task 4) first.
 
 ### Overview
 
@@ -228,6 +232,197 @@ Update UI components to provide clear feedback about offline status and queued o
 - 🟡 **MEDIUM RISK:** Inconsistent behavior between web and mobile apps
 
 **Recommendation:** Implement Phases 1-3 (mutation queue + sync) for production-ready offline experience.
+
+---
+
+## Mobile App - Feed Features
+
+**Last Updated:** 2025-11-13
+**Category:** Mobile App - Social Feed
+**Priority:** 🟡 Medium
+**Status:** Planned
+**Estimated Effort:** 8-12 hours
+
+### Overview
+
+The mobile app currently has basic feed functionality (view posts, create posts, view comments). Several advanced features from the web app are missing that would enhance the social experience.
+
+### Missing Features
+
+#### 1. Post Reactions (Likes)
+**Priority:** 🟡 Medium
+**Effort:** 2-3 hours
+**Status:** Planned
+
+**Description:**
+Add ability to like/unlike posts, similar to web app functionality.
+
+**Implementation:**
+- Add like button to FeedScreen post cards
+- Add like button to FeedPostDetailsScreen
+- Implement `TOGGLE_POST_REACTION` GraphQL mutation
+- Show like count and user's like status
+- Add optimistic UI updates
+
+**Files to Modify:**
+- `apps/mobile/src/screens/FeedScreen.tsx`
+- `apps/mobile/src/screens/FeedPostDetailsScreen.tsx` (if exists, or create)
+- `apps/mobile/src/config/graphql-queries.ts`
+
+**Acceptance Criteria:**
+- [ ] Users can like/unlike posts
+- [ ] Like count updates in real-time
+- [ ] Like button shows active state when user has liked
+- [ ] Optimistic UI updates (instant feedback)
+
+---
+
+#### 2. Comment Reactions (Likes)
+**Priority:** 🟢 Low
+**Effort:** 1-2 hours
+**Status:** Planned
+
+**Description:**
+Add ability to like/unlike comments on posts.
+
+**Implementation:**
+- Add like button to comment items
+- Implement `TOGGLE_COMMENT_REACTION` GraphQL mutation
+- Show like count on comments
+- Add optimistic UI updates
+
+**Files to Modify:**
+- `apps/mobile/src/screens/FeedPostDetailsScreen.tsx`
+- `apps/mobile/src/config/graphql-queries.ts`
+
+**Acceptance Criteria:**
+- [ ] Users can like/unlike comments
+- [ ] Like count shown on comments
+- [ ] Like button shows active state
+
+---
+
+#### 3. Post Editing
+**Priority:** 🟡 Medium
+**Effort:** 2-3 hours
+**Status:** Planned
+
+**Description:**
+Allow users to edit their own posts after creation.
+
+**Implementation:**
+- Add edit button to user's own posts (3-dot menu)
+- Create edit post screen or modal
+- Implement `UPDATE_POST` GraphQL mutation
+- Show "edited" indicator on edited posts
+- Preserve attachments during edit
+
+**Files to Create/Modify:**
+- `apps/mobile/src/screens/EditPostScreen.tsx` (NEW)
+- `apps/mobile/src/screens/FeedScreen.tsx`
+- `apps/mobile/src/config/graphql-queries.ts`
+
+**Acceptance Criteria:**
+- [ ] Users can edit their own posts
+- [ ] Edit preserves attachments
+- [ ] Edited posts show "edited" indicator
+- [ ] Edit screen pre-fills with existing content
+
+---
+
+#### 4. Post Deletion
+**Priority:** 🟡 Medium
+**Effort:** 1-2 hours
+**Status:** Planned
+
+**Description:**
+Allow users to delete their own posts.
+
+**Implementation:**
+- Add delete button to user's own posts (3-dot menu)
+- Add confirmation dialog (Material Design AlertDialog)
+- Implement `DELETE_POST` GraphQL mutation
+- Remove post from cache after deletion
+
+**Files to Modify:**
+- `apps/mobile/src/screens/FeedScreen.tsx`
+- `apps/mobile/src/screens/FeedPostDetailsScreen.tsx`
+- `apps/mobile/src/config/graphql-queries.ts`
+
+**Acceptance Criteria:**
+- [ ] Users can delete their own posts
+- [ ] Confirmation dialog shown before deletion
+- [ ] Post removed from UI after deletion
+- [ ] Cache updated correctly
+
+---
+
+#### 5. Comment Editing & Deletion
+**Priority:** 🟢 Low
+**Effort:** 2-3 hours
+**Status:** Planned
+
+**Description:**
+Allow users to edit/delete their own comments.
+
+**Implementation:**
+- Add edit/delete buttons to user's own comments
+- Add confirmation dialog for deletion
+- Implement `UPDATE_COMMENT` and `DELETE_COMMENT` GraphQL mutations
+- Show "edited" indicator on edited comments
+
+**Files to Modify:**
+- `apps/mobile/src/screens/FeedPostDetailsScreen.tsx`
+- `apps/mobile/src/config/graphql-queries.ts`
+
+**Acceptance Criteria:**
+- [ ] Users can edit their own comments
+- [ ] Users can delete their own comments
+- [ ] Confirmation dialog shown before deletion
+- [ ] Edited comments show "edited" indicator
+
+---
+
+#### 6. Post Attachments (Images)
+**Priority:** 🟡 Medium
+**Effort:** 3-4 hours
+**Status:** Planned
+
+**Description:**
+Add ability to attach images to posts (currently only available in web app).
+
+**Implementation:**
+- Add image picker to CreatePostScreen
+- Upload images to AWS S3 (reuse existing S3 upload logic from bug attachments)
+- Display image thumbnails in post cards
+- Add image viewer for full-size images
+- Support multiple images per post
+
+**Files to Modify:**
+- `apps/mobile/src/screens/CreatePostScreen.tsx`
+- `apps/mobile/src/screens/FeedScreen.tsx`
+- `apps/mobile/src/screens/FeedPostDetailsScreen.tsx`
+- Reuse `apps/mobile/src/utils/s3Upload.ts` (if exists)
+
+**Acceptance Criteria:**
+- [ ] Users can attach images to posts
+- [ ] Images uploaded to S3
+- [ ] Image thumbnails shown in feed
+- [ ] Tap image to view full-size
+- [ ] Support multiple images per post
+
+---
+
+### Implementation Priority
+
+**Recommended Order:**
+1. **Post Reactions** (most impactful for engagement)
+2. **Post Editing & Deletion** (basic content management)
+3. **Post Attachments** (feature parity with web app)
+4. **Comment Reactions** (nice-to-have)
+5. **Comment Editing & Deletion** (nice-to-have)
+
+**Total Estimated Effort:** 11-17 hours
 
 ---
 

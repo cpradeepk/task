@@ -13,14 +13,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
 } from 'react-native'
+import { Card, Text, Surface, ActivityIndicator, Chip, FAB } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { useQuery } from '@apollo/client/react'
 import { GET_FEED_POSTS, GET_FEED_TOPICS } from '../config/graphql-queries'
@@ -28,12 +26,15 @@ import { FeedPost, FeedTopic } from '../types'
 import { getUserData } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 export default function FeedScreen() {
   const navigation = useNavigation()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+  const { isOffline } = useNetworkStatus()
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null)
 
@@ -84,27 +85,16 @@ export default function FeedScreen() {
   }, [navigation, selectedTopicId])
 
   const renderTopic = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={[
-        styles.topicButton,
-        selectedTopicId === item.id && styles.topicButtonActive,
-      ]}
+    <Chip
+      mode={selectedTopicId === item.id ? 'flat' : 'outlined'}
+      selected={selectedTopicId === item.id}
       onPress={() => handleTopicPress(item.id)}
+      style={styles.topicChip}
+      textStyle={styles.topicChipText}
+      selectedColor={materialColors.surface}
     >
-      <Text
-        style={[
-          styles.topicButtonText,
-          selectedTopicId === item.id && styles.topicButtonTextActive,
-        ]}
-      >
-        {item.topicName}
-      </Text>
-      {item.postCount > 0 && (
-        <View style={styles.topicBadge}>
-          <Text style={styles.topicBadgeText}>{item.postCount}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+      {item.topicName} {item.postCount > 0 && `(${item.postCount})`}
+    </Chip>
   )
 
   const renderPost = ({ item }: { item: any }) => {
@@ -112,62 +102,77 @@ export default function FeedScreen() {
     const topicNames = item.topics?.map((t: any) => t.topicName).join(', ') || ''
 
     return (
-      <TouchableOpacity style={styles.postCard} onPress={() => handlePostPress(item)}>
-        <View style={styles.postHeader}>
-          <View style={styles.postAuthor}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {authorName.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.authorName}>{authorName}</Text>
-              <Text style={styles.postDate}>
-                {new Date(item.createdAt).toLocaleDateString()}
-              </Text>
+      <Card style={styles.postCard} elevation={1} onPress={() => handlePostPress(item)}>
+        <Card.Content>
+          <View style={styles.postHeader}>
+            <View style={styles.postAuthor}>
+              <Surface style={styles.avatar} elevation={0}>
+                <Text style={styles.avatarText}>
+                  {authorName.charAt(0).toUpperCase()}
+                </Text>
+              </Surface>
+              <View>
+                <Text style={styles.authorName}>{authorName}</Text>
+                <Text style={styles.postDate}>
+                  {new Date(item.createdAt).toLocaleDateString()}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {topicNames && (
-          <View style={styles.topicsContainer}>
-            <Text style={styles.topicsText}>📌 {topicNames}</Text>
-          </View>
-        )}
+          {topicNames && (
+            <View style={styles.topicsContainer}>
+              {item.topics?.map((topic: any) => (
+                <Chip
+                  key={topic.id}
+                  mode="outlined"
+                  compact
+                  style={styles.topicTag}
+                  textStyle={styles.topicTagText}
+                >
+                  {topic.topicName}
+                </Chip>
+              ))}
+            </View>
+          )}
 
-        <Text style={styles.postContent} numberOfLines={4}>
-          {item.content}
-        </Text>
+          <Text style={styles.postContent} numberOfLines={4}>
+            {item.content}
+          </Text>
 
-        {item.contentType !== 'text' && (
-          <View style={styles.contentTypeBadge}>
-            <Text style={styles.contentTypeText}>
+          {item.contentType !== 'text' && (
+            <Chip
+              mode="flat"
+              compact
+              style={styles.contentTypeChip}
+              textStyle={styles.contentTypeText}
+            >
               {item.contentType === 'link' && '🔗 Link'}
               {item.contentType === 'pdf' && '📄 PDF'}
               {item.contentType === 'youtube' && '▶️ Video'}
               {item.contentType === 'image' && '🖼️ Image'}
               {item.contentType === 'video' && '🎥 Video'}
-            </Text>
-          </View>
-        )}
+            </Chip>
+          )}
 
-        <View style={styles.postFooter}>
-          <View style={styles.postStats}>
-            <Text style={styles.statText}>
-              ❤️ {item.reactions?.reduce((sum: number, r: any) => sum + r.count, 0) || 0}
-            </Text>
-            <Text style={styles.statText}>💬 {item.commentCount || 0}</Text>
-            <Text style={styles.statText}>👁️ {item.viewCount || 0}</Text>
+          <View style={styles.postFooter}>
+            <View style={styles.postStats}>
+              <Text style={styles.statText}>
+                ❤️ {item.reactions?.reduce((sum: number, r: any) => sum + r.count, 0) || 0}
+              </Text>
+              <Text style={styles.statText}>💬 {item.commentCount || 0}</Text>
+              <Text style={styles.statText}>👁️ {item.viewCount || 0}</Text>
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </Card.Content>
+      </Card>
     )
   }
 
   if (topicsLoading && !topicsData) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={materialColors.primary} />
         <Text style={styles.loadingText}>Loading feed...</Text>
       </View>
     )
@@ -176,32 +181,27 @@ export default function FeedScreen() {
   return (
     <View style={styles.container}>
       {/* Topic Filter */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.topicContainer}
-        contentContainerStyle={styles.topicContentContainer}
-      >
-        <TouchableOpacity
-          style={[
-            styles.topicButton,
-            selectedTopicId === null && styles.topicButtonActive,
-          ]}
-          onPress={() => handleTopicPress(null)}
+      <Surface style={styles.topicContainer} elevation={0}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.topicContentContainer}
         >
-          <Text
-            style={[
-              styles.topicButtonText,
-              selectedTopicId === null && styles.topicButtonTextActive,
-            ]}
+          <Chip
+            mode={selectedTopicId === null ? 'flat' : 'outlined'}
+            selected={selectedTopicId === null}
+            onPress={() => handleTopicPress(null)}
+            style={styles.topicChip}
+            textStyle={styles.topicChipText}
+            selectedColor={materialColors.surface}
           >
             All Posts
-          </Text>
-        </TouchableOpacity>
-        {topics.map((topic: FeedTopic) => (
-          <View key={topic.id}>{renderTopic({ item: topic })}</View>
-        ))}
-      </ScrollView>
+          </Chip>
+          {topics.map((topic: FeedTopic) => (
+            <View key={topic.id}>{renderTopic({ item: topic })}</View>
+          ))}
+        </ScrollView>
+      </Surface>
 
       {/* Post List */}
       <FlatList
@@ -213,8 +213,8 @@ export default function FeedScreen() {
           <RefreshControl
             refreshing={postsLoading}
             onRefresh={handleRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+            tintColor={materialColors.primary}
+            colors={[materialColors.primary]}
           />
         }
         ListEmptyComponent={
@@ -227,9 +227,13 @@ export default function FeedScreen() {
       />
 
       {/* Create Post FAB */}
-      <TouchableOpacity style={styles.fab} onPress={handleCreatePost}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      <FAB
+        icon="plus"
+        style={styles.fab}
+        onPress={handleCreatePost}
+        color={materialColors.surface}
+        disabled={isOffline}
+      />
     </View>
   )
 }
@@ -237,78 +241,45 @@ export default function FeedScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    backgroundColor: materialColors.background,
   },
-  centered: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: materialColors.background,
   },
   loadingText: {
-    marginTop: responsive.spacing.sm,
-    fontSize: responsive.fontSize.md,
-    color: colors.textSecondary,
+    ...materialTypography.bodyLarge,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.md,
   },
   topicContainer: {
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: materialColors.surface,
+    paddingVertical: materialSpacing.sm,
   },
   topicContentContainer: {
-    paddingHorizontal: responsive.spacing.md,
-    paddingVertical: responsive.spacing.sm,
+    paddingHorizontal: materialSpacing.md,
     alignItems: 'center',
+    gap: materialSpacing.xs,
   },
-  topicButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: responsive.spacing.md,
-    paddingVertical: responsive.spacing.xs,
-    marginRight: responsive.spacing.xs,
-    borderRadius: responsive.borderRadius.full,
-    backgroundColor: colors.backgroundSecondary,
+  topicChip: {
+    marginRight: materialSpacing.xs,
+    height: 32,
   },
-  topicButtonActive: {
-    backgroundColor: colors.primary,
-  },
-  topicButtonText: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  topicButtonTextActive: {
-    color: colors.card,
-    fontWeight: '600',
-  },
-  topicBadge: {
-    marginLeft: responsive.spacing.xxs,
-    backgroundColor: colors.card,
-    borderRadius: responsive.borderRadius.md,
-    paddingHorizontal: responsive.spacing.xxs,
-    paddingVertical: 2,
-  },
-  topicBadgeText: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.primary,
-    fontWeight: '600',
+  topicChipText: {
+    ...materialTypography.labelMedium,
   },
   listContent: {
-    padding: responsive.spacing.md,
+    padding: materialSpacing.md,
   },
   postCard: {
-    backgroundColor: colors.card,
-    borderRadius: responsive.borderRadius.lg,
-    padding: responsive.spacing.md,
-    marginBottom: responsive.spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: materialColors.surface,
+    borderRadius: 12,
+    marginBottom: materialSpacing.md,
   },
   postHeader: {
-    marginBottom: responsive.spacing.sm,
+    marginBottom: materialSpacing.sm,
   },
   postAuthor: {
     flexDirection: 'row',
@@ -318,93 +289,80 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary,
+    backgroundColor: materialColors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: responsive.spacing.sm,
+    marginRight: materialSpacing.sm,
   },
   avatarText: {
-    fontSize: responsive.fontSize.lg,
-    color: colors.card,
+    ...materialTypography.titleMedium,
+    color: materialColors.surface,
     fontWeight: '600',
   },
   authorName: {
-    fontSize: responsive.fontSize.sm,
+    ...materialTypography.labelLarge,
+    color: materialColors.text,
     fontWeight: '600',
-    color: colors.text,
   },
   postDate: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textSecondary,
+    ...materialTypography.labelSmall,
+    color: materialColors.textSecondary,
   },
   topicsContainer: {
-    marginBottom: responsive.spacing.xs,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: materialSpacing.xs,
+    marginBottom: materialSpacing.sm,
   },
-  topicsText: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.primary,
-    fontWeight: '500',
+  topicTag: {
+    height: 24,
+  },
+  topicTagText: {
+    ...materialTypography.labelSmall,
   },
   postContent: {
-    fontSize: responsive.fontSize.md,
-    color: colors.text,
+    ...materialTypography.bodyMedium,
+    color: materialColors.text,
     lineHeight: 22,
-    marginBottom: responsive.spacing.sm,
+    marginBottom: materialSpacing.sm,
   },
-  contentTypeBadge: {
+  contentTypeChip: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.backgroundSecondary,
-    paddingHorizontal: responsive.spacing.sm,
-    paddingVertical: responsive.spacing.xxs,
-    borderRadius: responsive.borderRadius.lg,
-    marginBottom: responsive.spacing.sm,
+    height: 24,
+    marginBottom: materialSpacing.sm,
+    backgroundColor: materialColors.surfaceVariant,
   },
   contentTypeText: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textSecondary,
+    ...materialTypography.labelSmall,
+    color: materialColors.textSecondary,
   },
   postFooter: {
     borderTopWidth: 1,
-    borderTopColor: colors.backgroundSecondary,
-    paddingTop: responsive.spacing.sm,
+    borderTopColor: materialColors.outline,
+    paddingTop: materialSpacing.sm,
   },
   postStats: {
     flexDirection: 'row',
-    gap: responsive.spacing.md,
+    gap: materialSpacing.md,
   },
   statText: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
+    ...materialTypography.bodySmall,
+    color: materialColors.textSecondary,
   },
   emptyContainer: {
-    padding: responsive.spacing.xl,
+    padding: materialSpacing.xxl,
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: responsive.fontSize.md,
-    color: colors.textTertiary,
+    ...materialTypography.bodyLarge,
+    color: materialColors.textTertiary,
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
-    right: responsive.spacing.lg,
-    bottom: responsive.spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  fabText: {
-    fontSize: 32,
-    color: colors.card,
-    fontWeight: '300',
+    right: materialSpacing.lg,
+    bottom: materialSpacing.lg,
+    backgroundColor: materialColors.primary,
   },
 })
 

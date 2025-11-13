@@ -552,6 +552,22 @@ export const MARK_ALL_NOTIFICATIONS_READ = gql`
 `
 
 // ============================================================================
+// PUSH NOTIFICATIONS
+// ============================================================================
+
+export const REGISTER_PUSH_TOKEN = gql`
+  mutation RegisterPushToken($userId: String!, $pushToken: String!, $deviceType: String!, $deviceId: String) {
+    registerPushToken(userId: $userId, pushToken: $pushToken, deviceType: $deviceType, deviceId: $deviceId)
+  }
+`
+
+export const UNREGISTER_PUSH_TOKEN = gql`
+  mutation UnregisterPushToken($userId: String!, $pushToken: String!) {
+    unregisterPushToken(userId: $userId, pushToken: $pushToken)
+  }
+`
+
+// ============================================================================
 // DASHBOARD
 // ============================================================================
 

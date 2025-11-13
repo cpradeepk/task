@@ -6,14 +6,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   ScrollView,
-  TouchableOpacity,
-  TextInput,
   StyleSheet,
-  ActivityIndicator,
   Alert,
 } from 'react-native'
+import { Card, Text, Surface, Button, TextInput, ActivityIndicator, Chip, Divider } from 'react-native-paper'
 import {
   getBugById,
   getBugComments,
@@ -27,6 +24,8 @@ import { useRoute, useNavigation } from '@react-navigation/native'
 import BugSubtasks from '../components/BugSubtasks'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 export default function BugDetailsScreen() {
   const route = useRoute()
@@ -34,6 +33,7 @@ export default function BugDetailsScreen() {
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+  const { isOffline } = useNetworkStatus()
 
   const { bugId } = route.params as { bugId: string }
 
@@ -150,9 +150,11 @@ export default function BugDetailsScreen() {
     }
   }, [colors])
 
-  const formatTime = useCallback((milliseconds?: number): string => {
+  const formatTime = useCallback((milliseconds?: number | string): string => {
     if (!milliseconds) return '00:00:00'
-    const totalSeconds = Math.floor(milliseconds / 1000)
+    const ms = typeof milliseconds === 'string' ? Number(milliseconds) : milliseconds
+    if (isNaN(ms)) return '00:00:00'
+    const totalSeconds = Math.floor(ms / 1000)
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
     const seconds = totalSeconds % 60
@@ -163,8 +165,8 @@ export default function BugDetailsScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={materialColors.primary} />
         <Text style={styles.loadingText}>Loading bug details...</Text>
       </View>
     )
@@ -172,164 +174,188 @@ export default function BugDetailsScreen() {
 
   if (!bug) {
     return (
-      <View style={styles.centered}>
+      <Surface style={styles.errorContainer} elevation={0}>
         <Text style={styles.errorText}>Bug not found</Text>
-      </View>
+      </Surface>
     )
   }
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.bugId}>{bug.bugId}</Text>
-          <View style={styles.badges}>
-            <View
-              style={[
-                styles.badge,
-                { backgroundColor: getStatusColor(bug.status) },
-              ]}
-            >
-              <Text style={styles.badgeText}>{bug.status}</Text>
-            </View>
-            <View
-              style={[
-                styles.badge,
-                { backgroundColor: getSeverityColor(bug.severity) },
-              ]}
-            >
-              <Text style={styles.badgeText}>{bug.severity}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Title */}
-        <Text style={styles.title}>{bug.title}</Text>
-
-        {/* Description */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.description}>{bug.description}</Text>
-        </View>
-
-        {/* Bug Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Bug Information</Text>
-          <View style={styles.infoGrid}>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Category</Text>
-              <Text style={styles.infoValue}>{bug.category}</Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Platform</Text>
-              <Text style={styles.infoValue}>{bug.platform}</Text>
-            </View>
-            {bug.environment && (
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Environment</Text>
-                <Text style={styles.infoValue}>{bug.environment}</Text>
+        {/* Header Card */}
+        <Card style={styles.headerCard} elevation={1}>
+          <Card.Content>
+            <View style={styles.header}>
+              <Text style={styles.bugId}>{bug.bugId}</Text>
+              <View style={styles.badges}>
+                <Chip
+                  mode="flat"
+                  compact
+                  style={[styles.statusChip, { backgroundColor: getStatusColor(bug.status) }]}
+                  textStyle={styles.chipText}
+                >
+                  {bug.status}
+                </Chip>
+                <Chip
+                  mode="flat"
+                  compact
+                  style={[styles.severityChip, { backgroundColor: getSeverityColor(bug.severity) }]}
+                  textStyle={styles.chipText}
+                >
+                  {bug.severity}
+                </Chip>
               </View>
-            )}
-            {bug.browser && (
+            </View>
+            <Text style={styles.title}>{bug.title}</Text>
+          </Card.Content>
+        </Card>
+
+        {/* Description Card */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Description</Text>
+            <Divider style={styles.divider} />
+            <Text style={styles.description}>{bug.description}</Text>
+          </Card.Content>
+        </Card>
+
+        {/* Bug Information Card */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Bug Information</Text>
+            <Divider style={styles.divider} />
+            <View style={styles.infoGrid}>
               <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Browser</Text>
-                <Text style={styles.infoValue}>{bug.browser}</Text>
+                <Text style={styles.infoLabel}>Category</Text>
+                <Text style={styles.infoValue}>{bug.category}</Text>
               </View>
-            )}
-            {bug.device && (
               <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Device</Text>
-                <Text style={styles.infoValue}>{bug.device}</Text>
+                <Text style={styles.infoLabel}>Platform</Text>
+                <Text style={styles.infoValue}>{bug.platform}</Text>
               </View>
-            )}
-          </View>
-        </View>
-
-        {/* Time Tracking */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Time Tracking</Text>
-          <View style={styles.timeContainer}>
-            <View style={styles.timeItem}>
-              <Text style={styles.timeLabel}>Timer</Text>
-              <Text style={styles.timeValue}>
-                {formatTime(bug.timerTotalTime)}
-              </Text>
+              {bug.environment && (
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>Environment</Text>
+                  <Text style={styles.infoValue}>{bug.environment}</Text>
+                </View>
+              )}
+              {bug.browser && (
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>Browser</Text>
+                  <Text style={styles.infoValue}>{bug.browser}</Text>
+                </View>
+              )}
+              {bug.device && (
+                <View style={styles.infoItem}>
+                  <Text style={styles.infoLabel}>Device</Text>
+                  <Text style={styles.infoValue}>{bug.device}</Text>
+                </View>
+              )}
             </View>
-            <View style={styles.timeItem}>
-              <Text style={styles.timeLabel}>Logged Hours</Text>
-              <Text style={styles.timeValue}>
-                {bug.actualHours?.toFixed(2) || '0.00'} hrs
-              </Text>
+          </Card.Content>
+        </Card>
+
+        {/* Time Tracking Card */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Time Tracking</Text>
+            <Divider style={styles.divider} />
+            <View style={styles.timeContainer}>
+              <Surface style={styles.timeItem} elevation={0}>
+                <Text style={styles.timeLabel}>Timer</Text>
+                <Text style={styles.timeValue}>
+                  {formatTime(bug.timerTotalTime)}
+                </Text>
+              </Surface>
+              <Surface style={styles.timeItem} elevation={0}>
+                <Text style={styles.timeLabel}>Logged Hours</Text>
+                <Text style={styles.timeValue}>
+                  {bug.actualHours ? Number(bug.actualHours).toFixed(2) : '0.00'} hrs
+                </Text>
+              </Surface>
             </View>
-          </View>
-        </View>
+          </Card.Content>
+        </Card>
 
-        {/* Subtasks */}
-        <View style={styles.section}>
-          <BugSubtasks bugId={bugId} editable={true} />
-        </View>
+        {/* Subtasks Card */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <BugSubtasks bugId={bugId} editable={true} />
+          </Card.Content>
+        </Card>
 
-        {/* Comments */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Comments ({comments.length})
-          </Text>
-          {comments.map((comment) => (
-            <View key={comment.id} style={styles.comment}>
-              <Text style={styles.commentUser}>{comment.userId}</Text>
-              <Text style={styles.commentText}>{comment.comment}</Text>
-              <Text style={styles.commentDate}>
-                {new Date(comment.createdAt).toLocaleString()}
-              </Text>
+        {/* Comments Card */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>
+              Comments ({comments.length})
+            </Text>
+            <Divider style={styles.divider} />
+            {comments.map((comment) => (
+              <Surface key={comment.id} style={styles.comment} elevation={0}>
+                <Text style={styles.commentUser}>{comment.userId}</Text>
+                <Text style={styles.commentText}>{comment.comment}</Text>
+                <Text style={styles.commentDate}>
+                  {new Date(comment.createdAt).toLocaleString()}
+                </Text>
+              </Surface>
+            ))}
+
+            {/* Add Comment */}
+            <View style={styles.addCommentContainer}>
+              <TextInput
+                mode="outlined"
+                placeholder="Add a comment..."
+                value={newComment}
+                onChangeText={setNewComment}
+                multiline
+                numberOfLines={3}
+                style={styles.commentInput}
+                outlineColor={materialColors.outline}
+                activeOutlineColor={materialColors.primary}
+                disabled={isOffline}
+              />
+              <Button
+                mode="contained"
+                onPress={handleAddComment}
+                disabled={!newComment.trim() || isSubmittingComment || isOffline}
+                loading={isSubmittingComment}
+                style={styles.commentButton}
+                buttonColor={materialColors.primary}
+              >
+                {isSubmittingComment ? 'Posting...' : 'Post Comment'}
+              </Button>
             </View>
-          ))}
-
-          {/* Add Comment */}
-          <View style={styles.addCommentContainer}>
-            <TextInput
-              style={styles.commentInput}
-              placeholder="Add a comment..."
-              value={newComment}
-              onChangeText={setNewComment}
-              multiline
-            />
-            <TouchableOpacity
-              style={[
-                styles.commentButton,
-                (!newComment.trim() || isSubmittingComment) &&
-                  styles.commentButtonDisabled,
-              ]}
-              onPress={handleAddComment}
-              disabled={!newComment.trim() || isSubmittingComment}
-            >
-              <Text style={styles.commentButtonText}>
-                {isSubmittingComment ? 'Posting...' : 'Post'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+          </Card.Content>
+        </Card>
       </ScrollView>
 
       {/* Status Change Buttons */}
-      <View style={styles.actionBar}>
+      <Surface style={styles.actionBar} elevation={3}>
         {bug.status !== 'In Progress' && (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#EAB308' }]}
+          <Button
+            mode="contained"
             onPress={() => handleStatusChange('In Progress')}
+            style={styles.actionButton}
+            buttonColor={materialColors.warning}
+            disabled={isOffline}
           >
-            <Text style={styles.actionButtonText}>Start Progress</Text>
-          </TouchableOpacity>
+            Start Progress
+          </Button>
         )}
         {bug.status !== 'Resolved' && (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#10B981' }]}
+          <Button
+            mode="contained"
             onPress={() => handleStatusChange('Resolved')}
+            style={styles.actionButton}
+            buttonColor={materialColors.success}
+            disabled={isOffline}
           >
-            <Text style={styles.actionButtonText}>Mark Resolved</Text>
-          </TouchableOpacity>
+            Mark Resolved
+          </Button>
         )}
-      </View>
+      </Surface>
     </View>
   )
 }
@@ -337,189 +363,168 @@ export default function BugDetailsScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    maxWidth: responsive.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    backgroundColor: materialColors.background,
   },
-  centered: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: materialColors.background,
   },
   loadingText: {
-    marginTop: responsive.spacing.sm,
-    fontSize: responsive.fontSize.md,
-    color: colors.textSecondary,
+    ...materialTypography.bodyLarge,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.md,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: materialColors.background,
+    padding: materialSpacing.xl,
   },
   errorText: {
-    fontSize: responsive.fontSize.md,
-    color: colors.error,
+    ...materialTypography.headlineSmall,
+    color: materialColors.error,
+    textAlign: 'center',
   },
   scrollView: {
     flex: 1,
+    padding: materialSpacing.md,
+  },
+  headerCard: {
+    marginBottom: materialSpacing.md,
+    backgroundColor: materialColors.surface,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: responsive.spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    alignItems: 'flex-start',
+    marginBottom: materialSpacing.sm,
   },
   bugId: {
-    fontSize: responsive.fontSize.lg,
+    ...materialTypography.headlineMedium,
+    color: materialColors.primary,
     fontWeight: '700',
-    color: colors.primary,
   },
   badges: {
     flexDirection: 'row',
-    gap: responsive.spacing.xs,
+    gap: materialSpacing.xs,
   },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: responsive.borderRadius.lg,
+  statusChip: {
+    height: 28,
   },
-  badgeText: {
-    fontSize: responsive.fontSize.xs,
-    color: '#FFFFFF',
-    fontWeight: '600',
+  severityChip: {
+    height: 28,
+  },
+  chipText: {
+    ...materialTypography.labelMedium,
+    color: materialColors.surface,
   },
   title: {
-    fontSize: responsive.fontSize.xl,
-    fontWeight: '700',
-    color: colors.text,
-    padding: responsive.spacing.md,
-    backgroundColor: colors.card,
+    ...materialTypography.titleLarge,
+    color: materialColors.text,
+    marginTop: materialSpacing.xs,
   },
-  section: {
-    marginTop: responsive.spacing.xs,
-    padding: responsive.spacing.md,
-    backgroundColor: colors.card,
+  sectionCard: {
+    marginBottom: materialSpacing.md,
+    backgroundColor: materialColors.surface,
   },
   sectionTitle: {
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: responsive.spacing.sm,
+    ...materialTypography.titleMedium,
+    color: materialColors.text,
+    marginBottom: materialSpacing.xs,
+  },
+  divider: {
+    marginBottom: materialSpacing.md,
+    backgroundColor: materialColors.outline,
   },
   description: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
     lineHeight: 22,
   },
   infoGrid: {
-    gap: responsive.spacing.sm,
+    gap: materialSpacing.sm,
   },
   infoItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: responsive.spacing.xs,
+    paddingVertical: materialSpacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: materialColors.outline,
   },
   infoLabel: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: '500',
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
   },
   infoValue: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.text,
+    ...materialTypography.bodyMedium,
+    color: materialColors.text,
     fontWeight: '600',
   },
   timeContainer: {
     flexDirection: 'row',
-    gap: responsive.spacing.md,
+    gap: materialSpacing.md,
   },
   timeItem: {
     flex: 1,
-    padding: responsive.spacing.sm,
-    backgroundColor: colors.background,
-    borderRadius: responsive.borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  timeLabel: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textSecondary,
-    marginBottom: responsive.spacing.xxs,
-  },
-  timeValue: {
-    fontSize: responsive.fontSize.lg,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  comment: {
-    padding: responsive.spacing.sm,
-    backgroundColor: colors.background,
-    borderRadius: responsive.borderRadius.md,
-    marginBottom: responsive.spacing.xs,
-  },
-  commentUser: {
-    fontSize: responsive.fontSize.sm,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: responsive.spacing.xxs,
-  },
-  commentText: {
-    fontSize: responsive.fontSize.sm,
-    color: colors.textSecondary,
-    marginBottom: responsive.spacing.xxs,
-  },
-  commentDate: {
-    fontSize: responsive.fontSize.xs,
-    color: colors.textTertiary,
-  },
-  addCommentContainer: {
-    marginTop: responsive.spacing.sm,
-  },
-  commentInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    padding: responsive.spacing.sm,
-    fontSize: responsive.fontSize.sm,
-    minHeight: 80,
-    textAlignVertical: 'top',
-    marginBottom: responsive.spacing.xs,
-    color: colors.text,
-    backgroundColor: colors.card,
-  },
-  commentButton: {
-    backgroundColor: colors.primary,
-    padding: responsive.spacing.sm,
-    borderRadius: responsive.borderRadius.md,
+    padding: materialSpacing.md,
+    backgroundColor: materialColors.surfaceVariant,
+    borderRadius: 12,
     alignItems: 'center',
   },
-  commentButtonDisabled: {
-    backgroundColor: colors.textTertiary,
+  timeLabel: {
+    ...materialTypography.labelMedium,
+    color: materialColors.textSecondary,
+    marginBottom: materialSpacing.xs,
   },
-  commentButtonText: {
-    color: '#FFFFFF',
-    fontSize: responsive.fontSize.md,
+  timeValue: {
+    ...materialTypography.headlineSmall,
+    color: materialColors.text,
+    fontWeight: '700',
+  },
+  comment: {
+    padding: materialSpacing.md,
+    backgroundColor: materialColors.surfaceVariant,
+    borderRadius: 12,
+    marginBottom: materialSpacing.sm,
+  },
+  commentUser: {
+    ...materialTypography.labelLarge,
+    color: materialColors.text,
     fontWeight: '600',
+    marginBottom: materialSpacing.xs,
+  },
+  commentText: {
+    ...materialTypography.bodyMedium,
+    color: materialColors.textSecondary,
+    marginBottom: materialSpacing.xs,
+  },
+  commentDate: {
+    ...materialTypography.labelSmall,
+    color: materialColors.textTertiary,
+  },
+  addCommentContainer: {
+    marginTop: materialSpacing.md,
+    gap: materialSpacing.sm,
+  },
+  commentInput: {
+    backgroundColor: materialColors.surface,
+  },
+  commentButton: {
+    marginTop: materialSpacing.xs,
   },
   actionBar: {
     flexDirection: 'row',
-    padding: responsive.spacing.sm,
-    gap: responsive.spacing.sm,
-    backgroundColor: colors.card,
+    padding: materialSpacing.md,
+    gap: materialSpacing.sm,
+    backgroundColor: materialColors.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: materialColors.outline,
   },
   actionButton: {
     flex: 1,
-    padding: responsive.spacing.md,
-    borderRadius: responsive.borderRadius.md,
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    color: '#FFFFFF',
-    fontSize: responsive.fontSize.md,
-    fontWeight: '600',
   },
 })
 
