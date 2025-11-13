@@ -4,6 +4,8 @@ import {
   ScrollView,
   Alert,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native'
 import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
 import { Picker } from '@react-native-picker/picker'
@@ -197,8 +199,17 @@ export default function CreateTaskScreen({ navigation }: any) {
   const taskPriorities = useMemo(() => settings.task_priorities || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)'], [settings])
 
   return (
-    <ScrollView style={styles.container}>
-      <Surface style={styles.form} elevation={0}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={100}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Surface style={styles.form} elevation={0}>
         {/* Description */}
         <TextInput
           mode="outlined"
@@ -217,25 +228,32 @@ export default function CreateTaskScreen({ navigation }: any) {
         {/* Project */}
         <View style={styles.field}>
           <Text style={styles.label}>Project</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={projectId}
-              onValueChange={(value) => {
-                setProjectId(value)
-                setSubprojectId('')
-              }}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select Project" value="" />
-              {projects.map((project) => (
-                <Picker.Item
-                  key={project.projectId}
-                  label={project.projectName}
-                  value={project.projectId}
-                />
-              ))}
-            </Picker>
-          </View>
+          {projects.length === 0 ? (
+            <Text style={styles.helpText}>Loading projects...</Text>
+          ) : (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={projectId}
+                onValueChange={(value) => {
+                  console.log('Project selected:', value)
+                  setProjectId(value)
+                  setSubprojectId('')
+                }}
+                style={styles.picker}
+                dropdownIconColor={materialColors.text}
+                enabled={!isOffline}
+              >
+                <Picker.Item label="Select Project" value="" />
+                {projects.map((project) => (
+                  <Picker.Item
+                    key={project.projectId}
+                    label={project.projectName}
+                    value={project.projectId}
+                  />
+                ))}
+              </Picker>
+            </View>
+          )}
         </View>
 
         {/* Subproject */}
@@ -245,8 +263,13 @@ export default function CreateTaskScreen({ navigation }: any) {
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={subprojectId}
-                onValueChange={setSubprojectId}
+                onValueChange={(value) => {
+                  console.log('Subproject selected:', value)
+                  setSubprojectId(value)
+                }}
                 style={styles.picker}
+                dropdownIconColor={materialColors.text}
+                enabled={!isOffline}
               >
                 <Picker.Item label="Select Subproject" value="" />
                 {subprojects.map((subproject) => (
@@ -376,6 +399,7 @@ export default function CreateTaskScreen({ navigation }: any) {
         </Button>
       </Surface>
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 

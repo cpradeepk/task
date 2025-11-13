@@ -106,6 +106,23 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
     loadCurrentUser()
   }, [loadTaskDetails, loadSettings, loadCurrentUser])
 
+  // Add edit button to header
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        !isEditing ? (
+          <IconButton
+            icon="pencil"
+            size={24}
+            iconColor={materialColors.primary}
+            onPress={() => setIsEditing(true)}
+            disabled={isOffline}
+          />
+        ) : null
+      ),
+    })
+  }, [navigation, isEditing, isOffline])
+
   const handleSave = useCallback(async () => {
     if (!task) return
 

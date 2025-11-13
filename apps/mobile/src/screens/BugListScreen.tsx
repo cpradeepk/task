@@ -308,7 +308,8 @@ export default function BugListScreen() {
         icon="plus"
         style={styles.fab}
         onPress={() => navigation.navigate('CreateBug' as never)}
-        color={materialColors.surface}
+        color="#FFFFFF"
+        size="medium"
         disabled={isOffline}
       />
     </View>

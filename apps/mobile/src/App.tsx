@@ -440,7 +440,10 @@ export default function App() {
                             size={28}
                             iconColor="#FFFFFF"
                             onPress={() => setMenuVisible(true)}
-                            style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
+                            style={{
+                              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                              marginLeft: 4
+                            }}
                           />
                         ),
                         headerRight: () => <NotificationBell />,

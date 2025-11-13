@@ -10,7 +10,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native'
-import { Card, Text, Surface, Button, TextInput, ActivityIndicator, Chip, Divider } from 'react-native-paper'
+import { Card, Text, Surface, Button, TextInput, ActivityIndicator, Chip, Divider, IconButton } from 'react-native-paper'
 import {
   getBugById,
   getBugComments,
@@ -44,6 +44,13 @@ export default function BugDetailsScreen() {
   const [newComment, setNewComment] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
 
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editedStatus, setEditedStatus] = useState('')
+  const [editedPriority, setEditedPriority] = useState('')
+  const [editedDescription, setEditedDescription] = useState('')
+
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -57,6 +64,10 @@ export default function BugDetailsScreen() {
 
       if (bugResponse.success && bugResponse.data) {
         setBug(bugResponse.data)
+        // Initialize edit form with current values
+        setEditedStatus(bugResponse.data.status)
+        setEditedPriority(bugResponse.data.priority)
+        setEditedDescription(bugResponse.data.description)
       }
 
       if (commentsResponse.success && commentsResponse.data) {
@@ -73,6 +84,52 @@ export default function BugDetailsScreen() {
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  // Add edit button to header
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        !isEditing ? (
+          <IconButton
+            icon="pencil"
+            size={24}
+            iconColor={materialColors.primary}
+            onPress={() => setIsEditing(true)}
+            disabled={isOffline}
+          />
+        ) : null
+      ),
+    })
+  }, [navigation, isEditing, isOffline])
+
+  const handleSave = useCallback(async () => {
+    if (!bug) return
+
+    try {
+      setIsSaving(true)
+
+      const updates: Partial<Bug> = {
+        status: editedStatus,
+        priority: editedPriority,
+        description: editedDescription,
+      }
+
+      const response = await updateBug(bugId, updates)
+
+      if (response.success) {
+        Alert.alert('Success', 'Bug updated successfully')
+        setIsEditing(false)
+        loadData()
+      } else {
+        Alert.alert('Error', response.error || 'Failed to update bug')
+      }
+    } catch (error) {
+      console.error('Failed to update bug:', error)
+      Alert.alert('Error', 'Failed to update bug')
+    } finally {
+      setIsSaving(false)
+    }
+  }, [bug, editedStatus, editedPriority, editedDescription, bugId, loadData])
 
   const handleAddComment = useCallback(async () => {
     if (!newComment.trim() || !currentUser) return
@@ -284,6 +341,80 @@ export default function BugDetailsScreen() {
             <BugSubtasks bugId={bugId} editable={true} />
           </Card.Content>
         </Card>
+
+        {/* Edit Form */}
+        {isEditing && (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Edit Bug</Text>
+              <Divider style={styles.divider} />
+
+              {/* Status */}
+              <Text style={styles.fieldLabel}>Status</Text>
+              <TextInput
+                mode="outlined"
+                value={editedStatus}
+                onChangeText={setEditedStatus}
+                style={styles.textInput}
+                outlineColor={materialColors.outline}
+                activeOutlineColor={materialColors.primary}
+                disabled={isOffline}
+              />
+
+              {/* Priority */}
+              <Text style={styles.fieldLabel}>Priority</Text>
+              <TextInput
+                mode="outlined"
+                value={editedPriority}
+                onChangeText={setEditedPriority}
+                style={styles.textInput}
+                outlineColor={materialColors.outline}
+                activeOutlineColor={materialColors.primary}
+                disabled={isOffline}
+              />
+
+              {/* Description */}
+              <Text style={styles.fieldLabel}>Description</Text>
+              <TextInput
+                mode="outlined"
+                value={editedDescription}
+                onChangeText={setEditedDescription}
+                multiline
+                numberOfLines={4}
+                style={styles.textInput}
+                outlineColor={materialColors.outline}
+                activeOutlineColor={materialColors.primary}
+                disabled={isOffline}
+              />
+
+              {/* Save/Cancel Buttons */}
+              <View style={styles.editActions}>
+                <Button
+                  mode="outlined"
+                  onPress={() => {
+                    setIsEditing(false)
+                    setEditedStatus(bug.status)
+                    setEditedPriority(bug.priority)
+                    setEditedDescription(bug.description)
+                  }}
+                  style={styles.cancelButton}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={handleSave}
+                  loading={isSaving}
+                  disabled={isSaving || isOffline}
+                  style={styles.saveButton}
+                  buttonColor={materialColors.primary}
+                >
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </View>
+            </Card.Content>
+          </Card>
+        )}
 
         {/* Comments Card */}
         <Card style={styles.sectionCard} elevation={1}>
@@ -525,6 +656,28 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   actionButton: {
     flex: 1,
+  },
+  fieldLabel: {
+    ...materialTypography.labelMedium,
+    color: materialColors.textSecondary,
+    marginTop: materialSpacing.md,
+    marginBottom: materialSpacing.xs,
+  },
+  textInput: {
+    backgroundColor: materialColors.surface,
+  },
+  editActions: {
+    flexDirection: 'row',
+    gap: materialSpacing.sm,
+    marginTop: materialSpacing.lg,
+  },
+  cancelButton: {
+    flex: 1,
+    borderRadius: 8,
+  },
+  saveButton: {
+    flex: 1,
+    borderRadius: 8,
   },
 })
 

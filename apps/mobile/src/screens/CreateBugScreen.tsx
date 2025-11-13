@@ -9,6 +9,8 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native'
 import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
 import { Picker } from '@react-native-picker/picker'
@@ -168,8 +170,17 @@ export default function CreateBugScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Surface style={styles.form} elevation={0}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={100}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Surface style={styles.form} elevation={0}>
         {/* Project */}
         <View style={styles.field}>
           <Text style={styles.label}>
@@ -351,6 +362,7 @@ export default function CreateBugScreen() {
         </Button>
       </Surface>
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 

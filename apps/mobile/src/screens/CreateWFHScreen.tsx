@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Alert,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native'
 import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -183,8 +184,17 @@ export default function CreateWFHScreen() {
   }, [])
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={100}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.form}>
         {/* WFH Type */}
         <View style={styles.field}>
           <Text style={styles.label}>
@@ -358,6 +368,7 @@ export default function CreateWFHScreen() {
         />
       )}
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 

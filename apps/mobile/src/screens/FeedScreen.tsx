@@ -231,7 +231,8 @@ export default function FeedScreen() {
         icon="plus"
         style={styles.fab}
         onPress={handleCreatePost}
-        color={materialColors.surface}
+        color="#FFFFFF"
+        size="medium"
         disabled={isOffline}
       />
     </View>

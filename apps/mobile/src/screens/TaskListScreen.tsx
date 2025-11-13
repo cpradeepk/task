@@ -340,7 +340,8 @@ export default function TaskListScreen({ navigation }: any) {
         style={styles.fab}
         onPress={() => navigation.navigate('CreateTask')}
         disabled={isOffline}
-        color={materialColors.surface}
+        color="#FFFFFF"
+        size="medium"
       />
     </View>
   )
@@ -381,12 +382,14 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   filterContainer: {
     backgroundColor: materialColors.surface,
-    paddingVertical: materialSpacing.sm,
+    paddingVertical: materialSpacing.md,
     paddingHorizontal: materialSpacing.md,
     elevation: materialElevation.level1,
+    minHeight: 60,
   },
   filterContentContainer: {
     alignItems: 'center',
+    paddingVertical: materialSpacing.xs,
   },
   filterLabel: {
     ...materialTypography.labelLarge,

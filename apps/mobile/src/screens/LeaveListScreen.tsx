@@ -253,7 +253,8 @@ export default function LeaveListScreen() {
         icon="plus"
         style={styles.fab}
         onPress={() => navigation.navigate('CreateLeave' as never)}
-        color={materialColors.surface}
+        color="#FFFFFF"
+        size="medium"
         disabled={isOffline}
       />
     </View>

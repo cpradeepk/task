@@ -13,7 +13,7 @@ At the end of EVERY interaction where you complete work or make progress, automa
 Each log entry MUST include all of the following sections:
 
 1. **Timestamp**: Date and time in ISO 8601 format (YYYY-MM-DD HH:MM:SS)
-2. **Session Summary**: Brief 1-2 sentence description of what was accomplished
+2. **Session Summary**: First include what was requested in the prompt and then Brief 1-2 sentence description of what was accomplished
 3. **Files Modified**: Categorized list of all files:
    - Created: New files added
    - Modified: Existing files changed

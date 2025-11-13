@@ -266,13 +266,14 @@ export default function WFHListScreen() {
         />
       )}
 
-      {/* FAB */}
-      <TouchableOpacity
+      {/* Create WFH FAB */}
+      <FAB
+        icon="plus"
         style={styles.fab}
         onPress={() => navigation.navigate('CreateWFH' as never)}
-      >
-        <Text style={styles.fabIcon}>+</Text>
-      </TouchableOpacity>
+        color="#FFFFFF"
+        size="medium"
+      />
     </View>
   )
 }
@@ -440,24 +441,9 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: responsive.spacing.lg,
-    bottom: responsive.spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 8,
-  },
-  fabIcon: {
-    fontSize: 32,
-    color: colors.card,
-    fontWeight: '300',
+    right: materialSpacing.lg,
+    bottom: materialSpacing.lg,
+    backgroundColor: materialColors.primary,
   },
 })
 

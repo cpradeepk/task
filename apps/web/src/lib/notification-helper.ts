@@ -70,13 +70,24 @@ export async function createNotification(params: CreateNotificationParams): Prom
     ]
   )
 
+  // Map notification type to push notification type
+  // Feed-related types (mention, comment, reaction, reply, post_approved, post_rejected) -> 'feed'
+  // Other types (task, bug, leave, wfh) pass through as-is
+  const mapNotificationTypeToPushType = (type: string): 'task' | 'bug' | 'leave' | 'wfh' | 'feed' | 'mention' | 'comment' | 'reaction' | undefined => {
+    if (['mention', 'comment', 'reaction', 'reply', 'post_approved', 'post_rejected'].includes(type)) {
+      return 'feed'
+    }
+    // For task, bug, leave, wfh - pass through as-is
+    return type as any
+  }
+
   // Send push notification (don't await - fire and forget)
   sendPushNotification(userId, {
     title,
     body: message || title,
     data: {
       notificationId,
-      type: notificationType === 'mention' || notificationType === 'comment' || notificationType === 'reaction' ? 'feed' : notificationType,
+      type: mapNotificationTypeToPushType(notificationType),
       postId,
       commentId,
       linkUrl
