@@ -13,6 +13,22 @@ import { notificationQueries, notificationMutations, FeedNotificationFieldResolv
 import { pushTokenMutations } from './push-token-resolvers'
 import { parseMentions, storeMentions } from '@/lib/mention-parser'
 import { createCommentNotification, createReactionNotification, createPostStatusNotification } from '@/lib/notification-helper'
+import { format, differenceInMinutes, startOfMonth, endOfMonth, startOfDay, endOfDay, addMinutes } from 'date-fns'
+
+// Helper to get current IST time as Date object (for logic comparisons)
+const getISTDate = (date: Date = new Date()) => addMinutes(date, 330) // UTC + 5:30
+
+// Helper to get start/end of day in IST, converted back to UTC for DB query
+const getISTDayRangeInUTC = (date: Date) => {
+  const istDate = getISTDate(date)
+  const istStart = startOfDay(istDate)
+  const istEnd = endOfDay(istDate)
+  // Convert back to UTC: subtract 330 minutes
+  return {
+    start: addMinutes(istStart, -330),
+    end: addMinutes(istEnd, -330)
+  }
+}
 
 // Lazy-load pool to avoid database connection during build time
 const getPoolInstance = () => getPool()
@@ -350,15 +366,105 @@ export const resolvers = {
       return result.rows
     },
 
+    // Attendance Queries
+    attendance: async (_: any, { date }: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+
+      const queryDate = new Date(date)
+      const { start, end } = getISTDayRangeInUTC(queryDate)
+
+      const result = await getPoolInstance().query(
+        `SELECT * FROM attendance_logs 
+         WHERE employee_id = $1 
+         AND sign_in_time >= $2 
+         AND sign_in_time <= $3
+         LIMIT 1`,
+        [user.employeeId, start, end]
+      )
+
+      return result.rows[0] || null
+    },
+
+    monthlyAttendance: async (_: any, { month, year }: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+
+      // Construct start and end of month in IST
+      // Note: month is 0-indexed in JS Date if using constructor with (year, month), but usually 1-indexed in API. 
+      // Assuming 1-indexed from API input.
+      const startDate = new Date(Date.UTC(year, month - 1, 1))
+      const endDate = endOfMonth(startDate)
+
+      // We need to cover the full IST days. 
+      // Simplest is to grab a bit wider range in UTC and filter or just rely on date column if we stored it.
+      // But we stored `date` column which is DATE type. 
+      // If `date` column is reliable (stored as IST date), we can use it.
+      // Migration created `date DATE NOT NULL`.
+      // Let's use `date` column for simpler querying if it was populated correctly.
+      // But `signIn` mutation will populate it.
+
+      const result = await getPoolInstance().query(
+        `SELECT * FROM attendance_logs 
+         WHERE employee_id = $1 
+         AND EXTRACT(MONTH FROM date) = $2 
+         AND EXTRACT(YEAR FROM date) = $3
+         ORDER BY sign_in_time ASC`,
+        [user.employeeId, month, year]
+      )
+
+      return result.rows
+    },
+
+    homeDashboardData: async (_: any, { date }: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+
+      const queryDate = new Date(date)
+      const { start, end } = getISTDayRangeInUTC(queryDate)
+
+      // 1. Get User's Attendance
+      const attendanceResult = await getPoolInstance().query(
+        `SELECT * FROM attendance_logs 
+         WHERE employee_id = $1 
+         AND sign_in_time >= $2 
+         AND sign_in_time <= $3
+         LIMIT 1`,
+        [user.employeeId, start, end]
+      )
+      const attendance = attendanceResult.rows[0] || null
+
+      // 2. Calculate Work Hours (formatted)
+      let userWorkHours = '0 Hrs 0 Mins'
+      if (attendance && attendance.work_hours) {
+        const hours = Math.floor(attendance.work_hours)
+        const minutes = Math.round((attendance.work_hours - hours) * 60)
+        userWorkHours = `${hours} Hrs ${minutes} Mins`
+      }
+
+      // 3. Members on Leave (Mock/Empty for now as tables don't exist)
+      const membersOnLeave: any[] = []
+
+      // 4. Members on WFH (Mock/Empty for now)
+      const membersOnWFH: any[] = []
+
+      return {
+        userWorkHours,
+        membersOnLeave,
+        membersOnWFH,
+        attendance
+      }
+    },
+
     bug: async (_: any, { bugId }: any, { loaders }: any) => {
       return loaders.bug.load(bugId)
     },
-    
+
     // Bug Subtasks
     bugSubtasks: async (_: any, { parentBugId }: any, { loaders }: any) => {
       return loaders.bugSubtasks.load(parentBugId)
     },
-    
+
     // Projects
     projects: async () => {
       const result = await getPoolInstance().query(
@@ -648,7 +754,7 @@ export const resolvers = {
     // Notification Queries
     ...notificationQueries
   },
-  
+
   // Field resolvers for User
   User: {
     // Map snake_case database columns to camelCase GraphQL fields
@@ -685,6 +791,27 @@ export const resolvers = {
         [user.employee_id]
       )
       return result.rows
+    }
+  },
+
+  Attendance: {
+    id: (att: any) => att.id,
+    employeeId: (att: any) => att.employee_id,
+    signInTime: (att: any) => att.sign_in_time,
+    signOutTime: (att: any) => att.sign_out_time,
+    workHours: (att: any) => att.work_hours,
+    date: (att: any) => {
+      // Return date string YYYY-MM-DD
+      if (att.date instanceof Date) return att.date.toISOString().split('T')[0]
+      return att.date
+    },
+    status: (att: any) => att.status,
+    isManualEntry: (att: any) => att.is_manual_entry,
+    approvalStatus: (att: any) => att.approval_status,
+    createdAt: (att: any) => att.created_at,
+    updatedAt: (att: any) => att.updated_at,
+    user: async (att: any, _: any, { loaders }: any) => {
+      return loaders.user.load(att.employee_id)
     }
   },
 
@@ -1465,7 +1592,7 @@ export const resolvers = {
          priority, estimated_hours, select_type, recursive_type, project_id, status, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'Pending', NOW(), NOW())`,
         [taskId, input.description, JSON.stringify([input.assignedTo]), input.assignedBy, support, input.startDate,
-         input.endDate, input.priority, input.estimatedHours, input.selectType, input.recursiveType, input.projectId]
+          input.endDate, input.priority, input.estimatedHours, input.selectType, input.recursiveType, input.projectId]
       )
 
       const result = await getPoolInstance().query(
@@ -1561,7 +1688,7 @@ export const resolvers = {
          reported_by, reported_date, estimated_hours, created_at, updated_at)
          VALUES ($1, $2, $3, $4, 'Open', $5, $6, $7, $8, $9, NOW(), NOW())`,
         [bugId, input.description, input.category, input.severity, input.assignedTo, input.assignedBy,
-         input.reportedBy, input.reportedDate, input.estimatedHours]
+          input.reportedBy, input.reportedDate, input.estimatedHours]
       )
 
       const result = await getPoolInstance().query(
@@ -2294,7 +2421,168 @@ export const resolvers = {
     ...notificationMutations,
 
     // Push Token Mutations
-    ...pushTokenMutations
+    unregisterPushToken: async (
+      _: any,
+      { userId, pushToken }: { userId: string; pushToken: string }
+    ) => {
+      try {
+        await getPoolInstance().query(
+          'DELETE FROM push_tokens WHERE user_id = $1 AND token = $2',
+          [userId, pushToken]
+        )
+        return true
+      } catch (error) {
+        console.error('Error unregistering push token:', error)
+        return false
+      }
+    },
+
+    // Attendance Mutations
+    signIn: async (_: any, __: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+
+      const now = new Date()
+      const istDate = getISTDate(now)
+      const { start, end } = getISTDayRangeInUTC(now)
+
+      // Check if already signed in
+      const existing = await getPoolInstance().query(
+        `SELECT * FROM attendance_logs 
+         WHERE employee_id = $1 
+         AND sign_in_time >= $2 
+         AND sign_in_time <= $3`,
+        [user.employeeId, start, end]
+      )
+
+      if (existing.rows.length > 0) {
+        throw new Error('You have already signed in today')
+      }
+
+      // Determine Status (Full Day vs Half Day)
+      // Cutoff is 10:00 AM IST.
+      // istDate is current time + 5:30.
+      // We check if istDate hours > 10 or (hours == 10 and minutes > 0)
+      const istHours = istDate.getUTCHours() // Since we added minutes to a Date object, it's technically a "shifted" UTC time. 
+      // Wait, `addMinutes` returns a Date. `getUTCHours` on it will be the shifted hours if we consider the Date as UTC.
+      // Actually, `addMinutes(now, 330)` gives a Date instance representing the time 5.5 hours ahead.
+      // If we print it in UTC, it shows the IST time.
+      // So `getUTCHours()` on this shifted date gives the IST hour.
+      const istMinutes = istDate.getUTCMinutes()
+
+      let status = 'full_day'
+      if (istHours > 10 || (istHours === 10 && istMinutes > 0)) {
+        status = 'half_day'
+      }
+
+      // Insert
+      // We store `date` as the IST date string (YYYY-MM-DD) to ensure uniqueness per IST day
+      const dateStr = istDate.toISOString().split('T')[0]
+
+      const result = await getPoolInstance().query(
+        `INSERT INTO attendance_logs 
+         (employee_id, sign_in_time, date, status) 
+         VALUES ($1, $2, $3, $4) 
+         RETURNING *`,
+        [user.employeeId, now, dateStr, status]
+      )
+
+      return result.rows[0]
+    },
+
+    signOut: async (_: any, __: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+
+      const now = new Date()
+      const { start, end } = getISTDayRangeInUTC(now)
+
+      // Find active attendance
+      const existing = await getPoolInstance().query(
+        `SELECT * FROM attendance_logs 
+         WHERE employee_id = $1 
+         AND sign_in_time >= $2 
+         AND sign_in_time <= $3
+         LIMIT 1`,
+        [user.employeeId, start, end]
+      )
+
+      if (existing.rows.length === 0) {
+        throw new Error('You have not signed in today')
+      }
+
+      const attendance = existing.rows[0]
+      if (attendance.sign_out_time) {
+        throw new Error('You have already signed out today')
+      }
+
+      // Calculate work hours
+      const signInTime = new Date(attendance.sign_in_time)
+      const diffMinutes = differenceInMinutes(now, signInTime)
+      const workHours = parseFloat((diffMinutes / 60).toFixed(2))
+
+      const result = await getPoolInstance().query(
+        `UPDATE attendance_logs 
+         SET sign_out_time = $1, work_hours = $2, updated_at = NOW()
+         WHERE id = $3
+         RETURNING *`,
+        [now, workHours, attendance.id]
+      )
+
+      return result.rows[0]
+    },
+
+    requestManualAttendance: async (_: any, { input }: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+
+      const { date, signInTime, signOutTime, reason } = input
+
+      // Check if record exists
+      const existing = await getPoolInstance().query(
+        `SELECT * FROM attendance_logs 
+         WHERE employee_id = $1 
+         AND date = $2`,
+        [user.employeeId, date]
+      )
+
+      if (existing.rows.length > 0) {
+        throw new Error('Attendance record already exists for this date')
+      }
+
+      // Calculate work hours
+      // Assuming input times are ISO strings or HH:mm?
+      // Requirement says "manual entry option". Usually user picks time.
+      // Let's assume input is full ISO string for simplicity or constructed date.
+      // If input is just time "10:00", we need to combine with date.
+      // Let's assume input is ISO string for now as per GraphQL scalar `String`.
+
+      const start = new Date(signInTime)
+      const end = new Date(signOutTime)
+      const diffMinutes = differenceInMinutes(end, start)
+      const workHours = parseFloat((diffMinutes / 60).toFixed(2))
+
+      // Determine status (using same logic as signIn but for the past date)
+      // We need to check the time part of signInTime in IST.
+      const istDate = getISTDate(start)
+      const istHours = istDate.getUTCHours()
+      const istMinutes = istDate.getUTCMinutes()
+
+      let status = 'full_day'
+      if (istHours > 10 || (istHours === 10 && istMinutes > 0)) {
+        status = 'half_day'
+      }
+
+      const result = await getPoolInstance().query(
+        `INSERT INTO attendance_logs 
+         (employee_id, sign_in_time, sign_out_time, work_hours, date, status, is_manual_entry, approval_status) 
+         VALUES ($1, $2, $3, $4, $5, $6, true, 'pending') 
+         RETURNING *`,
+        [user.employeeId, start, end, workHours, date, status]
+      )
+
+      return result.rows[0]
+    }
   },
 
   // Field Resolvers

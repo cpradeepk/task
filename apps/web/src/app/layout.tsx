@@ -6,6 +6,7 @@ import { SettingsProvider } from '@/contexts/SettingsContext'
 import PageTransition from '@/components/layout/PageTransition'
 import ChunkErrorBoundary from '@/components/error/ChunkErrorBoundary'
 import TimerProvider from '@/components/TimerProvider'
+import ApolloWrapper from '@/components/providers/ApolloWrapper'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -50,9 +51,11 @@ export default function RootLayout({
           <LoadingProvider>
             <SettingsProvider>
               <TimerProvider>
-                <PageTransition>
-                  {children}
-                </PageTransition>
+                <ApolloWrapper>
+                  <PageTransition>
+                    {children}
+                  </PageTransition>
+                </ApolloWrapper>
               </TimerProvider>
             </SettingsProvider>
           </LoadingProvider>

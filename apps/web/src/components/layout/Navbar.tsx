@@ -13,25 +13,18 @@ import {
   User,
   LogOut,
   Home,
-  Plus,
-  Calendar,
   Briefcase,
-  BarChart3,
-  Users,
-  Settings,
-  Clock,
-  FileText,
-  CheckSquare,
   Bug,
-  Trash2,
-  Rss,
+  CheckSquare,
+  Calendar,
+  FileText,
   ChevronDown,
-  Shield
+  Laptop
 } from 'lucide-react'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false)
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   const [isClient, setIsClient] = useState(false)
   const router = useRouter()
@@ -42,23 +35,49 @@ export default function Navbar() {
     setCurrentUser(getCurrentUser())
   }, [])
 
-  // Close dropdown when clicking outside
+  // Navigation Structure
+  const navigationItems = [
+    {
+      label: 'Home',
+      href: '/home',
+      icon: Home
+    },
+    {
+      label: 'Work',
+      icon: Briefcase,
+      children: [
+        { label: 'Dashboard', href: '/dashboard', icon: Briefcase },
+        { label: 'Tasks', href: '/tasks', icon: CheckSquare },
+        { label: 'Development', href: '/bugs', icon: Bug },
+      ]
+    },
+    {
+      label: 'Attendance',
+      icon: Calendar,
+      children: [
+        { label: 'Leave', href: '/leave/apply', icon: Calendar },
+        { label: 'WFH', href: '/wfh/apply', icon: Laptop },
+        { label: 'Applications', href: '/my-applications', icon: FileText },
+      ]
+    },
+    {
+      label: 'Account',
+      href: '/profile',
+      icon: User
+    }
+  ]
+
+  // Determine active category based on pathname or hover
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (!target.closest('.admin-dropdown-container') && !target.closest('.admin-dropdown-menu')) {
-        setIsAdminDropdownOpen(false)
+    if (!activeCategory) {
+      const currentItem = navigationItems.find(item =>
+        item.children?.some(child => pathname === child.href)
+      )
+      if (currentItem) {
+        setActiveCategory(currentItem.label)
       }
     }
-
-    if (isAdminDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isAdminDropdownOpen])
+  }, [pathname])
 
   // Show skeleton navbar while loading to prevent flickering
   if (!isClient || !currentUser) {
@@ -87,80 +106,25 @@ export default function Navbar() {
     router.push('/')
   }
 
-
-
-  // Admin dropdown items
-  const adminDropdownItems = [
-    { href: '/projects', label: 'Projects', icon: Briefcase },
-    { href: '/master-tasks', label: 'Master Tasks', icon: CheckSquare },
-    { href: '/master-bugs', label: 'Master Development', icon: Bug },
-    { href: '/users', label: 'User Management', icon: Users },
-    { href: '/feed-topics', label: 'Feed Topics', icon: Rss },
-    { href: '/approvals', label: 'Approvals', icon: Calendar },
-    { href: '/settings', label: 'Settings', icon: Settings },
-    { href: '/deleted-items', label: 'Deleted Items', icon: Trash2 }
-  ]
-
-  const getNavigationItems = () => {
-    const baseItems = [
-      { href: '/dashboard', label: 'Dashboard', icon: Home }
-    ]
-
-    switch (currentUser.role) {
-      case 'amtarikshian':
-        return [
-          ...baseItems,
-          { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-          { href: '/bugs', label: 'Development', icon: Bug },
-          { href: '/feed', label: 'Feed', icon: Rss },
-          { href: '/my-applications', label: 'Applications', icon: FileText },
-          { href: '/profile', label: 'Profile', icon: User }
-        ]
-
-      case 'management':
-        return [
-          ...baseItems,
-          { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-          { href: '/bugs', label: 'Development', icon: Bug },
-          { href: '/feed', label: 'Feed', icon: Rss },
-          { href: '/my-applications', label: 'Applications', icon: FileText },
-          { href: '/reports', label: 'Reports', icon: BarChart3 },
-          { href: '/profile', label: 'Profile', icon: User }
-        ]
-
-      case 'top_management':
-        return [
-          ...baseItems,
-          { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-          { href: '/bugs', label: 'Development', icon: Bug },
-          { href: '/feed', label: 'Feed', icon: Rss },
-          { href: '/reports', label: 'Reports', icon: BarChart3 },
-          { href: '/profile', label: 'Profile', icon: User }
-        ]
-
-      case 'admin':
-        return [
-          ...baseItems,
-          { href: '/bugs', label: 'Development', icon: Bug },
-          { href: '/feed', label: 'Feed', icon: Rss }
-        ]
-
-      default:
-        return baseItems
-    }
-  }
-
-  const navigationItems = getNavigationItems()
-  const showAdminDropdown = currentUser.role === 'admin' || currentUser.role === 'top_management'
+  const activeSubItems = navigationItems.find(item => item.label === activeCategory)?.children || []
 
   return (
-    <nav className="sticky top-0 z-[99999] bg-white shadow-sm border-b border-gray-200 backdrop-blur-sm bg-white/95">
+    <nav
+      className="sticky top-0 z-[99999] bg-white shadow-sm border-b border-gray-200 backdrop-blur-sm bg-white/95"
+      onMouseLeave={() => {
+        // Reset to current path's category on leave, or keep null if top level
+        const currentItem = navigationItems.find(item =>
+          item.children?.some(child => pathname === child.href)
+        )
+        setActiveCategory(currentItem ? currentItem.label : null)
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Header Row */}
         <div className="flex justify-between items-center h-16">
           {/* Logo and Title */}
           <div className="flex items-center">
-            <Link href="/dashboard" className="flex items-center space-x-3">
+            <Link href="/home" className="flex items-center space-x-3">
               <div className="h-10 flex items-center justify-center">
                 <Image
                   src="/images/logos/amtariksha_logo.png"
@@ -207,82 +171,76 @@ export default function Navbar() {
 
         {/* Navigation Tabs Row - Desktop */}
         <div className="hidden md:block border-t border-gray-100">
-          <div className="flex items-center justify-center space-x-1 py-3 overflow-x-auto scrollbar-hide">
-            {navigationItems.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
-                    isActive
-                      ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
-                      : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden lg:inline">{item.label}</span>
-                  <span className="lg:hidden">{item.label.split(' ')[0]}</span>
-                </Link>
-              )
-            })}
+          <div className="flex flex-col">
+            {/* Level 1: Main Categories */}
+            <div className="flex items-center justify-center space-x-1 py-3 overflow-x-auto scrollbar-hide">
+              {navigationItems.map((item) => {
+                const Icon = item.icon
+                // Active if it's the current category being hovered/viewed OR if one of its children is active (and no other category is hovered)
+                const isActive = activeCategory === item.label || (!activeCategory && item.href === pathname)
 
-            {/* Admin Dropdown */}
-            {showAdminDropdown && (
-              <div
-                className="relative admin-dropdown-container"
-                onMouseEnter={() => setIsAdminDropdownOpen(true)}
-              >
-                <button
-                  id="admin-dropdown-button"
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
-                    adminDropdownItems.some(item => pathname === item.href)
-                      ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
-                      : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
-                  }`}
-                >
-                  <Shield className="h-4 w-4" />
-                  <span className="hidden lg:inline">Admin</span>
-                  <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isAdminDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-            )}
+                return (
+                  <div
+                    key={item.label}
+                    onMouseEnter={() => setActiveCategory(item.label)}
+                    className="relative"
+                  >
+                    {item.children ? (
+                      <button
+                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${isActive
+                            ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
+                            : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
+                          }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="hidden lg:inline">{item.label}</span>
+                        <span className="lg:hidden">{item.label.split(' ')[0]}</span>
+                        <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isActive ? 'rotate-180' : ''}`} />
+                      </button>
+                    ) : (
+                      <Link
+                        href={item.href!}
+                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${isActive
+                            ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
+                            : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
+                          }`}
+                        onMouseEnter={() => setActiveCategory(null)} // Clear sub-menu when hovering a leaf item
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="hidden lg:inline">{item.label}</span>
+                        <span className="lg:hidden">{item.label.split(' ')[0]}</span>
+                      </Link>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
 
-            {/* Admin Dropdown Menu - Rendered at root level with fixed positioning */}
-            {showAdminDropdown && isAdminDropdownOpen && (
-              <div
-                className="fixed w-56 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-[100000] admin-dropdown-menu"
-                onMouseEnter={() => setIsAdminDropdownOpen(true)}
-                onMouseLeave={() => setIsAdminDropdownOpen(false)}
-                style={{
-                  top: typeof window !== 'undefined' ? (document.getElementById('admin-dropdown-button')?.getBoundingClientRect().bottom || 0) + 'px' : '0px',
-                  left: typeof window !== 'undefined' ? (document.getElementById('admin-dropdown-button')?.getBoundingClientRect().left || 0) + 'px' : '0px'
-                }}
-              >
-                {adminDropdownItems.map((item) => {
-                  const Icon = item.icon
-                  const isActive = pathname === item.href
+            {/* Level 2: Sub-menu (Horizontal Accordion) */}
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out bg-gray-50 rounded-b-lg ${activeSubItems.length > 0 ? 'max-h-16 opacity-100 border-t border-gray-200' : 'max-h-0 opacity-0'
+                }`}
+            >
+              <div className="flex items-center justify-center space-x-6 py-2">
+                {activeSubItems.map((child) => {
+                  const ChildIcon = child.icon
+                  const isChildActive = pathname === child.href
                   return (
-                    <button
-                      key={item.href}
-                      onClick={() => {
-                        setIsAdminDropdownOpen(false)
-                        router.push(item.href)
-                      }}
-                      className={`flex items-center space-x-3 px-4 py-2.5 text-sm font-medium transition-colors w-full text-left ${
-                        isActive
-                          ? 'bg-primary text-black'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-black'
-                      }`}
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isChildActive
+                          ? 'text-primary-600 bg-white shadow-sm'
+                          : 'text-gray-600 hover:text-black hover:bg-white/50'
+                        }`}
                     >
-                      <Icon className="h-4 w-4" />
-                      <span>{item.label}</span>
-                    </button>
+                      <ChildIcon className="h-3.5 w-3.5" />
+                      <span>{child.label}</span>
+                    </Link>
                   )
                 })}
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -292,16 +250,60 @@ export default function Navbar() {
             <div className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.href
+                const isActive = item.href ? pathname === item.href : item.children?.some(child => pathname === child.href)
+
+                if (item.children) {
+                  const isExpanded = activeCategory === item.label
+                  return (
+                    <div key={item.label} className="space-y-1">
+                      <button
+                        onClick={() => setActiveCategory(isExpanded ? null : item.label)}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
+                            ? 'bg-primary text-black shadow-sm'
+                            : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                          }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </div>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {isExpanded && (
+                        <div className="ml-4 space-y-1 border-l-2 border-gray-200 pl-4">
+                          {item.children.map((child) => {
+                            const ChildIcon = child.icon
+                            const isChildActive = pathname === child.href
+                            return (
+                              <Link
+                                key={child.href}
+                                href={child.href}
+                                className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${isChildActive
+                                    ? 'bg-primary text-black shadow-sm'
+                                    : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                                  }`}
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                <ChildIcon className="h-4 w-4" />
+                                <span>{child.label}</span>
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
+                    href={item.href!}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
                         ? 'bg-primary text-black shadow-sm'
                         : 'text-gray-600 hover:text-black hover:bg-gray-50'
-                    }`}
+                      }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Icon className="h-4 w-4" />
@@ -309,53 +311,6 @@ export default function Navbar() {
                   </Link>
                 )
               })}
-
-              {/* Admin Dropdown - Mobile */}
-              {showAdminDropdown && (
-                <div className="space-y-1">
-                  <button
-                    onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      adminDropdownItems.some(item => pathname === item.href)
-                        ? 'bg-primary text-black shadow-sm'
-                        : 'text-gray-600 hover:text-black hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Shield className="h-4 w-4" />
-                      <span>Admin</span>
-                    </div>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${isAdminDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {isAdminDropdownOpen && (
-                    <div className="ml-4 space-y-1 border-l-2 border-gray-200 pl-4">
-                      {adminDropdownItems.map((item) => {
-                        const Icon = item.icon
-                        const isActive = pathname === item.href
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                              isActive
-                                ? 'bg-primary text-black shadow-sm'
-                                : 'text-gray-600 hover:text-black hover:bg-gray-50'
-                            }`}
-                            onClick={() => {
-                              setIsMenuOpen(false)
-                              setIsAdminDropdownOpen(false)
-                            }}
-                          >
-                            <Icon className="h-4 w-4" />
-                            <span>{item.label}</span>
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         )}

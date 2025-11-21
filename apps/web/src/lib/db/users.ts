@@ -3,7 +3,7 @@
 
 import { query, queryOne, withRetry } from './config'
 import { User } from '../types'
-interface UserRow  {
+interface UserRow {
   id: number
   employee_id: string
   name: string

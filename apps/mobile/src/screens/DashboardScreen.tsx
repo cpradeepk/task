@@ -14,6 +14,7 @@ import { DebugMenu } from '../components/DebugMenu'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { getUserToken, getUserData } from '../utils/secureStorage'
+import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
 
 export default function DashboardScreen() {
   const navigation = useNavigation()
@@ -101,6 +102,11 @@ export default function DashboardScreen() {
             style={styles.debugButton}
           />
         </Surface>
+
+        {/* Attendance Card */}
+        <View style={styles.section}>
+          <DailyAttendanceCard />
+        </View>
 
         {/* Statistics Cards */}
         <View style={styles.statsContainer}>

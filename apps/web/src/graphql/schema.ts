@@ -171,6 +171,43 @@ export const typeDefs = `#graphql
     updatedAt: String!
   }
 
+  # Attendance Types
+  type Attendance {
+    id: ID!
+    employeeId: String!
+    signInTime: String!
+    signOutTime: String
+    workHours: Float
+    date: String!
+    status: String
+    isManualEntry: Boolean
+    approvalStatus: String
+    createdAt: String!
+    updatedAt: String!
+    user: User
+  }
+
+  type HomeDashboardData {
+    userWorkHours: String
+    membersOnLeave: [UserLeaveStatus!]!
+    membersOnWFH: [UserWFHStatus!]!
+    attendance: Attendance
+  }
+
+  type UserLeaveStatus {
+    user: User!
+    leaveType: String!
+    startDate: String!
+    endDate: String!
+    isHalfDay: Boolean
+  }
+
+  type UserWFHStatus {
+    user: User!
+    date: String!
+    contactNumber: String
+  }
+
   # Feed System Types
   type FeedPost {
     postId: ID!
@@ -348,6 +385,11 @@ export const typeDefs = `#graphql
     feedNotifications(userId: String, isRead: Boolean, notificationType: String, limit: Int, offset: Int): [FeedNotification!]!
     feedNotification(notificationId: ID!): FeedNotification
     unreadNotificationCount(userId: String!): Int!
+
+    # Attendance
+    attendance(date: String!): Attendance
+    monthlyAttendance(month: Int!, year: Int!): [Attendance!]!
+    homeDashboardData(date: String!): HomeDashboardData!
   }
 
   type DashboardData {
@@ -404,6 +446,11 @@ export const typeDefs = `#graphql
     # Push Notifications
     registerPushToken(userId: String!, pushToken: String!, deviceType: String!, deviceId: String): Boolean!
     unregisterPushToken(userId: String!, pushToken: String!): Boolean!
+
+    # Attendance
+    signIn: Attendance!
+    signOut: Attendance!
+    requestManualAttendance(input: ManualAttendanceInput!): Attendance!
   }
 
   input CreateTaskInput {
@@ -507,6 +554,13 @@ export const typeDefs = `#graphql
     description: String
     icon: String
     displayOrder: Int
+  }
+
+  input ManualAttendanceInput {
+    date: String!
+    signInTime: String!
+    signOutTime: String!
+    reason: String
   }
 `
 

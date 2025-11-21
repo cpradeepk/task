@@ -656,6 +656,77 @@ export const QUERIES = {
         }
       }
     }
+  `,
+
+  // Attendance Queries
+  GET_ATTENDANCE: `
+    query GetAttendance($date: String!) {
+      attendance(date: $date) {
+        id
+        employeeId
+        signInTime
+        signOutTime
+        workHours
+        date
+        status
+        isManualEntry
+        approvalStatus
+        createdAt
+        updatedAt
+        user {
+          employeeId
+          name
+          email
+          role
+        }
+      }
+    }
+  `,
+
+  GET_MONTHLY_ATTENDANCE: `
+    query GetMonthlyAttendance($year: Int!, $month: Int!) {
+      monthlyAttendance(year: $year, month: $month) {
+        id
+        employeeId
+        signInTime
+        signOutTime
+        workHours
+        date
+        status
+        isManualEntry
+        approvalStatus
+      }
+    }
+  `,
+
+  GET_HOME_DASHBOARD_DATA: `
+    query GetHomeDashboardData($date: String!) {
+      homeDashboardData(date: $date) {
+        userWorkHours
+        membersOnLeave {
+          user {
+            employeeId
+            name
+            role
+          }
+          leaveType
+        }
+        membersOnWFH {
+          user {
+            employeeId
+            name
+            role
+          }
+        }
+        attendance {
+          id
+          signInTime
+          signOutTime
+          workHours
+          status
+        }
+      }
+    }
   `
 }
 
@@ -837,6 +908,43 @@ export const MUTATIONS = {
           isPersonal
           isSaved
         }
+      }
+    }
+  `,
+
+  // Attendance Mutations
+  SIGN_IN: `
+    mutation SignIn {
+      signIn {
+        id
+        signInTime
+        status
+        date
+      }
+    }
+  `,
+
+  SIGN_OUT: `
+    mutation SignOut {
+      signOut {
+        id
+        signInTime
+        signOutTime
+        workHours
+        status
+      }
+    }
+  `,
+
+  REQUEST_MANUAL_ATTENDANCE: `
+    mutation RequestManualAttendance($input: ManualAttendanceInput!) {
+      requestManualAttendance(input: $input) {
+        id
+        date
+        signInTime
+        signOutTime
+        isManualEntry
+        approvalStatus
       }
     }
   `

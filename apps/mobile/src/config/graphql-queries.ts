@@ -783,3 +783,83 @@ export const DELETE_WFH = gql`
     }
   }
 `
+
+// ============================================================================
+// ATTENDANCE
+// ============================================================================
+
+export const GET_ATTENDANCE = gql`
+  query GetAttendance($date: String!) {
+    attendance(date: $date) {
+      id
+      employeeId
+      signInTime
+      signOutTime
+      workHours
+      date
+      status
+      isManualEntry
+      approvalStatus
+      createdAt
+      updatedAt
+      user {
+        employeeId
+        name
+        email
+        role
+      }
+    }
+  }
+`
+
+export const GET_MONTHLY_ATTENDANCE = gql`
+  query GetMonthlyAttendance($year: Int!, $month: Int!) {
+    monthlyAttendance(year: $year, month: $month) {
+      id
+      employeeId
+      signInTime
+      signOutTime
+      workHours
+      date
+      status
+      isManualEntry
+      approvalStatus
+    }
+  }
+`
+
+export const SIGN_IN = gql`
+  mutation SignIn {
+    signIn {
+      id
+      signInTime
+      status
+      date
+    }
+  }
+`
+
+export const SIGN_OUT = gql`
+  mutation SignOut {
+    signOut {
+      id
+      signInTime
+      signOutTime
+      workHours
+      status
+    }
+  }
+`
+
+export const REQUEST_MANUAL_ATTENDANCE = gql`
+  mutation RequestManualAttendance($input: ManualAttendanceInput!) {
+    requestManualAttendance(input: $input) {
+      id
+      date
+      signInTime
+      signOutTime
+      isManualEntry
+      approvalStatus
+    }
+  }
+`
