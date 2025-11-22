@@ -667,11 +667,15 @@ export const QUERIES = {
         employeeId
         signInTime
         signOutTime
+        signInLocation
+        signOutLocation
         workHours
         date
         status
         isManualEntry
         approvalStatus
+        signOutUndoneAt
+        signOutUndoneBy
         createdAt
         updatedAt
         user {
@@ -931,8 +935,27 @@ export const MUTATIONS = {
         id
         signInTime
         signOutTime
+        signOutLocation
         workHours
         status
+      }
+    }
+  `,
+
+  UNDO_SIGN_OUT: `
+    mutation UndoSignOut($date: String!) {
+      undoSignOut(date: $date) {
+        id
+        employeeId
+        signInTime
+        signOutTime
+        signInLocation
+        signOutLocation
+        workHours
+        date
+        status
+        signOutUndoneAt
+        signOutUndoneBy
       }
     }
   `,

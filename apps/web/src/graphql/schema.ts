@@ -203,11 +203,15 @@ export const typeDefs = `#graphql
     employeeId: String!
     signInTime: String!
     signOutTime: String
+    signInLocation: String
+    signOutLocation: String
     workHours: Float
     date: String!
     status: String
     isManualEntry: Boolean
     approvalStatus: String
+    signOutUndoneAt: String
+    signOutUndoneBy: String
     createdAt: String!
     updatedAt: String!
     user: User
@@ -480,6 +484,7 @@ export const typeDefs = `#graphql
     # Attendance
     signIn: Attendance!
     signOut: Attendance!
+    undoSignOut(date: String!): Attendance!
     requestManualAttendance(input: ManualAttendanceInput!): Attendance!
   }
 

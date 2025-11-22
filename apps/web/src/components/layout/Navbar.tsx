@@ -44,6 +44,7 @@ export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [hasOverflow, setHasOverflow] = useState(false)
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -71,6 +72,16 @@ export default function Navbar() {
       href: '/home',
       icon: Home,
       key: 'home'
+    },
+    {
+      label: 'Feed',
+      href: '/feed',
+      icon: MessageSquare,
+      key: 'feed',
+      children: [
+        { label: 'Show Feed', href: '/feed', icon: MessageSquare, key: 'feed' },
+        { label: 'Create Post', href: '/feed?create=true', icon: FileText, key: 'feed' },
+      ]
     },
     {
       label: 'Work',
@@ -144,6 +155,23 @@ export default function Navbar() {
     return null
   }).filter(Boolean) as typeof allNavigationItems
 
+  // Calculate active sub-items
+  const activeSubItems = navigationItems.find(item => item.label === activeCategory)?.children || []
+
+  // Detect overflow in sub-menu
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (scrollContainerRef.current) {
+        const { scrollWidth, clientWidth } = scrollContainerRef.current
+        setHasOverflow(scrollWidth > clientWidth)
+      }
+    }
+
+    checkOverflow()
+    window.addEventListener('resize', checkOverflow)
+    return () => window.removeEventListener('resize', checkOverflow)
+  }, [activeSubItems])
+
   // Determine active category based on pathname or hover
   useEffect(() => {
     if (!activeCategory) {
@@ -182,8 +210,6 @@ export default function Navbar() {
     logout()
     router.push('/')
   }
-
-  const activeSubItems = navigationItems.find(item => item.label === activeCategory)?.children || []
 
   return (
     <nav
@@ -299,17 +325,20 @@ export default function Navbar() {
                 }`}
             >
               <div className="relative group px-8">
-                {/* Left Scroll Button */}
-                <button
-                  onClick={() => scroll('left')}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white rounded-full shadow-md text-gray-500 hover:text-primary hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
+                {/* Left Scroll Button - only show when overflow */}
+                {hasOverflow && (
+                  <button
+                    onClick={() => scroll('left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white rounded-full shadow-md text-gray-500 hover:text-primary hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                )}
 
                 <div
                   ref={scrollContainerRef}
-                  className="flex items-center space-x-6 py-2 overflow-x-auto scrollbar-hide scroll-smooth"
+                  className={`flex items-center space-x-6 py-2 overflow-x-auto scrollbar-hide scroll-smooth ${hasOverflow ? 'justify-start' : 'justify-center'
+                    }`}
                 >
                   {activeSubItems.map((child) => {
                     const ChildIcon = child.icon
@@ -330,13 +359,15 @@ export default function Navbar() {
                   })}
                 </div>
 
-                {/* Right Scroll Button */}
-                <button
-                  onClick={() => scroll('right')}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white rounded-full shadow-md text-gray-500 hover:text-primary hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+                {/* Right Scroll Button - only show when overflow */}
+                {hasOverflow && (
+                  <button
+                    onClick={() => scroll('right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white rounded-full shadow-md text-gray-500 hover:text-primary hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
           </div>

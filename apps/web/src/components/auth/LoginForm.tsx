@@ -432,7 +432,16 @@ export default function LoginForm() {
       const success = await login(employeeId, password)
 
       if (success) {
-        router.push('/dashboard')
+        // Get user data to check if system admin
+        const { getCurrentUser } = await import('@/lib/auth')
+        const user = getCurrentUser()
+
+        // System admins go to dashboard, everyone else to home
+        if (user?.isSystemAdmin === 1) {
+          router.push('/dashboard')
+        } else {
+          router.push('/home')
+        }
       } else {
         setError('Invalid Employee ID or Password')
       }

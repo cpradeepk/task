@@ -319,20 +319,8 @@ export const resolvers = {
       )
       const record = recordResult.rows[0]
 
-      // Return placeholder if no attendance record exists
-      if (!record) return {
-        id: "0",
-        employeeId: targetUserId,
-        date: targetDate,
-        signInTime: new Date().toISOString(),
-        signOutTime: new Date().toISOString(),
-        status: "ABSENT",
-        workHours: 0,
-        isManualEntry: false,
-        approvalStatus: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
+      // Return null if no attendance record exists (fixes the 05:30 AM placeholder issue)
+      if (!record) return null
 
       let workingHours = 0
       if (record.sign_in_time && record.sign_out_time) {
@@ -347,11 +335,16 @@ export const resolvers = {
         date: targetDate,
         signInTime: record.sign_in_time,
         signOutTime: record.sign_out_time,
+        signInLocation: record.sign_in_location,
+        signOutLocation: record.sign_out_location,
         status: record.status || 'ABSENT',
         workHours: workingHours,
         isManualEntry: record.is_manual_entry || false,
         approvalStatus: record.approval_status,
-        createdAt: record.created_at
+        signOutUndoneAt: record.sign_out_undone_at,
+        signOutUndoneBy: record.sign_out_undone_by,
+        createdAt: record.created_at,
+        updatedAt: record.updated_at
       }
     },
 
@@ -2444,7 +2437,7 @@ export const resolvers = {
 
     // Attendance Mutations
     signIn: async (_: any, __: any, context: any) => {
-      const { user } = context
+      const { user, req } = context
       if (!user) throw new Error('Unauthorized')
 
       const now = new Date()
@@ -2464,15 +2457,13 @@ export const resolvers = {
         throw new Error('You have already signed in today')
       }
 
+      // Get location from IP
+      const { getClientIP, getLocationFromIPServer } = await import('@/lib/location')
+      const clientIP = req ? getClientIP(req) : 'unknown'
+      const location = await getLocationFromIPServer(clientIP)
+
       // Determine Status (Full Day vs Half Day)
-      // Cutoff is 10:00 AM IST.
-      // istDate is current time + 5:30.
-      // We check if istDate hours > 10 or (hours == 10 and minutes > 0)
-      const istHours = istDate.getUTCHours() // Since we added minutes to a Date object, it's technically a "shifted" UTC time. 
-      // Wait, `addMinutes` returns a Date. `getUTCHours` on it will be the shifted hours if we consider the Date as UTC.
-      // Actually, `addMinutes(now, 330)` gives a Date instance representing the time 5.5 hours ahead.
-      // If we print it in UTC, it shows the IST time.
-      // So `getUTCHours()` on this shifted date gives the IST hour.
+      const istHours = istDate.getUTCHours()
       const istMinutes = istDate.getUTCMinutes()
 
       let status = 'full_day'
@@ -2480,23 +2471,22 @@ export const resolvers = {
         status = 'half_day'
       }
 
-      // Insert
-      // We store `date` as the IST date string (YYYY-MM-DD) to ensure uniqueness per IST day
+      // Insert with location
       const dateStr = istDate.toISOString().split('T')[0]
 
       const result = await getPoolInstance().query(
         `INSERT INTO attendance_logs 
-         (employee_id, sign_in_time, date, status) 
-         VALUES ($1, $2, $3, $4) 
+         (employee_id, sign_in_time, sign_in_location, date, status) 
+         VALUES ($1, $2, $3, $4, $5) 
          RETURNING *`,
-        [user.employeeId, now, dateStr, status]
+        [user.employeeId, now, location, dateStr, status]
       )
 
       return result.rows[0]
     },
 
     signOut: async (_: any, __: any, context: any) => {
-      const { user } = context
+      const { user, req } = context
       if (!user) throw new Error('Unauthorized')
 
       const now = new Date()
@@ -2521,6 +2511,11 @@ export const resolvers = {
         throw new Error('You have already signed out today')
       }
 
+      // Get location from IP
+      const { getClientIP, getLocationFromIPServer } = await import('@/lib/location')
+      const clientIP = req ? getClientIP(req) : 'unknown'
+      const location = await getLocationFromIPServer(clientIP)
+
       // Calculate work hours
       const signInTime = new Date(attendance.sign_in_time)
       const diffMinutes = differenceInMinutes(now, signInTime)
@@ -2528,10 +2523,66 @@ export const resolvers = {
 
       const result = await getPoolInstance().query(
         `UPDATE attendance_logs 
-         SET sign_out_time = $1, work_hours = $2, updated_at = NOW()
-         WHERE id = $3
+         SET sign_out_time = $1, sign_out_location = $2, work_hours = $3, updated_at = NOW()
+         WHERE id = $4
          RETURNING *`,
-        [now, workHours, attendance.id]
+        [now, location, workHours, attendance.id]
+      )
+
+      return result.rows[0]
+    },
+
+    undoSignOut: async (_: any, { date }: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+
+      // Get timeout setting from database
+      const settingResult = await getPoolInstance().query(
+        `SELECT value FROM settings WHERE key = 'attendance_undo_timeout_hours' AND is_active = true`
+      )
+      const timeoutHours = settingResult.rows[0]?.value ? parseInt(settingResult.rows[0].value) : 2
+
+      // Find attendance record for the specified date
+      const targetDate = date || new Date().toISOString().split('T')[0]
+      const recordResult = await getPoolInstance().query(
+        `SELECT * FROM attendance_logs 
+         WHERE employee_id = $1 
+         AND date = $2`,
+        [user.employeeId, targetDate]
+      )
+
+      if (recordResult.rows.length === 0) {
+        throw new Error('No attendance record found for this date')
+      }
+
+      const attendance = recordResult.rows[0]
+
+      // Check if sign-out exists
+      if (!attendance.sign_out_time) {
+        throw new Error('You have not signed out yet')
+      }
+
+      // Check if within timeout window
+      const signOutTime = new Date(attendance.sign_out_time)
+      const now = new Date()
+      const hoursSinceSignOut = (now.getTime() - signOutTime.getTime()) / (1000 * 60 * 60)
+
+      if (hoursSinceSignOut > timeoutHours) {
+        throw new Error(`Undo is only available within ${timeoutHours} hours of sign-out`)
+      }
+
+      // Undo the sign-out
+      const result = await getPoolInstance().query(
+        `UPDATE attendance_logs 
+         SET sign_out_time = NULL, 
+             sign_out_location = NULL, 
+             work_hours = NULL,
+             sign_out_undone_at = NOW(),
+             sign_out_undone_by = $1,
+             updated_at = NOW()
+         WHERE id = $2
+         RETURNING *`,
+        [user.employeeId, attendance.id]
       )
 
       return result.rows[0]

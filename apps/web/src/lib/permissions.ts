@@ -4,6 +4,7 @@ import { User } from './types'
 // Define all available tabs in the application
 export const AVAILABLE_TABS = [
     { key: 'home', label: 'Home' },
+    { key: 'feed', label: 'Feed' },
     { key: 'attendance_dashboard', label: 'Attendance Dashboard' }, // New for Admin
     { key: 'projects', label: 'Projects' },
     { key: 'master_tasks', label: 'Master Tasks' },
@@ -22,10 +23,10 @@ export const AVAILABLE_TABS = [
 
 // Define default permissions for each role
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
-    'amtarikshian': ['home', 'tasks', 'bugs', 'attendance', 'leaves', 'wfh'],
-    'management': ['home', 'tasks', 'bugs', 'attendance', 'leaves', 'wfh', 'users'],
-    'top_management': ['home', 'tasks', 'bugs', 'attendance', 'leaves', 'wfh', 'users', 'settings', 'reports', 'projects'],
-    'admin': ['home', 'tasks', 'bugs', 'attendance', 'users', 'leaves', 'wfh', 'settings', 'attendance_dashboard', 'projects', 'master_tasks', 'master_development', 'user_management', 'feed_topics', 'approvals', 'deleted_items', 'reports']
+    'amtarikshian': ['home', 'feed', 'tasks', 'bugs', 'attendance', 'leaves', 'wfh'],
+    'management': ['home', 'feed', 'tasks', 'bugs', 'attendance', 'leaves', 'wfh', 'users'],
+    'top_management': ['home', 'feed', 'tasks', 'bugs', 'attendance', 'leaves', 'wfh', 'users', 'settings', 'reports', 'projects'],
+    'admin': ['home', 'feed', 'tasks', 'bugs', 'attendance', 'users', 'leaves', 'wfh', 'settings', 'attendance_dashboard', 'projects', 'master_tasks', 'master_development', 'user_management', 'feed_topics', 'approvals', 'deleted_items', 'reports']
 }
 
 /**

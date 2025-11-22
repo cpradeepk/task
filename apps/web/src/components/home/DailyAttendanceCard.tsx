@@ -13,11 +13,15 @@ interface AttendanceData {
     employeeId: string
     signInTime: string
     signOutTime: string
+    signInLocation?: string
+    signOutLocation?: string
     workHours: number
     date: string
     status: string
     isManualEntry: boolean
     approvalStatus: string
+    signOutUndoneAt?: string
+    signOutUndoneBy?: string
 }
 
 interface AttendanceResponse {
@@ -101,6 +105,18 @@ export default function DailyAttendanceCard() {
         }
     })
 
+    const [undoSignOut] = useMutation(gql(MUTATIONS.UNDO_SIGN_OUT), {
+        onCompleted: () => {
+            refetch()
+            hideGlobalLoading()
+        },
+        onError: (err) => {
+            console.error('Undo Sign Out Error:', err)
+            hideGlobalLoading()
+            alert(err.message)
+        }
+    })
+
     const handleSignIn = () => {
         showGlobalLoading()
         signIn()
@@ -111,6 +127,20 @@ export default function DailyAttendanceCard() {
             showGlobalLoading()
             signOut()
         }
+    }
+
+    const handleUndoSignOut = () => {
+        showGlobalLoading()
+        undoSignOut({ variables: { date: todayDate } })
+    }
+
+    // Check if undo is available (within 2 hours of sign-out)
+    const canUndoSignOut = () => {
+        if (!attendance?.signOutTime) return false
+        const signOutTime = new Date(parseInt(attendance.signOutTime))
+        const now = new Date()
+        const hoursSinceSignOut = (now.getTime() - signOutTime.getTime()) / (1000 * 60 * 60)
+        return hoursSinceSignOut <= 2 // TODO: Get from settings
     }
 
     if (loading && !attendance) {
@@ -134,6 +164,8 @@ export default function DailyAttendanceCard() {
         )
     }
 
+    // Determine states: null = Not Signed In, signInTime && !signOutTime = Active, signInTime && signOutTime = Completed
+    const isNotSignedIn = !attendance
     const isSignedOut = !!attendance?.signOutTime
     const isSignedIn = !!attendance?.signInTime && !isSignedOut
 
@@ -188,7 +220,7 @@ export default function DailyAttendanceCard() {
                             <AlertCircle className="h-5 w-5 mr-2" />
                             Attendance tracking disabled for System Admin
                         </div>
-                    ) : !attendance?.signInTime ? (
+                    ) : isNotSignedIn ? (
                         <button
                             onClick={handleSignIn}
                             className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-[1.02]"
@@ -196,7 +228,7 @@ export default function DailyAttendanceCard() {
                             <LogIn className="h-5 w-5 mr-2" />
                             Sign In
                         </button>
-                    ) : !attendance.signOutTime ? (
+                    ) : isSignedIn ? (
                         <button
                             onClick={handleSignOut}
                             className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 transform hover:scale-[1.02]"
@@ -205,17 +237,36 @@ export default function DailyAttendanceCard() {
                             Sign Out
                         </button>
                     ) : (
-                        <div className="w-full flex items-center justify-center py-3 px-4 bg-green-50 border border-green-100 rounded-xl text-green-700 text-sm font-medium">
-                            <CheckCircle className="h-5 w-5 mr-2" />
-                            Attendance Completed
+                        <div className="space-y-2">
+                            <div className="w-full flex items-center justify-center py-3 px-4 bg-green-50 border border-green-100 rounded-xl text-green-700 text-sm font-medium">
+                                <CheckCircle className="h-5 w-5 mr-2" />
+                                Attendance Completed
+                            </div>
+                            {canUndoSignOut() && (
+                                <button
+                                    onClick={handleUndoSignOut}
+                                    className="w-full flex items-center justify-center py-2 px-4 border border-orange-300 rounded-xl shadow-sm text-sm font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200"
+                                >
+                                    <AlertCircle className="h-4 w-4 mr-2" />
+                                    Undo Sign Out
+                                </button>
+                            )}
                         </div>
                     )}
 
                     {attendance?.signInTime && (
-                        <div className="mt-3 flex justify-between text-xs text-gray-500 px-1">
-                            <span>In: {format(new Date(parseInt(attendance.signInTime)), 'hh:mm a')}</span>
-                            {attendance.signOutTime && (
-                                <span>Out: {format(new Date(parseInt(attendance.signOutTime)), 'hh:mm a')}</span>
+                        <div className="mt-3 space-y-1">
+                            <div className="flex justify-between text-xs text-gray-500 px-1">
+                                <span>In: {format(new Date(parseInt(attendance.signInTime)), 'hh:mm a')}</span>
+                                {attendance.signOutTime && (
+                                    <span>Out: {format(new Date(parseInt(attendance.signOutTime)), 'hh:mm a')}</span>
+                                )}
+                            </div>
+                            {(attendance.signInLocation || attendance.signOutLocation) && (
+                                <div className="text-xs text-gray-400 px-1">
+                                    {attendance.signInLocation && <div>📍 In: {attendance.signInLocation}</div>}
+                                    {attendance.signOutLocation && <div>📍 Out: {attendance.signOutLocation}</div>}
+                                </div>
                             )}
                         </div>
                     )}
