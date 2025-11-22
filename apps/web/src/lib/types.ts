@@ -47,6 +47,7 @@ export interface User {
   idCardPhoto?: string      // Optional: AWS S3 URL for employee ID card photo
   createdAt: string         // Timestamp when user was created
   updatedAt: string         // Timestamp when user was last updated
+  tabPermissions?: string[] // Optional: Custom tab permissions overriding role defaults
 }
 
 // ============================================================================

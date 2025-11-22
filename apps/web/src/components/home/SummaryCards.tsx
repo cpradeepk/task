@@ -6,15 +6,15 @@ import { Clock, Calendar, Briefcase, Home } from 'lucide-react'
 interface SummaryCardsProps {
     averageWorkHours: string
     onTimeArrivalPercentage: number
-    leaveBalance: number
-    wfhBalance: number
+    leavesTakenYTD: number
+    totalWFHApproved: number
 }
 
 export default function SummaryCards({
     averageWorkHours,
     onTimeArrivalPercentage,
-    leaveBalance,
-    wfhBalance
+    leavesTakenYTD,
+    totalWFHApproved
 }: SummaryCardsProps) {
     const cards = [
         {
@@ -34,16 +34,16 @@ export default function SummaryCards({
             text: 'text-green-600'
         },
         {
-            title: 'Leave Balance',
-            value: leaveBalance,
+            title: 'Leaves Taken YTD',
+            value: leavesTakenYTD,
             icon: Briefcase,
             color: 'purple',
             bg: 'bg-purple-50',
             text: 'text-purple-600'
         },
         {
-            title: 'WFH Balance',
-            value: wfhBalance,
+            title: 'Total WFH Approved',
+            value: totalWFHApproved,
             icon: Home,
             color: 'orange',
             bg: 'bg-orange-50',

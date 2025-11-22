@@ -19,6 +19,22 @@ import { useQuery } from '@apollo/client/react'
 import { gql } from '@apollo/client'
 import { QUERIES } from '@/lib/graphql-queries'
 
+interface AttendanceRecord {
+    id: string
+    employeeId: string
+    signInTime: string
+    signOutTime: string
+    workHours: number
+    date: string
+    status: string
+    isManualEntry: boolean
+    approvalStatus: string
+}
+
+interface MonthlyAttendanceResponse {
+    monthlyAttendance: AttendanceRecord[]
+}
+
 interface CalendarWidgetProps {
     onDateSelect: (date: Date) => void
     selectedDate: Date
@@ -28,7 +44,7 @@ export default function CalendarWidget({ onDateSelect, selectedDate }: CalendarW
     const [currentMonth, setCurrentMonth] = useState(new Date())
 
     // Fetch monthly attendance data
-    const { data, loading } = useQuery(gql(QUERIES.GET_MONTHLY_ATTENDANCE), {
+    const { data, loading } = useQuery<MonthlyAttendanceResponse>(gql(QUERIES.GET_MONTHLY_ATTENDANCE), {
         variables: { year: currentMonth.getFullYear(), month: currentMonth.getMonth() + 1 },
         fetchPolicy: 'cache-and-network'
     })

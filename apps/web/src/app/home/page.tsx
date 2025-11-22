@@ -13,11 +13,41 @@ import MembersList from '@/components/home/MembersList'
 import { QUERIES } from '@/lib/graphql-queries'
 import { useLoading } from '@/contexts/LoadingContext'
 
+interface HomeDashboardData {
+    userWorkHours: number
+    membersOnLeave: Array<{
+        user: {
+            employeeId: string
+            name: string
+            role: string
+        }
+        leaveType: string
+    }>
+    membersOnWFH: Array<{
+        user: {
+            employeeId: string
+            name: string
+            role: string
+        }
+    }>
+    attendance: Array<{
+        id: string
+        signInTime: string
+        signOutTime: string
+        workHours: number
+        status: string
+    }>
+}
+
+interface HomeDashboardResponse {
+    homeDashboardData: HomeDashboardData
+}
+
 export default function HomePage() {
     const [selectedDate, setSelectedDate] = useState(new Date())
     const dateStr = format(new Date(), 'yyyy-MM-dd')
 
-    const { data, loading, error } = useQuery(gql(QUERIES.GET_HOME_DASHBOARD_DATA), {
+    const { data, loading, error } = useQuery<HomeDashboardResponse>(gql(QUERIES.GET_HOME_DASHBOARD_DATA), {
         variables: { date: dateStr },
         pollInterval: 60000 // Refresh every minute
     })
@@ -52,13 +82,20 @@ export default function HomePage() {
         )
     }
 
-    const dashboardData = data?.homeDashboardData || {}
+    const defaultDashboardData: HomeDashboardData = {
+        userWorkHours: 0,
+        membersOnLeave: [],
+        membersOnWFH: [],
+        attendance: []
+    }
+
+    const dashboardData = data?.homeDashboardData || defaultDashboardData
 
     // Mock data for missing fields (until backend supports them)
     const averageWorkHours = "8.5" // Placeholder
     const onTimeArrivalPercentage = 92 // Placeholder
-    const leaveBalance = 12 // Placeholder
-    const wfhBalance = 4 // Placeholder
+    const leavesTakenYTD = 0 // Placeholder - will be updated from GraphQL
+    const totalWFHApproved = 0 // Placeholder - will be updated from GraphQL
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -85,8 +122,8 @@ export default function HomePage() {
                         <SummaryCards
                             averageWorkHours={averageWorkHours}
                             onTimeArrivalPercentage={onTimeArrivalPercentage}
-                            leaveBalance={leaveBalance}
-                            wfhBalance={wfhBalance}
+                            leavesTakenYTD={leavesTakenYTD}
+                            totalWFHApproved={totalWFHApproved}
                         />
 
                         {/* Additional Quick Stats or Charts could go here */}
@@ -122,8 +159,14 @@ export default function HomePage() {
                     </div>
                     <div className="lg:col-span-1 h-[500px]">
                         <MembersList
-                            membersOnLeave={dashboardData.membersOnLeave || []}
-                            membersOnWFH={dashboardData.membersOnWFH || []}
+                            membersOnLeave={(dashboardData.membersOnLeave || []).map(m => ({
+                                user: m.user,
+                                status: m.leaveType
+                            }))}
+                            membersOnWFH={(dashboardData.membersOnWFH || []).map(m => ({
+                                user: m.user,
+                                status: 'WFH'
+                            }))}
                         />
                     </div>
                 </div>

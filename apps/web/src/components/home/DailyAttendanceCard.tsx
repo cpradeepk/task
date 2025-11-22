@@ -8,6 +8,22 @@ import { Clock, LogIn, LogOut, Calendar, AlertCircle, CheckCircle } from 'lucide
 import { QUERIES, MUTATIONS } from '@/lib/graphql-queries'
 import { useLoading } from '@/contexts/LoadingContext'
 
+interface AttendanceData {
+    id: string
+    employeeId: string
+    signInTime: string
+    signOutTime: string
+    workHours: number
+    date: string
+    status: string
+    isManualEntry: boolean
+    approvalStatus: string
+}
+
+interface AttendanceResponse {
+    attendance: AttendanceData
+}
+
 export default function DailyAttendanceCard() {
     const [currentTime, setCurrentTime] = useState(new Date())
     const [workDuration, setWorkDuration] = useState<string>('00:00:00')
@@ -25,7 +41,7 @@ export default function DailyAttendanceCard() {
     const todayDate = format(new Date(), 'yyyy-MM-dd')
 
     // Fetch attendance data
-    const { data, loading, error, refetch } = useQuery(gql(QUERIES.GET_ATTENDANCE), {
+    const { data, loading, error, refetch } = useQuery<AttendanceResponse>(gql(QUERIES.GET_ATTENDANCE), {
         variables: { date: todayDate },
         fetchPolicy: 'network-only',
         pollInterval: 60000 // Poll every minute to keep in sync
@@ -166,7 +182,13 @@ export default function DailyAttendanceCard() {
                 </div>
 
                 <div>
-                    {!attendance?.signInTime ? (
+                    {/* System Admin Check - Hide Sign In/Out Buttons */}
+                    {attendance?.employeeId === 'AM-0001' ? (
+                        <div className="w-full flex items-center justify-center py-3 px-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 text-sm font-medium">
+                            <AlertCircle className="h-5 w-5 mr-2" />
+                            Attendance tracking disabled for System Admin
+                        </div>
+                    ) : !attendance?.signInTime ? (
                         <button
                             onClick={handleSignIn}
                             className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-[1.02]"

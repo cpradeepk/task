@@ -22,6 +22,8 @@ interface UserRow {
   id_card_photo: string | null
   created_at: string
   updated_at: string
+  tab_permissions: string[] | null
+  is_system_admin?: number
 }
 
 // Convert database row to User object
@@ -43,7 +45,9 @@ function rowToUser(row: UserRow): User {
     hoursLog: row.hours_log || undefined,
     idCardPhoto: row.id_card_photo || undefined,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    tabPermissions: row.tab_permissions || undefined,
+    isSystemAdmin: row.is_system_admin
   }
 }
 
@@ -126,8 +130,8 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
       `INSERT INTO users (
         employee_id, name, email, phone, telegram_token, department,
         manager_email, manager_id, is_today_task, warning_count, role,
-        password, status, hours_log
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        password, status, hours_log, tab_permissions
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
       [
         user.employeeId,
         user.name,
@@ -142,7 +146,8 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
         user.role,
         user.password,
         user.status,
-        user.hoursLog || null
+        user.hoursLog || null,
+        JSON.stringify(user.tabPermissions || [])
       ]
     )
 
@@ -228,6 +233,10 @@ export async function updateUser(employee_id: string, updates: Partial<User>): P
     if (updates.idCardPhoto !== undefined) {
       fields.push(`id_card_photo = $${paramIndex++}`)
       values.push(updates.idCardPhoto || null)
+    }
+    if (updates.tabPermissions !== undefined) {
+      fields.push(`tab_permissions = $${paramIndex++}`)
+      values.push(JSON.stringify(updates.tabPermissions))
     }
 
     if (fields.length === 0) {

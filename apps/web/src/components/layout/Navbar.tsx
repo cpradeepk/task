@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { logout, getCurrentUser, getRoleDisplayName } from '@/lib/auth'
 import { User as UserType } from '@/lib/types'
+import { hasTabAccess } from '@/lib/permissions'
 import NotificationBell from './NotificationBell'
 import {
   Menu,
@@ -19,7 +20,20 @@ import {
   Calendar,
   FileText,
   ChevronDown,
-  Laptop
+  Laptop,
+  Settings,
+  Users,
+  Shield,
+  FolderKanban,
+  ListTodo,
+  Code,
+  UserCog,
+  MessageSquare,
+  ClipboardCheck,
+  Trash2,
+  BarChart3,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 
 export default function Navbar() {
@@ -29,43 +43,106 @@ export default function Navbar() {
   const [isClient, setIsClient] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 200
+      const newScrollLeft = direction === 'left'
+        ? scrollContainerRef.current.scrollLeft - scrollAmount
+        : scrollContainerRef.current.scrollLeft + scrollAmount
+
+      scrollContainerRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      })
+    }
+  }
 
   useEffect(() => {
     setIsClient(true)
     setCurrentUser(getCurrentUser())
   }, [])
 
-  // Navigation Structure
-  const navigationItems = [
+  // Navigation Structure with permission keys
+  const allNavigationItems = [
     {
       label: 'Home',
       href: '/home',
-      icon: Home
+      icon: Home,
+      key: 'home'
     },
     {
       label: 'Work',
       icon: Briefcase,
+      key: 'work_group', // Virtual key for grouping
       children: [
-        { label: 'Dashboard', href: '/dashboard', icon: Briefcase },
-        { label: 'Tasks', href: '/tasks', icon: CheckSquare },
-        { label: 'Development', href: '/bugs', icon: Bug },
+        { label: 'Dashboard', href: '/dashboard', icon: Briefcase, key: 'home' }, // Dashboard usually accessible with home or specific key
+        { label: 'Tasks', href: '/tasks', icon: CheckSquare, key: 'tasks' },
+        { label: 'Development', href: '/bugs', icon: Bug, key: 'bugs' },
       ]
     },
     {
       label: 'Attendance',
       icon: Calendar,
+      key: 'attendance_group', // Virtual key
       children: [
-        { label: 'Leave', href: '/leave/apply', icon: Calendar },
-        { label: 'WFH', href: '/wfh/apply', icon: Laptop },
-        { label: 'Applications', href: '/my-applications', icon: FileText },
+        { label: 'Leave', href: '/leave/apply', icon: Calendar, key: 'leaves' },
+        { label: 'WFH', href: '/wfh/apply', icon: Laptop, key: 'wfh' },
+        { label: 'Applications', href: '/my-applications', icon: FileText, key: 'leaves' }, // Grouped with leaves
+      ]
+    },
+    {
+      label: 'Admin',
+      icon: Shield,
+      key: 'admin_group',
+      children: [
+        { label: 'Attendance Dashboard', href: '/admin/attendance', icon: BarChart3, key: 'attendance_dashboard' },
+        { label: 'Projects', href: '/projects', icon: FolderKanban, key: 'projects' },
+        { label: 'Master Tasks', href: '/master-tasks', icon: ListTodo, key: 'master_tasks' },
+        { label: 'Master Development', href: '/master-development', icon: Code, key: 'master_development' },
+        { label: 'User Management', href: '/users', icon: UserCog, key: 'user_management' },
+        { label: 'Feed Topics', href: '/feed-topics', icon: MessageSquare, key: 'feed_topics' },
+        { label: 'Approvals', href: '/approvals', icon: ClipboardCheck, key: 'approvals' },
+        { label: 'Settings', href: '/settings', icon: Settings, key: 'settings' },
+        { label: 'Deleted Items', href: '/deleted-items', icon: Trash2, key: 'deleted_items' },
+        { label: 'Reports', href: '/reports', icon: BarChart3, key: 'reports' },
       ]
     },
     {
       label: 'Account',
       href: '/profile',
-      icon: User
+      icon: User,
+      key: 'profile' // Always accessible
     }
   ]
+
+  // Filter navigation items based on permissions
+  const navigationItems = allNavigationItems.map(item => {
+    // If it has children, filter them
+    if (item.children) {
+      const filteredChildren = item.children.filter(child =>
+        // If key is provided, check access. If not, assume accessible (or handle otherwise)
+        child.key ? hasTabAccess(currentUser, child.key) : true
+      )
+
+      // If no children left, return null (unless it's a group that should show empty? No, hide it)
+      if (filteredChildren.length === 0) return null
+
+      return { ...item, children: filteredChildren }
+    }
+
+    // If it's a direct link
+    // 'profile' is always accessible
+    if (item.key === 'profile') return item
+
+    // Check access for other items
+    if (item.key && hasTabAccess(currentUser, item.key)) {
+      return item
+    }
+
+    return null
+  }).filter(Boolean) as typeof allNavigationItems
 
   // Determine active category based on pathname or hover
   useEffect(() => {
@@ -77,7 +154,7 @@ export default function Navbar() {
         setActiveCategory(currentItem.label)
       }
     }
-  }, [pathname])
+  }, [pathname, navigationItems])
 
   // Show skeleton navbar while loading to prevent flickering
   if (!isClient || !currentUser) {
@@ -188,8 +265,8 @@ export default function Navbar() {
                     {item.children ? (
                       <button
                         className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${isActive
-                            ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
-                            : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
+                          ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
+                          : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
                           }`}
                       >
                         <Icon className="h-4 w-4" />
@@ -201,8 +278,8 @@ export default function Navbar() {
                       <Link
                         href={item.href!}
                         className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${isActive
-                            ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
-                            : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
+                          ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
+                          : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
                           }`}
                         onMouseEnter={() => setActiveCategory(null)} // Clear sub-menu when hovering a leaf item
                       >
@@ -221,24 +298,45 @@ export default function Navbar() {
               className={`overflow-hidden transition-all duration-300 ease-in-out bg-gray-50 rounded-b-lg ${activeSubItems.length > 0 ? 'max-h-16 opacity-100 border-t border-gray-200' : 'max-h-0 opacity-0'
                 }`}
             >
-              <div className="flex items-center justify-center space-x-6 py-2">
-                {activeSubItems.map((child) => {
-                  const ChildIcon = child.icon
-                  const isChildActive = pathname === child.href
-                  return (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isChildActive
+              <div className="relative group px-8">
+                {/* Left Scroll Button */}
+                <button
+                  onClick={() => scroll('left')}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white rounded-full shadow-md text-gray-500 hover:text-primary hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+
+                <div
+                  ref={scrollContainerRef}
+                  className="flex items-center space-x-6 py-2 overflow-x-auto scrollbar-hide scroll-smooth"
+                >
+                  {activeSubItems.map((child) => {
+                    const ChildIcon = child.icon
+                    const isChildActive = pathname === child.href
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${isChildActive
                           ? 'text-primary-600 bg-white shadow-sm'
                           : 'text-gray-600 hover:text-black hover:bg-white/50'
-                        }`}
-                    >
-                      <ChildIcon className="h-3.5 w-3.5" />
-                      <span>{child.label}</span>
-                    </Link>
-                  )
-                })}
+                          }`}
+                      >
+                        <ChildIcon className="h-3.5 w-3.5" />
+                        <span>{child.label}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+
+                {/* Right Scroll Button */}
+                <button
+                  onClick={() => scroll('right')}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white rounded-full shadow-md text-gray-500 hover:text-primary hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
           </div>
@@ -259,8 +357,8 @@ export default function Navbar() {
                       <button
                         onClick={() => setActiveCategory(isExpanded ? null : item.label)}
                         className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
-                            ? 'bg-primary text-black shadow-sm'
-                            : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                          ? 'bg-primary text-black shadow-sm'
+                          : 'text-gray-600 hover:text-black hover:bg-gray-50'
                           }`}
                       >
                         <div className="flex items-center space-x-3">
@@ -280,8 +378,8 @@ export default function Navbar() {
                                 key={child.href}
                                 href={child.href}
                                 className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${isChildActive
-                                    ? 'bg-primary text-black shadow-sm'
-                                    : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                                  ? 'bg-primary text-black shadow-sm'
+                                  : 'text-gray-600 hover:text-black hover:bg-gray-50'
                                   }`}
                                 onClick={() => setIsMenuOpen(false)}
                               >
@@ -301,8 +399,8 @@ export default function Navbar() {
                     key={item.href}
                     href={item.href!}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
-                        ? 'bg-primary text-black shadow-sm'
-                        : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                      ? 'bg-primary text-black shadow-sm'
+                      : 'text-gray-600 hover:text-black hover:bg-gray-50'
                       }`}
                     onClick={() => setIsMenuOpen(false)}
                   >

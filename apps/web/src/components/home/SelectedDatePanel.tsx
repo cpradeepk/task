@@ -8,6 +8,22 @@ import { Clock, Calendar, AlertCircle, CheckCircle, Edit2 } from 'lucide-react'
 import { QUERIES, MUTATIONS } from '@/lib/graphql-queries'
 import { useLoading } from '@/contexts/LoadingContext'
 
+interface AttendanceData {
+    id: string
+    employeeId: string
+    signInTime: string
+    signOutTime: string
+    workHours: number
+    date: string
+    status: string
+    isManualEntry: boolean
+    approvalStatus: string
+}
+
+interface AttendanceResponse {
+    attendance: AttendanceData
+}
+
 interface SelectedDatePanelProps {
     date: Date
 }
@@ -21,7 +37,7 @@ export default function SelectedDatePanel({ date }: SelectedDatePanelProps) {
     const { showGlobalLoading, hideGlobalLoading } = useLoading()
     const dateStr = format(date, 'yyyy-MM-dd')
 
-    const { data, loading, refetch } = useQuery(gql(QUERIES.GET_ATTENDANCE), {
+    const { data, loading, refetch } = useQuery<AttendanceResponse>(gql(QUERIES.GET_ATTENDANCE), {
         variables: { date: dateStr },
         fetchPolicy: 'network-only'
     })

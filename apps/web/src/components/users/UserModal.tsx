@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { User } from '@/lib/types'
 import { generateTemporaryPassword } from '@/lib/utils/password'
-import { X, Save, User as UserIcon, Mail, Phone, Building, Shield, AlertCircle } from 'lucide-react'
+import { X, Save, User as UserIcon, Mail, Phone, Building, Shield, AlertCircle, CheckSquare, Square } from 'lucide-react'
 import LoadingButton from '@/components/ui/LoadingButton'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { AVAILABLE_TABS, DEFAULT_ROLE_PERMISSIONS } from '@/lib/permissions'
 
 interface UserModalProps {
   user: User | null
@@ -29,7 +30,8 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
     warningCount: 0,
     role: 'employee',
     password: '',
-    status: 'active'
+    status: 'active',
+    tabPermissions: [] as string[]
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -82,15 +84,19 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
     const loadDepartments = async () => {
       try {
         setIsLoadingDepartments(true)
-        const response = await fetch('/api/settings?type=department&activeOnly=true')
+        // Fetch specifically the 'departments' setting key
+        const response = await fetch('/api/settings?key=departments')
         const data = await response.json()
 
-        if (data.success) {
-          setDepartmentOptions(data.data.map((s: any) => s.settingValue))
+        if (data.success && data.data && Array.isArray(data.data.value)) {
+          // The API returns the setting object in data.data, and the actual list is in data.data.value
+          const departmentsList = data.data.value
+          const uniqueDepartments = Array.from(new Set(departmentsList))
+          setDepartmentOptions(uniqueDepartments as string[])
         } else {
-          console.error('Failed to load departments:', data.error)
-          // Fallback to hardcoded values
-          setDepartmentOptions([
+          console.warn('Departments setting not found or invalid format:', data)
+          // Fallback to hardcoded values if setting doesn't exist
+          const fallbackDepartments = [
             'Frontend - iOS', 'Frontend - Android', 'Frontend - Webapp',
             'Traditional Marketing', 'Admin panel', 'Backend - Node js',
             'Server config', 'Frontend - SP Webapp', 'Digital Marketing',
@@ -98,12 +104,13 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             'Frontend - UBAR', 'Backend - UBAR', 'Management', 'Design',
             'Brand Partnerships', 'Finance', 'Customer grievances', 'CRM',
             'Operations', 'Finances', 'CEO', 'Team Leader', 'HR'
-          ])
+          ]
+          setDepartmentOptions(Array.from(new Set(fallbackDepartments)))
         }
       } catch (error) {
         console.error('Failed to load departments:', error)
         // Fallback to hardcoded values
-        setDepartmentOptions([
+        const fallbackDepartments = [
           'Frontend - iOS', 'Frontend - Android', 'Frontend - Webapp',
           'Traditional Marketing', 'Admin panel', 'Backend - Node js',
           'Server config', 'Frontend - SP Webapp', 'Digital Marketing',
@@ -111,7 +118,8 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
           'Frontend - UBAR', 'Backend - UBAR', 'Management', 'Design',
           'Brand Partnerships', 'Finance', 'Customer grievances', 'CRM',
           'Operations', 'Finances', 'CEO', 'Team Leader', 'HR'
-        ])
+        ]
+        setDepartmentOptions(Array.from(new Set(fallbackDepartments)))
       } finally {
         setIsLoadingDepartments(false)
       }
@@ -120,19 +128,14 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
     const loadRoles = async () => {
       try {
         setIsLoadingRoles(true)
-        const response = await fetch('/api/settings')
+        // Fetch specifically the 'user_roles' setting key
+        const response = await fetch('/api/settings?key=user_roles')
         const data = await response.json()
 
-        if (data.success && Array.isArray(data.data)) {
-          const rolesSetting = data.data.find((s: any) => s.key === 'user_roles')
-          if (rolesSetting && rolesSetting.value) {
-            setRoleOptions(rolesSetting.value)
-          } else {
-            // Fallback to default roles
-            setRoleOptions(['amtarikshian', 'management', 'top_management'])
-          }
+        if (data.success && data.data && Array.isArray(data.data.value)) {
+          setRoleOptions(data.data.value)
         } else {
-          // Fallback to default roles
+          // Fallback to default roles if setting doesn't exist or invalid format
           setRoleOptions(['amtarikshian', 'management', 'top_management'])
         }
       } catch (error) {
@@ -224,7 +227,8 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
         warningCount: user.warningCount,
         role: user.role,
         password: user.password,
-        status: user.status
+        status: user.status,
+        tabPermissions: user.tabPermissions || []
       })
     } else {
       // Reset form for new user and generate Employee ID
@@ -244,7 +248,8 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
           warningCount: 0,
           role: 'employee',
           password: tempPassword,
-          status: 'active'
+          status: 'active',
+          tabPermissions: []
         })
       }
     }
@@ -307,7 +312,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
     try {
       // Validation
       if (!formData.employeeId || !formData.name || !formData.email ||
-          !formData.phone || !formData.department || !formData.password) {
+        !formData.phone || !formData.department || !formData.password) {
         throw new Error('Please fill in all required fields')
       }
 
@@ -348,6 +353,40 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
     }
   }
 
+  const handlePermissionToggle = (tabKey: string) => {
+    setFormData(prev => {
+      const currentPermissions = prev.tabPermissions.length > 0
+        ? prev.tabPermissions
+        : (DEFAULT_ROLE_PERMISSIONS[prev.role as keyof typeof DEFAULT_ROLE_PERMISSIONS] || [])
+
+      const newPermissions = currentPermissions.includes(tabKey)
+        ? currentPermissions.filter(k => k !== tabKey)
+        : [...currentPermissions, tabKey]
+
+      return {
+        ...prev,
+        tabPermissions: newPermissions
+      }
+    })
+  }
+
+  const handleResetPermissions = () => {
+    setFormData(prev => ({
+      ...prev,
+      tabPermissions: [] // Empty array means use role defaults
+    }))
+  }
+
+  const isPermissionChecked = (tabKey: string) => {
+    // If user has custom permissions, use them
+    if (formData.tabPermissions.length > 0) {
+      return formData.tabPermissions.includes(tabKey)
+    }
+    // Otherwise use role defaults
+    const defaults = DEFAULT_ROLE_PERMISSIONS[formData.role as keyof typeof DEFAULT_ROLE_PERMISSIONS] || []
+    return defaults.includes(tabKey)
+  }
+
   if (!isOpen) return null
 
   // Helper function to format role display name
@@ -363,7 +402,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center p-4 z-50 overflow-y-auto"
+      className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 overflow-hidden"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose()
@@ -371,7 +410,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
       }}
     >
       <div
-        className="bg-white rounded-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-xl my-auto relative modal-content transform transition-all duration-200 scale-100"
+        className="absolute right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl transform transition-transform duration-300 ease-in-out overflow-y-auto modal-content"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
@@ -645,6 +684,61 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                   className="input-field"
                 />
               </div>
+            </div>
+
+            {/* Tab Permissions */}
+            <div className="border-t border-secondary-200 pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-medium text-secondary-900 flex items-center">
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  Tab Permissions
+                </h4>
+                {formData.tabPermissions.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleResetPermissions}
+                    className="text-xs text-primary-600 hover:text-primary-700"
+                  >
+                    Reset to Role Defaults
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {AVAILABLE_TABS.map(tab => {
+                  const isChecked = isPermissionChecked(tab.key)
+                  const isDefault = (DEFAULT_ROLE_PERMISSIONS[formData.role as keyof typeof DEFAULT_ROLE_PERMISSIONS] || []).includes(tab.key)
+
+                  return (
+                    <div
+                      key={tab.key}
+                      onClick={() => handlePermissionToggle(tab.key)}
+                      className={`
+                        flex items-center p-3 rounded-lg border cursor-pointer transition-all
+                        ${isChecked
+                          ? 'bg-primary-50 border-primary-200 text-primary-900'
+                          : 'bg-white border-secondary-200 text-secondary-600 hover:bg-secondary-50'}
+                      `}
+                    >
+                      <div className={`
+                        h-4 w-4 rounded border mr-3 flex items-center justify-center
+                        ${isChecked
+                          ? 'bg-primary-600 border-primary-600 text-white'
+                          : 'border-secondary-400'}
+                      `}>
+                        {isChecked && <CheckSquare className="h-3 w-3" />}
+                      </div>
+                      <span className="text-sm font-medium">{tab.label}</span>
+                      {isChecked && isDefault && (
+                        <span className="ml-auto text-xs text-primary-400 bg-primary-100 px-1.5 py-0.5 rounded">Default</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              <p className="text-xs text-secondary-500 mt-2">
+                Permissions are automatically set based on role. Customize them here to override role defaults.
+              </p>
             </div>
 
             {/* Submit Buttons */}

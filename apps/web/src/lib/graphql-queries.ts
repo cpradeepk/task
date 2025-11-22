@@ -421,6 +421,7 @@ export const QUERIES = {
         warningCount
         createdAt
         updatedAt
+        tabPermissions
       }
     }
   `,
@@ -945,6 +946,18 @@ export const MUTATIONS = {
         signOutTime
         isManualEntry
         approvalStatus
+      }
+    }
+  `,
+
+  // Update User
+  UPDATE_USER: `
+    mutation UpdateUser($employeeId: String!, $input: UpdateUserInput!) {
+      updateUser(employeeId: $employeeId, input: $input) {
+        employeeId
+        name
+        role
+        tabPermissions
       }
     }
   `

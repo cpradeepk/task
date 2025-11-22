@@ -12,8 +12,11 @@ export const typeDefs = `#graphql
     warningCount: Int
     createdAt: String!
     updatedAt: String!
+    leavesTakenYTD: Float
+    totalWFHApproved: Int
     tasks: [Task!]!
     bugs: [Bug!]!
+    tabPermissions: [String!]
   }
 
   type Task {
@@ -74,6 +77,29 @@ export const typeDefs = `#graphql
     assignedToUser: User
     assignedByUser: User
     parentTask: Task
+  }
+
+  type AdminDashboardData {
+    usersOnline: Int!
+    usersPresent: Int!
+    usersAbsent: Int!
+    usersOnLeave: Int!
+    usersWFH: Int!
+    pendingLeaveRequests: Int!
+    pendingWFHRequests: Int!
+    liveAttendance: [AttendanceRecord!]!
+  }
+
+  type AttendanceRecord {
+    userId: ID!
+    userName: String!
+    userAvatar: String
+    department: String
+    role: String
+    status: String! # Present, WFH, Absent, Leave
+    signInTime: String
+    signOutTime: String
+    location: String
   }
 
   type Bug {
@@ -325,6 +351,9 @@ export const typeDefs = `#graphql
   }
 
   type Query {
+    # Current User
+    me: User
+    
     # Users
     users: [User!]!
     user(employeeId: ID!): User
@@ -368,6 +397,7 @@ export const typeDefs = `#graphql
 
     # Dashboard
     dashboard(employeeId: String!, role: String!): DashboardData!
+    adminDashboardData: AdminDashboardData!
 
     # Feed
     feedPosts(topicId: String, status: String, search: String, limit: Int, offset: Int): FeedPostsResponse!
@@ -514,6 +544,7 @@ export const typeDefs = `#graphql
     department: String
     role: String!
     password: String!
+    tabPermissions: [String!]
   }
 
   input UpdateUserInput {
@@ -524,6 +555,7 @@ export const typeDefs = `#graphql
     role: String
     status: String
     isTodayTask: Boolean
+    tabPermissions: [String!]
   }
 
   # Feed Input Types
