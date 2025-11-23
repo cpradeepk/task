@@ -863,3 +863,27 @@ export const REQUEST_MANUAL_ATTENDANCE = gql`
     }
   }
 `
+
+export const ADMIN_DASHBOARD_QUERY = gql`
+  query AdminDashboardData {
+    adminDashboardData {
+      usersOnline
+      usersPresent
+      usersAbsent
+      usersOnLeave
+      usersWFH
+      pendingLeaveRequests
+      pendingWFHRequests
+      liveAttendance {
+        userId
+        userName
+        department
+        role
+        status
+        signInTime
+        signOutTime
+        location
+      }
+    }
+  }
+`

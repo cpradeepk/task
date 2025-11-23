@@ -22,6 +22,7 @@ import CreateLeaveScreen from './screens/CreateLeaveScreen'
 import WFHListScreen from './screens/WFHListScreen'
 import WFHDetailsScreen from './screens/WFHDetailsScreen'
 import CreateWFHScreen from './screens/CreateWFHScreen'
+import AttendanceDashboardScreen from './screens/AttendanceDashboardScreen'
 import NotificationBell from './components/NotificationBell'
 import CustomDrawerContent from './components/CustomDrawerContent'
 import { OfflineBanner } from './components/OfflineBanner'
@@ -580,6 +581,13 @@ export default function App() {
                       component={SettingsScreen}
                       options={{
                         headerTitle: 'Settings',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="AttendanceDashboard"
+                      component={AttendanceDashboardScreen}
+                      options={{
+                        headerTitle: 'Attendance Dashboard',
                       }}
                     />
                   </>

@@ -22,10 +22,12 @@ import {
   Alert,
 } from 'react-native'
 import { useQuery, useMutation } from '@apollo/client/react'
+import { IconButton } from 'react-native-paper'
 import {
   GET_FEED_POST,
   CREATE_FEED_COMMENT,
   TOGGLE_FEED_REACTION,
+  TOGGLE_FEED_SAVE,
 } from '../config/graphql-queries'
 import { getUserData } from '../utils/secureStorage'
 
@@ -42,6 +44,7 @@ export default function FeedPostDetailsScreen({ route }: any) {
 
   const [createComment, { loading: commentLoading }] = useMutation(CREATE_FEED_COMMENT)
   const [toggleReaction] = useMutation(TOGGLE_FEED_REACTION)
+  const [toggleSave] = useMutation(TOGGLE_FEED_SAVE)
 
   const post = data?.feedPost
 
@@ -66,7 +69,6 @@ export default function FeedPostDetailsScreen({ route }: any) {
         variables: {
           postId,
           content: commentText,
-          createdBy: currentUser?.employeeId,
         },
       })
       setCommentText('')
@@ -77,18 +79,43 @@ export default function FeedPostDetailsScreen({ route }: any) {
     }
   }
 
-  const handleReaction = async (reactionType: string) => {
+  const handleReaction = async (emoji: string) => {
     try {
       await toggleReaction({
         variables: {
           postId,
-          reactionType,
-          userId: currentUser?.employeeId,
+          emoji,
         },
       })
       refetch()
     } catch (error) {
       Alert.alert('Error', 'Failed to add reaction')
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      await toggleSave({
+        variables: { postId },
+        optimisticResponse: {
+          toggleFeedSave: {
+            action: post.isSaved ? 'unsaved' : 'saved',
+            message: post.isSaved ? 'Post removed from saved' : 'Post saved',
+            __typename: 'FeedSaveResponse'
+          }
+        },
+        update: (cache, { data: { toggleFeedSave } }) => {
+          const isSaved = toggleFeedSave.action === 'saved'
+          cache.modify({
+            id: cache.identify({ __typename: 'FeedPost', postId }),
+            fields: {
+              isSaved: () => isSaved
+            }
+          })
+        }
+      })
+    } catch (error) {
+      Alert.alert('Error', 'Failed to toggle save')
     }
   }
 
@@ -116,15 +143,22 @@ export default function FeedPostDetailsScreen({ route }: any) {
           <View style={styles.postHeader}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
-                {post.createdBy?.charAt(0).toUpperCase()}
+                {post.author?.name?.charAt(0).toUpperCase() || '?'}
               </Text>
             </View>
-            <View>
-              <Text style={styles.authorName}>{post.createdBy}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.authorName}>{post.author?.name || 'Unknown'}</Text>
               <Text style={styles.postDate}>
                 {new Date(post.createdAt).toLocaleString()}
               </Text>
             </View>
+            <IconButton
+              icon={post.isSaved ? 'bookmark' : 'bookmark-outline'}
+              selected={post.isSaved}
+              onPress={handleSave}
+              size={24}
+              iconColor={post.isSaved ? '#3B82F6' : '#6B7280'}
+            />
           </View>
 
           <Text style={styles.postContent}>{post.content}</Text>
@@ -144,7 +178,7 @@ export default function FeedPostDetailsScreen({ route }: any) {
               ))}
             </View>
             <Text style={styles.reactionCount}>
-              {post.reactionCount || 0} reactions
+              {post.reactions?.reduce((sum: number, r: any) => sum + r.count, 0) || 0} reactions
             </Text>
           </View>
 
@@ -154,8 +188,8 @@ export default function FeedPostDetailsScreen({ route }: any) {
               Comments ({post.commentCount || 0})
             </Text>
             {post.comments?.map((comment: any) => (
-              <View key={comment.id} style={styles.commentCard}>
-                <Text style={styles.commentAuthor}>{comment.createdBy}</Text>
+              <View key={comment.commentId} style={styles.commentCard}>
+                <Text style={styles.commentAuthor}>{comment.author?.name || 'Unknown'}</Text>
                 <Text style={styles.commentContent}>{comment.content}</Text>
                 <Text style={styles.commentDate}>
                   {new Date(comment.createdAt).toLocaleString()}
@@ -339,4 +373,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 })
-

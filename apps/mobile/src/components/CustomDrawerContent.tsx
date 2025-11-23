@@ -82,6 +82,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
   }
 
   const adminItems: NavigationItem[] = [
+    { screen: 'AttendanceDashboard', label: 'Attendance Dashboard', icon: 'chart-bar' },
     { screen: 'Projects', label: 'Projects', icon: 'briefcase' },
     { screen: 'MasterTasks', label: 'Master Tasks', icon: 'checkbox-marked-circle' },
     { screen: 'MasterBugs', label: 'Master Development', icon: 'bug' },

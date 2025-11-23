@@ -54,33 +54,51 @@ export interface Task {
 
 export interface FeedPost {
   postId: string
-  title: string
+  contentType: string
   content: string
-  topicId: string
-  authorId: string
-  authorName: string
+  linkUrl?: string
+  linkTitle?: string
+  linkDescription?: string
+  linkImage?: string
+  mediaUrls?: string[]
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
+  status: string
+  author: {
+    employeeId: string
+    name: string
+    email?: string
+  }
+  topics: FeedTopic[]
   reactions?: Array<{
-    reactionId: string
-    type: string
-    userId: string
+    emoji: string
+    count: number
+    hasUserReacted: boolean
   }>
   comments?: Array<{
     commentId: string
     content: string
-    authorId: string
-    authorName: string
     createdAt: string
+    author: {
+      employeeId: string
+      name: string
+    }
   }>
+  viewCount: number
+  commentCount: number
+  isSaved: boolean
+  hasUserReacted: boolean
 }
 
 export interface FeedTopic {
-  topicId: string
-  name: string
+  id: string
+  topicName: string
   description?: string
   icon?: string
-  color?: string
+  displayOrder?: number
+  isPersonal?: boolean
+  isSaved?: boolean
+  postCount: number
 }
 
 export interface User {
