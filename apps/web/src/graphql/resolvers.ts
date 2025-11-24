@@ -396,7 +396,7 @@ export const resolvers = {
 
         // Fetch members on leave for today
         const leaveResult = await getPoolInstance().query(`
-          SELECT la.*, u.employee_id, u.name, u.email
+          SELECT la.*, u.employee_id, u.name, u.email, u.phone, u.department, u.role, u.status, u.created_at, u.updated_at
           FROM leave_applications la
           JOIN users u ON la.employee_id = u.employee_id
           WHERE la.status = 'Approved'
@@ -406,7 +406,7 @@ export const resolvers = {
 
         // Fetch members on WFH for today
         const wfhResult = await getPoolInstance().query(`
-          SELECT wa.*, u.employee_id, u.name, u.email
+          SELECT wa.*, u.employee_id, u.name, u.email, u.phone, u.department, u.role, u.status, u.created_at, u.updated_at
           FROM wfh_applications wa
           JOIN users u ON wa.employee_id = u.employee_id
           WHERE wa.status = 'Approved'
@@ -426,7 +426,13 @@ export const resolvers = {
             user: {
               employeeId: row.employee_id,
               name: row.name,
-              email: row.email
+              email: row.email,
+              phone: row.phone,
+              department: row.department,
+              role: row.role,
+              status: row.status,
+              createdAt: row.created_at,
+              updatedAt: row.updated_at
             },
             leaveType: row.leave_type,
             startDate: row.from_date,
@@ -437,7 +443,13 @@ export const resolvers = {
             user: {
               employeeId: row.employee_id,
               name: row.name,
-              email: row.email
+              email: row.email,
+              phone: row.phone,
+              department: row.department,
+              role: row.role,
+              status: row.status,
+              createdAt: row.created_at,
+              updatedAt: row.updated_at
             },
             startDate: row.from_date,
             endDate: row.to_date,
@@ -729,19 +741,21 @@ export const resolvers = {
   // Field resolvers for User
   User: {
     // Map snake_case database columns to camelCase GraphQL fields
-    employeeId: (user: any) => user.employee_id,
+    // Also handle camelCase fields if the object was constructed manually (e.g. in homeDashboardData)
+    // Provide fallback defaults for non-nullable fields to prevent null errors
+    employeeId: (user: any) => user.employee_id || user.employeeId,
     name: (user: any) => user.name,
     email: (user: any) => user.email,
     phone: (user: any) => user.phone,
     department: (user: any) => user.department,
-    role: (user: any) => user.role,
-    status: (user: any) => user.status,
-    managerEmail: (user: any) => user.manager_email,
-    isTodayTask: (user: any) => user.is_today_task,
-    warningCount: (user: any) => user.warning_count,
-    createdAt: (user: any) => user.created_at,
-    updatedAt: (user: any) => user.updated_at,
-    tabPermissions: (user: any) => user.tab_permissions,
+    role: (user: any) => user.role || 'employee', // Fallback to 'employee' if not provided
+    status: (user: any) => user.status || 'active', // Fallback to 'active' if not provided
+    managerEmail: (user: any) => user.manager_email || user.managerEmail,
+    isTodayTask: (user: any) => user.is_today_task || user.isTodayTask,
+    warningCount: (user: any) => user.warning_count || user.warningCount,
+    createdAt: (user: any) => user.created_at || user.createdAt || new Date().toISOString(), // Fallback to current time
+    updatedAt: (user: any) => user.updated_at || user.updatedAt || new Date().toISOString(), // Fallback to current time
+    tabPermissions: (user: any) => user.tab_permissions || user.tabPermissions,
 
     leavesTakenYTD: async (user: any) => {
       const currentYear = new Date().getFullYear()
