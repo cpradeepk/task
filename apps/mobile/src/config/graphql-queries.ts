@@ -168,56 +168,65 @@ export const UPDATE_TASK = gql`
 // ============================================================================
 
 export const GET_BUGS = gql`
-  query GetBugs($assignedTo: String, $status: String, $severity: String, $category: String, $limit: Int, $offset: Int) {
-    bugs(assignedTo: $assignedTo, status: $status, severity: $severity, category: $category, limit: $limit, offset: $offset) {
+  query GetBugs($assignedTo: String, $status: String, $severity: String, $limit: Int, $offset: Int) {
+    bugs(assignedTo: $assignedTo, status: $status, severity: $severity, limit: $limit, offset: $offset) {
+      id
       bugId
       title
       description
+      category
       severity
       priority
       status
-      category
       platform
+      type
+      feature
       assignedTo
       assignedBy
       reportedBy
       reportedDate
       resolvedDate
-      startDate
-      endDate
-      environment
-      type
-      feature
-      projectId
-      subprojectId
-      relatedBugs
-      bugType
-      criticality
       estimatedHours
       actualHours
       remarks
-      timerState
+      attachments
       createdAt
       updatedAt
       assignedToUser {
         employeeId
         name
         email
+        role
       }
       assignedByUser {
         employeeId
         name
         email
+        role
       }
       reportedByUser {
         employeeId
         name
         email
+        role
+      }
+      subtasks {
+        id
+        subTaskId
+        description
+        assignedTo
+        startDate
+        endDate
+        priority
+        estimatedHours
+        actualHours
+        status
+        remarks
       }
       project {
         projectId
         projectName
-        parentProjectId
+        description
       }
     }
   }
@@ -226,14 +235,14 @@ export const GET_BUGS = gql`
 export const GET_BUG = gql`
   query GetBug($bugId: ID!) {
     bug(bugId: $bugId) {
+      id
       bugId
       title
       description
+      category
       severity
       priority
       status
-      category
-      platform
       assignedTo
       assignedBy
       reportedBy
@@ -241,25 +250,39 @@ export const GET_BUG = gql`
       resolvedDate
       startDate
       endDate
-      environment
-      attachments
-      type
-      feature
-      projectId
-      subprojectId
-      relatedBugs
-      bugType
-      criticality
-      parentDevId
       estimatedHours
       actualHours
       remarks
-      timerState
-      timerStartTime
-      timerPausedTime
-      timerTotalTime
+      attachments
+      projectId
+      subprojectId
+      relatedBugs
+      platform
+      type
+      feature
+      environment
+      bugType
+      criticality
       createdAt
       updatedAt
+      assignedToUser {
+        employeeId
+        name
+        email
+        role
+      }
+      assignedByUser {
+        employeeId
+        name
+        email
+        role
+      }
+      reportedByUser {
+        employeeId
+        name
+        email
+        role
+      }
       subtasks {
         id
         subTaskId

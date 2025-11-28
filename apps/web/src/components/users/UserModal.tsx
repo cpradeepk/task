@@ -402,7 +402,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-50 overflow-hidden"
+      className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-[100000] overflow-hidden"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose()
@@ -762,8 +762,8 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
               </LoadingButton>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
   )
 }

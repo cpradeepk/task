@@ -32,7 +32,7 @@ export default function CreateTaskScreen({ navigation }: any) {
   const [projectId, setProjectId] = useState('')
   const [subprojectId, setSubprojectId] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
-  
+
   const [users, setUsers] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [subprojects, setSubprojects] = useState<any[]>([])
@@ -109,9 +109,9 @@ export default function CreateTaskScreen({ navigation }: any) {
   const validateTimeFormat = useCallback((time: string): boolean => {
     const timeRegex = /^(\d{1,2}):(\d{2}):(\d{2})$/
     const match = time.match(timeRegex)
-    
+
     if (!match) return false
-    
+
     const hours = parseInt(match[1], 10)
     const minutes = parseInt(match[2], 10)
     const seconds = parseInt(match[3], 10)
@@ -158,7 +158,7 @@ export default function CreateTaskScreen({ navigation }: any) {
 
     try {
       setIsSubmitting(true)
-      
+
       const estimatedHoursDecimal = convertTimeToHours(estimatedHours)
 
       const taskData = {
@@ -210,195 +210,206 @@ export default function CreateTaskScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
       >
         <Surface style={styles.form} elevation={0}>
-        {/* Description */}
-        <TextInput
-          mode="outlined"
-          label="Description *"
-          placeholder="Enter task description"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-          numberOfLines={4}
-          style={styles.input}
-          outlineColor={materialColors.outline}
-          activeOutlineColor={materialColors.primary}
-          disabled={isOffline}
-        />
+          {/* Description */}
+          <TextInput
+            mode="outlined"
+            label="Description *"
+            placeholder="Enter task description"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={4}
+            style={styles.input}
+            outlineColor={materialColors.border}
+            activeOutlineColor={materialColors.primary}
+            disabled={isOffline}
+          />
 
-        {/* Project */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Project</Text>
-          {projects.length === 0 ? (
-            <Text style={styles.helpText}>Loading projects...</Text>
-          ) : (
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={projectId}
-                onValueChange={(value) => {
-                  console.log('Project selected:', value)
-                  setProjectId(value)
-                  setSubprojectId('')
-                }}
-                style={styles.picker}
-                dropdownIconColor={materialColors.text}
-                enabled={!isOffline}
-              >
-                <Picker.Item label="Select Project" value="" />
-                {projects.map((project) => (
-                  <Picker.Item
-                    key={project.projectId}
-                    label={project.projectName}
-                    value={project.projectId}
-                  />
-                ))}
-              </Picker>
+          {/* Project */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Project</Text>
+            {projects.length === 0 ? (
+              <Text style={styles.helpText}>Loading projects...</Text>
+            ) : (
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={projectId}
+                  onValueChange={(value) => {
+                    console.log('Project selected:', value)
+                    setProjectId(value)
+                    setSubprojectId('')
+                  }}
+                  style={styles.picker}
+                  dropdownIconColor={materialColors.text}
+                  enabled={!isOffline}
+                >
+                  <Picker.Item label="Select Project" value="" />
+                  {projects.map((project) => (
+                    <Picker.Item
+                      key={project.projectId}
+                      label={project.projectName}
+                      value={project.projectId}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            )}
+          </View>
+
+          {/* Subproject */}
+          {projectId && subprojects.length > 0 && (
+            <View style={styles.field}>
+              <Text style={styles.label}>Subproject</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={subprojectId}
+                  onValueChange={(value) => {
+                    console.log('Subproject selected:', value)
+                    setSubprojectId(value)
+                  }}
+                  style={styles.picker}
+                  dropdownIconColor={materialColors.text}
+                  enabled={!isOffline}
+                >
+                  <Picker.Item label="Select Subproject" value="" />
+                  {subprojects.map((subproject) => (
+                    <Picker.Item
+                      key={subproject.projectId}
+                      label={subproject.projectName}
+                      value={subproject.projectId}
+                    />
+                  ))}
+                </Picker>
+              </View>
             </View>
           )}
-        </View>
 
-        {/* Subproject */}
-        {projectId && subprojects.length > 0 && (
+          {/* Priority */}
           <View style={styles.field}>
-            <Text style={styles.label}>Subproject</Text>
+            <Text style={styles.label}>
+              Priority <Text style={styles.required}>*</Text>
+            </Text>
             <View style={styles.pickerContainer}>
               <Picker
-                selectedValue={subprojectId}
-                onValueChange={(value) => {
-                  console.log('Subproject selected:', value)
-                  setSubprojectId(value)
-                }}
+                selectedValue={priority}
+                onValueChange={setPriority}
                 style={styles.picker}
-                dropdownIconColor={materialColors.text}
-                enabled={!isOffline}
               >
-                <Picker.Item label="Select Subproject" value="" />
-                {subprojects.map((subproject) => (
+                <Picker.Item label="Select Priority" value="" />
+                {taskPriorities.map((p) => (
+                  <Picker.Item key={p} label={p} value={p} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          {/* Status */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Status <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={status}
+                onValueChange={setStatus}
+                style={styles.picker}
+              >
+                {taskStatuses.map((s) => (
+                  <Picker.Item key={s} label={s} value={s} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          {/* Assigned To */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Assigned To <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={assignedTo}
+                onValueChange={setAssignedTo}
+                style={styles.picker}
+              >
+                <Picker.Item label="Select User" value="" />
+                {users.map((user) => (
                   <Picker.Item
-                    key={subproject.projectId}
-                    label={subproject.projectName}
-                    value={subproject.projectId}
+                    key={user.employeeId}
+                    label={user.name}
+                    value={user.employeeId}
                   />
                 ))}
               </Picker>
             </View>
           </View>
-        )}
 
-        {/* Priority */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Priority <Text style={styles.required}>*</Text>
+          {/* Start Date */}
+          <TextInput
+            mode="outlined"
+            label="Start Date *"
+            placeholder="YYYY-MM-DD"
+            value={startDate}
+            onChangeText={setStartDate}
+            style={styles.input}
+            outlineColor={materialColors.border}
+            activeOutlineColor={materialColors.primary}
+            disabled={isOffline}
+          />
+
+          {/* End Date */}
+          <TextInput
+            mode="outlined"
+            label="End Date *"
+            placeholder="YYYY-MM-DD"
+            value={endDate}
+            onChangeText={setEndDate}
+            style={styles.input}
+            outlineColor={materialColors.border}
+            activeOutlineColor={materialColors.primary}
+            disabled={isOffline}
+          />
+
+          {/* Estimated Hours */}
+          <TextInput
+            mode="outlined"
+            label="Estimated Hours (hh:mm:ss) *"
+            placeholder="02:30:00"
+            value={estimatedHours}
+            onChangeText={setEstimatedHours}
+            style={styles.input}
+            outlineColor={materialColors.border}
+            activeOutlineColor={materialColors.primary}
+            disabled={isOffline}
+          />
+          <Text style={styles.helpText}>
+            Enter time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
           </Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={priority}
-              onValueChange={setPriority}
-              style={styles.picker}
+
+          {/* Action Buttons */}
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="outlined"
+              onPress={() => navigation.goBack()}
+              style={styles.cancelButton}
+              textColor={colors.textSecondary}
+              disabled={isSubmitting || isOffline}
             >
-              <Picker.Item label="Select Priority" value="" />
-              {taskPriorities.map((p) => (
-                <Picker.Item key={p} label={p} value={p} />
-              ))}
-            </Picker>
-          </View>
-        </View>
-
-        {/* Status */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Status <Text style={styles.required}>*</Text>
-          </Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={status}
-              onValueChange={setStatus}
-              style={styles.picker}
+              Cancel
+            </Button>
+            <Button
+              mode="contained"
+              onPress={handleSubmit}
+              disabled={isSubmitting || isOffline}
+              loading={isSubmitting}
+              style={styles.submitButton}
+              buttonColor={materialColors.primary}
             >
-              {taskStatuses.map((s) => (
-                <Picker.Item key={s} label={s} value={s} />
-              ))}
-            </Picker>
+              {isSubmitting ? 'Creating...' : 'Create Task'}
+            </Button>
           </View>
-        </View>
-
-        {/* Assigned To */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Assigned To <Text style={styles.required}>*</Text>
-          </Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={assignedTo}
-              onValueChange={setAssignedTo}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select User" value="" />
-              {users.map((user) => (
-                <Picker.Item
-                  key={user.employeeId}
-                  label={user.name}
-                  value={user.employeeId}
-                />
-              ))}
-            </Picker>
-          </View>
-        </View>
-
-        {/* Start Date */}
-        <TextInput
-          mode="outlined"
-          label="Start Date *"
-          placeholder="YYYY-MM-DD"
-          value={startDate}
-          onChangeText={setStartDate}
-          style={styles.input}
-          outlineColor={materialColors.outline}
-          activeOutlineColor={materialColors.primary}
-          disabled={isOffline}
-        />
-
-        {/* End Date */}
-        <TextInput
-          mode="outlined"
-          label="End Date *"
-          placeholder="YYYY-MM-DD"
-          value={endDate}
-          onChangeText={setEndDate}
-          style={styles.input}
-          outlineColor={materialColors.outline}
-          activeOutlineColor={materialColors.primary}
-          disabled={isOffline}
-        />
-
-        {/* Estimated Hours */}
-        <TextInput
-          mode="outlined"
-          label="Estimated Hours (hh:mm:ss) *"
-          placeholder="02:30:00"
-          value={estimatedHours}
-          onChangeText={setEstimatedHours}
-          style={styles.input}
-          outlineColor={materialColors.outline}
-          activeOutlineColor={materialColors.primary}
-          disabled={isOffline}
-        />
-        <Text style={styles.helpText}>
-          Enter time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
-        </Text>
-
-        {/* Submit Button */}
-        <Button
-          mode="contained"
-          onPress={handleSubmit}
-          disabled={isSubmitting || isOffline}
-          loading={isSubmitting}
-          style={styles.submitButton}
-          buttonColor={materialColors.primary}
-        >
-          {isSubmitting ? 'Creating...' : 'Create Task'}
-        </Button>
-      </Surface>
-    </ScrollView>
+        </Surface>
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }
@@ -429,7 +440,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   pickerContainer: {
     backgroundColor: materialColors.surface,
     borderWidth: 1,
-    borderColor: materialColors.outline,
+    borderColor: materialColors.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -437,13 +448,24 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     height: 50,
     color: materialColors.text,
   },
-  submitButton: {
-    marginTop: materialSpacing.md,
-  },
+
   helpText: {
     ...materialTypography.bodySmall,
     color: materialColors.textSecondary,
     marginTop: materialSpacing.xs,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: materialSpacing.md,
+    marginTop: materialSpacing.md,
+  },
+  cancelButton: {
+    flex: 1,
+    borderColor: materialColors.border,
+  },
+  submitButton: {
+    flex: 1,
+    marginTop: 0,
   },
 })
 

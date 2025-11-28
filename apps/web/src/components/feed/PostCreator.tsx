@@ -292,10 +292,20 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 modal-backdrop z-[100000] overflow-hidden"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
+    >
+      <div
+        className="absolute right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl transform transition-transform duration-300 ease-in-out overflow-y-auto modal-content"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-xl font-semibold text-gray-900">Create Post</h2>
           <button
             onClick={onClose}
@@ -306,7 +316,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 pb-24">
           {/* Content Type Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -315,66 +325,60 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => setContentType('text')}
-                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${
-                  contentType === 'text'
+                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'text'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <FileText className="w-4 h-4" />
                 Text
               </button>
               <button
                 onClick={() => setContentType('link')}
-                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${
-                  contentType === 'link'
+                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'link'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <LinkIcon className="w-4 h-4" />
                 Link
               </button>
               <button
                 onClick={() => setContentType('image')}
-                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${
-                  contentType === 'image'
+                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'image'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <ImageIcon className="w-4 h-4" />
                 Image
               </button>
               <button
                 onClick={() => setContentType('youtube')}
-                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${
-                  contentType === 'youtube'
+                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'youtube'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <Youtube className="w-4 h-4" />
                 YouTube
               </button>
               <button
                 onClick={() => setContentType('pdf')}
-                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${
-                  contentType === 'pdf'
+                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'pdf'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <FileText className="w-4 h-4" />
                 PDF
               </button>
               <button
                 onClick={() => setContentType('video')}
-                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${
-                  contentType === 'video'
+                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'video'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <Upload className="w-4 h-4" />
                 Video
@@ -501,8 +505,8 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
                   onChange={handleFileUpload}
                   accept={
                     contentType === 'image' ? 'image/*' :
-                    contentType === 'video' ? 'video/*' :
-                    'application/pdf'
+                      contentType === 'video' ? 'video/*' :
+                        'application/pdf'
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   disabled={isUploading}
@@ -541,11 +545,10 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
                 <button
                   key={topic.id}
                   onClick={() => toggleTopic(topic.id)}
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    selectedTopics.includes(topic.id)
+                  className={`px-3 py-1 rounded-full text-sm ${selectedTopics.includes(topic.id)
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   {topic.icon} {topic.topicName}
                 </button>
@@ -555,7 +558,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex items-center justify-end gap-3">
+        <div className="absolute bottom-0 left-0 right-0 bg-gray-50 border-t px-6 py-4 flex items-center justify-end gap-3 z-10">
           <button
             onClick={onClose}
             className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"

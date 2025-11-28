@@ -593,550 +593,546 @@ function CreateTaskContent() {
           <p className="text-gray-600 mt-1">Clarity in Mind, Purity in heart and Sincerity in action</p>
         </div>
 
-      <div className="card">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}
+        <div className="card">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center space-x-2">
+                <AlertCircle className="h-5 w-5" />
+                <span>{error}</span>
+              </div>
+            )}
 
-          {/* Task Type - Button Selection */}
-          <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-3">
-              Task Type *
-            </label>
-            <div className="flex gap-3 flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData(prev => ({ ...prev, selectType: 'Normal', recursiveType: '' }))
-                }}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 border-2 ${
-                  formData.selectType === 'Normal'
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                }`}
-              >
-                📋 Normal Task
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData(prev => ({ ...prev, selectType: 'Recursive' }))
-                }}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 border-2 ${
-                  formData.selectType === 'Recursive'
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                }`}
-              >
-                🔄 Recurring Task
-              </button>
-            </div>
-          </div>
-
-          {/* Recursive Type - Button Selection */}
-          {formData.selectType === 'Recursive' && (
+            {/* Task Type - Button Selection */}
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-3">
-                Frequency *
-                {missingFields.includes('recursiveType') && (
-                  <span className="text-red-500 text-xs ml-2">Required</span>
-                )}
+                Task Type *
               </label>
               <div className="flex gap-3 flex-wrap">
-                {['Daily', 'Weekly', 'Monthly', 'Annually'].map(type => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, recursiveType: type }))
-                      // Clear from missing fields
-                      if (missingFields.includes('recursiveType')) {
-                        setMissingFields(prev => prev.filter(field => field !== 'recursiveType'))
-                      }
-                    }}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm ${
-                      formData.recursiveType === type
-                        ? 'bg-green-600 text-white border-green-600 shadow-lg'
-                        : missingFields.includes('recursiveType')
-                        ? 'bg-white text-gray-700 border-red-500 hover:border-red-600 hover:bg-red-50'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50'
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, selectType: 'Normal', recursiveType: '' }))
+                  }}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 border-2 ${formData.selectType === 'Normal'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                     }`}
-                  >
-                    {type === 'Daily' && '📅 '}
-                    {type === 'Weekly' && '📆 '}
-                    {type === 'Monthly' && '📊 '}
-                    {type === 'Annually' && '📈 '}
-                    {type}
-                  </button>
-                ))}
+                >
+                  📋 Normal Task
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, selectType: 'Recursive' }))
+                  }}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 border-2 ${formData.selectType === 'Recursive'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                    }`}
+                >
+                  🔄 Recurring Task
+                </button>
               </div>
             </div>
-          )}
 
-          {/* Task Name */}
-          <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2">
-              Task Name *
-              {missingFields.includes('name') && (
-                <span className="text-red-500 text-xs ml-2">Required</span>
-              )}
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              maxLength={150}
-              className={getFieldClass('name')}
-              placeholder="Enter a short, descriptive task name (max 150 characters)"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {formData.name.length}/150 characters
-            </p>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2">
-              Task Description *
-              {missingFields.includes('description') && (
-                <span className="text-red-500 text-xs ml-2">Required</span>
-              )}
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              required
-              rows={3}
-              className={getFieldClass('description')}
-              placeholder="Describe the task objectives and requirements in detail..."
-            />
-          </div>
-
-          {/* Project and Subproject Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Project *
-                {missingFields.includes('projectId') && (
-                  <span className="text-red-500 text-xs ml-2">Required</span>
-                )}
-              </label>
-              <select
-                value={formData.projectId || ''}
-                onChange={(e) => {
-                  const projectId = e.target.value || undefined
-                  setFormData(prev => ({ ...prev, projectId, subprojectId: undefined }))
-                  // Clear from missing fields
-                  if (missingFields.includes('projectId')) {
-                    setMissingFields(prev => prev.filter(field => field !== 'projectId'))
-                  }
-                }}
-                className={getFieldClass('projectId')}
-                disabled={isLoadingProjects}
-                required
-              >
-                <option value="">Select Project...</option>
-                {!projectsLoaded ? (
-                  <option disabled>Loading projects...</option>
-                ) : (
-                  projects.map((project) => (
-                    <option key={project.projectId} value={project.projectId}>
-                      {project.projectId} - {project.projectName}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Sub Project <span className="text-gray-400 text-xs">(Optional)</span>
-              </label>
-              <select
-                value={formData.subprojectId || ''}
-                onChange={(e) => {
-                  const subprojectId = e.target.value || undefined
-                  setFormData(prev => ({ ...prev, subprojectId }))
-                }}
-                className="input-field"
-                disabled={!formData.projectId || isLoadingSubprojects}
-              >
-                <option value="">Select Sub Project...</option>
-                {isLoadingSubprojects ? (
-                  <option disabled>Loading subprojects...</option>
-                ) : (
-                  subprojects.map((subproject) => (
-                    <option key={subproject.projectId} value={subproject.projectId}>
-                      {subproject.projectId} - {subproject.projectName}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
-          </div>
-
-          {/* Department Field */}
-          <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2">
-              Department *
-              {missingFields.includes('department') && (
-                <span className="text-red-500 text-xs ml-2">Required</span>
-              )}
-            </label>
-            <select
-              name="department"
-              value={formData.department}
-              onChange={handleInputChange}
-              required
-              disabled={isLoadingSettings}
-              className={getFieldClass('department')}
-            >
-              <option value="">Select Department...</option>
-              {isLoadingSettings ? (
-                <option>Loading...</option>
-              ) : (
-                departmentOptions.map(option => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-
-          {/* Status and Priority */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Status *
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                required
-                disabled={isLoadingSettings}
-                className="input-field"
-              >
-                {isLoadingSettings ? (
-                  <option>Loading...</option>
-                ) : (
-                  taskStatusOptions.map(option => {
-                    const icon = getIcon('task_statuses', option)
-                    return (
-                      <option key={option} value={option}>
-                        {icon && `${icon} `}{option}
-                      </option>
-                    )
-                  })
-                )}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Priority *
-                {missingFields.includes('priority') && (
-                  <span className="text-red-500 text-xs ml-2">Required</span>
-                )}
-              </label>
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleInputChange}
-                required
-                disabled={isLoadingSettings}
-                className={getFieldClass('priority')}
-              >
-                <option value="">Choose priority...</option>
-                {isLoadingSettings ? (
-                  <option>Loading...</option>
-                ) : (
-                  taskPriorityOptions.map(option => {
-                    const icon = getIcon('task_priorities', option)
-                    return (
-                      <option key={option} value={option}>
-                        {icon && `${icon} `}{option}
-                      </option>
-                    )
-                  })
-                )}
-              </select>
-            </div>
-          </div>
-
-          {/* Task Assignment */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-secondary-700">
-                Task Assignment
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.multiUserAssignment}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    multiUserAssignment: e.target.checked,
-                    assignees: e.target.checked ? formData.assignees : [],
-                    assignedTo: ''
-                  })}
-                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                />
-                <span className="text-sm text-gray-700">Assign to multiple users</span>
-              </label>
-            </div>
-
-            {formData.multiUserAssignment ? (
+            {/* Recursive Type - Button Selection */}
+            {formData.selectType === 'Recursive' && (
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Assign To Multiple Users *
-                  {missingFields.includes('assignees') && (
-                    <span className="text-red-500 text-xs ml-2">Required - Select at least one user</span>
+                <label className="block text-sm font-medium text-secondary-700 mb-3">
+                  Frequency *
+                  {missingFields.includes('recursiveType') && (
+                    <span className="text-red-500 text-xs ml-2">Required</span>
                   )}
                 </label>
-                <p className="text-sm text-gray-600 mb-3">
-                  Select users who will each receive their own copy of this task. All tasks will be linked together.
-                </p>
-                {isLoadingUsers ? (
-                  <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
-                    <LoadingSpinner size="sm" message="Loading users..." center />
-                  </div>
-                ) : !usersLoaded ? (
-                  <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
-                    <p className="text-gray-500">No users available</p>
-                  </div>
-                ) : (
-                  <div className={`border rounded-lg p-4 max-h-64 overflow-y-auto space-y-2 ${
-                    missingFields.includes('assignees') ? 'border-2 border-red-500' : 'border-gray-200'
-                  }`}>
-                    {users.map(user => (
-                      <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.assignees.includes(user.employeeId)}
-                          onChange={(e) => {
-                            const newAssignees = e.target.checked
-                              ? [...formData.assignees, user.employeeId]
-                              : formData.assignees.filter(id => id !== user.employeeId)
-                            setFormData({ ...formData, assignees: newAssignees })
-                            // Clear from missing fields when user selects
-                            if (newAssignees.length > 0 && missingFields.includes('assignees')) {
-                              setMissingFields(prev => prev.filter(field => field !== 'assignees'))
-                            }
-                          }}
-                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                        />
-                        <span className="text-sm text-gray-700">
-                          {user.name} ({user.employeeId}) - {user.role}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-                {formData.assignees.length > 0 && (
-                  <p className="text-sm text-purple-600 mt-2">
-                    {formData.assignees.length} user(s) selected - 1 task will be created with multiple assignees
-                  </p>
-                )}
+                <div className="flex gap-3 flex-wrap">
+                  {['Daily', 'Weekly', 'Monthly', 'Annually'].map(type => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, recursiveType: type }))
+                        // Clear from missing fields
+                        if (missingFields.includes('recursiveType')) {
+                          setMissingFields(prev => prev.filter(field => field !== 'recursiveType'))
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm ${formData.recursiveType === type
+                          ? 'bg-green-600 text-white border-green-600 shadow-lg'
+                          : missingFields.includes('recursiveType')
+                            ? 'bg-white text-gray-700 border-red-500 hover:border-red-600 hover:bg-red-50'
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50'
+                        }`}
+                    >
+                      {type === 'Daily' && '📅 '}
+                      {type === 'Weekly' && '📆 '}
+                      {type === 'Monthly' && '📊 '}
+                      {type === 'Annually' && '📈 '}
+                      {type}
+                    </button>
+                  ))}
+                </div>
               </div>
-            ) : (
+            )}
+
+            {/* Task Name */}
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                Task Name *
+                {missingFields.includes('name') && (
+                  <span className="text-red-500 text-xs ml-2">Required</span>
+                )}
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                maxLength={150}
+                className={getFieldClass('name')}
+                placeholder="Enter a short, descriptive task name (max 150 characters)"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.name.length}/150 characters
+              </p>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                Task Description *
+                {missingFields.includes('description') && (
+                  <span className="text-red-500 text-xs ml-2">Required</span>
+                )}
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                required
+                rows={3}
+                className={getFieldClass('description')}
+                placeholder="Describe the task objectives and requirements in detail..."
+              />
+            </div>
+
+            {/* Project and Subproject Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Assign To *
-                  {missingFields.includes('assignedTo') && (
+                  Project *
+                  {missingFields.includes('projectId') && (
                     <span className="text-red-500 text-xs ml-2">Required</span>
                   )}
                 </label>
                 <select
-                  value={formData.assignedTo}
+                  value={formData.projectId || ''}
                   onChange={(e) => {
-                    setFormData({ ...formData, assignedTo: e.target.value })
+                    const projectId = e.target.value || undefined
+                    setFormData(prev => ({ ...prev, projectId, subprojectId: undefined }))
                     // Clear from missing fields
-                    if (missingFields.includes('assignedTo')) {
-                      setMissingFields(prev => prev.filter(field => field !== 'assignedTo'))
+                    if (missingFields.includes('projectId')) {
+                      setMissingFields(prev => prev.filter(field => field !== 'projectId'))
                     }
                   }}
+                  className={getFieldClass('projectId')}
+                  disabled={isLoadingProjects}
                   required
-                  className={getFieldClass('assignedTo')}
-                  disabled={isLoading || isLoadingUsers}
                 >
-                  <option value="">Select user...</option>
-                  {users.map(user => (
-                    <option key={user.employeeId} value={user.employeeId}>
-                      {user.name} ({user.employeeId}) - {user.role}
-                    </option>
-                  ))}
+                  <option value="">Select Project...</option>
+                  {!projectsLoaded ? (
+                    <option disabled>Loading projects...</option>
+                  ) : (
+                    projects.map((project) => (
+                      <option key={project.projectId} value={project.projectId}>
+                        {project.projectId} - {project.projectName}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
-            )}
-          </div>
 
-          {/* Support Team */}
-          <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2">
-              Support Team (Optional)
-            </label>
-            <p className="text-sm text-gray-600 mb-3">
-              Select team members who will receive separate support tasks. Each selected member will get their own task to track their contribution.
-            </p>
-            {!usersLoaded ? (
-              <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
-                {isLoadingUsers ? (
-                  <LoadingSpinner size="sm" message="Loading team members..." center />
-                ) : (
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
-                  </div>
-                )}
+              <div>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Sub Project <span className="text-gray-400 text-xs">(Optional)</span>
+                </label>
+                <select
+                  value={formData.subprojectId || ''}
+                  onChange={(e) => {
+                    const subprojectId = e.target.value || undefined
+                    setFormData(prev => ({ ...prev, subprojectId }))
+                  }}
+                  className="input-field"
+                  disabled={!formData.projectId || isLoadingSubprojects}
+                >
+                  <option value="">Select Sub Project...</option>
+                  {isLoadingSubprojects ? (
+                    <option disabled>Loading subprojects...</option>
+                  ) : (
+                    subprojects.map((subproject) => (
+                      <option key={subproject.projectId} value={subproject.projectId}>
+                        {subproject.projectId} - {subproject.projectName}
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
-                {users.map(user => (
-                <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+            </div>
+
+            {/* Department Field */}
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                Department *
+                {missingFields.includes('department') && (
+                  <span className="text-red-500 text-xs ml-2">Required</span>
+                )}
+              </label>
+              <select
+                name="department"
+                value={formData.department}
+                onChange={handleInputChange}
+                required
+                disabled={isLoadingSettings}
+                className={getFieldClass('department')}
+              >
+                <option value="">Select Department...</option>
+                {isLoadingSettings ? (
+                  <option>Loading...</option>
+                ) : (
+                  departmentOptions.map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
+            {/* Status and Priority */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Status *
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoadingSettings}
+                  className="input-field"
+                >
+                  {isLoadingSettings ? (
+                    <option>Loading...</option>
+                  ) : (
+                    taskStatusOptions.map(option => {
+                      const icon = getIcon('task_statuses', option)
+                      return (
+                        <option key={option} value={option}>
+                          {icon && `${icon} `}{option}
+                        </option>
+                      )
+                    })
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Priority *
+                  {missingFields.includes('priority') && (
+                    <span className="text-red-500 text-xs ml-2">Required</span>
+                  )}
+                </label>
+                <select
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoadingSettings}
+                  className={getFieldClass('priority')}
+                >
+                  <option value="">Choose priority...</option>
+                  {isLoadingSettings ? (
+                    <option>Loading...</option>
+                  ) : (
+                    taskPriorityOptions.map(option => {
+                      const icon = getIcon('task_priorities', option)
+                      return (
+                        <option key={option} value={option}>
+                          {icon && `${icon} `}{option}
+                        </option>
+                      )
+                    })
+                  )}
+                </select>
+              </div>
+            </div>
+
+            {/* Task Assignment */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-secondary-700">
+                  Task Assignment
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.support.includes(user.employeeId)}
-                    onChange={() => handleSupportChange(user.employeeId)}
-                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                    checked={formData.multiUserAssignment}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      multiUserAssignment: e.target.checked,
+                      assignees: e.target.checked ? formData.assignees : [],
+                      assignedTo: ''
+                    })}
+                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                   />
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                    <div className="text-xs text-gray-500">{user.employeeId} - {user.department}</div>
-                  </div>
+                  <span className="text-sm text-gray-700">Assign to multiple users</span>
                 </label>
-              ))}
               </div>
-            )}
-            {formData.support.length > 0 && (
-              <div className="mt-3">
-                <p className="text-sm text-gray-600 mb-2">Selected support team:</p>
-                <div className="flex flex-wrap gap-2">
-                  {formData.support.map(employeeId => {
-                    const user = users.find(u => u.employeeId === employeeId)
-                    return user ? (
-                      <span key={employeeId} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                        {user.name}
-                      </span>
-                    ) : null
-                  })}
+
+              {formData.multiUserAssignment ? (
+                <div>
+                  <label className="block text-sm font-medium text-secondary-700 mb-2">
+                    Assign To Multiple Users *
+                    {missingFields.includes('assignees') && (
+                      <span className="text-red-500 text-xs ml-2">Required - Select at least one user</span>
+                    )}
+                  </label>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Select users who will each receive their own copy of this task. All tasks will be linked together.
+                  </p>
+                  {isLoadingUsers ? (
+                    <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
+                      <LoadingSpinner size="sm" message="Loading users..." center />
+                    </div>
+                  ) : !usersLoaded ? (
+                    <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
+                      <p className="text-gray-500">No users available</p>
+                    </div>
+                  ) : (
+                    <div className={`border rounded-lg p-4 max-h-64 overflow-y-auto space-y-2 ${missingFields.includes('assignees') ? 'border-2 border-red-500' : 'border-gray-200'
+                      }`}>
+                      {users.map(user => (
+                        <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.assignees.includes(user.employeeId)}
+                            onChange={(e) => {
+                              const newAssignees = e.target.checked
+                                ? [...formData.assignees, user.employeeId]
+                                : formData.assignees.filter(id => id !== user.employeeId)
+                              setFormData({ ...formData, assignees: newAssignees })
+                              // Clear from missing fields when user selects
+                              if (newAssignees.length > 0 && missingFields.includes('assignees')) {
+                                setMissingFields(prev => prev.filter(field => field !== 'assignees'))
+                              }
+                            }}
+                            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {user.name} ({user.employeeId}) - {user.role}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {formData.assignees.length > 0 && (
+                    <p className="text-sm text-purple-600 mt-2">
+                      {formData.assignees.length} user(s) selected - 1 task will be created with multiple assignees
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-secondary-700 mb-2">
+                    Assign To *
+                    {missingFields.includes('assignedTo') && (
+                      <span className="text-red-500 text-xs ml-2">Required</span>
+                    )}
+                  </label>
+                  <select
+                    value={formData.assignedTo}
+                    onChange={(e) => {
+                      setFormData({ ...formData, assignedTo: e.target.value })
+                      // Clear from missing fields
+                      if (missingFields.includes('assignedTo')) {
+                        setMissingFields(prev => prev.filter(field => field !== 'assignedTo'))
+                      }
+                    }}
+                    required
+                    className={getFieldClass('assignedTo')}
+                    disabled={isLoading || isLoadingUsers}
+                  >
+                    <option value="">Select user...</option>
+                    {users.map(user => (
+                      <option key={user.employeeId} value={user.employeeId}>
+                        {user.name} ({user.employeeId}) - {user.role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Support Team */}
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                Support Team (Optional)
+              </label>
+              <p className="text-sm text-gray-600 mb-3">
+                Select team members who will receive separate support tasks. Each selected member will get their own task to track their contribution.
+              </p>
+              {!usersLoaded ? (
+                <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
+                  {isLoadingUsers ? (
+                    <LoadingSpinner size="sm" message="Loading team members..." center />
+                  ) : (
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                  {users.map(user => (
+                    <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.support.includes(user.employeeId)}
+                        onChange={() => handleSupportChange(user.employeeId)}
+                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-xs text-gray-500">{user.employeeId} - {user.department}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+              {formData.support.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-sm text-gray-600 mb-2">Selected support team:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.support.map(employeeId => {
+                      const user = users.find(u => u.employeeId === employeeId)
+                      return user ? (
+                        <span key={employeeId} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                          {user.name}
+                        </span>
+                      ) : null
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Start Date *
+                  {missingFields.includes('startDate') && (
+                    <span className="text-red-500 text-xs ml-2">Required</span>
+                  )}
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={formData.startDate}
+                    onChange={handleInputChange}
+                    required
+                    className={getFieldClass('startDate', 'input-field pl-10')}
+                  />
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Start Date *
-                {missingFields.includes('startDate') && (
-                  <span className="text-red-500 text-xs ml-2">Required</span>
-                )}
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleInputChange}
-                  required
-                  className={getFieldClass('startDate', 'input-field pl-10')}
-                />
+              <div>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  End Date *
+                  {missingFields.includes('endDate') && (
+                    <span className="text-red-500 text-xs ml-2">Required</span>
+                  )}
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleInputChange}
+                    required
+                    className={getFieldClass('endDate', 'input-field pl-10')}
+                  />
+                </div>
               </div>
             </div>
 
+            {/* Estimated Hours */}
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-2">
-                End Date *
-                {missingFields.includes('endDate') && (
-                  <span className="text-red-500 text-xs ml-2">Required</span>
-                )}
+                Estimated Hours (Optional)
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
+              <div className="relative max-w-md">
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
                 <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate}
+                  type="text"
+                  name="estimatedHours"
+                  value={formData.estimatedHours}
                   onChange={handleInputChange}
-                  required
-                  className={getFieldClass('endDate', 'input-field pl-10')}
+                  className="input-field pl-10"
+                  placeholder="hh:mm:ss (e.g., 02:30:00)"
+                  pattern="^\d{1,2}:\d{2}:\d{2}$"
+                  title="Enter time in hh:mm:ss format (e.g., 02:30:00)"
                 />
               </div>
+              <p className="text-xs text-secondary-500 mt-1">
+                Enter estimated time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
+              </p>
             </div>
-          </div>
 
-          {/* Estimated Hours */}
-          <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2">
-              Estimated Hours (Optional)
-            </label>
-            <div className="relative max-w-md">
-              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
-              <input
-                type="text"
-                name="estimatedHours"
-                value={formData.estimatedHours}
-                onChange={handleInputChange}
-                className="input-field pl-10"
-                placeholder="hh:mm:ss (e.g., 02:30:00)"
-                pattern="^\d{1,2}:\d{2}:\d{2}$"
-                title="Enter time in hh:mm:ss format (e.g., 02:30:00)"
+            {/* File Attachments */}
+            <div>
+              <label className="block text-sm font-medium text-secondary-700 mb-2 flex items-center space-x-2">
+                <Paperclip className="h-4 w-4" />
+                <span>Attachments (Optional)</span>
+              </label>
+              <FileUpload
+                onFilesChange={setUploadedFiles}
+                maxFiles={5}
+                maxSizeMB={10}
               />
+              <p className="text-xs text-gray-500 mt-2">
+                Upload screenshots, documents, or other relevant files (max 5 files, 10MB each)
+              </p>
             </div>
-            <p className="text-xs text-secondary-500 mt-1">
-              Enter estimated time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
-            </p>
-          </div>
 
-          {/* File Attachments */}
-          <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2 flex items-center space-x-2">
-              <Paperclip className="h-4 w-4" />
-              <span>Attachments (Optional)</span>
-            </label>
-            <FileUpload
-              onFilesChange={setUploadedFiles}
-              maxFiles={5}
-              maxSizeMB={10}
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              Upload screenshots, documents, or other relevant files (max 5 files, 10MB each)
-            </p>
-          </div>
-
-          {/* Submit Buttons */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-secondary-200">
-            <button
-              type="button"
-              onClick={resetForm}
-              className="btn-secondary flex items-center space-x-2"
-            >
-              <X className="h-4 w-4" />
-              <span>Cancel</span>
-            </button>
-            <LoadingButton
-              type="submit"
-              isLoading={isLoading}
-              loadingText="Creating..."
-              variant="primary"
-              className="flex items-center space-x-2"
-            >
-              <Save className="h-4 w-4" />
-              <span>Create Task</span>
-            </LoadingButton>
-          </div>
-        </form>
-      </div>
+            {/* Submit Buttons */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-secondary-200">
+              <button
+                type="button"
+                onClick={() => router.push('/tasks')}
+                className="btn-secondary flex items-center space-x-2"
+              >
+                <X className="h-4 w-4" />
+                <span>Cancel</span>
+              </button>
+              <LoadingButton
+                type="submit"
+                isLoading={isLoading}
+                loadingText="Creating..."
+                variant="primary"
+                className="flex items-center space-x-2"
+              >
+                <Save className="h-4 w-4" />
+                <span>Create Task</span>
+              </LoadingButton>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )

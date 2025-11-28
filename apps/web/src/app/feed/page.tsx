@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { User } from '@/lib/types'
 import { Plus, Search, X, Filter, TrendingUp, MessageSquare, Eye, Clock } from 'lucide-react'
@@ -57,7 +57,14 @@ export default function FeedPage() {
   const [hasMore, setHasMore] = useState(true)
   const [offset, setOffset] = useState(0)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const hasInitializedTopics = useRef(false)
+
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setIsPostCreatorOpen(true)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     console.log('🔵 [Feed] useEffect triggered - hasInitializedTopics:', hasInitializedTopics.current)
@@ -168,7 +175,15 @@ export default function FeedPage() {
       <ConditionalNavbar />
       <PostCreator
         isOpen={isPostCreatorOpen}
-        onClose={() => setIsPostCreatorOpen(false)}
+        onClose={() => {
+          setIsPostCreatorOpen(false)
+          // Remove the 'create' query param
+          const params = new URLSearchParams(searchParams.toString())
+          if (params.has('create')) {
+            params.delete('create')
+            router.replace(`/feed?${params.toString()}`)
+          }
+        }}
         onPostCreated={fetchPosts}
       />
       <div className="min-h-screen bg-gray-50">
@@ -226,9 +241,8 @@ export default function FeedPage() {
                   )}
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`px-4 py-2 text-sm border rounded-lg transition-colors flex items-center gap-2 ${
-                      showFilters ? 'bg-blue-50 text-blue-700 border-blue-300' : 'text-gray-600 hover:text-gray-900 border-gray-300 hover:bg-gray-50'
-                    }`}
+                    className={`px-4 py-2 text-sm border rounded-lg transition-colors flex items-center gap-2 ${showFilters ? 'bg-blue-50 text-blue-700 border-blue-300' : 'text-gray-600 hover:text-gray-900 border-gray-300 hover:bg-gray-50'
+                      }`}
                   >
                     <Filter className="w-4 h-4" />
                     Filters
@@ -244,36 +258,32 @@ export default function FeedPage() {
                       <div className="flex gap-2 flex-wrap">
                         <button
                           onClick={() => setSortBy('latest')}
-                          className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1.5 transition-colors ${
-                            sortBy === 'latest' ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
+                          className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1.5 transition-colors ${sortBy === 'latest' ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
                         >
                           <Clock className="w-4 h-4" />
                           Latest
                         </button>
                         <button
                           onClick={() => setSortBy('reactions')}
-                          className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1.5 transition-colors ${
-                            sortBy === 'reactions' ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
+                          className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1.5 transition-colors ${sortBy === 'reactions' ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
                         >
                           <TrendingUp className="w-4 h-4" />
                           Most Reactions
                         </button>
                         <button
                           onClick={() => setSortBy('comments')}
-                          className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1.5 transition-colors ${
-                            sortBy === 'comments' ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
+                          className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1.5 transition-colors ${sortBy === 'comments' ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
                         >
                           <MessageSquare className="w-4 h-4" />
                           Most Comments
                         </button>
                         <button
                           onClick={() => setSortBy('views')}
-                          className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1.5 transition-colors ${
-                            sortBy === 'views' ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
+                          className={`px-3 py-1.5 text-sm rounded-lg flex items-center gap-1.5 transition-colors ${sortBy === 'views' ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
                         >
                           <Eye className="w-4 h-4" />
                           Most Views

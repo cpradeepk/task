@@ -18,6 +18,8 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import { buildApiUrl } from '../config/api'
+import { TouchableOpacity } from 'react-native'
 
 interface WFHApplication {
   id: string
@@ -64,7 +66,7 @@ export default function WFHListScreen() {
     try {
       setLoading(true)
       const response = await fetch(
-        `http://localhost:3000/api/wfh/user/${currentUser.employeeId}`,
+        buildApiUrl(`/wfh/user/${currentUser.employeeId}`),
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },

@@ -62,7 +62,7 @@ export default function WFHDetailsScreen() {
   const fetchWFHDetails = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:3000/api/wfh/${wfhId}`, {
+      const response = await fetch(`https://task.amtariksha.com/api/wfh/${wfhId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -116,7 +116,7 @@ export default function WFHDetailsScreen() {
             try {
               setActionLoading(true)
               const response = await fetch(
-                `http://localhost:3000/api/wfh/${wfhId}/approve`,
+                `https://task.amtariksha.com/api/wfh/${wfhId}/approve`,
                 {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -163,7 +163,7 @@ export default function WFHDetailsScreen() {
             try {
               setActionLoading(true)
               const response = await fetch(
-                `http://localhost:3000/api/wfh/${wfhId}/reject`,
+                `https://task.amtariksha.com/api/wfh/${wfhId}/reject`,
                 {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -204,7 +204,7 @@ export default function WFHDetailsScreen() {
           onPress: async () => {
             try {
               setActionLoading(true)
-              const response = await fetch(`http://localhost:3000/api/wfh/${wfhId}`, {
+              const response = await fetch(`https://task.amtariksha.com/api/wfh/${wfhId}`, {
                 method: 'DELETE',
               })
 

@@ -72,8 +72,8 @@ export default function ApplyWFH() {
       }
 
       // Validation
-      if (!formData.wfhType || !formData.reason || !formData.fromDate || 
-          !formData.toDate || !formData.workLocation || !formData.contactNumber) {
+      if (!formData.wfhType || !formData.reason || !formData.fromDate ||
+        !formData.toDate || !formData.workLocation || !formData.contactNumber) {
         throw new Error('Please fill in all required fields')
       }
 
@@ -190,128 +190,70 @@ export default function ApplyWFH() {
           <p className="text-gray-600 mt-1">Submit your work from home application for approval</p>
         </div>
 
-      <div className="card">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}
+        <div className="card">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center space-x-2">
+                <AlertCircle className="h-5 w-5" />
+                <span>{error}</span>
+              </div>
+            )}
 
-          {/* WFH Type */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              WFH Type *
-            </label>
-            <select
-              name="wfhType"
-              value={formData.wfhType}
-              onChange={handleInputChange}
-              required
-              className="input-field"
-            >
-              <option value="">Choose WFH type...</option>
-              {wfhTypes.map(type => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Reason */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Reason for WFH *
-            </label>
-            <div className="relative">
-              <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <textarea
-                name="reason"
-                value={formData.reason}
-                onChange={handleInputChange}
-                required
-                rows={3}
-                className="input-field pl-10"
-                placeholder="Please provide a detailed reason for working from home..."
-              />
-            </div>
-          </div>
-
-          {/* WFH Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* WFH Type */}
             <div>
               <label className="block text-sm font-medium text-black mb-2">
-                From Date *
+                WFH Type *
+              </label>
+              <select
+                name="wfhType"
+                value={formData.wfhType}
+                onChange={handleInputChange}
+                required
+                className="input-field"
+              >
+                <option value="">Choose WFH type...</option>
+                {wfhTypes.map(type => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Reason */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Reason for WFH *
               </label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="date"
-                  name="fromDate"
-                  value={formData.fromDate}
+                <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <textarea
+                  name="reason"
+                  value={formData.reason}
                   onChange={handleInputChange}
                   required
-                  min={minDate}
+                  rows={3}
                   className="input-field pl-10"
+                  placeholder="Please provide a detailed reason for working from home..."
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-black mb-2">
-                To Date *
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="date"
-                  name="toDate"
-                  value={formData.toDate}
-                  onChange={handleInputChange}
-                  required
-                  min={formData.fromDate || minDate}
-                  className="input-field pl-10"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Work Location */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Work Location *
-            </label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                name="workLocation"
-                value={formData.workLocation}
-                onChange={handleInputChange}
-                required
-                className="input-field pl-10"
-                placeholder="e.g., Home, Co-working space, etc."
-              />
-            </div>
-          </div>
-
-          {/* Availability Hours (for Flexible Hours) */}
-          {formData.wfhType === 'Flexible Hours' && (
+            {/* WFH Dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Available From *
+                  From Date *
                 </label>
                 <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
-                    type="time"
-                    name="availableFrom"
-                    value={formData.availableFrom}
+                    type="date"
+                    name="fromDate"
+                    value={formData.fromDate}
                     onChange={handleInputChange}
-                    required={formData.wfhType === 'Flexible Hours'}
+                    required
+                    min={minDate}
                     className="input-field pl-10"
                   />
                 </div>
@@ -319,63 +261,120 @@ export default function ApplyWFH() {
 
               <div>
                 <label className="block text-sm font-medium text-black mb-2">
-                  Available To *
+                  To Date *
                 </label>
                 <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
-                    type="time"
-                    name="availableTo"
-                    value={formData.availableTo}
+                    type="date"
+                    name="toDate"
+                    value={formData.toDate}
                     onChange={handleInputChange}
-                    required={formData.wfhType === 'Flexible Hours'}
+                    required
+                    min={formData.fromDate || minDate}
                     className="input-field pl-10"
                   />
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Contact Number */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">
-              Contact Number *
-            </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="tel"
-                name="contactNumber"
-                value={formData.contactNumber}
-                onChange={handleInputChange}
-                required
-                className="input-field pl-10"
-                placeholder="Contact number during WFH"
-              />
+            {/* Work Location */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Work Location *
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  name="workLocation"
+                  value={formData.workLocation}
+                  onChange={handleInputChange}
+                  required
+                  className="input-field pl-10"
+                  placeholder="e.g., Home, Co-working space, etc."
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Submit Buttons */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={resetForm}
-              className="btn-secondary flex items-center space-x-2"
-            >
-              <X className="h-4 w-4" />
-              <span>Cancel</span>
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-primary flex items-center space-x-2 disabled:opacity-50"
-            >
-              <Save className="h-4 w-4" />
-              <span>{isLoading ? 'Submitting...' : 'Apply WFH'}</span>
-            </button>
-          </div>
-        </form>
-      </div>
+            {/* Availability Hours (for Flexible Hours) */}
+            {formData.wfhType === 'Flexible Hours' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Available From *
+                  </label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="time"
+                      name="availableFrom"
+                      value={formData.availableFrom}
+                      onChange={handleInputChange}
+                      required={formData.wfhType === 'Flexible Hours'}
+                      className="input-field pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Available To *
+                  </label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="time"
+                      name="availableTo"
+                      value={formData.availableTo}
+                      onChange={handleInputChange}
+                      required={formData.wfhType === 'Flexible Hours'}
+                      className="input-field pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Contact Number */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-2">
+                Contact Number *
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="tel"
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  onChange={handleInputChange}
+                  required
+                  className="input-field pl-10"
+                  placeholder="Contact number during WFH"
+                />
+              </div>
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => router.push('/my-applications')}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="btn-primary flex items-center space-x-2 disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                <span>{isLoading ? 'Submitting...' : 'Apply WFH'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )

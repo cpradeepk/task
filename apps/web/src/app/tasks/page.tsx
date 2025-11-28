@@ -272,8 +272,13 @@ export default function TasksPage() {
       // This ensures consistent task visibility across all users
 
       if (loadMore) {
-        // Append new tasks to existing ones
-        setTasks(prev => [...prev, ...tasksData])
+        // Append new tasks to existing ones with deduplication
+        setTasks(prev => {
+          const combined = [...prev, ...tasksData]
+          // Deduplicate by taskId using a Map
+          const uniqueTasks = Array.from(new Map(combined.map(task => [task.taskId, task])).values())
+          return uniqueTasks
+        })
         setOffset(prev => prev + ITEMS_PER_PAGE)
       } else {
         // Replace tasks (initial load or filter change)

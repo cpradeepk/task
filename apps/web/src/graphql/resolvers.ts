@@ -219,12 +219,13 @@ export const resolvers = {
       const { startTime } = logResolverStart('tasks', filters)
 
       try {
-        let query = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
+        // ✅ FIXED: Added DISTINCT and stable sort to prevent duplicates
+        let query = 'SELECT DISTINCT * FROM tasks WHERE deleted_at IS NULL'
         const params: any[] = []
         let paramIndex = 1
 
         if (filters.assignedTo) {
-          // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
+          // assigned_to is JSONB array, use jsonb_array_elements_text
           query += ` AND EXISTS (
             SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
             WHERE elem = $${paramIndex++}
@@ -244,7 +245,8 @@ export const resolvers = {
           params.push(filters.priority)
         }
 
-        query += ' ORDER BY updated_at DESC'
+        // ✅ FIXED: Stable sort order
+        query += ' ORDER BY updated_at DESC, task_id DESC'
 
         // Add pagination
         if (filters.limit) {
@@ -264,7 +266,8 @@ export const resolvers = {
         return result.rows
       } catch (error) {
         logResolverError('tasks', error, startTime)
-        throw error
+        // Return empty array on error to prevent crash
+        return []
       }
     },
 
@@ -278,6 +281,70 @@ export const resolvers = {
       } catch (error) {
         logResolverError('task', error, startTime)
         throw error
+      }
+    },
+
+    // Bugs
+    bugs: async (_: any, filters: any) => {
+      const { startTime } = logResolverStart('bugs', filters)
+      try {
+        let query = 'SELECT * FROM bugs WHERE deleted_at IS NULL'
+        const params: any[] = []
+        let paramIndex = 1
+
+        if (filters.assignedTo) {
+          query += ` AND assigned_to = $${paramIndex++}`
+          params.push(filters.assignedTo)
+        }
+        if (filters.reportedBy) {
+          query += ` AND reported_by = $${paramIndex++}`
+          params.push(filters.reportedBy)
+        }
+        if (filters.status) {
+          query += ` AND status = $${paramIndex++}`
+          params.push(filters.status)
+        }
+        if (filters.severity) {
+          query += ` AND severity = $${paramIndex++}`
+          params.push(filters.severity)
+        }
+        if (filters.category) {
+          query += ` AND category = $${paramIndex++}`
+          params.push(filters.category)
+        }
+
+        query += ' ORDER BY updated_at DESC'
+
+        if (filters.limit) {
+          query += ` LIMIT $${paramIndex++}`
+          params.push(filters.limit)
+        }
+        if (filters.offset) {
+          query += ` OFFSET $${paramIndex++}`
+          params.push(filters.offset)
+        }
+
+        const dbStart = logDatabaseQuery(query, params, 'bugs')
+        const result = await getPoolInstance().query(query, params)
+        logDatabaseResult(result.rows.length, dbStart.startTime, 'bugs')
+
+        logResolverSuccess('bugs', result.rows, startTime)
+        return result.rows
+      } catch (error) {
+        logResolverError('bugs', error, startTime)
+        return [] // Return empty array on error
+      }
+    },
+
+    bug: async (_: any, { bugId }: any, { loaders }: any) => {
+      const { startTime } = logResolverStart('bug', { bugId })
+      try {
+        const result = await loaders.bug.load(bugId)
+        logResolverSuccess('bug', result, startTime)
+        return result
+      } catch (error) {
+        logResolverError('bug', error, startTime)
+        return null
       }
     },
 
@@ -534,8 +601,8 @@ export const resolvers = {
         department: row.department,
         role: row.role,
         status: row.sign_in_time && !row.sign_out_time ? 'ONLINE' : (row.status || 'ABSENT'),
-        signInTime: row.sign_in_time,
-        signOutTime: row.sign_out_time,
+        signInTime: row.sign_in_time ? format(new Date(row.sign_in_time), 'yyyy-MM-dd HH:mm:ss') : null,
+        signOutTime: row.sign_out_time ? format(new Date(row.sign_out_time), 'yyyy-MM-dd HH:mm:ss') : null,
         location: null // Location column does not exist in DB
       }))
 
@@ -548,6 +615,39 @@ export const resolvers = {
         pendingLeaveRequests,
         pendingWFHRequests,
         liveAttendance
+      }
+    },
+
+    settings: async (_: any, { activeOnly }: any) => {
+      try {
+        let query = 'SELECT * FROM settings'
+        const params: any[] = []
+
+        if (activeOnly) {
+          query += ' WHERE is_active = $1'
+          params.push(true)
+        }
+
+        query += ' ORDER BY key ASC'
+
+        const result = await getPoolInstance().query(query, params)
+        return result.rows
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+        return []
+      }
+    },
+
+    setting: async (_: any, { key }: any) => {
+      try {
+        const result = await getPoolInstance().query(
+          'SELECT * FROM settings WHERE key = $1',
+          [key]
+        )
+        return result.rows[0] || null
+      } catch (error) {
+        console.error(`Error fetching setting ${key}:`, error)
+        return null
       }
     },
 
@@ -577,15 +677,20 @@ export const resolvers = {
     // Feed Queries
     feedPosts: async (_: any, { topicId, status, search, limit = 20, offset = 0 }: any, context: any) => {
       const { startTime } = logResolverStart('feedPosts', { topicId, status, search, limit, offset })
+      const { user } = context
 
       try {
+        // ✅ FIXED: Filter out posts from private topics not owned by user
         let sql = `
           SELECT DISTINCT fp.*
           FROM feed_posts fp
-          LEFT JOIN feed_post_topics fpt ON fp.post_id = fpt.post_id
+          JOIN feed_post_topics fpt ON fp.post_id = fpt.post_id
+          JOIN feed_topics ft ON fpt.topic_id = ft.id
           WHERE fp.deleted_at IS NULL
+          AND ft.deleted_at IS NULL
+          AND (ft.is_personal = false OR ft.owner_user_id = $1)
         `
-        const params: any[] = []
+        const params: any[] = [user?.employeeId || '']
 
         if (topicId) {
           sql += ` AND fpt.topic_id = $${params.length + 1}`
@@ -609,9 +714,17 @@ export const resolvers = {
         const postsResult = await getPoolInstance().query(sql, params)
         logDatabaseResult(postsResult.rows.length, dbStart.startTime, 'feedPosts')
 
-        const totalResult = await getPoolInstance().query(
-          'SELECT COUNT(*) FROM feed_posts WHERE deleted_at IS NULL'
-        )
+        // Count total matching posts
+        const countSql = `
+          SELECT COUNT(DISTINCT fp.post_id)
+          FROM feed_posts fp
+          JOIN feed_post_topics fpt ON fp.post_id = fpt.post_id
+          JOIN feed_topics ft ON fpt.topic_id = ft.id
+          WHERE fp.deleted_at IS NULL
+          AND ft.deleted_at IS NULL
+          AND (ft.is_personal = false OR ft.owner_user_id = $1)
+        `
+        const totalResult = await getPoolInstance().query(countSql, [user?.employeeId || ''])
         const total = parseInt(totalResult.rows[0].count)
 
         const result = {

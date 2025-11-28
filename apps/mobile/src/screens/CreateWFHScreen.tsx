@@ -11,6 +11,7 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
+  TouchableOpacity,
 } from 'react-native'
 import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -195,179 +196,189 @@ export default function CreateWFHScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.form}>
-        {/* WFH Type */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            WFH Type <Text style={styles.required}>*</Text>
-          </Text>
-          <View style={styles.typeGrid}>
-            {WFH_TYPES.map((type) => (
-              <TouchableOpacity
-                key={type}
-                style={[
-                  styles.typeButton,
-                  wfhType === type && styles.typeButtonActive,
-                ]}
-                onPress={() => setWFHType(type)}
-              >
-                <Text
-                  style={[
-                    styles.typeButtonText,
-                    wfhType === type && styles.typeButtonTextActive,
-                  ]}
-                >
-                  {type}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Date Range */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Date Range <Text style={styles.required}>*</Text>
-          </Text>
-          <View style={styles.dateRow}>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowFromDatePicker(true)}
-            >
-              <Text style={styles.dateLabel}>From</Text>
-              <Text style={styles.dateValue}>{formatDate(fromDate)}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowToDatePicker(true)}
-            >
-              <Text style={styles.dateLabel}>To</Text>
-              <Text style={styles.dateValue}>{formatDate(toDate)}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.daysInfo}>
-            <Text style={styles.daysText}>Total: {calculateDays()} day(s)</Text>
-          </View>
-        </View>
-
-        {/* Work Location */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Work Location <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g., Home, Coworking Space, etc."
-            value={workLocation}
-            onChangeText={setWorkLocation}
-          />
-        </View>
-
-        {/* Contact Number */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Contact Number <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Phone number"
-            value={contactNumber}
-            onChangeText={setContactNumber}
-            keyboardType="phone-pad"
-          />
-        </View>
-
-        {/* Availability Times (for Flexible Hours) */}
-        {wfhType === 'Flexible Hours' && (
+          {/* WFH Type */}
           <View style={styles.field}>
-            <Text style={styles.label}>Availability</Text>
+            <Text style={styles.label}>
+              WFH Type <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={styles.typeGrid}>
+              {WFH_TYPES.map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.typeButton,
+                    wfhType === type && styles.typeButtonActive,
+                  ]}
+                  onPress={() => setWFHType(type)}
+                >
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      wfhType === type && styles.typeButtonTextActive,
+                    ]}
+                  >
+                    {type}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Date Range */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Date Range <Text style={styles.required}>*</Text>
+            </Text>
             <View style={styles.dateRow}>
               <TouchableOpacity
                 style={styles.dateButton}
-                onPress={() => setShowAvailableFromPicker(true)}
+                onPress={() => setShowFromDatePicker(true)}
               >
                 <Text style={styles.dateLabel}>From</Text>
-                <Text style={styles.dateValue}>{formatTime(availableFrom)}</Text>
+                <Text style={styles.dateValue}>{formatDate(fromDate)}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.dateButton}
-                onPress={() => setShowAvailableToPicker(true)}
+                onPress={() => setShowToDatePicker(true)}
               >
                 <Text style={styles.dateLabel}>To</Text>
-                <Text style={styles.dateValue}>{formatTime(availableTo)}</Text>
+                <Text style={styles.dateValue}>{formatDate(toDate)}</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        )}
 
-        {/* Reason */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Reason <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Enter reason for WFH..."
-            value={reason}
-            onChangeText={setReason}
-            multiline
-            numberOfLines={4}
-          />
+            <View style={styles.daysInfo}>
+              <Text style={styles.daysText}>Total: {calculateDays()} day(s)</Text>
+            </View>
+          </View>
+
+          {/* Work Location */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Work Location <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g., Home, Coworking Space, etc."
+              value={workLocation}
+              onChangeText={setWorkLocation}
+            />
+          </View>
+
+          {/* Contact Number */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Contact Number <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Phone number"
+              value={contactNumber}
+              onChangeText={setContactNumber}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          {/* Availability Times (for Flexible Hours) */}
+          {wfhType === 'Flexible Hours' && (
+            <View style={styles.field}>
+              <Text style={styles.label}>Availability</Text>
+              <View style={styles.dateRow}>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setShowAvailableFromPicker(true)}
+                >
+                  <Text style={styles.dateLabel}>From</Text>
+                  <Text style={styles.dateValue}>{formatTime(availableFrom)}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setShowAvailableToPicker(true)}
+                >
+                  <Text style={styles.dateLabel}>To</Text>
+                  <Text style={styles.dateValue}>{formatTime(availableTo)}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Reason */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Reason <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.textArea}
+              placeholder="Enter reason for WFH..."
+              value={reason}
+              onChangeText={setReason}
+              multiline
+              numberOfLines={4}
+            />
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="outlined"
+              onPress={() => navigation.goBack()}
+              style={styles.cancelButton}
+              textColor={colors.textSecondary}
+            >
+              Cancel
+            </Button>
+            <TouchableOpacity
+              style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={submitting}
+            >
+              <Text style={styles.submitButtonText}>
+                {submitting ? 'Submitting...' : 'Submit'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={submitting}
-        >
-          <Text style={styles.submitButtonText}>
-            {submitting ? 'Submitting...' : 'Submit Application'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        {/* Date Pickers */}
+        {showFromDatePicker && (
+          <DateTimePicker
+            value={fromDate}
+            mode="date"
+            display="default"
+            onChange={handleFromDateChange}
+            minimumDate={new Date()}
+          />
+        )}
 
-      {/* Date Pickers */}
-      {showFromDatePicker && (
-        <DateTimePicker
-          value={fromDate}
-          mode="date"
-          display="default"
-          onChange={handleFromDateChange}
-          minimumDate={new Date()}
-        />
-      )}
+        {showToDatePicker && (
+          <DateTimePicker
+            value={toDate}
+            mode="date"
+            display="default"
+            onChange={handleToDateChange}
+            minimumDate={fromDate}
+          />
+        )}
 
-      {showToDatePicker && (
-        <DateTimePicker
-          value={toDate}
-          mode="date"
-          display="default"
-          onChange={handleToDateChange}
-          minimumDate={fromDate}
-        />
-      )}
+        {showAvailableFromPicker && (
+          <DateTimePicker
+            value={availableFrom}
+            mode="time"
+            display="default"
+            onChange={handleAvailableFromChange}
+          />
+        )}
 
-      {showAvailableFromPicker && (
-        <DateTimePicker
-          value={availableFrom}
-          mode="time"
-          display="default"
-          onChange={handleAvailableFromChange}
-        />
-      )}
-
-      {showAvailableToPicker && (
-        <DateTimePicker
-          value={availableTo}
-          mode="time"
-          display="default"
-          onChange={handleAvailableToChange}
-        />
-      )}
-    </ScrollView>
+        {showAvailableToPicker && (
+          <DateTimePicker
+            value={availableTo}
+            mode="time"
+            display="default"
+            onChange={handleAvailableToChange}
+          />
+        )}
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }
@@ -473,15 +484,25 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
   },
+  submitButtonDisabled: {
+    backgroundColor: colors.textTertiary,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: responsive.spacing.md,
+    marginTop: responsive.spacing.xs,
+  },
+  cancelButton: {
+    flex: 1,
+    borderColor: colors.border,
+  },
   submitButton: {
+    flex: 1,
     backgroundColor: colors.primary,
     paddingVertical: responsive.spacing.md,
     borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
-    marginTop: responsive.spacing.xs,
-  },
-  submitButtonDisabled: {
-    backgroundColor: colors.textTertiary,
+    marginTop: 0,
   },
   submitButtonText: {
     fontSize: responsive.fontSize.md,

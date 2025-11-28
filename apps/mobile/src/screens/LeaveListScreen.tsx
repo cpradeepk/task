@@ -77,7 +77,7 @@ export default function LeaveListScreen() {
     try {
       setLoading(true)
       const response = await fetch(
-        `http://localhost:3000/api/leaves/user/${currentUser.employeeId}`,
+        `https://task.amtariksha.com/api/leaves/user/${currentUser.employeeId}`,
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -142,8 +142,6 @@ export default function LeaveListScreen() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
   }, [])
-
-  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
 
   const renderLeaveItem = useCallback(
     ({ item }: { item: LeaveApplication }) => (

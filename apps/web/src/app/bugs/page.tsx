@@ -112,9 +112,26 @@ export default function BugsPage() {
     severities: Array<{ value: string; icon: string }>;
     categories: Array<{ value: string; icon: string }>;
   }>({
-    bugStatuses: [],
-    severities: [],
-    categories: []
+    bugStatuses: [
+      { value: 'New', icon: '🆕' },
+      { value: 'In Progress', icon: '🔄' },
+      { value: 'Resolved', icon: '✅' },
+      { value: 'Closed', icon: '🔒' },
+      { value: 'Reopened', icon: '↩️' }
+    ],
+    severities: [
+      { value: 'Critical', icon: '🔴' },
+      { value: 'High', icon: '🟠' },
+      { value: 'Medium', icon: '🟡' },
+      { value: 'Low', icon: '🟢' }
+    ],
+    categories: [
+      { value: 'UI', icon: '🎨' },
+      { value: 'Functionality', icon: '⚙️' },
+      { value: 'Performance', icon: '🚀' },
+      { value: 'Security', icon: '🔒' },
+      { value: 'Other', icon: '📦' }
+    ]
   })
 
   const router = useRouter()
@@ -215,9 +232,26 @@ export default function BugsPage() {
           }
 
           setSettingsData({
-            bugStatuses,
-            severities,
-            categories
+            bugStatuses: bugStatuses.length > 0 ? bugStatuses : [
+              { value: 'New', icon: '🆕' },
+              { value: 'In Progress', icon: '🔄' },
+              { value: 'Resolved', icon: '✅' },
+              { value: 'Closed', icon: '🔒' },
+              { value: 'Reopened', icon: '↩️' }
+            ],
+            severities: severities.length > 0 ? severities : [
+              { value: 'Critical', icon: '🔴' },
+              { value: 'High', icon: '🟠' },
+              { value: 'Medium', icon: '🟡' },
+              { value: 'Low', icon: '🟢' }
+            ],
+            categories: categories.length > 0 ? categories : [
+              { value: 'UI', icon: '🎨' },
+              { value: 'Functionality', icon: '⚙️' },
+              { value: 'Performance', icon: '🚀' },
+              { value: 'Security', icon: '🔒' },
+              { value: 'Other', icon: '📦' }
+            ]
           })
           console.log('✅ [Bugs] Settings loaded successfully via GraphQL')
         }

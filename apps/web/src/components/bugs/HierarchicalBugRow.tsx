@@ -161,6 +161,7 @@ export default function HierarchicalBugRow({
             )}
 
             <button
+              type="button"
               onClick={handleBugClick}
               className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
             >

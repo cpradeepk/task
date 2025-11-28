@@ -71,7 +71,7 @@ export default function LeaveDetailsScreen() {
   const fetchLeaveDetails = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:3000/api/leaves/${leaveId}`, {
+      const response = await fetch(`https://task.amtariksha.com/api/leaves/${leaveId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -115,7 +115,7 @@ export default function LeaveDetailsScreen() {
             try {
               setActionLoading(true)
               const response = await fetch(
-                `http://localhost:3000/api/leaves/${leaveId}/approve`,
+                `https://task.amtariksha.com/api/leaves/${leaveId}/approve`,
                 {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -162,7 +162,7 @@ export default function LeaveDetailsScreen() {
             try {
               setActionLoading(true)
               const response = await fetch(
-                `http://localhost:3000/api/leaves/${leaveId}/reject`,
+                `https://task.amtariksha.com/api/leaves/${leaveId}/reject`,
                 {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -203,7 +203,7 @@ export default function LeaveDetailsScreen() {
           onPress: async () => {
             try {
               setActionLoading(true)
-              const response = await fetch(`http://localhost:3000/api/leaves/${leaveId}`, {
+              const response = await fetch(`https://task.amtariksha.com/api/leaves/${leaveId}`, {
                 method: 'DELETE',
               })
 

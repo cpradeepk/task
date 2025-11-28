@@ -102,8 +102,21 @@ export default function AdminAttendancePage() {
 
   const formatTime = (timeString?: string) => {
     if (!timeString) return '-'
+
+    // Handle YYYY-MM-DD HH:mm:ss format from backend
+    if (timeString.includes(' ')) {
+      const [datePart, timePart] = timeString.split(' ')
+      if (timePart) {
+        const [hours, minutes] = timePart.split(':')
+        const date = new Date()
+        date.setHours(parseInt(hours))
+        date.setMinutes(parseInt(minutes))
+        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      }
+    }
+
     const date = new Date(timeString)
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
   }
 
   const getStatusColor = (status: string) => {

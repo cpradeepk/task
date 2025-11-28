@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, StyleSheet, Alert } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, useTheme, Surface } from 'react-native-paper'
-import { useQuery, useMutation } from '@apollo/client'
+import { useQuery, useMutation } from '@apollo/client/react'
 import { format } from 'date-fns'
 import { GET_ATTENDANCE, SIGN_IN, SIGN_OUT } from '../../config/graphql-queries'
 import { materialColors, materialSpacing, materialTypography } from '../../config/materialTheme'

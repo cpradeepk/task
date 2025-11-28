@@ -11,6 +11,7 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
+  TouchableOpacity,
 } from 'react-native'
 import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -117,7 +118,7 @@ export default function CreateLeaveScreen() {
         managerId: currentUser.managerId || null,
       }
 
-      const response = await fetch('http://localhost:3000/api/leaves', {
+      const response = await fetch('https://task.amtariksha.com/api/leaves', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(leaveData),
@@ -160,137 +161,147 @@ export default function CreateLeaveScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.form}>
-        {/* Leave Type */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Leave Type <Text style={styles.required}>*</Text>
-          </Text>
-          <View style={styles.typeGrid}>
-            {LEAVE_TYPES.map((type) => (
-              <TouchableOpacity
-                key={type}
-                style={[
-                  styles.typeButton,
-                  leaveType === type && styles.typeButtonActive,
-                ]}
-                onPress={() => setLeaveType(type)}
-              >
-                <Text
-                  style={[
-                    styles.typeButtonText,
-                    leaveType === type && styles.typeButtonTextActive,
-                  ]}
-                >
-                  {type}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Date Range */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Date Range <Text style={styles.required}>*</Text>
-          </Text>
-          <View style={styles.dateRow}>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowFromDatePicker(true)}
-            >
-              <Text style={styles.dateLabel}>From</Text>
-              <Text style={styles.dateValue}>{formatDate(fromDate)}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowToDatePicker(true)}
-            >
-              <Text style={styles.dateLabel}>To</Text>
-              <Text style={styles.dateValue}>{formatDate(toDate)}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.daysInfo}>
-            <Text style={styles.daysText}>
-              Total: {calculateDays()} day(s)
+          {/* Leave Type */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Leave Type <Text style={styles.required}>*</Text>
             </Text>
+            <View style={styles.typeGrid}>
+              {LEAVE_TYPES.map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.typeButton,
+                    leaveType === type && styles.typeButtonActive,
+                  ]}
+                  onPress={() => setLeaveType(type)}
+                >
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      leaveType === type && styles.typeButtonTextActive,
+                    ]}
+                  >
+                    {type}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Date Range */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Date Range <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={styles.dateRow}>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowFromDatePicker(true)}
+              >
+                <Text style={styles.dateLabel}>From</Text>
+                <Text style={styles.dateValue}>{formatDate(fromDate)}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowToDatePicker(true)}
+              >
+                <Text style={styles.dateLabel}>To</Text>
+                <Text style={styles.dateValue}>{formatDate(toDate)}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.daysInfo}>
+              <Text style={styles.daysText}>
+                Total: {calculateDays()} day(s)
+              </Text>
+            </View>
+          </View>
+
+          {/* Half Day Toggle */}
+          <View style={styles.field}>
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setIsHalfDay(!isHalfDay)}
+            >
+              <View style={[styles.checkbox, isHalfDay && styles.checkboxChecked]}>
+                {isHalfDay && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+              <Text style={styles.checkboxLabel}>Half Day</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Reason */}
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              Reason <Text style={styles.required}>*</Text>
+            </Text>
+            <TextInput
+              style={styles.textArea}
+              placeholder="Enter reason for leave..."
+              value={reason}
+              onChangeText={setReason}
+              multiline
+              numberOfLines={4}
+            />
+          </View>
+
+          {/* Emergency Contact */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Emergency Contact (Optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Phone number"
+              value={emergencyContact}
+              onChangeText={setEmergencyContact}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="outlined"
+              onPress={() => navigation.goBack()}
+              style={styles.cancelButton}
+              textColor={colors.textSecondary}
+            >
+              Cancel
+            </Button>
+            <TouchableOpacity
+              style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={submitting}
+            >
+              <Text style={styles.submitButtonText}>
+                {submitting ? 'Submitting...' : 'Submit'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Half Day Toggle */}
-        <View style={styles.field}>
-          <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => setIsHalfDay(!isHalfDay)}
-          >
-            <View style={[styles.checkbox, isHalfDay && styles.checkboxChecked]}>
-              {isHalfDay && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.checkboxLabel}>Half Day</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Reason */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Reason <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Enter reason for leave..."
-            value={reason}
-            onChangeText={setReason}
-            multiline
-            numberOfLines={4}
+        {/* Date Pickers */}
+        {showFromDatePicker && (
+          <DateTimePicker
+            value={fromDate}
+            mode="date"
+            display="default"
+            onChange={handleFromDateChange}
+            minimumDate={new Date()}
           />
-        </View>
+        )}
 
-        {/* Emergency Contact */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Emergency Contact (Optional)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Phone number"
-            value={emergencyContact}
-            onChangeText={setEmergencyContact}
-            keyboardType="phone-pad"
+        {showToDatePicker && (
+          <DateTimePicker
+            value={toDate}
+            mode="date"
+            display="default"
+            onChange={handleToDateChange}
+            minimumDate={fromDate}
           />
-        </View>
-
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={submitting}
-        >
-          <Text style={styles.submitButtonText}>
-            {submitting ? 'Submitting...' : 'Submit Application'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Date Pickers */}
-      {showFromDatePicker && (
-        <DateTimePicker
-          value={fromDate}
-          mode="date"
-          display="default"
-          onChange={handleFromDateChange}
-          minimumDate={new Date()}
-        />
-      )}
-
-      {showToDatePicker && (
-        <DateTimePicker
-          value={toDate}
-          mode="date"
-          display="default"
-          onChange={handleToDateChange}
-          minimumDate={fromDate}
-        />
-      )}
-    </ScrollView>
+        )}
+      </ScrollView>
     </KeyboardAvoidingView>
   )
 }
@@ -423,15 +434,25 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
   },
+  submitButtonDisabled: {
+    backgroundColor: colors.textTertiary,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: responsive.spacing.md,
+    marginTop: responsive.spacing.xs,
+  },
+  cancelButton: {
+    flex: 1,
+    borderColor: colors.border,
+  },
   submitButton: {
+    flex: 1,
     backgroundColor: colors.primary,
     paddingVertical: responsive.spacing.md,
     borderRadius: responsive.borderRadius.md,
     alignItems: 'center',
-    marginTop: responsive.spacing.xs,
-  },
-  submitButtonDisabled: {
-    backgroundColor: colors.textTertiary,
+    marginTop: 0,
   },
   submitButtonText: {
     fontSize: responsive.fontSize.md,

@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
       sql += ` AND (owner_user_id IS NULL OR owner_user_id = $1)`
       params.push(user.employeeId)
     } else {
-      // Only public topics
-      sql += ` AND owner_user_id IS NULL`
+      // Only public topics - explicitly exclude personal topics
+      sql += ` AND owner_user_id IS NULL AND is_personal = false`
     }
 
     sql += ` ORDER BY display_order ASC, created_at ASC`
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
            AND (fp.status = 'published' OR fp.status = 'approved')`,
           [topic.id]
         )
-        
+
         return {
           ...topic,
           postCount: parseInt(countResult[0]?.count || '0')
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Error creating feed topic:', error)
-    
+
     // Handle unique constraint violation
     if (error.code === '23505') {
       return NextResponse.json(
