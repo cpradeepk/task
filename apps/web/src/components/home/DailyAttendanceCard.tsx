@@ -214,13 +214,7 @@ export default function DailyAttendanceCard() {
                 </div>
 
                 <div>
-                    {/* System Admin Check - Hide Sign In/Out Buttons */}
-                    {attendance?.employeeId === 'AM-0001' ? (
-                        <div className="w-full flex items-center justify-center py-3 px-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 text-sm font-medium">
-                            <AlertCircle className="h-5 w-5 mr-2" />
-                            Attendance tracking disabled for System Admin
-                        </div>
-                    ) : isNotSignedIn ? (
+                    {isNotSignedIn ? (
                         <button
                             onClick={handleSignIn}
                             className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-[1.02]"

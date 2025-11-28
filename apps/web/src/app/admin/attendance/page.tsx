@@ -15,8 +15,6 @@ const ADMIN_DASHBOARD_QUERY = gql`
       usersAbsent
       usersOnLeave
       usersWFH
-      pendingLeaveRequests
-      pendingWFHRequests
       liveAttendance {
         userId
         userName
@@ -48,8 +46,6 @@ interface AdminDashboardData {
   usersAbsent: number
   usersOnLeave: number
   usersWFH: number
-  pendingLeaveRequests: number
-  pendingWFHRequests: number
   liveAttendance: AttendanceRecord[]
 }
 
@@ -60,6 +56,19 @@ export default function AdminAttendancePage() {
       pollInterval: 60000, // Refresh every minute
     }
   )
+
+  useEffect(() => {
+    // Check permissions
+    const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('currentUser') || 'null') : null
+    if (currentUser) {
+      const hasAccess = currentUser.isSystemAdmin === 1 ||
+        (currentUser.tabPermissions && currentUser.tabPermissions.includes('attendance_dashboard'))
+
+      if (!hasAccess) {
+        window.location.href = '/dashboard'
+      }
+    }
+  }, [])
 
   useEffect(() => {
     // Refresh data when page becomes visible
@@ -147,8 +156,8 @@ export default function AdminAttendancePage() {
             <p className="text-gray-600 mt-2">Real-time attendance monitoring and statistics</p>
           </div>
 
-          {/* Stats Grid - Part 1 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             {/* Live Status */}
             <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
               <div className="flex items-center justify-between">
@@ -192,10 +201,7 @@ export default function AdminAttendancePage() {
                 <Plane className="h-12 w-12 text-yellow-500" />
               </div>
             </div>
-          </div>
 
-          {/* Stats Grid - Part 2 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* WFH */}
             <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
               <div className="flex items-center justify-between">
@@ -204,28 +210,6 @@ export default function AdminAttendancePage() {
                   <p className="text-3xl font-bold text-gray-900 mt-2">{dashboardData.usersWFH}</p>
                 </div>
                 <Home className="h-12 w-12 text-purple-500" />
-              </div>
-            </div>
-
-            {/* Pending Leave Requests */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Leave Requests</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{dashboardData.pendingLeaveRequests}</p>
-                </div>
-                <Clock className="h-12 w-12 text-orange-500" />
-              </div>
-            </div>
-
-            {/* Pending WFH Requests */}
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-500">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending WFH Requests</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{dashboardData.pendingWFHRequests}</p>
-                </div>
-                <Clock className="h-12 w-12 text-indigo-500" />
               </div>
             </div>
           </div>
