@@ -108,7 +108,6 @@ export default function Navbar() {
       icon: Shield,
       key: 'admin_group',
       children: [
-        { label: 'Attendance Dashboard', href: '/admin/attendance', icon: BarChart3, key: 'attendance_dashboard' },
         { label: 'Projects', href: '/projects', icon: FolderKanban, key: 'projects' },
         { label: 'Master Tasks', href: '/master-tasks', icon: ListTodo, key: 'master_tasks' },
         { label: 'Master Development', href: '/master-development', icon: Code, key: 'master_development' },

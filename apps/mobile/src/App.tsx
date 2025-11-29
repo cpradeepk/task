@@ -314,6 +314,7 @@ function FeedScreen({ navigation }: any) {
 function BottomTabNavigator({ toggleDrawer }: { toggleDrawer: () => void }) {
   return (
     <Tab.Navigator
+      initialRouteName="HomeTab"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,

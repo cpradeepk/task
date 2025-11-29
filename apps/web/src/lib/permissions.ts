@@ -36,9 +36,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
 export function hasTabAccess(user: User | null | undefined, tab: string): boolean {
     if (!user) return false
 
-    // System admins have access to everything
-    if (user.isSystemAdmin === 1) return true
-
     // Check for user-specific overrides first
     if (user.tabPermissions && user.tabPermissions.length > 0) {
         return user.tabPermissions.includes(tab)
@@ -54,9 +51,6 @@ export function hasTabAccess(user: User | null | undefined, tab: string): boolea
  */
 export function getUserAccessibleTabs(user: User | null | undefined): string[] {
     if (!user) return []
-
-    // System admins have access to all tabs
-    if (user.isSystemAdmin === 1) return AVAILABLE_TABS.map(t => t.key)
 
     // Return user-specific overrides if they exist
     if (user.tabPermissions && user.tabPermissions.length > 0) {

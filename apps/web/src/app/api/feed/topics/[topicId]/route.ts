@@ -27,15 +27,16 @@ export async function PATCH(
       )
     }
 
-    // Check if user is system admin
+    // Check if user has feed_topics permission
     const userResult = await query(
-      `SELECT is_system_admin FROM users WHERE employee_id = $1`,
+      `SELECT tab_permissions FROM users WHERE employee_id = $1`,
       [user.employeeId]
     )
 
-    if (!userResult[0] || userResult[0].is_system_admin !== 1) {
+    const tabPermissions = userResult[0]?.tab_permissions || []
+    if (!tabPermissions.includes('feed_topics')) {
       return NextResponse.json(
-        { success: false, error: 'Forbidden: Admin access required' },
+        { success: false, error: 'Forbidden: Feed Topics permission required' },
         { status: 403 }
       )
     }
@@ -96,7 +97,7 @@ export async function PATCH(
     })
   } catch (error: any) {
     console.error('Error updating feed topic:', error)
-    
+
     // Handle unique constraint violation
     if (error.code === '23505') {
       return NextResponse.json(
@@ -130,15 +131,16 @@ export async function DELETE(
       )
     }
 
-    // Check if user is system admin
+    // Check if user has feed_topics permission
     const userResult = await query(
-      `SELECT is_system_admin FROM users WHERE employee_id = $1`,
+      `SELECT tab_permissions FROM users WHERE employee_id = $1`,
       [user.employeeId]
     )
 
-    if (!userResult[0] || userResult[0].is_system_admin !== 1) {
+    const tabPermissions = userResult[0]?.tab_permissions || []
+    if (!tabPermissions.includes('feed_topics')) {
       return NextResponse.json(
-        { success: false, error: 'Forbidden: Admin access required' },
+        { success: false, error: 'Forbidden: Feed Topics permission required' },
         { status: 403 }
       )
     }

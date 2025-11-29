@@ -23,26 +23,38 @@ export const apiRequest = async <T = any>(
   try {
     // Get auth token
     const token = await AsyncStorage.getItem('userToken')
-    
+
     // Build headers
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
     }
-    
+
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }
-    
+
     // Make request
     const response = await fetch(buildApiUrl(endpoint), {
       ...options,
       headers,
     })
-    
+
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      console.warn('Unauthorized access, clearing token...')
+      await AsyncStorage.removeItem('userToken')
+      // You might want to trigger a global event or use a navigation service here
+      // to redirect to login, but clearing the token is the first step.
+      return {
+        success: false,
+        error: 'Unauthorized',
+      }
+    }
+
     // Parse response
     const data = await response.json()
-    
+
     return data
   } catch (error) {
     console.error('API Request Error:', error)

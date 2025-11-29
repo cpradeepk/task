@@ -40,6 +40,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
       { screen: 'Dashboard', label: 'Dashboard', icon: 'view-dashboard' },
     ]
 
+
     switch (currentUser.role) {
       case 'amtarikshian':
         return [
@@ -82,7 +83,6 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
   }
 
   const adminItems: NavigationItem[] = [
-    { screen: 'AttendanceDashboard', label: 'Attendance Dashboard', icon: 'chart-bar' },
     { screen: 'Projects', label: 'Projects', icon: 'briefcase' },
     { screen: 'MasterTasks', label: 'Master Tasks', icon: 'checkbox-marked-circle' },
     { screen: 'MasterBugs', label: 'Master Development', icon: 'bug' },
@@ -159,7 +159,11 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
                   title={item.label}
                   left={(props) => <List.Icon {...props} icon={item.icon} color={materialColors.primary} />}
                   onPress={() => {
-                    navigation.navigate(item.screen)
+                    if (item.screen === 'Dashboard') {
+                      navigation.navigate('Main', { screen: 'HomeTab' })
+                    } else {
+                      navigation.navigate(item.screen)
+                    }
                     onClose()
                   }}
                   style={styles.navItem}

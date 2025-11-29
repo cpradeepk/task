@@ -61,8 +61,7 @@ export default function AdminAttendancePage() {
     // Check permissions
     const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('currentUser') || 'null') : null
     if (currentUser) {
-      const hasAccess = currentUser.isSystemAdmin === 1 ||
-        (currentUser.tabPermissions && currentUser.tabPermissions.includes('attendance_dashboard'))
+      const hasAccess = currentUser.tabPermissions && currentUser.tabPermissions.includes('attendance_dashboard')
 
       if (!hasAccess) {
         window.location.href = '/dashboard'

@@ -65,15 +65,29 @@ export default function WFHListScreen() {
   const fetchWFHApplications = useCallback(async () => {
     try {
       setLoading(true)
+      // Use the correct API endpoint with /api prefix
       const response = await fetch(
-        buildApiUrl(`/wfh/user/${currentUser.employeeId}`),
+        buildApiUrl(`/api/wfh/user/${currentUser.employeeId}`),
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         }
       )
 
-      const result = await response.json()
+      // Check if response is ok before parsing
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const text = await response.text()
+      let result
+      try {
+        result = JSON.parse(text)
+      } catch (e) {
+        console.error('Failed to parse WFH response as JSON:', text.substring(0, 100))
+        throw new Error('Invalid server response')
+      }
+
       if (result.success) {
         let filteredWFH = result.data
         if (selectedStatus !== 'All') {

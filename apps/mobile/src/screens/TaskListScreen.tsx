@@ -188,7 +188,7 @@ export default function TaskListScreen({ navigation }: any) {
   const renderTask = ({ item }: { item: any }) => {
     const projectName = item.project?.projectName || ''
     const assigneeNames = item.assignedToUsers?.map((u: any) => u.name).join(', ') ||
-                         getAssigneeNames(item.assignedTo)
+      getAssigneeNames(item.assignedTo)
 
     return (
       <Card
@@ -429,7 +429,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     color: materialColors.textSecondary,
   },
   statusChip: {
-    height: 24,
+    // height: 24, // Removed fixed height to prevent clipping
   },
   statusText: {
     ...materialTypography.labelSmall,
@@ -458,7 +458,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     marginBottom: materialSpacing.xs,
   },
   priorityChip: {
-    height: 24,
+    // height: 24, // Removed fixed height to prevent clipping
   },
   priorityText: {
     ...materialTypography.labelSmall,
@@ -484,7 +484,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   fab: {
     position: 'absolute',
     right: materialSpacing.lg,
-    bottom: materialSpacing.lg,
+    bottom: materialSpacing.xl, // Increased bottom margin
     backgroundColor: materialColors.primary,
   },
 })

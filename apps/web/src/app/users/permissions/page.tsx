@@ -49,7 +49,7 @@ export default function PermissionsPage() {
             return
         }
         // Only admins should access this page
-        if (user.role !== 'admin' && user.isSystemAdmin !== 1) {
+        if (user.role !== 'admin') {
             router.push('/home')
             return
         }
@@ -102,9 +102,6 @@ export default function PermissionsPage() {
 
     // Check if a user has access to a tab (considering pending changes)
     const hasAccess = (user: UserWithPermissions, tabKey: string) => {
-        // System admins always have access
-        if (user.isSystemAdmin === 1) return true
-
         // Check pending changes first
         if (pendingChanges[user.employeeId]) {
             return pendingChanges[user.employeeId].includes(tabKey)
@@ -309,7 +306,6 @@ export default function PermissionsPage() {
                                 ) : (
                                     filteredUsers.map((user) => {
                                         const isModified = !!pendingChanges[user.employeeId]
-                                        const isSystemAdmin = user.isSystemAdmin === 1
 
                                         return (
                                             <tr key={user.employeeId} className={`hover:bg-gray-50 transition-colors ${isModified ? 'bg-amber-50/30' : ''}`}>
@@ -322,13 +318,13 @@ export default function PermissionsPage() {
                                                             <div className="text-sm font-medium text-gray-900">{user.name}</div>
                                                             <div className="text-xs text-gray-500">{user.email}</div>
                                                             <div className="flex items-center mt-1">
-                                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin' || user.isSystemAdmin === 1
+                                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin'
                                                                     ? 'bg-purple-100 text-purple-800'
                                                                     : 'bg-green-100 text-green-800'
                                                                     }`}>
                                                                     {user.role}
                                                                 </span>
-                                                                {isCustomized(user) && !isSystemAdmin && (
+                                                                {isCustomized(user) && (
                                                                     <span className="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                                                         Custom
                                                                     </span>
@@ -347,10 +343,8 @@ export default function PermissionsPage() {
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={checked}
-                                                                    disabled={isSystemAdmin} // System admins always have access
                                                                     onChange={() => handleTogglePermission(user.employeeId, tab.key, user.tabPermissions, user.role)}
-                                                                    className={`h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer ${isSystemAdmin ? 'opacity-50 cursor-not-allowed' : ''
-                                                                        }`}
+                                                                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer"
                                                                 />
                                                             </div>
                                                         </td>

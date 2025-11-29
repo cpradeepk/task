@@ -226,7 +226,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
         isTodayTask: user.isTodayTask,
         warningCount: user.warningCount,
         role: user.role,
-        password: user.password,
+        password: '', // Don't populate password field when editing
         status: user.status,
         tabPermissions: user.tabPermissions || []
       })
@@ -311,8 +311,10 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
 
     try {
       // Validation
+      // For new users, password is required. For editing, password is optional.
+      const isEditMode = !!user
       if (!formData.employeeId || !formData.name || !formData.email ||
-        !formData.phone || !formData.department || !formData.password) {
+        !formData.phone || !formData.department || (!isEditMode && !formData.password)) {
         throw new Error('Please fill in all required fields')
       }
 
@@ -335,6 +337,8 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
 
       const userData = {
         ...formData,
+        // Only include password if it's provided (for new users or when changing password)
+        ...(formData.password ? { password: formData.password } : {}),
         id: user?.employeeId || formData.employeeId,
         createdAt: user?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -625,17 +629,17 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             {/* Password and Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Password *
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password {user ? '(leave empty to keep current)' : '*'}
                 </label>
                 <input
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  required
-                  className="input-field"
-                  placeholder="Enter password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required={!user}
+                  placeholder={user ? "Enter new password (optional)" : "Enter password"}
                 />
               </div>
 
