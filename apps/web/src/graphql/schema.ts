@@ -217,6 +217,23 @@ export const typeDefs = `#graphql
     user: User
   }
 
+  type AttendanceRequest {
+    id: ID!
+    userId: String!
+    attendanceDate: String!
+    requestType: String!
+    originalTime: String
+    newTime: String!
+    reason: String
+    status: String!
+    reviewedBy: String
+    reviewedAt: String
+    createdAt: String!
+    updatedAt: String!
+    user: User
+    reviewer: User
+  }
+
   type HomeDashboardData {
     userWorkHours: String
     membersOnLeave: [UserLeaveStatus!]!
