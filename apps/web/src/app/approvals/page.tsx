@@ -1,6 +1,4 @@
-'use client'
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, getTeamMembers } from '@/lib/auth'
 import { hasTabAccess } from '@/lib/permissions'
@@ -30,71 +28,11 @@ export default function Approvals() {
   const [hasLoadingError, setHasLoadingError] = useState(false)
   const [error, setError] = useState<string>('')
   const [lastLoadTime, setLastLoadTime] = useState(0)
+  const [hasCheckedManager, setHasCheckedManager] = useState(false)
   const router = useRouter()
   const currentUser = getCurrentUser()
 
-  useEffect(() => {
-    if (!currentUser) {
-      router.push('/')
-      return
-    }
-
-    // Check if user has permission to access approvals page
-    if (!hasTabAccess(currentUser, 'approvals')) {
-      // Redirect to dashboard with access denied
-      router.push('/dashboard')
-      return
-    }
-
-    checkManagerStatus()
-  }, [currentUser, router])
-
-  const checkManagerStatus = async () => {
-    if (!currentUser) return
-
-    try {
-      // Check if user has team members (is a manager)
-      const response = await fetch(`/api/users/team/${currentUser.employeeId}`)
-      if (response.ok) {
-        const result = await response.json()
-        const team = result.success ? result.data : []
-        const hasTeam = Array.isArray(team) && team.length > 0
-        setIsManager(hasTeam || currentUser.role === 'top_management' || currentUser.role === 'admin')
-
-        if (hasTeam) {
-          setTeamMembers(team.map((member: any) => member.employeeId))
-        }
-
-        if (hasTeam || currentUser.role === 'top_management' || currentUser.role === 'admin') {
-          await loadApplications()
-        }
-      } else {
-        // If API fails, check role only
-        setIsManager(currentUser.role === 'top_management' || currentUser.role === 'admin')
-        if (currentUser.role === 'top_management' || currentUser.role === 'admin') {
-          await loadApplications()
-        }
-      }
-    } catch (error) {
-      console.error('Error checking manager status:', error)
-      // Fallback to role-based check
-      setIsManager(currentUser.role === 'top_management' || currentUser.role === 'admin')
-      if (currentUser.role === 'top_management' || currentUser.role === 'admin') {
-        await loadApplications()
-      }
-    }
-
-    setIsLoading(false)
-  }
-
-  const forceRefresh = async () => {
-    setLastLoadTime(0) // Reset debounce
-    setIsLoadingLeaves(true)
-    setIsLoadingWFH(true)
-    await loadApplications()
-  }
-
-  const loadApplications = async () => {
+  const loadApplications = useCallback(async () => {
     // Prevent excessive API calls - minimum 60 seconds between loads
     const now = Date.now()
     if (now - lastLoadTime < 60000) {
@@ -206,6 +144,68 @@ export default function Approvals() {
       setLeaveApplications([])
       setWFHApplications([])
     }
+  }, [lastLoadTime, teamMembers, currentUser])
+
+  const checkManagerStatus = useCallback(async () => {
+    if (!currentUser || hasCheckedManager) return
+
+    try {
+      // Check if user has team members (is a manager)
+      const response = await fetch(`/api/users/team/${currentUser.employeeId}`)
+      if (response.ok) {
+        const result = await response.json()
+        const team = result.success ? result.data : []
+        const hasTeam = Array.isArray(team) && team.length > 0
+        setIsManager(hasTeam || currentUser.role === 'top_management' || currentUser.role === 'admin')
+
+        if (hasTeam) {
+          setTeamMembers(team.map((member: any) => member.employeeId))
+        }
+
+        if (hasTeam || currentUser.role === 'top_management' || currentUser.role === 'admin') {
+          await loadApplications()
+        }
+      } else {
+        // If API fails, check role only
+        setIsManager(currentUser.role === 'top_management' || currentUser.role === 'admin')
+        if (currentUser.role === 'top_management' || currentUser.role === 'admin') {
+          await loadApplications()
+        }
+      }
+    } catch (error) {
+      console.error('Error checking manager status:', error)
+      // Fallback to role-based check
+      setIsManager(currentUser.role === 'top_management' || currentUser.role === 'admin')
+      if (currentUser.role === 'top_management' || currentUser.role === 'admin') {
+        await loadApplications()
+      }
+    }
+
+    setIsLoading(false)
+    setHasCheckedManager(true)
+  }, [currentUser, hasCheckedManager, loadApplications])
+
+  useEffect(() => {
+    if (!currentUser) {
+      router.push('/')
+      return
+    }
+
+    // Check if user has permission to access approvals page
+    if (!hasTabAccess(currentUser, 'approvals')) {
+      // Redirect to dashboard with access denied
+      router.push('/dashboard')
+      return
+    }
+
+    checkManagerStatus()
+  }, [currentUser, router, checkManagerStatus])
+
+  const forceRefresh = async () => {
+    setLastLoadTime(0) // Reset debounce
+    setIsLoadingLeaves(true)
+    setIsLoadingWFH(true)
+    await loadApplications()
   }
 
   const openApprovalModal = (id: string, type: 'leave' | 'wfh', action: 'Approved' | 'Rejected', applicantName: string) => {
@@ -445,8 +445,8 @@ export default function Approvals() {
             <button
               onClick={() => setActiveTab('leave')}
               className={`py-2 px-1 border-b-2 font-medium text-sm tab-button ${activeTab === 'leave'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
                 }`}
             >
               Leave Applications ({pendingLeaves.length})
@@ -454,8 +454,8 @@ export default function Approvals() {
             <button
               onClick={() => setActiveTab('wfh')}
               className={`py-2 px-1 border-b-2 font-medium text-sm tab-button ${activeTab === 'wfh'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
                 }`}
             >
               WFH Applications ({pendingWFHs.length})
@@ -655,8 +655,8 @@ export default function Approvals() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className={`p-2 rounded-full ${approvalData.action === 'Approved'
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-red-100 text-red-600'
+                    ? 'bg-green-100 text-green-600'
+                    : 'bg-red-100 text-red-600'
                     }`}>
                     {approvalData.action === 'Approved' ? (
                       <Check className="h-5 w-5" />
@@ -700,8 +700,8 @@ export default function Approvals() {
                   <span className="flex items-center space-x-2">
                     <span>Remarks</span>
                     <span className={`text-xs px-2 py-1 rounded-full ${approvalData.action === 'Rejected'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-gray-100 text-gray-600'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-600'
                       }`}>
                       {approvalData.action === 'Rejected' ? 'Required' : 'Optional'}
                     </span>
@@ -738,8 +738,8 @@ export default function Approvals() {
                   onClick={processApproval}
                   disabled={isProcessing || (approvalData.action === 'Rejected' && !approvalRemarks.trim())}
                   className={`flex-1 px-4 py-2.5 rounded-lg text-white font-medium transition-colors flex items-center justify-center space-x-2 ${approvalData.action === 'Approved'
-                      ? 'bg-green-600 hover:bg-green-700 disabled:bg-green-400'
-                      : 'bg-red-600 hover:bg-red-700 disabled:bg-red-400'
+                    ? 'bg-green-600 hover:bg-green-700 disabled:bg-green-400'
+                    : 'bg-red-600 hover:bg-red-700 disabled:bg-red-400'
                     }`}
                 >
                   {isProcessing ? (
