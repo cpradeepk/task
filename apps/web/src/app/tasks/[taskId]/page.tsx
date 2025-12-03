@@ -309,7 +309,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     try {
       setIsLoadingRelatedTasks(true)
       const taskIds = task.relatedTasks.split(',').map(id => id.trim()).filter(Boolean)
-      
+
       const relatedTasks = await Promise.all(
         taskIds.map(async (id) => {
           try {
@@ -795,7 +795,25 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                   </div>
                 </div>
 
-          
+                {/* Metadata */}
+                <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-gray-500">
+                  <div>
+                    <span className="font-medium block mb-1">Created</span>
+                    <span>{new Date(task.createdAt).toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium block mb-1">Updated</span>
+                    <span>{new Date(task.updatedAt).toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium block mb-1">Creator</span>
+                    <div className="flex items-center gap-1">
+                      {task.assignedByUser?.name || task.assignedBy}
+                    </div>
+                  </div>
+                </div>
+
+
 
                 {/* Remarks */}
                 {task.remarks && (
@@ -1153,11 +1171,10 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                     <div className="ml-2 mt-1">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${
-                            (task.actualHours || 0) > task.estimatedHours
+                          className={`h-2 rounded-full ${(task.actualHours || 0) > task.estimatedHours
                               ? 'bg-red-500'
                               : 'bg-blue-500'
-                          }`}
+                            }`}
                           style={{
                             width: `${Math.min(((task.actualHours || 0) / task.estimatedHours) * 100, 100)}%`
                           }}

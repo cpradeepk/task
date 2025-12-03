@@ -145,6 +145,21 @@ export default function HierarchicalBugRow({
               )}
               <ProjectDisplay project={(bug as any).project} />
             </div>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-2 border-t border-gray-100 pt-2">
+              <span title={new Date(bug.createdAt).toLocaleString()}>
+                Created: {new Date(bug.createdAt).toLocaleDateString()}
+              </span>
+              <span title={new Date(bug.updatedAt).toLocaleString()}>
+                Updated: {new Date(bug.updatedAt).toLocaleDateString()}
+              </span>
+              {bug.reportedBy && (
+                <div className="flex items-center space-x-1">
+                  <span>Reporter:</span>
+                  <UserName employeeId={bug.reportedBy} />
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="ml-4 flex items-center space-x-2">

@@ -111,19 +111,27 @@ export default function AdminAttendancePage() {
   const formatTime = (timeString?: string) => {
     if (!timeString) return '-'
 
+    let date: Date
+
     // Handle YYYY-MM-DD HH:mm:ss format from backend
     if (timeString.includes(' ')) {
       const [datePart, timePart] = timeString.split(' ')
       if (timePart) {
         const [hours, minutes] = timePart.split(':')
-        const date = new Date()
+        date = new Date()
         date.setHours(parseInt(hours))
         date.setMinutes(parseInt(minutes))
-        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      } else {
+        date = new Date(timeString)
       }
+    } else {
+      date = new Date(timeString)
     }
 
-    const date = new Date(timeString)
+    // Add 5 hours and 30 minutes
+    date.setHours(date.getHours() + 5)
+    date.setMinutes(date.getMinutes() + 30)
+
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
   }
 

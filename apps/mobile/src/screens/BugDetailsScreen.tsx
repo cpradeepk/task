@@ -335,6 +335,28 @@ export default function BugDetailsScreen() {
           </Card.Content>
         </Card>
 
+        {/* Metadata Card */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Metadata</Text>
+            <Divider style={styles.divider} />
+            <View style={styles.infoGrid}>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Created</Text>
+                <Text style={styles.infoValue}>{new Date(bug.createdAt).toLocaleString()}</Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Updated</Text>
+                <Text style={styles.infoValue}>{new Date(bug.updatedAt).toLocaleString()}</Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Reporter</Text>
+                <Text style={styles.infoValue}>{bug.reportedBy}</Text>
+              </View>
+            </View>
+          </Card.Content>
+        </Card>
+
         {/* Subtasks Card */}
         <Card style={styles.sectionCard} elevation={1}>
           <Card.Content>

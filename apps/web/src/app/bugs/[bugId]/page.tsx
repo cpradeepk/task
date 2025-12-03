@@ -13,6 +13,7 @@ import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
 import { Bug, User } from '@/lib/types'
 import { getBugById, updateBug, canEditBug, canCommentOnBug } from '@/lib/bugService'
+import { getCurrentDateTime } from '@/lib/datetime-utils'
 import UnifiedTimeline from '@/components/UnifiedTimeline'
 import BugEditModal from '@/components/bugs/BugEditModal'
 import BugChecklistManager from '@/components/bugs/BugChecklistManager'
@@ -450,7 +451,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         assignedTo: newAssignee,
         assignedBy: currentUser.employeeId,
         status: bug.status === 'New' ? 'In Progress' : bug.status,
-        updatedAt: new Date().toISOString()
+        updatedAt: getCurrentDateTime()
       }
 
       // Update UI immediately
@@ -483,12 +484,12 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
       // If marking as resolved, set resolved date
       if (newStatus === 'Resolved' && bug.status !== 'Resolved') {
-        updates.resolvedDate = new Date().toISOString()
+        updates.resolvedDate = getCurrentDateTime()
       }
 
       // If marking as closed, set closed date
       if (newStatus === 'Closed' && bug.status !== 'Closed') {
-        updates.closedDate = new Date().toISOString()
+        updates.closedDate = getCurrentDateTime()
       }
 
       // Update UI immediately
@@ -574,7 +575,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
       const updates: Partial<Bug> = {
         actualHours: newTotalHours,
-        updatedAt: new Date().toISOString()
+        updatedAt: getCurrentDateTime()
       }
 
       // If using timer hours, reset timer state
@@ -658,7 +659,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
       const updates: Partial<Bug> = {
         estimatedHours: hours,
-        updatedAt: new Date().toISOString()
+        updatedAt: getCurrentDateTime()
       }
 
       // Update UI immediately
@@ -687,7 +688,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     try {
       const updates: Partial<Bug> = {
         category: newCategory as Bug['category'],
-        updatedAt: new Date().toISOString()
+        updatedAt: getCurrentDateTime()
       }
 
       // Update UI immediately
@@ -714,7 +715,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     try {
       const updates: Partial<Bug> = {
         platform: newPlatform as Bug['platform'],
-        updatedAt: new Date().toISOString()
+        updatedAt: getCurrentDateTime()
       }
 
       // Update UI immediately
@@ -741,7 +742,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     try {
       const updates: Partial<Bug> = {
         environment: newEnvironment as Bug['environment'],
-        updatedAt: new Date().toISOString()
+        updatedAt: getCurrentDateTime()
       }
 
       // Update UI immediately
@@ -768,7 +769,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     try {
       const updates: Partial<Bug> = {
         startDate: newStartDate ? new Date(newStartDate).toISOString() : undefined,
-        updatedAt: new Date().toISOString()
+        updatedAt: getCurrentDateTime()
       }
 
       // Update UI immediately
@@ -795,7 +796,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     try {
       const updates: Partial<Bug> = {
         endDate: newEndDate ? new Date(newEndDate).toISOString() : undefined,
-        updatedAt: new Date().toISOString()
+        updatedAt: getCurrentDateTime()
       }
 
       // Update UI immediately
@@ -880,7 +881,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
   // Calculate permissions after we know bug exists
   const isAdminOrTopManagement = currentUser.role === 'admin' || currentUser.role === 'top_management'
-  const isCanCommentAssign = currentUser.role === 'management' || currentUser.role === 'top_management'|| currentUser.role === 'amtarikshian'
+  const isCanCommentAssign = currentUser.role === 'management' || currentUser.role === 'top_management' || currentUser.role === 'amtarikshian'
   const canEdit = canEditBug(bug, currentUser.employeeId, isCanCommentAssign)
   const canComment = canCommentOnBug(bug, currentUser.employeeId, isCanCommentAssign)
   const canAssign = isCanCommentAssign || bug.reportedBy === currentUser.employeeId || bug.assignedTo === currentUser.employeeId
@@ -979,7 +980,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 )}
               </div>
             </div>
-            </div>
+          </div>
 
           <div className="flex flex-wrap items-center gap-3 lg:justify-end">
             {bug.status === 'Resolved' && canEdit && (
@@ -1262,6 +1263,24 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                     </div>
                   )
                 })()}
+              </div>
+
+              {/* Metadata */}
+              <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-gray-500">
+                <div>
+                  <span className="font-medium block mb-1">Created</span>
+                  <span>{new Date(bug.createdAt).toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="font-medium block mb-1">Updated</span>
+                  <span>{new Date(bug.updatedAt).toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="font-medium block mb-1">Reporter</span>
+                  <div className="flex items-center gap-1">
+                    <UserName employeeId={bug.reportedBy} />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1603,11 +1622,10 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                     <div className="ml-2 mt-1">
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${
-                            (bug.actualHours || 0) > bug.estimatedHours
-                              ? 'bg-red-500'
-                              : 'bg-blue-500'
-                          }`}
+                          className={`h-2 rounded-full ${(bug.actualHours || 0) > bug.estimatedHours
+                            ? 'bg-red-500'
+                            : 'bg-blue-500'
+                            }`}
                           style={{
                             width: `${Math.min(((bug.actualHours || 0) / bug.estimatedHours) * 100, 100)}%`
                           }}
@@ -1747,21 +1765,19 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                                 <span className={`text-sm font-medium ${isBug ? 'text-red-600' : 'text-blue-600'}`}>
                                   {itemId}
                                 </span>
-                                <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                  item.status === 'New' || item.status === 'To Do' ? 'bg-blue-100 text-blue-700' :
+                                <span className={`px-2 py-0.5 text-xs rounded-full ${item.status === 'New' || item.status === 'To Do' ? 'bg-blue-100 text-blue-700' :
                                   item.status === 'In Progress' ? 'bg-yellow-100 text-yellow-700' :
-                                  item.status === 'Resolved' || item.status === 'Done' ? 'bg-green-100 text-green-700' :
-                                  item.status === 'Closed' ? 'bg-gray-100 text-gray-700' :
-                                  'bg-red-100 text-red-700'
-                                }`}>
+                                    item.status === 'Resolved' || item.status === 'Done' ? 'bg-green-100 text-green-700' :
+                                      item.status === 'Closed' ? 'bg-gray-100 text-gray-700' :
+                                        'bg-red-100 text-red-700'
+                                  }`}>
                                   {item.status}
                                 </span>
                                 {isBug && item.severity && (
-                                  <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                    item.severity === 'Critical' ? 'bg-red-100 text-red-700' :
+                                  <span className={`px-2 py-0.5 text-xs rounded-full ${item.severity === 'Critical' ? 'bg-red-100 text-red-700' :
                                     item.severity === 'Major' ? 'bg-orange-100 text-orange-700' :
-                                    'bg-yellow-100 text-yellow-700'
-                                  }`}>
+                                      'bg-yellow-100 text-yellow-700'
+                                    }`}>
                                     {item.severity}
                                   </span>
                                 )}

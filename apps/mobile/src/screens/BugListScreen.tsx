@@ -195,6 +195,11 @@ export default function BugListScreen() {
             <Text style={styles.metaText}>•</Text>
             <Text style={styles.metaText}>👤 {assignedToName}</Text>
           </View>
+          <View style={styles.bugMeta}>
+            <Text style={styles.metaText}>📅 {new Date(item.createdAt).toLocaleDateString()}</Text>
+            <Text style={styles.metaText}>•</Text>
+            <Text style={styles.metaText}>🔄 {new Date(item.updatedAt).toLocaleDateString()}</Text>
+          </View>
         </Card.Content>
       </Card>
     )

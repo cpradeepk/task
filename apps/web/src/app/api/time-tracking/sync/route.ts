@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth-server'
 import { updateTask } from '@/lib/db/tasks'
 import { updateBug } from '@/lib/db/bugs'
+import { getCurrentDateTime } from '@/lib/datetime-utils'
 
 interface TimerSession {
   startTime: number
@@ -84,10 +85,10 @@ export async function POST(request: NextRequest) {
     // Prepare update data
     const updates: any = {
       timerState: state,
-      timerStartTime: state === 'running' ? new Date().toISOString() : null,
+      timerStartTime: state === 'running' ? getCurrentDateTime() : null,
       timerTotalTime: totalTime,
       timerSessions: JSON.stringify(sessions),
-      updatedAt: new Date().toISOString()
+      updatedAt: getCurrentDateTime()
     }
 
     // Only update actualHours when timer is stopped (final sync)

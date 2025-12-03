@@ -90,11 +90,10 @@ export default function HierarchicalTaskRow({
     <>
       <div
         style={indentStyle}
-        className={`rounded-xl p-6 border shadow-sm hover:shadow-md transition-all duration-200 ${
-          isSupportTask
+        className={`rounded-xl p-6 border shadow-sm hover:shadow-md transition-all duration-200 ${isSupportTask
             ? 'bg-amber-50 border-amber-200 hover:border-amber-300'
             : 'bg-white border-gray-200 hover:border-gray-300'
-        }`}
+          }`}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -113,7 +112,7 @@ export default function HierarchicalTaskRow({
                   )}
                 </button>
               )}
-              
+
               <span className="font-mono text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-lg font-medium">
                 {task.taskId}
               </span>
@@ -149,6 +148,21 @@ export default function HierarchicalTaskRow({
                 <div className="flex items-center">
                   <span className="text-gray-500 mr-1">Support:</span>
                   <SupportTeam supportIds={task.support} showIcon={false} />
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-2 border-t border-gray-100 pt-2">
+              <span title={new Date(task.createdAt).toLocaleString()}>
+                Created: {new Date(task.createdAt).toLocaleDateString()}
+              </span>
+              <span title={new Date(task.updatedAt).toLocaleString()}>
+                Updated: {new Date(task.updatedAt).toLocaleDateString()}
+              </span>
+              {task.assignedBy && (
+                <div className="flex items-center space-x-1">
+                  <span>Creator:</span>
+                  <span className="font-medium">{task.assignedByUser?.name || task.assignedBy}</span>
                 </div>
               )}
             </div>

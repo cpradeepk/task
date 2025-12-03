@@ -14,6 +14,7 @@ import { pushTokenMutations } from './push-token-resolvers'
 import { parseMentions, storeMentions } from '@/lib/mention-parser'
 import { createCommentNotification, createReactionNotification, createPostStatusNotification } from '@/lib/notification-helper'
 import { format, differenceInMinutes, startOfMonth, endOfMonth, startOfDay, endOfDay, addMinutes } from 'date-fns'
+import { getCurrentDateTime } from '@/lib/datetime-utils'
 
 // Helper to get current IST time as Date object (for logic comparisons)
 const getISTDate = (date: Date = new Date()) => addMinutes(date, 330) // UTC + 5:30
@@ -244,9 +245,22 @@ export const resolvers = {
           query += ` AND priority = $${paramIndex++}`
           params.push(filters.priority)
         }
+        if (filters.projectId) {
+          query += ` AND project_id = $${paramIndex++}`
+          params.push(filters.projectId)
+        }
+        if (filters.subprojectId) {
+          query += ` AND subproject_id = $${paramIndex++}`
+          params.push(filters.subprojectId)
+        }
 
-        // ✅ FIXED: Stable sort order
-        query += ' ORDER BY updated_at DESC, task_id DESC'
+        // ✅ FIXED: Custom sorting - completed/cancelled items at bottom
+        query += ` ORDER BY 
+          CASE 
+            WHEN status IN ('Done', 'Completed', 'Cancelled', 'Cancel') THEN 1 
+            ELSE 0 
+          END,
+          updated_at DESC, task_id DESC`
 
         // Add pagination
         if (filters.limit) {
@@ -312,8 +326,22 @@ export const resolvers = {
           query += ` AND category = $${paramIndex++}`
           params.push(filters.category)
         }
+        if (filters.projectId) {
+          query += ` AND project_id = $${paramIndex++}`
+          params.push(filters.projectId)
+        }
+        if (filters.subprojectId) {
+          query += ` AND subproject_id = $${paramIndex++}`
+          params.push(filters.subprojectId)
+        }
 
-        query += ' ORDER BY updated_at DESC'
+        // ✅ Custom sorting - resolved/closed items at bottom
+        query += ` ORDER BY 
+          CASE 
+            WHEN status IN ('Resolved', 'Closed') THEN 1 
+            ELSE 0 
+          END,
+          updated_at DESC`
 
         if (filters.limit) {
           query += ` LIMIT $${paramIndex++}`
@@ -866,8 +894,8 @@ export const resolvers = {
     managerEmail: (user: any) => user.manager_email || user.managerEmail,
     isTodayTask: (user: any) => user.is_today_task || user.isTodayTask,
     warningCount: (user: any) => user.warning_count || user.warningCount,
-    createdAt: (user: any) => user.created_at || user.createdAt || new Date().toISOString(), // Fallback to current time
-    updatedAt: (user: any) => user.updated_at || user.updatedAt || new Date().toISOString(), // Fallback to current time
+    createdAt: (user: any) => user.created_at || user.createdAt || getCurrentDateTime(), // Fallback to current time
+    updatedAt: (user: any) => user.updated_at || user.updatedAt || getCurrentDateTime(), // Fallback to current time
     tabPermissions: (user: any) => user.tab_permissions || user.tabPermissions,
 
     leavesTakenYTD: async (user: any) => {
@@ -1137,8 +1165,8 @@ export const resolvers = {
     remarks: (subtask: any) => subtask.remarks || null,
     deletedAt: (subtask: any) => subtask.deleted_at,
     deletedBy: (subtask: any) => subtask.deleted_by,
-    createdAt: (subtask: any) => subtask.created_at || new Date().toISOString(), // ✅ FIXED: Provide default
-    updatedAt: (subtask: any) => subtask.updated_at || new Date().toISOString(), // ✅ FIXED: Provide default
+    createdAt: (subtask: any) => subtask.created_at || getCurrentDateTime(), // ✅ FIXED: Provide default
+    updatedAt: (subtask: any) => subtask.updated_at || getCurrentDateTime(), // ✅ FIXED: Provide default
 
     assignedToUser: async (subtask: any, _: any, { loaders }: any) => {
       if (!subtask.assigned_to) return null
@@ -1322,8 +1350,8 @@ export const resolvers = {
     displayOrder: (subtask: any) => subtask.display_order || 0,
     deletedAt: (subtask: any) => subtask.deleted_at,
     deletedBy: (subtask: any) => subtask.deleted_by,
-    createdAt: (subtask: any) => subtask.created_at || new Date().toISOString(), // ✅ FIXED: Provide default
-    updatedAt: (subtask: any) => subtask.updated_at || new Date().toISOString(), // ✅ FIXED: Provide default
+    createdAt: (subtask: any) => subtask.created_at || getCurrentDateTime(), // ✅ FIXED: Provide default
+    updatedAt: (subtask: any) => subtask.updated_at || getCurrentDateTime(), // ✅ FIXED: Provide default
     createdBy: (subtask: any) => subtask.created_by,
 
     assignedToUser: async (subtask: any, _: any, { loaders }: any) => {

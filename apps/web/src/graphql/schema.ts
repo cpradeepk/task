@@ -368,6 +368,8 @@ export const typeDefs = `#graphql
       assignedBy: String
       status: String
       priority: String
+      projectId: String
+      subprojectId: String
       limit: Int
       offset: Int
     ): [Task!]!
@@ -383,6 +385,8 @@ export const typeDefs = `#graphql
       status: String
       severity: String
       category: String
+      projectId: String
+      subprojectId: String
       limit: Int
       offset: Int
     ): [Bug!]!

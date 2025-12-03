@@ -484,6 +484,32 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
           </Card>
         )}
 
+        {/* Metadata Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <List.Accordion
+            title="Metadata"
+            expanded={expandedSections.project}
+            onPress={() => toggleSection('project')}
+            titleStyle={styles.accordionTitle}
+            style={styles.accordion}
+          >
+            <Card.Content>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Created:</Text>
+                <Text style={styles.infoValue}>{new Date(task.createdAt).toLocaleString()}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Updated:</Text>
+                <Text style={styles.infoValue}>{new Date(task.updatedAt).toLocaleString()}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Creator:</Text>
+                <Text style={styles.infoValue}>{task.assignedBy}</Text>
+              </View>
+            </Card.Content>
+          </List.Accordion>
+        </Card>
+
         {/* Edit Mode Actions */}
         {isEditing && (
           <View style={styles.editActions}>

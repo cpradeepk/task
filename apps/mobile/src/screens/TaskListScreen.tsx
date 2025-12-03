@@ -238,6 +238,14 @@ export default function TaskListScreen({ navigation }: any) {
           <Text style={styles.assignedTo}>
             👤 {assigneeNames}
           </Text>
+          <View style={styles.taskMeta}>
+            <Text style={styles.taskDate}>
+              📅 {new Date(item.createdAt).toLocaleDateString()}
+            </Text>
+            <Text style={styles.taskDate}>
+              🔄 {new Date(item.updatedAt).toLocaleDateString()}
+            </Text>
+          </View>
         </Card.Content>
       </Card>
     )

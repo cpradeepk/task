@@ -6,6 +6,7 @@ import { X, Save, FileText, AlertTriangle, Tag, Monitor, Globe, Clock, FolderTre
 import { useSettings } from '@/contexts/SettingsContext'
 import { useSettingsIcons } from '@/hooks/useSettingsIcons'
 import { getBugDisplayId } from '@/lib/data'
+import { getCurrentDateTime } from '@/lib/datetime-utils'
 
 interface BugEditModalProps {
   bug: Bug | null
@@ -203,7 +204,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
     try {
       const updates = {
         ...formData,
-        updatedAt: new Date().toISOString()
+        updatedAt: getCurrentDateTime()
       }
 
       const response = await fetch(`/api/bugs/${bug.bugId}`, {
@@ -456,10 +457,10 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
               </label>
               <select
                 value={formData.browserInfo?.includes('Chrome') ? 'Chrome' :
-                       formData.browserInfo?.includes('Firefox') ? 'Firefox' :
-                       formData.browserInfo?.includes('Safari') ? 'Safari' :
-                       formData.browserInfo?.includes('Edge') ? 'Edge' :
-                       formData.browserInfo ? 'Other' : ''}
+                  formData.browserInfo?.includes('Firefox') ? 'Firefox' :
+                    formData.browserInfo?.includes('Safari') ? 'Safari' :
+                      formData.browserInfo?.includes('Edge') ? 'Edge' :
+                        formData.browserInfo ? 'Other' : ''}
                 onChange={(e) => {
                   if (e.target.value === 'Other' || e.target.value === '') {
                     setFormData({ ...formData, browserInfo: '' })
@@ -493,10 +494,10 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
               </label>
               <select
                 value={formData.deviceInfo?.includes('Desktop') ? 'Desktop' :
-                       formData.deviceInfo?.includes('iPhone') ? 'iPhone' :
-                       formData.deviceInfo?.includes('iPad') ? 'iPad' :
-                       formData.deviceInfo?.includes('Android') ? 'Android' :
-                       formData.deviceInfo ? 'Other' : ''}
+                  formData.deviceInfo?.includes('iPhone') ? 'iPhone' :
+                    formData.deviceInfo?.includes('iPad') ? 'iPad' :
+                      formData.deviceInfo?.includes('Android') ? 'Android' :
+                        formData.deviceInfo ? 'Other' : ''}
                 onChange={(e) => {
                   if (e.target.value === 'Other' || e.target.value === '') {
                     setFormData({ ...formData, deviceInfo: '' })

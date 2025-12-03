@@ -108,6 +108,18 @@ export interface Task {
   deletedBy?: string | null // Optional: Employee ID who deleted the task
   createdAt: string         // Timestamp when task was created
   updatedAt: string         // Timestamp when task was last updated
+  assignedByUser?: {        // Optional: User object for the assigner (from GraphQL)
+    employeeId: string
+    name: string
+    email: string
+    role: string
+  }
+  assignedToUser?: {        // Optional: User object for the assignee (from GraphQL)
+    employeeId: string
+    name: string
+    email: string
+    role: string
+  }
 }
 
 /**
@@ -289,6 +301,24 @@ export interface Bug {
   deletedBy?: string | null // Optional: Employee ID who deleted the bug
   createdAt: string         // Timestamp when bug was created
   updatedAt: string         // Timestamp when bug was last updated
+  assignedByUser?: {        // Optional: User object for the assigner (from GraphQL)
+    employeeId: string
+    name: string
+    email: string
+    role: string
+  }
+  assignedToUser?: {        // Optional: User object for the assignee (from GraphQL)
+    employeeId: string
+    name: string
+    email: string
+    role: string
+  }
+  reportedByUser?: {        // Optional: User object for the reporter (from GraphQL)
+    employeeId: string
+    name: string
+    email: string
+    role: string
+  }
 }
 
 export interface BugComment {

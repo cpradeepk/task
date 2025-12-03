@@ -77,6 +77,8 @@ export default function BugsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [assigneeFilter, setAssigneeFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all') // New: Bug type filter
+  const [projectFilter, setProjectFilter] = useState('all') // NEW: Project filter
+  const [subprojectFilter, setSubprojectFilter] = useState('all') // NEW: Subproject filter
 
   // Type for bug statistics
   type BugStatistics = {
@@ -98,6 +100,8 @@ export default function BugsPage() {
   const [retryCount, setRetryCount] = useState(0)
   const [isOnline, setIsOnline] = useState(true)
   const hasLoadedData = useRef(false)
+  const [projects, setProjects] = useState<any[]>([]) // NEW: Projects list
+  const [subprojects, setSubprojects] = useState<any[]>([]) // NEW: Subprojects list
 
   // Infinite scroll state
   const [hasMore, setHasMore] = useState(true)
@@ -153,6 +157,8 @@ export default function BugsPage() {
         setCategoryFilter(filters.categoryFilter || 'all')
         setAssigneeFilter(filters.assigneeFilter || 'me')
         setTypeFilter(filters.typeFilter || 'all')
+        setProjectFilter(filters.projectFilter || 'all')
+        setSubprojectFilter(filters.subprojectFilter || 'all')
       } else {
         // Set default assignee filter to "me" (My Bugs) if no saved filters
         setAssigneeFilter('me')
@@ -293,6 +299,12 @@ export default function BugsPage() {
       if (severityFilter && severityFilter !== 'all') {
         variables.severity = severityFilter
       }
+      if (projectFilter && projectFilter !== 'all') {
+        variables.projectId = projectFilter
+      }
+      if (subprojectFilter && subprojectFilter !== 'all') {
+        variables.subprojectId = subprojectFilter
+      }
 
       // Try GraphQL first with pagination and filters
       try {
@@ -378,7 +390,7 @@ export default function BugsPage() {
 
     console.log('🔵 [Bugs] Filters changed, reloading bugs from beginning...')
     loadBugs(false, false) // Reset to first page
-  }, [statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, initialized])
+  }, [statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, projectFilter, subprojectFilter, initialized])
 
   // Intersection Observer for infinite scroll (trigger at 80% scroll)
   useEffect(() => {
@@ -417,13 +429,15 @@ export default function BugsPage() {
         severityFilter,
         categoryFilter,
         assigneeFilter,
-        typeFilter
+        typeFilter,
+        projectFilter,
+        subprojectFilter
       }
       localStorage.setItem('bugFilters', JSON.stringify(filters))
     } catch (error) {
       console.error('Failed to save filters:', error)
     }
-  }, [searchTerm, statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, isHydrated])
+  }, [searchTerm, statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, projectFilter, subprojectFilter, isHydrated])
 
   // Calculate statistics from filtered bugs (user's visible bugs)
   const calculateStatistics = useCallback((bugsData: Bug[]) => {
@@ -474,6 +488,38 @@ export default function BugsPage() {
     }
   }, [])
 
+  // NEW: Load projects
+  const loadProjects = useCallback(async () => {
+    try {
+      const response = await fetch('/api/projects')
+      const data = await response.json()
+      if (Array.isArray(data)) {
+        // Filter to only main projects (no parent)
+        const mainProjects = data.filter((p: any) => !p.parentProjectId)
+        setProjects(mainProjects)
+      }
+    } catch (error) {
+      console.error('Failed to load projects:', error)
+    }
+  }, [])
+
+  // NEW: Load subprojects when project changes
+  useEffect(() => {
+    if (projectFilter && projectFilter !== 'all') {
+      fetch(`/api/projects?parentId=${projectFilter}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setSubprojects(data.filter((p: any) => p.parentProjectId === projectFilter))
+          }
+        })
+        .catch(error => console.error('Failed to load subprojects:', error))
+    } else {
+      setSubprojects([])
+      setSubprojectFilter('all')
+    }
+  }, [projectFilter])
+
   useEffect(() => {
     if (!isHydrated) return
 
@@ -492,7 +538,8 @@ export default function BugsPage() {
         // Inline the loading logic to avoid dependency issues
         await Promise.all([
           loadBugs(), // This now also calculates statistics from filtered bugs
-          loadUsers()
+          loadUsers(),
+          loadProjects() // NEW: Load projects
         ])
       } catch (error) {
         console.error('Failed to load initial data:', error)
@@ -800,7 +847,7 @@ export default function BugsPage() {
             <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-9 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -883,6 +930,35 @@ export default function BugsPage() {
               ))}
             </select>
 
+            {/* Project Filter - NEW */}
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+            >
+              <option value="all">All Projects</option>
+              {projects.map(project => (
+                <option key={project.projectId} value={project.projectId}>
+                  📁 {project.projectName}
+                </option>
+              ))}
+            </select>
+
+            {/* Subproject Filter - NEW */}
+            <select
+              value={subprojectFilter}
+              onChange={(e) => setSubprojectFilter(e.target.value)}
+              disabled={projectFilter === 'all' || subprojects.length === 0}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="all">All Subprojects</option>
+              {subprojects.map(subproject => (
+                <option key={subproject.projectId} value={subproject.projectId}>
+                  📂 {subproject.projectName}
+                </option>
+              ))}
+            </select>
+
             {/* Clear Filters */}
             <button
               onClick={() => {
@@ -892,6 +968,8 @@ export default function BugsPage() {
                 setSeverityFilter('all')
                 setCategoryFilter('all')
                 setAssigneeFilter('all')
+                setProjectFilter('all')
+                setSubprojectFilter('all')
               }}
               className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium"
             >
