@@ -6,13 +6,18 @@ import { getCurrentUser, getTeamMembers } from '@/lib/auth'
 import { hasTabAccess } from '@/lib/permissions'
 import { formatDate, getStatusColor } from '@/lib/data'
 import { LeaveApplication, WFHApplication } from '@/lib/types'
-import { Check, X, Clock, Calendar, MapPin, Phone } from 'lucide-react'
+import { Check, X, Clock, Calendar, MapPin, Phone, Eye } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
+import AttendanceCalendarView from '@/components/attendance/AttendanceCalendarView'
+import { formatDistanceToNow } from 'date-fns'
 
 export default function Approvals() {
   const [leaveApplications, setLeaveApplications] = useState<LeaveApplication[]>([])
   const [wfhApplications, setWFHApplications] = useState<WFHApplication[]>([])
-  const [activeTab, setActiveTab] = useState<'leave' | 'wfh'>('leave')
+  const [activeTab, setActiveTab] = useState<'leave' | 'wfh' | 'attendance-approvals' | 'attendance-calendar'>('leave')
+  const [pendingAttendanceRequests, setPendingAttendanceRequests] = useState<any[]>([])
+  const [isLoadingAttendance, setIsLoadingAttendance] = useState(false)
+  const [selectedAttendanceRequest, setSelectedAttendanceRequest] = useState<any | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingLeaves, setIsLoadingLeaves] = useState(false)
   const [isLoadingWFH, setIsLoadingWFH] = useState(false)
@@ -443,10 +448,10 @@ export default function Approvals() {
 
         {/* Tabs */}
         <div className="border-b border-secondary-200">
-          <nav className="-mb-px flex space-x-8">
+          <nav className="-mb-px flex space-x-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab('leave')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm tab-button ${activeTab === 'leave'
+              className={`py-2 px-1 border-b-2 font-medium text-sm tab-button whitespace-nowrap ${activeTab === 'leave'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
                 }`}
@@ -455,12 +460,30 @@ export default function Approvals() {
             </button>
             <button
               onClick={() => setActiveTab('wfh')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm tab-button ${activeTab === 'wfh'
+              className={`py-2 px-1 border-b-2 font-medium text-sm tab-button whitespace-nowrap ${activeTab === 'wfh'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
                 }`}
             >
               WFH Applications ({pendingWFHs.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('attendance-approvals')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm tab-button whitespace-nowrap ${activeTab === 'attendance-approvals'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                }`}
+            >
+              Attendance Approvals ({pendingAttendanceRequests.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('attendance-calendar')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm tab-button whitespace-nowrap ${activeTab === 'attendance-calendar'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                }`}
+            >
+              Attendance Calendar
             </button>
           </nav>
         </div>
