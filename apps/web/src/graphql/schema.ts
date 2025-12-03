@@ -399,13 +399,14 @@ export const typeDefs = `#graphql
     projects: [Project!]!
     project(projectId: ID!): Project
     
-    # Settings
-    settings(activeOnly: Boolean): [Setting!]!
-    setting(key: String!): Setting
-
     # Dashboard
     dashboard(employeeId: String!, role: String!): DashboardData!
     adminDashboardData: AdminDashboardData!
+    pendingAttendanceRequests: [AttendanceRequest!]!
+    
+    # Settings
+    settings(activeOnly: Boolean): [Setting!]!
+    setting(key: String!): Setting
 
     # Feed
     feedPosts(topicId: String, status: String, search: String, limit: Int, offset: Int): FeedPostsResponse!
@@ -486,10 +487,21 @@ export const typeDefs = `#graphql
     unregisterPushToken(userId: String!, pushToken: String!): Boolean!
 
     # Attendance
+    requestAttendanceEdit(input: AttendanceRequestInput!): AttendanceRequest
+    approveAttendanceRequest(requestId: ID!): AttendanceRequest
+    rejectAttendanceRequest(requestId: ID!): AttendanceRequest
     signIn: Attendance!
     signOut: Attendance!
     undoSignOut(date: String!): Attendance!
     requestManualAttendance(input: ManualAttendanceInput!): Attendance!
+  }
+
+  input AttendanceRequestInput {
+    attendanceDate: String!
+    requestType: String! # SIGN_IN_EDIT, SIGN_OUT_EDIT, MISSING_ENTRY
+    originalTime: String
+    newTime: String!
+    reason: String
   }
 
   input CreateTaskInput {

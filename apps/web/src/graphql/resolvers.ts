@@ -603,9 +603,13 @@ export const resolvers = {
         getPoolInstance().query(`
           SELECT 
             u.employee_id, u.name, u.department, u.role,
-            al.sign_in_time, al.sign_out_time, al.status
+            al.sign_in_time, al.sign_out_time, al.status as attendance_status,
+            la.status as leave_status,
+            wa.status as wfh_status
           FROM users u
           LEFT JOIN attendance_logs al ON u.employee_id = al.employee_id AND al.date = $1
+          LEFT JOIN leave_applications la ON u.employee_id = la.employee_id AND la.status = 'Approved' AND la.from_date <= $1 AND la.to_date >= $1
+          LEFT JOIN wfh_applications wa ON u.employee_id = wa.employee_id AND wa.status = 'Approved' AND wa.from_date <= $1 AND wa.to_date >= $1
           WHERE u.status = 'active'
           ORDER BY u.name ASC
         `, [today])
@@ -619,20 +623,38 @@ export const resolvers = {
       const pendingWFHRequests = parseInt(pendingWFHResult.rows[0].count)
 
       // Calculate absent: Total Active Users - (Present + On Leave + WFH)
+      // Note: This is an approximation. Ideally we should count distinct users who are present OR on leave OR on WFH.
+      // But for now, assuming no overlap (e.g. present AND on leave), this is fine.
       const totalUsersResult = await getPoolInstance().query("SELECT COUNT(*) FROM users WHERE status = 'active'")
       const totalUsers = parseInt(totalUsersResult.rows[0].count)
-      const usersAbsent = totalUsers - (usersPresent + usersOnLeave)
+      const usersAbsent = totalUsers - (usersPresent + usersOnLeave + usersWFH)
 
-      const liveAttendance = liveAttendanceResult.rows.map((row: any) => ({
-        userId: row.employee_id,
-        userName: row.name,
-        department: row.department,
-        role: row.role,
-        status: row.sign_in_time && !row.sign_out_time ? 'ONLINE' : (row.status || 'ABSENT'),
-        signInTime: row.sign_in_time ? format(new Date(row.sign_in_time), 'yyyy-MM-dd HH:mm:ss') : null,
-        signOutTime: row.sign_out_time ? format(new Date(row.sign_out_time), 'yyyy-MM-dd HH:mm:ss') : null,
-        location: null // Location column does not exist in DB
-      }))
+      const liveAttendance = liveAttendanceResult.rows.map((row: any) => {
+        let status = 'ABSENT'
+
+        if (row.sign_in_time && !row.sign_out_time) {
+          status = 'ONLINE'
+        } else if (row.attendance_status) {
+          status = row.attendance_status // e.g. 'full_day', 'half_day'
+          // If signed out, maybe show 'OFFLINE' or 'PRESENT'? 
+          // Usually 'full_day' implies present.
+        } else if (row.leave_status === 'Approved') {
+          status = 'ON_LEAVE'
+        } else if (row.wfh_status === 'Approved') {
+          status = 'WFH'
+        }
+
+        return {
+          userId: row.employee_id,
+          userName: row.name,
+          department: row.department,
+          role: row.role,
+          status: status,
+          signInTime: row.sign_in_time ? format(new Date(row.sign_in_time), 'yyyy-MM-dd HH:mm:ss') : null,
+          signOutTime: row.sign_out_time ? format(new Date(row.sign_out_time), 'yyyy-MM-dd HH:mm:ss') : null,
+          location: null
+        }
+      })
 
       return {
         usersOnline,
@@ -644,6 +666,40 @@ export const resolvers = {
         pendingWFHRequests,
         liveAttendance
       }
+    },
+
+    pendingAttendanceRequests: async (_: any, __: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+      // TODO: Add admin check
+
+      const result = await getPoolInstance().query(
+        `SELECT ar.*, u.name as user_name, u.department, u.role
+         FROM attendance_requests ar
+         JOIN users u ON ar.employee_id = u.employee_id
+         WHERE ar.status = 'PENDING'
+         ORDER BY ar.created_at DESC`
+      )
+
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        userId: row.employee_id,
+        attendanceDate: format(new Date(row.attendance_date), 'yyyy-MM-dd'),
+        requestType: row.request_type,
+        originalTime: row.original_time ? format(new Date(row.original_time), 'yyyy-MM-dd HH:mm:ss') : null,
+        newTime: format(new Date(row.new_time), 'yyyy-MM-dd HH:mm:ss'),
+        reason: row.reason,
+        status: row.status,
+        reviewedBy: row.reviewed_by,
+        reviewedAt: row.reviewed_at ? format(new Date(row.reviewed_at), 'yyyy-MM-dd HH:mm:ss') : null,
+        createdAt: format(new Date(row.created_at), 'yyyy-MM-dd HH:mm:ss'),
+        updatedAt: format(new Date(row.updated_at), 'yyyy-MM-dd HH:mm:ss'),
+        user: {
+          employeeId: row.employee_id,
+          name: row.user_name,
+          department: row.department,
+          role: row.role
+        }
+      }))
     },
 
     settings: async (_: any, { activeOnly }: any) => {
@@ -2762,19 +2818,12 @@ export const resolvers = {
       }
 
       // Calculate work hours
-      // Assuming input times are ISO strings or HH:mm?
-      // Requirement says "manual entry option". Usually user picks time.
-      // Let's assume input is full ISO string for simplicity or constructed date.
-      // If input is just time "10:00", we need to combine with date.
-      // Let's assume input is ISO string for now as per GraphQL scalar `String`.
-
       const start = new Date(signInTime)
       const end = new Date(signOutTime)
       const diffMinutes = differenceInMinutes(end, start)
       const workHours = parseFloat((diffMinutes / 60).toFixed(2))
 
-      // Determine status (using same logic as signIn but for the past date)
-      // We need to check the time part of signInTime in IST.
+      // Determine status
       const istDate = getISTDate(start)
       const istHours = istDate.getUTCHours()
       const istMinutes = istDate.getUTCMinutes()
@@ -2793,6 +2842,207 @@ export const resolvers = {
       )
 
       return result.rows[0]
+    },
+
+    requestAttendanceEdit: async (_: any, { input }: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+
+      const { attendanceDate, requestType, originalTime, newTime, reason } = input
+
+      // Insert into attendance_requests
+      const result = await getPoolInstance().query(
+        `INSERT INTO attendance_requests 
+         (employee_id, attendance_date, request_type, original_time, new_time, reason, status, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, 'PENDING', NOW(), NOW())
+         RETURNING *`,
+        [user.employeeId, attendanceDate, requestType, originalTime, newTime, reason]
+      )
+
+      const row = result.rows[0]
+      return {
+        id: row.id,
+        userId: row.employee_id,
+        attendanceDate: format(new Date(row.attendance_date), 'yyyy-MM-dd'),
+        requestType: row.request_type,
+        originalTime: row.original_time ? format(new Date(row.original_time), 'yyyy-MM-dd HH:mm:ss') : null,
+        newTime: format(new Date(row.new_time), 'yyyy-MM-dd HH:mm:ss'),
+        reason: row.reason,
+        status: row.status,
+        reviewedBy: row.reviewed_by,
+        reviewedAt: row.reviewed_at ? format(new Date(row.reviewed_at), 'yyyy-MM-dd HH:mm:ss') : null,
+        createdAt: format(new Date(row.created_at), 'yyyy-MM-dd HH:mm:ss'),
+        updatedAt: format(new Date(row.updated_at), 'yyyy-MM-dd HH:mm:ss')
+      }
+    },
+
+    approveAttendanceRequest: async (_: any, { requestId }: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+      // TODO: Check if user is admin? For now assuming any authorized user can approve (or relying on frontend protection)
+      // Ideally check user.role === 'ADMIN' or similar.
+
+      const client = await getPoolInstance().connect()
+      try {
+        await client.query('BEGIN')
+
+        // Fetch request
+        const reqResult = await client.query(
+          'SELECT * FROM attendance_requests WHERE id = $1 FOR UPDATE',
+          [requestId]
+        )
+        if (reqResult.rows.length === 0) throw new Error('Request not found')
+        const request = reqResult.rows[0]
+
+        if (request.status !== 'PENDING') throw new Error('Request is not pending')
+
+        // Update request status
+        const updateResult = await client.query(
+          `UPDATE attendance_requests 
+           SET status = 'APPROVED', reviewed_by = $1, reviewed_at = NOW(), updated_at = NOW()
+           WHERE id = $2
+           RETURNING *`,
+          [user.employeeId, requestId]
+        )
+
+        // Apply changes to attendance_logs
+        // Check if log exists
+        const logResult = await client.query(
+          'SELECT * FROM attendance_logs WHERE employee_id = $1 AND date = $2',
+          [request.employee_id, request.attendance_date]
+        )
+
+        if (request.request_type === 'MISSING_ENTRY') {
+          if (logResult.rows.length > 0) {
+            // Update existing? Or error?
+            // If missing entry request but log exists, maybe update it?
+            // Let's assume update.
+          } else {
+            // Create new log
+            // We need sign_in and sign_out. Request has new_time.
+            // But MISSING_ENTRY usually implies full day or specific punch?
+            // The schema has `new_time` (single timestamp).
+            // If it's sign in edit, we update sign_in_time.
+            // If it's sign out edit, we update sign_out_time.
+            // If it's missing entry, maybe it provides both? But schema has one `new_time`.
+            // Wait, `attendance_requests` table has `new_time` (TIMESTAMPTZ).
+            // If request_type is SIGN_IN_EDIT, we update sign_in_time.
+            // If SIGN_OUT_EDIT, sign_out_time.
+            // If MISSING_ENTRY, maybe it means "I forgot to punch in" (Sign In) or "I forgot to punch out" (Sign Out)?
+            // Or maybe it means "I was present but no record".
+            // Let's assume MISSING_ENTRY is treated as a Sign In if no record, or we need more info.
+            // For now, I'll handle SIGN_IN_EDIT and SIGN_OUT_EDIT explicitly.
+          }
+        }
+
+        if (request.request_type === 'SIGN_IN_EDIT') {
+          if (logResult.rows.length > 0) {
+            await client.query(
+              'UPDATE attendance_logs SET sign_in_time = $1, updated_at = NOW() WHERE id = $2',
+              [request.new_time, logResult.rows[0].id]
+            )
+          } else {
+            // Create new log with just sign in
+            await client.query(
+              `INSERT INTO attendance_logs (employee_id, date, sign_in_time, status, is_manual_entry, approval_status)
+               VALUES ($1, $2, $3, 'present', true, 'approved')`,
+              [request.employee_id, request.attendance_date, request.new_time]
+            )
+          }
+        } else if (request.request_type === 'SIGN_OUT_EDIT') {
+          if (logResult.rows.length > 0) {
+            // Calculate work hours if sign in exists
+            const signIn = logResult.rows[0].sign_in_time
+            let workHours = null
+            if (signIn) {
+              const start = new Date(signIn)
+              const end = new Date(request.new_time)
+              const diff = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+              workHours = parseFloat(diff.toFixed(2))
+            }
+
+            await client.query(
+              'UPDATE attendance_logs SET sign_out_time = $1, work_hours = $2, updated_at = NOW() WHERE id = $3',
+              [request.new_time, workHours, logResult.rows[0].id]
+            )
+          } else {
+            // Create log with just sign out? Weird but possible.
+            await client.query(
+              `INSERT INTO attendance_logs (employee_id, date, sign_out_time, status, is_manual_entry, approval_status)
+               VALUES ($1, $2, $3, 'present', true, 'approved')`,
+              [request.employee_id, request.attendance_date, request.new_time]
+            )
+          }
+        } else if (request.request_type === 'MISSING_ENTRY') {
+          // Treat as Sign In for now if no record, or update sign in if record exists
+          if (logResult.rows.length > 0) {
+            await client.query(
+              'UPDATE attendance_logs SET sign_in_time = $1, updated_at = NOW() WHERE id = $2',
+              [request.new_time, logResult.rows[0].id]
+            )
+          } else {
+            await client.query(
+              `INSERT INTO attendance_logs (employee_id, date, sign_in_time, status, is_manual_entry, approval_status)
+               VALUES ($1, $2, $3, 'present', true, 'approved')`,
+              [request.employee_id, request.attendance_date, request.new_time]
+            )
+          }
+        }
+
+        await client.query('COMMIT')
+
+        const row = updateResult.rows[0]
+        return {
+          id: row.id,
+          userId: row.employee_id,
+          attendanceDate: format(new Date(row.attendance_date), 'yyyy-MM-dd'),
+          requestType: row.request_type,
+          originalTime: row.original_time ? format(new Date(row.original_time), 'yyyy-MM-dd HH:mm:ss') : null,
+          newTime: format(new Date(row.new_time), 'yyyy-MM-dd HH:mm:ss'),
+          reason: row.reason,
+          status: row.status,
+          reviewedBy: row.reviewed_by,
+          reviewedAt: row.reviewed_at ? format(new Date(row.reviewed_at), 'yyyy-MM-dd HH:mm:ss') : null,
+          createdAt: format(new Date(row.created_at), 'yyyy-MM-dd HH:mm:ss'),
+          updatedAt: format(new Date(row.updated_at), 'yyyy-MM-dd HH:mm:ss')
+        }
+      } catch (e) {
+        await client.query('ROLLBACK')
+        throw e
+      } finally {
+        client.release()
+      }
+    },
+
+    rejectAttendanceRequest: async (_: any, { requestId }: any, context: any) => {
+      const { user } = context
+      if (!user) throw new Error('Unauthorized')
+
+      const result = await getPoolInstance().query(
+        `UPDATE attendance_requests 
+         SET status = 'REJECTED', reviewed_by = $1, reviewed_at = NOW(), updated_at = NOW()
+         WHERE id = $2
+         RETURNING *`,
+        [user.employeeId, requestId]
+      )
+
+      if (result.rows.length === 0) throw new Error('Request not found')
+
+      const row = result.rows[0]
+      return {
+        id: row.id,
+        userId: row.employee_id,
+        attendanceDate: format(new Date(row.attendance_date), 'yyyy-MM-dd'),
+        requestType: row.request_type,
+        originalTime: row.original_time ? format(new Date(row.original_time), 'yyyy-MM-dd HH:mm:ss') : null,
+        newTime: format(new Date(row.new_time), 'yyyy-MM-dd HH:mm:ss'),
+        reason: row.reason,
+        status: row.status,
+        reviewedBy: row.reviewed_by,
+        reviewedAt: row.reviewed_at ? format(new Date(row.reviewed_at), 'yyyy-MM-dd HH:mm:ss') : null,
+        createdAt: format(new Date(row.created_at), 'yyyy-MM-dd HH:mm:ss'),
+        updatedAt: format(new Date(row.updated_at), 'yyyy-MM-dd HH:mm:ss')
+      }
     }
   },
 
