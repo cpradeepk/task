@@ -702,6 +702,159 @@ export const resolvers = {
       }))
     },
 
+    attendanceCalendar: async (_: any, args: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+
+      const {
+        startDate,
+        endDate,
+        department,
+        teamMembers,
+        search,
+        page = 1,
+        limit = 20
+      } = args
+
+      const offset = (page - 1) * limit
+
+      // Build employee filter query
+      let employeeFilter = 'WHERE u.status = $1'
+      const params: any[] = ['active']
+      let paramIndex = 2
+
+      if (department) {
+        employeeFilter += ` AND u.department = $${paramIndex}`
+        params.push(department)
+        paramIndex++
+      }
+
+      if (teamMembers && teamMembers.length > 0) {
+        employeeFilter += ` AND u.employee_id = ANY($${paramIndex}::text[])`
+        params.push(teamMembers)
+        paramIndex++
+      }
+
+      if (search) {
+        employeeFilter += ` AND (u.name ILIKE $${paramIndex} OR u.employee_id ILIKE $${paramIndex})`
+        params.push(`%${search}%`)
+        paramIndex++
+      }
+
+      // Get total count
+      const countResult = await getPoolInstance().query(
+        `SELECT COUNT(*) as total FROM users u ${employeeFilter}`,
+        params
+      )
+      const total = parseInt(countResult.rows[0].total)
+
+      // Get employees with pagination
+      const employeesResult = await getPoolInstance().query(
+        `SELECT employee_id, name, department, role
+         FROM users u
+         ${employeeFilter}
+         ORDER BY name
+         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+        [...params, limit, offset]
+      )
+
+      const employees = employeesResult.rows.map((row: any) => ({
+        employeeId: row.employee_id,
+        name: row.name,
+        department: row.department,
+        role: row.role
+      }))
+
+      // Get all attendance records for the date range and employees
+      const employeeIds = employees.map((e: any) => e.employeeId)
+
+      if (employeeIds.length === 0) {
+        return {
+          employees: [],
+          records: [],
+          pagination: {
+            total: 0,
+            page,
+            limit,
+            hasMore: false
+          }
+        }
+      }
+
+      // Generate date series
+      const dateSeriesQuery = `
+        SELECT generate_series(
+          $1::date,
+          $2::date,
+          '1 day'::interval
+        )::date as date
+      `
+
+      const datesResult = await getPoolInstance().query(dateSeriesQuery, [startDate, endDate])
+      const dates = datesResult.rows.map((row: any) => format(new Date(row.date), 'yyyy-MM-dd'))
+
+      // Fetch all attendance data in one query
+      const attendanceQuery = `
+        SELECT 
+          u.employee_id,
+          d.date,
+          al.sign_in_time,
+          al.sign_out_time,
+          al.work_hours,
+          al.sign_in_location,
+          la.leave_type,
+          la.is_half_day,
+          wfh.wfh_type,
+          CASE
+            WHEN al.sign_in_time IS NOT NULL AND al.sign_out_time IS NULL THEN 'ONLINE'
+            WHEN al.sign_in_time IS NOT NULL AND al.sign_out_time IS NOT NULL THEN 
+              CASE WHEN la.is_half_day THEN 'HALF_DAY' ELSE 'PRESENT' END
+            WHEN la.status = 'Approved' THEN 'ON_LEAVE'
+            WHEN wfh.status = 'Approved' THEN 'WFH'
+            WHEN EXTRACT(DOW FROM d.date) IN (0, 6) THEN 'WEEKEND'
+            ELSE 'ABSENT'
+          END as status
+        FROM (SELECT unnest($3::text[]) as employee_id) u
+        CROSS JOIN (${dateSeriesQuery}) d
+        LEFT JOIN attendance_logs al ON al.employee_id = u.employee_id 
+          AND al.date::date = d.date
+        LEFT JOIN leave_applications la ON la.employee_id = u.employee_id
+          AND d.date BETWEEN la.from_date::date AND la.to_date::date
+          AND la.status = 'Approved'
+        LEFT JOIN wfh_applications wfh ON wfh.employee_id = u.employee_id
+          AND d.date BETWEEN wfh.from_date::date AND wfh.to_date::date
+          AND wfh.status = 'Approved'
+        ORDER BY u.employee_id, d.date
+      `
+
+      const recordsResult = await getPoolInstance().query(
+        attendanceQuery,
+        [startDate, endDate, employeeIds]
+      )
+
+      const records = recordsResult.rows.map((row: any) => ({
+        employeeId: row.employee_id,
+        date: format(new Date(row.date), 'yyyy-MM-dd'),
+        status: row.status,
+        signInTime: row.sign_in_time ? format(new Date(row.sign_in_time), 'yyyy-MM-dd HH:mm:ss') : null,
+        signOutTime: row.sign_out_time ? format(new Date(row.sign_out_time), 'yyyy-MM-dd HH:mm:ss') : null,
+        workHours: row.work_hours || null,
+        location: row.sign_in_location || null,
+        leaveType: row.leave_type || null,
+        wfhType: row.wfh_type || null
+      }))
+
+      return {
+        employees,
+        records,
+        pagination: {
+          total,
+          page,
+          limit,
+          hasMore: offset + employees.length < total
+        }
+      }
+    },
+
     settings: async (_: any, { activeOnly }: any) => {
       try {
         let query = 'SELECT * FROM settings'

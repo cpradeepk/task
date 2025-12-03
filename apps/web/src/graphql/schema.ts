@@ -255,6 +255,38 @@ export const typeDefs = `#graphql
     contactNumber: String
   }
 
+  type AttendanceCalendarRecord {
+    employeeId: String!
+    date: String!
+    status: String!
+    signInTime: String
+    signOutTime: String
+    workHours: Float
+    location: String
+    leaveType: String
+    wfhType: String
+  }
+
+  type AttendanceCalendarEmployee {
+    employeeId: String!
+    name: String!
+    department: String!
+    role: String!
+  }
+
+  type AttendanceCalendarPagination {
+    total: Int!
+    page: Int!
+    limit: Int!
+    hasMore: Boolean!
+  }
+
+  type AttendanceCalendarData {
+    employees: [AttendanceCalendarEmployee!]!
+    records: [AttendanceCalendarRecord!]!
+    pagination: AttendanceCalendarPagination!
+  }
+
   # Feed System Types
   type FeedPost {
     postId: ID!
@@ -420,6 +452,15 @@ export const typeDefs = `#graphql
     dashboard(employeeId: String!, role: String!): DashboardData!
     adminDashboardData: AdminDashboardData!
     pendingAttendanceRequests: [AttendanceRequest!]!
+    attendanceCalendar(
+      startDate: String!
+      endDate: String!
+      department: String
+      teamMembers: [String!]
+      search: String
+      page: Int
+      limit: Int
+    ): AttendanceCalendarData!
     
     # Settings
     settings(activeOnly: Boolean): [Setting!]!
