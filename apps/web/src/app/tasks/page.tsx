@@ -230,7 +230,7 @@ export default function TasksPage() {
 
       // Add filters if they're not 'all'
       if (assigneeFilter && assigneeFilter !== 'all') {
-        variables.assignedTo = assigneeFilter
+        variables.assignedTo = assigneeFilter === 'me' ? currentUser?.employeeId : assigneeFilter
       }
       if (statusFilter && statusFilter !== 'all') {
         variables.status = statusFilter
@@ -326,7 +326,7 @@ export default function TasksPage() {
       setIsLoading(false)
       setIsLoadingMore(false)
     }
-  }, [currentUser, offset, assigneeFilter, statusFilter, priorityFilter, tasks, ITEMS_PER_PAGE])
+  }, [currentUser, offset, assigneeFilter, statusFilter, priorityFilter, projectFilter, subprojectFilter, tasks, ITEMS_PER_PAGE])
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -742,105 +742,111 @@ export default function TasksPage() {
 
 
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search tasks..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              />
+          <div className="space-y-4">
+            {/* Row 1: Primary Filters (Project, Subproject, Assignee) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Project Filter */}
+              <select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              >
+                <option value="all">All Projects</option>
+                {projects.map(project => (
+                  <option key={project.projectId} value={project.projectId}>
+                    📁 {project.projectName}
+                  </option>
+                ))}
+              </select>
+
+              {/* Subproject Filter */}
+              <select
+                value={subprojectFilter}
+                onChange={(e) => setSubprojectFilter(e.target.value)}
+                disabled={projectFilter === 'all' || subprojects.length === 0}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                <option value="all">All Subprojects</option>
+                {subprojects.map(subproject => (
+                  <option key={subproject.projectId} value={subproject.projectId}>
+                    📂 {subproject.projectName}
+                  </option>
+                ))}
+              </select>
+
+              {/* Assignee Filter */}
+              <select
+                value={assigneeFilter}
+                onChange={(e) => setAssigneeFilter(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              >
+                <option value="all">All Assignees</option>
+                <option value="me">👤 My Tasks</option>
+                {users.map(user => (
+                  <option key={user.employeeId} value={user.employeeId}>
+                    👤 {user.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-            >
-              <option value="all">All Status</option>
-              {settingsData.taskStatuses.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.icon} {status.value}
-                </option>
-              ))}
-            </select>
+            {/* Row 2: Secondary Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search tasks..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
 
-            {/* Priority Filter */}
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-            >
-              <option value="all">All Priority</option>
-              {settingsData.taskPriorities.map((priority) => (
-                <option key={priority.value} value={priority.value}>
-                  {priority.icon} {priority.value}
-                </option>
-              ))}
-            </select>
+              {/* Status Filter */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              >
+                <option value="all">All Status</option>
+                {settingsData.taskStatuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.icon} {status.value}
+                  </option>
+                ))}
+              </select>
 
-            {/* Assignee Filter */}
-            <select
-              value={assigneeFilter}
-              onChange={(e) => setAssigneeFilter(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-            >
-              <option value="all">All Assignees</option>
-              <option value="me">👤 My Tasks</option>
-              {users.map(user => (
-                <option key={user.employeeId} value={user.employeeId}>
-                  👤 {user.name}
-                </option>
-              ))}
-            </select>
+              {/* Priority Filter */}
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              >
+                <option value="all">All Priority</option>
+                {settingsData.taskPriorities.map((priority) => (
+                  <option key={priority.value} value={priority.value}>
+                    {priority.icon} {priority.value}
+                  </option>
+                ))}
+              </select>
 
-            {/* Project Filter - NEW */}
-            <select
-              value={projectFilter}
-              onChange={(e) => setProjectFilter(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-            >
-              <option value="all">All Projects</option>
-              {projects.map(project => (
-                <option key={project.projectId} value={project.projectId}>
-                  📁 {project.projectName}
-                </option>
-              ))}
-            </select>
-
-            {/* Subproject Filter - NEW */}
-            <select
-              value={subprojectFilter}
-              onChange={(e) => setSubprojectFilter(e.target.value)}
-              disabled={projectFilter === 'all' || subprojects.length === 0}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-            >
-              <option value="all">All Subprojects</option>
-              {subprojects.map(subproject => (
-                <option key={subproject.projectId} value={subproject.projectId}>
-                  📂 {subproject.projectName}
-                </option>
-              ))}
-            </select>
-
-            {/* Clear Filters */}
-            <button
-              onClick={() => {
-                setSearchTerm('')
-                setStatusFilter('all')
-                setPriorityFilter('all')
-                setAssigneeFilter(currentUser?.employeeId || 'all')
-                setProjectFilter('all')
-                setSubprojectFilter('all')
-              }}
-              className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium"
-            >
-              Clear Filters
-            </button>
+              {/* Clear Filters */}
+              <button
+                onClick={() => {
+                  setSearchTerm('')
+                  setStatusFilter('all')
+                  setPriorityFilter('all')
+                  setAssigneeFilter(currentUser?.employeeId || 'all')
+                  setProjectFilter('all')
+                  setSubprojectFilter('all')
+                }}
+                className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium"
+              >
+                Clear Filters
+              </button>
+            </div>
           </div>
         </div>
 

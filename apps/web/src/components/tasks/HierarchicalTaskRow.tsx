@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Task } from '@/lib/types'
-import { ChevronRight, ChevronDown, Circle, CheckCircle2 } from 'lucide-react'
+import { parseDateTime } from '@/lib/datetime-utils'
+import { ChevronRight, ChevronDown, Circle, CheckCircle2, AlertCircle, Clock, AlertTriangle } from 'lucide-react'
 import AssigneeList from './AssigneeList'
 import SupportTeam from './SupportTeam'
 import TimerButton from '@/components/TimerButton'
@@ -91,8 +92,8 @@ export default function HierarchicalTaskRow({
       <div
         style={indentStyle}
         className={`rounded-xl p-6 border shadow-sm hover:shadow-md transition-all duration-200 ${isSupportTask
-            ? 'bg-amber-50 border-amber-200 hover:border-amber-300'
-            : 'bg-white border-gray-200 hover:border-gray-300'
+          ? 'bg-amber-50 border-amber-200 hover:border-amber-300'
+          : 'bg-white border-gray-200 hover:border-gray-300'
           }`}
       >
         <div className="flex items-start justify-between">
@@ -153,11 +154,11 @@ export default function HierarchicalTaskRow({
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-2 border-t border-gray-100 pt-2">
-              <span title={new Date(task.createdAt).toLocaleString()}>
-                Created: {new Date(task.createdAt).toLocaleDateString()}
+              <span title={parseDateTime(task.createdAt).toLocaleString()}>
+                Created: {parseDateTime(task.createdAt).toLocaleDateString()}
               </span>
-              <span title={new Date(task.updatedAt).toLocaleString()}>
-                Updated: {new Date(task.updatedAt).toLocaleDateString()}
+              <span title={parseDateTime(task.updatedAt).toLocaleString()}>
+                Updated: {parseDateTime(task.updatedAt).toLocaleDateString()}
               </span>
               {task.assignedBy && (
                 <div className="flex items-center space-x-1">

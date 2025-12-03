@@ -220,8 +220,8 @@ export const resolvers = {
       const { startTime } = logResolverStart('tasks', filters)
 
       try {
-        // ✅ FIXED: Added DISTINCT and stable sort to prevent duplicates
-        let query = 'SELECT DISTINCT * FROM tasks WHERE deleted_at IS NULL'
+        // ✅ FIXED: Removed DISTINCT as it conflicts with custom ORDER BY and isn't needed (no joins)
+        let query = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
         const params: any[] = []
         let paramIndex = 1
 

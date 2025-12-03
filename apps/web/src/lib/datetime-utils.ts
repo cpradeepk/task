@@ -70,12 +70,24 @@ export function formatDate(date: Date): string {
  * @param dateStr - Date string to parse
  * @returns Date object
  */
-export function parseDateTime(dateStr: string): Date {
+export function parseDateTime(dateStr: string | Date | null | undefined): Date {
+    if (!dateStr) return new Date();
+    if (dateStr instanceof Date) return dateStr;
+
+    const str = String(dateStr).trim();
+
     // Handle YYYY-MM-DD HH:MM:SS format
-    if (dateStr.includes(' ') && !dateStr.includes('T')) {
-        const [datePart, timePart] = dateStr.split(' ')
-        return new Date(`${datePart}T${timePart}Z`)
+    // Replace space with T to make it ISO-8601 compliant for Date constructor
+    if (str.includes(' ') && !str.includes('T')) {
+        return new Date(str.replace(' ', 'T'));
     }
-    // Handle ISO format and other standard formats
-    return new Date(dateStr)
+
+    const date = new Date(str);
+
+    // If invalid, return current date as fallback to prevent crash
+    if (isNaN(date.getTime())) {
+        return new Date();
+    }
+
+    return date;
 }

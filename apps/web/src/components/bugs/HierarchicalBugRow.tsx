@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bug } from '@/lib/types'
-import { ChevronRight, ChevronDown } from 'lucide-react'
+import { parseDateTime } from '@/lib/datetime-utils'
+import { ChevronRight, ChevronDown, CheckCircle2, Circle, AlertCircle, Clock, AlertTriangle } from 'lucide-react'
 import TimerButton from '@/components/TimerButton'
 import { getBugDisplayId } from '@/lib/data'
 
@@ -147,11 +148,11 @@ export default function HierarchicalBugRow({
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-2 border-t border-gray-100 pt-2">
-              <span title={new Date(bug.createdAt).toLocaleString()}>
-                Created: {new Date(bug.createdAt).toLocaleDateString()}
+              <span title={parseDateTime(bug.createdAt).toLocaleString()}>
+                Created: {parseDateTime(bug.createdAt).toLocaleDateString()}
               </span>
-              <span title={new Date(bug.updatedAt).toLocaleString()}>
-                Updated: {new Date(bug.updatedAt).toLocaleDateString()}
+              <span title={parseDateTime(bug.updatedAt).toLocaleString()}>
+                Updated: {parseDateTime(bug.updatedAt).toLocaleDateString()}
               </span>
               {bug.reportedBy && (
                 <div className="flex items-center space-x-1">
