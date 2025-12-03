@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, getTeamMembers } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { formatDate, getStatusColor } from '@/lib/data'
 import { LeaveApplication, WFHApplication } from '@/lib/types'
 import { Check, X, Clock, Calendar, MapPin, Phone } from 'lucide-react'
@@ -39,7 +40,7 @@ export default function Approvals() {
     }
 
     // Check if user has permission to access approvals page
-    if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
+    if (!hasTabAccess(currentUser, 'approvals')) {
       // Redirect to dashboard with access denied
       router.push('/dashboard')
       return
@@ -337,7 +338,7 @@ export default function Approvals() {
   if (!currentUser) return null
 
   // Show access denied if user doesn't have permission
-  if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
+  if (!hasTabAccess(currentUser, 'approvals')) {
     return (
       <div>
         <Navbar />
@@ -346,10 +347,10 @@ export default function Approvals() {
             <div className="text-6xl mb-4">🔒</div>
             <h2 className="text-xl font-semibold text-black mb-2">Access Denied</h2>
             <p className="text-gray-600 mb-4">
-              This page is only accessible to Administrators and Top Management.
+              You don't have permission to access the approvals section.
             </p>
             <p className="text-sm text-gray-500">
-              You don't have permission to access the approvals section.
+              Please contact your administrator if you believe you should have access.
             </p>
             <button
               onClick={() => router.push('/dashboard')}
@@ -438,194 +439,192 @@ export default function Approvals() {
           </div>
         )}
 
-      {/* Tabs */}
-      <div className="border-b border-secondary-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('leave')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm tab-button ${
-              activeTab === 'leave'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
-            }`}
-          >
-            Leave Applications ({pendingLeaves.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('wfh')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm tab-button ${
-              activeTab === 'wfh'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
-            }`}
-          >
-            WFH Applications ({pendingWFHs.length})
-          </button>
-        </nav>
-      </div>
-
-      {/* Leave Applications Tab */}
-      {activeTab === 'leave' && (
-        <div className="space-y-4">
-          {isLoadingLeaves ? (
-            <div className="card text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-secondary-600">Loading leave applications...</p>
-            </div>
-          ) : pendingLeaves.length === 0 ? (
-            <div className="card text-center py-8">
-              <Clock className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-              <p className="text-secondary-600">No pending leave applications</p>
-            </div>
-          ) : (
-            pendingLeaves.map((application) => (
-              <div key={application.id} className="card">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-semibold text-secondary-900">{application.employeeName}</h3>
-                      <span className="text-sm text-secondary-600">({application.employeeId})</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                        {application.status}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm text-secondary-600">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          <strong>Type:</strong> {application.leaveType}
-                          {application.isHalfDay && ' (Half Day)'}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          <strong>Dates:</strong> {formatDate(application.fromDate)} - {formatDate(application.toDate)}
-                        </span>
-                      </div>
-                      {application.emergencyContact && (
-                        <div className="flex items-center space-x-2">
-                          <Phone className="h-4 w-4" />
-                          <span><strong>Emergency Contact:</strong> {application.emergencyContact}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="mt-3 p-3 bg-secondary-50 rounded-lg">
-                      <p className="text-sm text-secondary-700">
-                        <strong>Reason:</strong> {application.reason}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 lg:mt-0 lg:ml-6 flex space-x-2">
-                    <button
-                      onClick={() => openApprovalModal(application.id, 'leave', 'Approved', application.employeeName)}
-                      className="btn-primary flex items-center space-x-1 text-sm"
-                    >
-                      <Check className="h-4 w-4" />
-                      <span>Approve</span>
-                    </button>
-                    <button
-                      onClick={() => openApprovalModal(application.id, 'leave', 'Rejected', application.employeeName)}
-                      className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                    >
-                      <X className="h-4 w-4" />
-                      <span>Reject</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
+        {/* Tabs */}
+        <div className="border-b border-secondary-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('leave')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm tab-button ${activeTab === 'leave'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                }`}
+            >
+              Leave Applications ({pendingLeaves.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('wfh')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm tab-button ${activeTab === 'wfh'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                }`}
+            >
+              WFH Applications ({pendingWFHs.length})
+            </button>
+          </nav>
         </div>
-      )}
 
-      {/* WFH Applications Tab */}
-      {activeTab === 'wfh' && (
-        <div className="space-y-4">
-          {isLoadingWFH ? (
-            <div className="card text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-secondary-600">Loading WFH applications...</p>
-            </div>
-          ) : pendingWFHs.length === 0 ? (
-            <div className="card text-center py-8">
-              <Clock className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-              <p className="text-secondary-600">No pending WFH applications</p>
-            </div>
-          ) : (
-            pendingWFHs.map((application) => (
-              <div key={application.id} className="card">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-semibold text-secondary-900">{application.employeeName}</h3>
-                      <span className="text-sm text-secondary-600">({application.employeeId})</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                        {application.status}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm text-secondary-600">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4" />
-                        <span><strong>Type:</strong> {application.wfhType}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          <strong>Dates:</strong> {formatDate(application.fromDate)} - {formatDate(application.toDate)}
+        {/* Leave Applications Tab */}
+        {activeTab === 'leave' && (
+          <div className="space-y-4">
+            {isLoadingLeaves ? (
+              <div className="card text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-secondary-600">Loading leave applications...</p>
+              </div>
+            ) : pendingLeaves.length === 0 ? (
+              <div className="card text-center py-8">
+                <Clock className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
+                <p className="text-secondary-600">No pending leave applications</p>
+              </div>
+            ) : (
+              pendingLeaves.map((application) => (
+                <div key={application.id} className="card">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h3 className="font-semibold text-secondary-900">{application.employeeName}</h3>
+                        <span className="text-sm text-secondary-600">({application.employeeId})</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                          {application.status}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4" />
-                        <span><strong>Location:</strong> {application.workLocation}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Phone className="h-4 w-4" />
-                        <span><strong>Contact:</strong> {application.contactNumber}</span>
-                      </div>
-                      {application.availableFrom && application.availableTo && (
+
+                      <div className="space-y-2 text-sm text-secondary-600">
                         <div className="flex items-center space-x-2">
-                          <Clock className="h-4 w-4" />
+                          <Calendar className="h-4 w-4" />
                           <span>
-                            <strong>Available:</strong> {application.availableFrom} - {application.availableTo}
+                            <strong>Type:</strong> {application.leaveType}
+                            {application.isHalfDay && ' (Half Day)'}
                           </span>
                         </div>
-                      )}
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4" />
+                          <span>
+                            <strong>Dates:</strong> {formatDate(application.fromDate)} - {formatDate(application.toDate)}
+                          </span>
+                        </div>
+                        {application.emergencyContact && (
+                          <div className="flex items-center space-x-2">
+                            <Phone className="h-4 w-4" />
+                            <span><strong>Emergency Contact:</strong> {application.emergencyContact}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 p-3 bg-secondary-50 rounded-lg">
+                        <p className="text-sm text-secondary-700">
+                          <strong>Reason:</strong> {application.reason}
+                        </p>
+                      </div>
                     </div>
-                    
-                    <div className="mt-3 p-3 bg-secondary-50 rounded-lg">
-                      <p className="text-sm text-secondary-700">
-                        <strong>Reason:</strong> {application.reason}
-                      </p>
+
+                    <div className="mt-4 lg:mt-0 lg:ml-6 flex space-x-2">
+                      <button
+                        onClick={() => openApprovalModal(application.id, 'leave', 'Approved', application.employeeName)}
+                        className="btn-primary flex items-center space-x-1 text-sm"
+                      >
+                        <Check className="h-4 w-4" />
+                        <span>Approve</span>
+                      </button>
+                      <button
+                        onClick={() => openApprovalModal(application.id, 'leave', 'Rejected', application.employeeName)}
+                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                      >
+                        <X className="h-4 w-4" />
+                        <span>Reject</span>
+                      </button>
                     </div>
-                  </div>
-                  
-                  <div className="mt-4 lg:mt-0 lg:ml-6 flex space-x-2">
-                    <button
-                      onClick={() => openApprovalModal(application.id, 'wfh', 'Approved', application.employeeName)}
-                      className="btn-primary flex items-center space-x-1 text-sm"
-                    >
-                      <Check className="h-4 w-4" />
-                      <span>Approve</span>
-                    </button>
-                    <button
-                      onClick={() => openApprovalModal(application.id, 'wfh', 'Rejected', application.employeeName)}
-                      className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                    >
-                      <X className="h-4 w-4" />
-                      <span>Reject</span>
-                    </button>
                   </div>
                 </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* WFH Applications Tab */}
+        {activeTab === 'wfh' && (
+          <div className="space-y-4">
+            {isLoadingWFH ? (
+              <div className="card text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-secondary-600">Loading WFH applications...</p>
               </div>
-            ))
-          )}
-        </div>
-      )}
+            ) : pendingWFHs.length === 0 ? (
+              <div className="card text-center py-8">
+                <Clock className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
+                <p className="text-secondary-600">No pending WFH applications</p>
+              </div>
+            ) : (
+              pendingWFHs.map((application) => (
+                <div key={application.id} className="card">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h3 className="font-semibold text-secondary-900">{application.employeeName}</h3>
+                        <span className="text-sm text-secondary-600">({application.employeeId})</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                          {application.status}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 text-sm text-secondary-600">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4" />
+                          <span><strong>Type:</strong> {application.wfhType}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4" />
+                          <span>
+                            <strong>Dates:</strong> {formatDate(application.fromDate)} - {formatDate(application.toDate)}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="h-4 w-4" />
+                          <span><strong>Location:</strong> {application.workLocation}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Phone className="h-4 w-4" />
+                          <span><strong>Contact:</strong> {application.contactNumber}</span>
+                        </div>
+                        {application.availableFrom && application.availableTo && (
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span>
+                              <strong>Available:</strong> {application.availableFrom} - {application.availableTo}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 p-3 bg-secondary-50 rounded-lg">
+                        <p className="text-sm text-secondary-700">
+                          <strong>Reason:</strong> {application.reason}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 lg:mt-0 lg:ml-6 flex space-x-2">
+                      <button
+                        onClick={() => openApprovalModal(application.id, 'wfh', 'Approved', application.employeeName)}
+                        className="btn-primary flex items-center space-x-1 text-sm"
+                      >
+                        <Check className="h-4 w-4" />
+                        <span>Approve</span>
+                      </button>
+                      <button
+                        onClick={() => openApprovalModal(application.id, 'wfh', 'Rejected', application.employeeName)}
+                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                      >
+                        <X className="h-4 w-4" />
+                        <span>Reject</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {/* Approval Modal */}
@@ -655,11 +654,10 @@ export default function Approvals() {
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-full ${
-                    approvalData.action === 'Approved'
+                  <div className={`p-2 rounded-full ${approvalData.action === 'Approved'
                       ? 'bg-green-100 text-green-600'
                       : 'bg-red-100 text-red-600'
-                  }`}>
+                    }`}>
                     {approvalData.action === 'Approved' ? (
                       <Check className="h-5 w-5" />
                     ) : (
@@ -691,9 +689,8 @@ export default function Approvals() {
                 <div className="flex items-center space-x-2 mb-4">
                   <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
                   <p className="text-gray-700">
-                    Are you sure you want to <span className={`font-semibold ${
-                      approvalData.action === 'Approved' ? 'text-green-600' : 'text-red-600'
-                    }`}>{approvalData.action.toLowerCase()}</span> the {approvalData.type} application from <span className="font-semibold text-gray-900">{approvalData.applicantName}</span>?
+                    Are you sure you want to <span className={`font-semibold ${approvalData.action === 'Approved' ? 'text-green-600' : 'text-red-600'
+                      }`}>{approvalData.action.toLowerCase()}</span> the {approvalData.type} application from <span className="font-semibold text-gray-900">{approvalData.applicantName}</span>?
                   </p>
                 </div>
               </div>
@@ -702,11 +699,10 @@ export default function Approvals() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   <span className="flex items-center space-x-2">
                     <span>Remarks</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      approvalData.action === 'Rejected'
+                    <span className={`text-xs px-2 py-1 rounded-full ${approvalData.action === 'Rejected'
                         ? 'bg-red-100 text-red-700'
                         : 'bg-gray-100 text-gray-600'
-                    }`}>
+                      }`}>
                       {approvalData.action === 'Rejected' ? 'Required' : 'Optional'}
                     </span>
                   </span>
@@ -741,11 +737,10 @@ export default function Approvals() {
                 <button
                   onClick={processApproval}
                   disabled={isProcessing || (approvalData.action === 'Rejected' && !approvalRemarks.trim())}
-                  className={`flex-1 px-4 py-2.5 rounded-lg text-white font-medium transition-colors flex items-center justify-center space-x-2 ${
-                    approvalData.action === 'Approved'
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-white font-medium transition-colors flex items-center justify-center space-x-2 ${approvalData.action === 'Approved'
                       ? 'bg-green-600 hover:bg-green-700 disabled:bg-green-400'
                       : 'bg-red-600 hover:bg-red-700 disabled:bg-red-400'
-                  }`}
+                    }`}
                 >
                   {isProcessing ? (
                     <>
