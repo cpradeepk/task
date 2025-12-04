@@ -801,18 +801,24 @@ export const resolvers = {
           al.sign_out_time,
           al.work_hours,
           al.sign_in_location,
+          al.is_manual_entry,
+          al.approval_status,
           la.leave_type,
           la.is_half_day,
           wfh.wfh_type,
           CASE
             WHEN al.sign_in_time IS NOT NULL AND al.sign_out_time IS NULL THEN 'ONLINE'
             WHEN al.sign_in_time IS NOT NULL AND al.sign_out_time IS NOT NULL THEN 
-              CASE WHEN la.is_half_day THEN 'HALF_DAY' ELSE 'PRESENT' END
+              CASE WHEN COALESCE(la.is_half_day, 0) = 1 THEN 'HALF_DAY' ELSE 'PRESENT' END
             WHEN la.status = 'Approved' THEN 'ON_LEAVE'
             WHEN wfh.status = 'Approved' THEN 'WFH'
-            WHEN EXTRACT(DOW FROM d.date) IN (0, 6) THEN 'WEEKEND'
+            WHEN d.date > CURRENT_DATE THEN NULL
             ELSE 'ABSENT'
-          END as status
+          END as status,
+          CASE 
+            WHEN al.is_manual_entry = TRUE OR al.approval_status = 'approved' THEN TRUE
+            ELSE FALSE
+          END as has_correction
         FROM (SELECT unnest($3::text[]) as employee_id) u
         CROSS JOIN (${dateSeriesQuery}) d
         LEFT JOIN attendance_logs al ON al.employee_id = u.employee_id 
@@ -840,7 +846,8 @@ export const resolvers = {
         workHours: row.work_hours || null,
         location: row.sign_in_location || null,
         leaveType: row.leave_type || null,
-        wfhType: row.wfh_type || null
+        wfhType: row.wfh_type || null,
+        hasCorrection: row.has_correction || false
       }))
 
       return {
@@ -1264,8 +1271,18 @@ export const resolvers = {
     timerState: (task: any) => task.timer_state,
     deletedAt: (task: any) => task.deleted_at,
     deletedBy: (task: any) => task.deleted_by,
-    createdAt: (task: any) => task.created_at,
-    updatedAt: (task: any) => task.updated_at,
+    createdAt: (task: any) => {
+      if (!task.created_at) return null
+      if (task.created_at instanceof Date) return task.created_at.toISOString()
+      if (typeof task.created_at === 'number') return new Date(task.created_at).toISOString()
+      return task.created_at
+    },
+    updatedAt: (task: any) => {
+      if (!task.updated_at) return null
+      if (task.updated_at instanceof Date) return task.updated_at.toISOString()
+      if (typeof task.updated_at === 'number') return new Date(task.updated_at).toISOString()
+      return task.updated_at
+    },
 
     assignedToUser: async (task: any, _: any, { loaders }: any) => {
       // ✅ FIXED: assignedTo is now an array, return first user for backward compatibility
@@ -1374,8 +1391,18 @@ export const resolvers = {
     remarks: (subtask: any) => subtask.remarks || null,
     deletedAt: (subtask: any) => subtask.deleted_at,
     deletedBy: (subtask: any) => subtask.deleted_by,
-    createdAt: (subtask: any) => subtask.created_at || getCurrentDateTime(), // ✅ FIXED: Provide default
-    updatedAt: (subtask: any) => subtask.updated_at || getCurrentDateTime(), // ✅ FIXED: Provide default
+    createdAt: (subtask: any) => {
+      if (!subtask.created_at) return getCurrentDateTime()
+      if (subtask.created_at instanceof Date) return subtask.created_at.toISOString()
+      if (typeof subtask.created_at === 'number') return new Date(subtask.created_at).toISOString()
+      return subtask.created_at
+    },
+    updatedAt: (subtask: any) => {
+      if (!subtask.updated_at) return getCurrentDateTime()
+      if (subtask.updated_at instanceof Date) return subtask.updated_at.toISOString()
+      if (typeof subtask.updated_at === 'number') return new Date(subtask.updated_at).toISOString()
+      return subtask.updated_at
+    },
 
     assignedToUser: async (subtask: any, _: any, { loaders }: any) => {
       if (!subtask.assigned_to) return null
@@ -1473,8 +1500,18 @@ export const resolvers = {
     timerSessions: (bug: any) => bug.timer_sessions,
     deletedAt: (bug: any) => bug.deleted_at,
     deletedBy: (bug: any) => bug.deleted_by,
-    createdAt: (bug: any) => bug.created_at,
-    updatedAt: (bug: any) => bug.updated_at,
+    createdAt: (bug: any) => {
+      if (!bug.created_at) return null
+      if (bug.created_at instanceof Date) return bug.created_at.toISOString()
+      if (typeof bug.created_at === 'number') return new Date(bug.created_at).toISOString()
+      return bug.created_at
+    },
+    updatedAt: (bug: any) => {
+      if (!bug.updated_at) return null
+      if (bug.updated_at instanceof Date) return bug.updated_at.toISOString()
+      if (typeof bug.updated_at === 'number') return new Date(bug.updated_at).toISOString()
+      return bug.updated_at
+    },
 
     assignedToUser: async (bug: any, _: any, { loaders }: any) => {
       if (!bug.assigned_to) return null
@@ -1559,8 +1596,18 @@ export const resolvers = {
     displayOrder: (subtask: any) => subtask.display_order || 0,
     deletedAt: (subtask: any) => subtask.deleted_at,
     deletedBy: (subtask: any) => subtask.deleted_by,
-    createdAt: (subtask: any) => subtask.created_at || getCurrentDateTime(), // ✅ FIXED: Provide default
-    updatedAt: (subtask: any) => subtask.updated_at || getCurrentDateTime(), // ✅ FIXED: Provide default
+    createdAt: (subtask: any) => {
+      if (!subtask.created_at) return getCurrentDateTime()
+      if (subtask.created_at instanceof Date) return subtask.created_at.toISOString()
+      if (typeof subtask.created_at === 'number') return new Date(subtask.created_at).toISOString()
+      return subtask.created_at
+    },
+    updatedAt: (subtask: any) => {
+      if (!subtask.updated_at) return getCurrentDateTime()
+      if (subtask.updated_at instanceof Date) return subtask.updated_at.toISOString()
+      if (typeof subtask.updated_at === 'number') return new Date(subtask.updated_at).toISOString()
+      return subtask.updated_at
+    },
     createdBy: (subtask: any) => subtask.created_by,
 
     assignedToUser: async (subtask: any, _: any, { loaders }: any) => {

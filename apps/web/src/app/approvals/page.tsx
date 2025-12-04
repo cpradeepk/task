@@ -11,6 +11,46 @@ import Navbar from '@/components/layout/Navbar'
 import AttendanceCalendarView from '@/components/attendance/AttendanceCalendarView'
 import { formatDistanceToNow } from 'date-fns'
 
+const PENDING_ATTENDANCE_REQUESTS_QUERY = `
+  query PendingAttendanceRequests {
+    pendingAttendanceRequests {
+      id
+      userId
+      attendanceDate
+      requestType
+      originalTime
+      newTime
+      reason
+      status
+      createdAt
+      user {
+        employeeId
+        name
+        department
+        role
+      }
+    }
+  }
+`
+
+const APPROVE_ATTENDANCE_MUTATION = `
+  mutation ApproveAttendanceRequest($requestId: ID!) {
+    approveAttendanceRequest(requestId: $requestId) {
+      id
+      status
+    }
+  }
+`
+
+const REJECT_ATTENDANCE_MUTATION = `
+  mutation RejectAttendanceRequest($requestId: ID!) {
+    rejectAttendanceRequest(requestId: $requestId) {
+      id
+      status
+    }
+  }
+`
+
 export default function Approvals() {
   const [leaveApplications, setLeaveApplications] = useState<LeaveApplication[]>([])
   const [wfhApplications, setWFHApplications] = useState<WFHApplication[]>([])
@@ -163,27 +203,36 @@ export default function Approvals() {
         const result = await response.json()
         const team = result.success ? result.data : []
         const hasTeam = Array.isArray(team) && team.length > 0
-        setIsManager(hasTeam || currentUser.role === 'top_management' || currentUser.role === 'admin')
+        const isManagementRole = ['management', 'top_management', 'admin'].includes(currentUser.role)
+        setIsManager(hasTeam || isManagementRole)
 
-        if (hasTeam) {
+        // For management, top_management, and admin: show all employees (empty teamMembers array)
+        // For regular managers: show only their team
+        if (isManagementRole) {
+          setTeamMembers([]) // Empty array means show all employees
+        } else if (hasTeam) {
           setTeamMembers(team.map((member: any) => member.employeeId))
         }
 
-        if (hasTeam || currentUser.role === 'top_management' || currentUser.role === 'admin') {
+        if (hasTeam || isManagementRole) {
           await loadApplications()
         }
       } else {
         // If API fails, check role only
-        setIsManager(currentUser.role === 'top_management' || currentUser.role === 'admin')
-        if (currentUser.role === 'top_management' || currentUser.role === 'admin') {
+        const isManagementRole = ['management', 'top_management', 'admin'].includes(currentUser.role)
+        setIsManager(isManagementRole)
+        if (isManagementRole) {
+          setTeamMembers([]) // Empty array means show all employees
           await loadApplications()
         }
       }
     } catch (error) {
       console.error('Error checking manager status:', error)
       // Fallback to role-based check
-      setIsManager(currentUser.role === 'top_management' || currentUser.role === 'admin')
-      if (currentUser.role === 'top_management' || currentUser.role === 'admin') {
+      const isManagementRole = ['management', 'top_management', 'admin'].includes(currentUser.role)
+      setIsManager(isManagementRole)
+      if (isManagementRole) {
+        setTeamMembers([]) // Empty array means show all employees
         await loadApplications()
       }
     }
@@ -328,6 +377,86 @@ export default function Approvals() {
       setIsProcessing(false)
     }
   }
+
+  const fetchPendingAttendanceRequests = async () => {
+    setIsLoadingAttendance(true)
+    try {
+      const response = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: PENDING_ATTENDANCE_REQUESTS_QUERY })
+      })
+      const data = await response.json()
+      if (data.data?.pendingAttendanceRequests) {
+        setPendingAttendanceRequests(data.data.pendingAttendanceRequests)
+      }
+    } catch (error) {
+      console.error('Error fetching pending attendance requests:', error)
+    } finally {
+      setIsLoadingAttendance(false)
+    }
+  }
+
+  const handleApproveAttendanceRequest = async (requestId: string) => {
+    if (!confirm('Approve this attendance edit request?')) return
+
+    try {
+      const response = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: APPROVE_ATTENDANCE_MUTATION,
+          variables: { requestId }
+        })
+      })
+
+      const data = await response.json()
+      if (data.data?.approveAttendanceRequest) {
+        alert('Request approved successfully')
+        // Remove from local state
+        setPendingAttendanceRequests(prev => prev.filter(req => req.id !== requestId))
+      } else {
+        alert('Failed to approve request: ' + (data.errors?.[0]?.message || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Error approving request:', error)
+      alert('Failed to approve request')
+    }
+  }
+
+  const handleRejectAttendanceRequest = async (requestId: string) => {
+    if (!confirm('Reject this attendance edit request?')) return
+
+    try {
+      const response = await fetch('/api/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: REJECT_ATTENDANCE_MUTATION,
+          variables: { requestId }
+        })
+      })
+
+      const data = await response.json()
+      if (data.data?.rejectAttendanceRequest) {
+        alert('Request rejected')
+        // Remove from local state
+        setPendingAttendanceRequests(prev => prev.filter(req => req.id !== requestId))
+      } else {
+        alert('Failed to reject request: ' + (data.errors?.[0]?.message || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Error rejecting request:', error)
+      alert('Failed to reject request')
+    }
+  }
+
+  // Fetch attendance requests when component mounts or when manager status is confirmed
+  useEffect(() => {
+    if (isManager && !isLoading) {
+      fetchPendingAttendanceRequests()
+    }
+  }, [isManager, isLoading])
 
   if (isLoading) {
     return (
@@ -650,7 +779,196 @@ export default function Approvals() {
             )}
           </div>
         )}
+
+        {/* Attendance Approvals Tab */}
+        {activeTab === 'attendance-approvals' && (
+          <div className="space-y-4">
+            {isLoadingAttendance ? (
+              <div className="card text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-secondary-600">Loading attendance requests...</p>
+              </div>
+            ) : pendingAttendanceRequests.length === 0 ? (
+              <div className="card text-center py-8">
+                <Clock className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
+                <p className="text-secondary-600">No pending attendance edit requests</p>
+              </div>
+            ) : (
+              pendingAttendanceRequests.map((request) => (
+                <div key={request.id} className="card">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h3 className="font-semibold text-secondary-900">{request.user.name}</h3>
+                        <span className="text-sm text-secondary-600">({request.user.employeeId})</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.requestType === 'SIGN_IN_EDIT' ? 'bg-blue-100 text-blue-800' :
+                          request.requestType === 'SIGN_OUT_EDIT' ? 'bg-purple-100 text-purple-800' :
+                            'bg-orange-100 text-orange-800'
+                          }`}>
+                          {request.requestType === 'SIGN_IN_EDIT' ? 'Sign In Edit' :
+                            request.requestType === 'SIGN_OUT_EDIT' ? 'Sign Out Edit' :
+                              'Missing Entry'}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 text-sm text-secondary-600">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4" />
+                          <span><strong>Date:</strong> {formatDate(request.attendanceDate)}</span>
+                        </div>
+                        {request.originalTime && (
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span><strong>Original Time:</strong> {new Date(request.originalTime).toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4" />
+                          <span><strong>New Time:</strong> {new Date(request.newTime).toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4" />
+                          <span><strong>Submitted:</strong> {formatDistanceToNow(new Date(request.createdAt), { addSuffix: true })}</span>
+                        </div>
+                      </div>
+
+                      {request.reason && (
+                        <div className="mt-3 p-3 bg-secondary-50 rounded-lg">
+                          <p className="text-sm text-secondary-700">
+                            <strong>Reason:</strong> {request.reason}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-4 lg:mt-0 lg:ml-6 flex space-x-2">
+                      <button
+                        onClick={() => handleApproveAttendanceRequest(request.id)}
+                        className="btn-primary flex items-center space-x-1 text-sm"
+                      >
+                        <Check className="h-4 w-4" />
+                        <span>Approve</span>
+                      </button>
+                      <button
+                        onClick={() => handleRejectAttendanceRequest(request.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                      >
+                        <X className="h-4 w-4" />
+                        <span>Reject</span>
+                      </button>
+                      <button
+                        onClick={() => setSelectedAttendanceRequest(request)}
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-3 rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>View</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Attendance Calendar Tab */}
+        {activeTab === 'attendance-calendar' && (
+          <AttendanceCalendarView teamMembers={teamMembers} />
+        )}
       </div>
+
+      {/* Attendance Request Detail Modal */}
+      {selectedAttendanceRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Attendance Request Details</h2>
+              <button
+                onClick={() => setSelectedAttendanceRequest(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-sm text-gray-500">Employee</p>
+                <p className="font-medium">{selectedAttendanceRequest.user.name}</p>
+                <p className="text-sm text-gray-600">{selectedAttendanceRequest.user.department} - {selectedAttendanceRequest.user.role}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500">Request Type</p>
+                <span className={`inline-block px-2 py-1 text-sm font-medium rounded ${selectedAttendanceRequest.requestType === 'SIGN_IN_EDIT' ? 'bg-blue-100 text-blue-800' :
+                  selectedAttendanceRequest.requestType === 'SIGN_OUT_EDIT' ? 'bg-purple-100 text-purple-800' :
+                    'bg-orange-100 text-orange-800'
+                  }`}>
+                  {selectedAttendanceRequest.requestType === 'SIGN_IN_EDIT' ? 'Sign In Edit' :
+                    selectedAttendanceRequest.requestType === 'SIGN_OUT_EDIT' ? 'Sign Out Edit' :
+                      'Missing Entry'}
+                </span>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500">Attendance Date</p>
+                <p className="font-medium">{formatDate(selectedAttendanceRequest.attendanceDate)}</p>
+              </div>
+
+              {selectedAttendanceRequest.originalTime && (
+                <div>
+                  <p className="text-sm text-gray-500">Original Time</p>
+                  <p className="font-medium">{new Date(selectedAttendanceRequest.originalTime).toLocaleString()}</p>
+                </div>
+              )}
+
+              <div>
+                <p className="text-sm text-gray-500">New Time</p>
+                <p className="font-medium">{new Date(selectedAttendanceRequest.newTime).toLocaleString()}</p>
+              </div>
+
+              {selectedAttendanceRequest.reason && (
+                <div>
+                  <p className="text-sm text-gray-500">Reason</p>
+                  <p className="whitespace-pre-wrap">{selectedAttendanceRequest.reason}</p>
+                </div>
+              )}
+
+              <div>
+                <p className="text-sm text-gray-500">Submitted</p>
+                <p className="font-medium">{formatDistanceToNow(new Date(selectedAttendanceRequest.createdAt), { addSuffix: true })}</p>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setSelectedAttendanceRequest(null)}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  handleRejectAttendanceRequest(selectedAttendanceRequest.id)
+                  setSelectedAttendanceRequest(null)
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => {
+                  handleApproveAttendanceRequest(selectedAttendanceRequest.id)
+                  setSelectedAttendanceRequest(null)
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                Approve
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Approval Modal */}
       {showApprovalModal && approvalData && (

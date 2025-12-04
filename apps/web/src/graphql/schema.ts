@@ -258,13 +258,14 @@ export const typeDefs = `#graphql
   type AttendanceCalendarRecord {
     employeeId: String!
     date: String!
-    status: String!
+    status: String
     signInTime: String
     signOutTime: String
     workHours: Float
     location: String
     leaveType: String
     wfhType: String
+    hasCorrection: Boolean!
   }
 
   type AttendanceCalendarEmployee {

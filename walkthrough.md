@@ -1,79 +1,213 @@
-# Walkthrough: Web & Mobile App Bug Fixes
+# Attendance Calendar & Approvals Integration - Walkthrough
 
-## Overview
-This walkthrough details the fixes applied to the Web and Mobile applications to address issues with cancel buttons, navigation, dropdowns, and visibility.
+## Summary
+Successfully completed the integration of Attendance Calendar and Attendance Approvals tabs into the `/approvals` page. The implementation includes full UI for viewing, approving, and rejecting attendance edit requests, as well as a comprehensive calendar view for tracking team attendance.
 
-## Changes
+## Changes Made
 
-### Web Application
-1.  **Cancel Buttons**:
-    *   Updated `WFH Apply`, `Leave Apply`, and `Create Task` pages to redirect to their respective parent pages (`/my-applications`, `/tasks`) instead of just resetting the form.
-2.  **Feed**:
-    *   Fixed "Create Post" button to remove the `create` query parameter from the URL when the modal is closed, allowing the button to work repeatedly.
-    *   Updated `GET /api/feed/topics` to strictly exclude personal topics when `includePersonal=false` is requested.
-3.  **Bugs**:
-    *   Added default fallback values for `bugStatuses`, `severities`, and `categories` in `BugsPage` to ensure dropdowns are populated even if the API returns empty settings.
-    *   Added `type="button"` to the "View Details" button in `HierarchicalBugRow` to prevent accidental form submissions.
+### 1. **Attendance Approvals Tab** (`/apps/web/src/app/approvals/page.tsx`)
 
-### Mobile Application
-1.  **Cancel Buttons**:
-    *   Added "Cancel" buttons to `CreateWFHScreen`, `CreateLeaveScreen`, and `CreateTaskScreen`.
-    *   These buttons navigate back to the previous screen using `navigation.goBack()`.
-    *   Styled the buttons to match the application's design system.
+#### Added UI Components:
+- **Pending Requests List**: Displays all pending attendance edit requests with:
+  - Employee name and ID
+  - Request type badge (Sign In Edit, Sign Out Edit, Missing Entry)
+  - Attendance date
+  - Original time (if applicable)
+  - New requested time
+  - Submission timestamp
+  - Reason for the request
+  
+- **Action Buttons**: Each request has three buttons:
+  - **Approve**: Approves the attendance edit request
+  - **Reject**: Rejects the attendance edit request
+  - **View**: Opens a detailed modal with full request information
 
-### 4. GraphQL Settings Error
-**Issue:** The `Query.settings` field was returning null, causing crashes and empty dropdowns on Bugs and Tasks pages.
-**Fix:** Added missing `settings` and `setting` resolvers in `apps/web/src/graphql/resolvers.ts`.
-**File:** `apps/web/src/graphql/resolvers.ts`
-```typescript
-settings: async (_: any, { activeOnly }: any) => { ... },
-setting: async (_: any, { key }: any) => { ... }
+- **Detail Modal**: Full-screen modal showing:
+  - Employee details (name, department, role)
+  - Request type with color-coded badge
+  - Attendance date
+  - Original and new times
+  - Reason for request
+  - Submission timestamp
+  - Approve/Reject actions
+
+#### Added Functions:
+- `fetchPendingAttendanceRequests()`: Fetches pending attendance requests from GraphQL API
+- `handleApproveAttendanceRequest(requestId)`: Approves a request and updates local state
+- `handleRejectAttendanceRequest(requestId)`: Rejects a request and updates local state
+- `useEffect` hook to automatically fetch requests when manager status is confirmed
+
+### 2. **Attendance Calendar Tab** (`/apps/web/src/app/approvals/page.tsx`)
+
+#### Integration:
+- Renders the `AttendanceCalendarView` component when the calendar tab is active
+- Passes `teamMembers` prop to filter calendar data for manager's team
+- Seamless integration with existing tab structure
+
+### 3. **Backend Support** (Already Implemented)
+
+The following GraphQL resolvers were already in place:
+
+#### Queries:
+- `pendingAttendanceRequests`: Fetches all pending attendance edit requests
+- `attendanceCalendar`: Fetches attendance data for calendar view with:
+  - Date range filtering
+  - Department filtering
+  - Team member filtering
+  - Employee search
+  - Pagination support
+
+#### Mutations:
+- `approveAttendanceRequest`: Approves a request and updates attendance logs
+- `rejectAttendanceRequest`: Rejects a request
+
+## Features
+
+### Attendance Approvals Tab
+✅ View all pending attendance edit requests  
+✅ Color-coded request type badges  
+✅ Approve/Reject functionality with confirmation  
+✅ Detailed view modal for each request  
+✅ Real-time state updates after approval/rejection  
+✅ Loading states and empty states  
+✅ Responsive design for mobile and desktop  
+
+### Attendance Calendar Tab
+✅ Monthly calendar grid view  
+✅ Employee rows with attendance status for each day  
+✅ Color-coded status indicators:
+  - 🟢 Present (P)
+  - 🔵 Online (O)
+  - 🔴 Absent (A)
+  - 🟡 On Leave (L)
+  - 🟣 Work From Home (W)
+  - 🟠 Half Day (H)
+  - ⚪ Weekend (-)
+✅ Click-to-view details modal  
+✅ Department and employee search filters  
+✅ Pagination for large teams  
+✅ CSV export functionality  
+✅ Month navigation (Previous/Next/Today)  
+
+## User Flow
+
+### Approving an Attendance Request
+
+1. Manager navigates to `/approvals` page
+2. Clicks on "Attendance Approvals" tab
+3. Views list of pending requests with all details
+4. Can either:
+   - Click "Approve" → Confirms → Request approved → Removed from list
+   - Click "Reject" → Confirms → Request rejected → Removed from list
+   - Click "View" → Opens detail modal → Can approve/reject from modal
+
+### Viewing Attendance Calendar
+
+1. Manager navigates to `/approvals` page
+2. Clicks on "Attendance Calendar" tab
+3. Views monthly calendar with all team members
+4. Can:
+   - Navigate between months
+   - Filter by department
+   - Search for specific employees
+   - Click on any cell to view detailed attendance information
+   - Export calendar data to CSV
+
+## Technical Details
+
+### State Management
+- `pendingAttendanceRequests`: Array of pending requests
+- `isLoadingAttendance`: Loading state for attendance requests
+- `selectedAttendanceRequest`: Currently selected request for detail modal
+- `activeTab`: Controls which tab is displayed
+
+### GraphQL Queries Used
+```graphql
+query PendingAttendanceRequests {
+  pendingAttendanceRequests {
+    id
+    userId
+    attendanceDate
+    requestType
+    originalTime
+    newTime
+    reason
+    status
+    createdAt
+    user {
+      employeeId
+      name
+      department
+      role
+    }
+  }
+}
+
+query AttendanceCalendar(
+  $startDate: String!
+  $endDate: String!
+  $department: String
+  $teamMembers: [String!]
+  $search: String
+  $page: Int
+  $limit: Int
+) {
+  attendanceCalendar(...) {
+    employees { ... }
+    records { ... }
+    pagination { ... }
+  }
+}
 ```
 
-### 5. Personal Notes Visibility
-**Issue:** Personal notes were visible to all users in the Feed.
-**Fix:** Updated `feedPosts` resolver in `apps/web/src/graphql/resolvers.ts` to filter out posts that are associated with private topics (`is_personal = true`) unless the topic is owned by the current user.
-**File:** `apps/web/src/graphql/resolvers.ts`
-```typescript
-// Updated SQL query in feedPosts resolver
-AND (ft.is_personal = false OR ft.owner_user_id = $1)
+### GraphQL Mutations Used
+```graphql
+mutation ApproveAttendanceRequest($requestId: ID!) {
+  approveAttendanceRequest(requestId: $requestId) {
+    id
+    status
+  }
+}
+
+mutation RejectAttendanceRequest($requestId: ID!) {
+  rejectAttendanceRequest(requestId: $requestId) {
+    id
+    status
+  }
+}
 ```
 
-### 6. Bugs Page Crash (Query.bugs)
-**Issue:** The `Query.bugs` resolver was missing or returning null, causing a crash because the schema expects a non-nullable array `[Bug!]!`.
-**Fix:** Added `bugs` and `bug` resolvers in `apps/web/src/graphql/resolvers.ts` that return an empty array `[]` on error or when no data is found.
-**File:** `apps/web/src/graphql/resolvers.ts`
+## Testing Recommendations
 
-### 7. Duplicate Tasks
-**Issue:** The Task list showed duplicate entries.
-**Fix:** Updated `tasks` resolver to use `SELECT DISTINCT` and added a stable sort order (`ORDER BY updated_at DESC, task_id DESC`) to prevent duplicates during pagination.
-**File:** `apps/web/src/graphql/resolvers.ts`
+1. **Attendance Approvals Tab**:
+   - [ ] Verify pending requests load correctly
+   - [ ] Test approve functionality
+   - [ ] Test reject functionality
+   - [ ] Test detail modal opens and closes
+   - [ ] Verify requests are removed from list after approval/rejection
+   - [ ] Test with no pending requests (empty state)
+   - [ ] Test loading state
 
-### 8. Frontend Duplicate Tasks (Same Key Error)
-**Issue:** "Encountered two children with the same key" error in Tasks page due to duplicate tasks being appended during infinite scroll.
-**Fix:** Added explicit deduplication logic in `loadTasks` function in `apps/web/src/app/tasks/page.tsx` using a Map to ensure unique `taskId`s.
-**File:** `apps/web/src/app/tasks/page.tsx`
-```typescript
-// Deduplicate by taskId using a Map
-const uniqueTasks = Array.from(new Map(combined.map(task => [task.taskId, task])).values())
-```
+2. **Attendance Calendar Tab**:
+   - [ ] Verify calendar loads with correct month
+   - [ ] Test month navigation
+   - [ ] Test department filter
+   - [ ] Test employee search
+   - [ ] Test pagination
+   - [ ] Test CSV export
+   - [ ] Test cell click to view details
+   - [ ] Verify status colors are correct
 
-## Verification Results
-
-### Automated Tests
-- **GraphQL Settings:** Verified that `settings` query now returns data (or empty array) instead of null.
-- **Personal Notes:** Verified that `feedPosts` query filters private topics correctly.
-- **Bugs Query:** Verified `bugs` resolver exists and handles errors gracefully.
-- **Tasks Query:** Verified `tasks` query uses `DISTINCT` and stable sort.
-
-### Manual Verification Steps
-1.  **Bugs/Tasks Page:** Navigate to Bugs or Tasks page. Verify that Status and Priority dropdowns are populated.
-2.  **Feed:** Log in as User A. Create a post in "Personal Notes". Log in as User B. Verify that User B cannot see the post.
-3.  **Mobile App:** Verify that the "Cancel" buttons work on WFH, Leave, and Create Task screens.
-4.  **Bugs Page:** Click "View Details" on a bug. Verify no crash occurs.
-5.  **Tasks Page:** Scroll through the task list (infinite scroll) and verify no "same key" error in console and no duplicate tasks in UI.
+3. **Integration**:
+   - [ ] Test tab switching between all tabs
+   - [ ] Verify teamMembers prop is passed correctly
+   - [ ] Test with different user roles (manager, top management, admin)
+   - [ ] Verify permission checks work correctly
 
 ## Next Steps
-- Deploy changes to staging and verify with real data.
-- Monitor logs for any GraphQL errors.
 
+- Test the implementation in a development environment
+- Verify GraphQL queries return expected data
+- Test approve/reject actions with real data
+- Ensure proper error handling for edge cases
+- Consider adding toast notifications instead of alerts for better UX

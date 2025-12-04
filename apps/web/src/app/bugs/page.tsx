@@ -345,8 +345,13 @@ export default function BugsPage() {
       // This ensures consistent bug visibility across all users and matches task behavior
 
       if (loadMore) {
-        // Append new bugs to existing ones
-        setBugs(prev => [...prev, ...bugsData])
+        // Append new bugs to existing ones with deduplication
+        setBugs(prev => {
+          const combined = [...prev, ...bugsData]
+          // Deduplicate by bugId using a Map
+          const uniqueBugs = Array.from(new Map(combined.map(bug => [bug.bugId, bug])).values())
+          return uniqueBugs
+        })
         setOffset(prev => prev + ITEMS_PER_PAGE)
       } else {
         // Replace bugs (initial load or filter change)

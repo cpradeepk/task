@@ -18,13 +18,14 @@ interface CalendarEmployee {
 interface CalendarRecord {
     employeeId: string
     date: string
-    status: string
+    status: string | null
     signInTime: string | null
     signOutTime: string | null
     workHours: number | null
     location: string | null
     leaveType: string | null
     wfhType: string | null
+    hasCorrection: boolean
 }
 
 interface CalendarData {
@@ -84,7 +85,8 @@ const ATTENDANCE_CALENDAR_QUERY = `
   }
 `
 
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: string | null) => {
+    if (!status) return 'bg-gray-50 text-gray-500 border-gray-100'
     switch (status) {
         case 'PRESENT':
             return 'bg-green-100 text-green-800 border-green-200'
@@ -105,7 +107,8 @@ const getStatusColor = (status: string) => {
     }
 }
 
-const getStatusLabel = (status: string) => {
+const getStatusLabel = (status: string | null) => {
+    if (!status) return ''
     switch (status) {
         case 'PRESENT': return 'P'
         case 'ONLINE': return 'O'
@@ -148,7 +151,7 @@ export default function AttendanceCalendarView({ teamMembers }: AttendanceCalend
                         startDate,
                         endDate,
                         department: department || null,
-                        teamMembers: teamMembers || null,
+                        teamMembers: (teamMembers && teamMembers.length > 0) ? teamMembers : null,
                         search: searchQuery || null,
                         page,
                         limit: 20
@@ -324,20 +327,23 @@ export default function AttendanceCalendarView({ teamMembers }: AttendanceCalend
                                             {dates.map(date => {
                                                 const dateStr = format(date, 'yyyy-MM-dd')
                                                 const record = getRecordForCell(employee.employeeId, dateStr)
-                                                const status = record?.status || 'ABSENT'
 
                                                 return (
                                                     <td
                                                         key={dateStr}
-                                                        className="px-1 py-2 text-center cursor-pointer"
+                                                        className="p-0 border border-gray-200 h-10 w-10 text-center cursor-pointer hover:bg-gray-50 transition-colors relative"
                                                         onClick={() => record && setSelectedCell(record)}
                                                     >
-                                                        <div
-                                                            className={`w-8 h-8 mx-auto flex items-center justify-center rounded border text-xs font-medium ${getStatusColor(status)}`}
-                                                            title={status}
-                                                        >
-                                                            {getStatusLabel(status)}
-                                                        </div>
+                                                        {record ? (
+                                                            <div className={`w-full h-full flex items-center justify-center text-xs font-medium ${getStatusColor(record.status)} relative`}>
+                                                                {getStatusLabel(record.status)}
+                                                                {record.hasCorrection && (
+                                                                    <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full border border-white" title="Correction made"></div>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-full h-full bg-gray-50"></div>
+                                                        )}
                                                     </td>
                                                 )
                                             })}
