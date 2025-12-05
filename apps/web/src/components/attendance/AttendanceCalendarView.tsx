@@ -85,7 +85,12 @@ const ATTENDANCE_CALENDAR_QUERY = `
   }
 `
 
-const getStatusColor = (status: string | null) => {
+const getStatusColor = (status: string | null, workHours: number | null) => {
+    // Check for partial leave first (less than 3 hours of work)
+    if (status === 'PRESENT' && workHours !== null && workHours < 3) {
+        return 'bg-amber-100 text-amber-800 border-amber-200'
+    }
+
     if (!status) return 'bg-gray-50 text-gray-500 border-gray-100'
     switch (status) {
         case 'PRESENT':
@@ -107,7 +112,12 @@ const getStatusColor = (status: string | null) => {
     }
 }
 
-const getStatusLabel = (status: string | null) => {
+const getStatusLabel = (status: string | null, workHours: number | null) => {
+    // Check for partial leave first (less than 3 hours of work)
+    if (status === 'PRESENT' && workHours !== null && workHours < 3) {
+        return 'PL'
+    }
+
     if (!status) return ''
     switch (status) {
         case 'PRESENT': return 'P'
@@ -335,8 +345,8 @@ export default function AttendanceCalendarView({ teamMembers }: AttendanceCalend
                                                         onClick={() => record && setSelectedCell(record)}
                                                     >
                                                         {record ? (
-                                                            <div className={`w-full h-full flex items-center justify-center text-xs font-medium ${getStatusColor(record.status)} relative`}>
-                                                                {getStatusLabel(record.status)}
+                                                            <div className={`w-full h-full flex items-center justify-center text-xs font-medium ${getStatusColor(record.status, record.workHours)} relative`}>
+                                                                {getStatusLabel(record.status, record.workHours)}
                                                                 {record.hasCorrection && (
                                                                     <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full border border-white" title="Correction made"></div>
                                                                 )}
@@ -384,19 +394,20 @@ export default function AttendanceCalendarView({ teamMembers }: AttendanceCalend
             {/* Legend */}
             <div className="bg-white rounded-lg shadow p-4">
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Status Legend</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                     {[
-                        { status: 'PRESENT', label: 'Present' },
-                        { status: 'ONLINE', label: 'Online' },
-                        { status: 'ABSENT', label: 'Absent' },
-                        { status: 'ON_LEAVE', label: 'On Leave' },
-                        { status: 'WFH', label: 'Work From Home' },
-                        { status: 'HALF_DAY', label: 'Half Day' },
-                        { status: 'WEEKEND', label: 'Weekend' }
-                    ].map(({ status, label }) => (
-                        <div key={status} className="flex items-center gap-2">
-                            <div className={`w-6 h-6 flex items-center justify-center rounded border text-xs font-medium ${getStatusColor(status)}`}>
-                                {getStatusLabel(status)}
+                        { status: 'PRESENT', label: 'Present', workHours: 8 },
+                        { status: 'PRESENT', label: 'Partial Leave (< 3hrs)', workHours: 2 },
+                        { status: 'ONLINE', label: 'Online', workHours: null },
+                        { status: 'ABSENT', label: 'Absent', workHours: null },
+                        { status: 'ON_LEAVE', label: 'On Leave', workHours: null },
+                        { status: 'WFH', label: 'Work From Home', workHours: null },
+                        { status: 'HALF_DAY', label: 'Half Day', workHours: null },
+                        { status: 'WEEKEND', label: 'Weekend', workHours: null }
+                    ].map(({ status, label, workHours }, idx) => (
+                        <div key={`${status}-${idx}`} className="flex items-center gap-2">
+                            <div className={`w-6 h-6 flex items-center justify-center rounded border text-xs font-medium ${getStatusColor(status, workHours)}`}>
+                                {getStatusLabel(status, workHours)}
                             </div>
                             <span className="text-xs text-gray-600">{label}</span>
                         </div>
@@ -426,7 +437,7 @@ export default function AttendanceCalendarView({ teamMembers }: AttendanceCalend
 
                             <div>
                                 <p className="text-sm text-gray-500">Status</p>
-                                <span className={`inline-block px-2 py-1 rounded text-sm font-medium ${getStatusColor(selectedCell.status)}`}>
+                                <span className={`inline-block px-2 py-1 rounded text-sm font-medium ${getStatusColor(selectedCell.status, selectedCell.workHours)}`}>
                                     {selectedCell.status}
                                 </span>
                             </div>
