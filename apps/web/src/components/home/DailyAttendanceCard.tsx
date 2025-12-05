@@ -33,6 +33,7 @@ export default function DailyAttendanceCard() {
     const [workDuration, setWorkDuration] = useState<string>('00:00:00')
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [editType, setEditType] = useState<'SIGN_IN_EDIT' | 'SIGN_OUT_EDIT' | 'MISSING_ENTRY'>('SIGN_IN_EDIT')
+    const [editDate, setEditDate] = useState(format(new Date(), 'yyyy-MM-dd'))
     const [editTime, setEditTime] = useState('')
     const [editReason, setEditReason] = useState('')
     const { showGlobalLoading, hideGlobalLoading } = useLoading()
@@ -133,6 +134,7 @@ export default function DailyAttendanceCard() {
             hideGlobalLoading()
             alert('Attendance edit request submitted successfully!')
             setIsEditModalOpen(false)
+            setEditDate(format(new Date(), 'yyyy-MM-dd'))
             setEditTime('')
             setEditReason('')
         },
@@ -173,10 +175,10 @@ export default function DailyAttendanceCard() {
         requestAttendanceEdit({
             variables: {
                 input: {
-                    attendanceDate: todayDate,
+                    attendanceDate: editDate,
                     requestType: editType,
                     originalTime: originalTime ? new Date(parseInt(originalTime)).toISOString() : null,
-                    newTime: new Date(`${todayDate}T${editTime}`).toISOString(),
+                    newTime: new Date(`${editDate}T${editTime}`).toISOString(),
                     reason: editReason
                 }
             }
@@ -353,6 +355,19 @@ export default function DailyAttendanceCard() {
                                     <option value="SIGN_OUT_EDIT">Edit Sign Out Time</option>
                                     <option value="MISSING_ENTRY">Add Missing Entry</option>
                                 </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Date
+                                </label>
+                                <input
+                                    type="date"
+                                    value={editDate}
+                                    onChange={(e) => setEditDate(e.target.value)}
+                                    max={format(new Date(), 'yyyy-MM-dd')}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                             </div>
 
                             <div>
