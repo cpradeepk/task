@@ -324,7 +324,7 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
                   style={styles.picker}
                   enabled={!isOffline}
                 >
-                  {taskStatuses.map((s) => (
+                  {taskStatuses.map((s: any) => (
                     <Picker.Item key={s} label={s} value={s} />
                   ))}
                 </Picker>
@@ -345,7 +345,7 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
                   style={styles.picker}
                   enabled={!isOffline}
                 >
-                  {taskPriorities.map((p) => (
+                  {taskPriorities.map((p: any) => (
                     <Picker.Item key={p} label={p} value={p} />
                   ))}
                 </Picker>

@@ -149,7 +149,7 @@ export default function LeaveListScreen() {
         style={styles.leaveCard}
         elevation={1}
         onPress={() =>
-          navigation.navigate('LeaveDetails' as never, { leaveId: item.id } as never)
+          navigation.navigate('LeaveDetails' as never as never, { leaveId: item.id } as never)
         }
       >
         <Card.Content>

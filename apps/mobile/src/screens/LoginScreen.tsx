@@ -77,7 +77,7 @@ export default function LoginScreen() {
     try {
       const result = await signIn(employeeId, password)
       if (!result.success) {
-        Alert.alert('Login Failed', result.error || 'Invalid credentials')
+        Alert.alert('Login Failed', result.error as string || 'Invalid credentials')
       }
     } finally {
       setLoading(false)

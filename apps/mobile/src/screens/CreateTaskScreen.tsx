@@ -244,7 +244,7 @@ export default function CreateTaskScreen({ navigation }: any) {
                   enabled={!isOffline}
                 >
                   <Picker.Item label="Select Project" value="" />
-                  {projects.map((project) => (
+                  {projects.map((project: any) => (
                     <Picker.Item
                       key={project.projectId}
                       label={project.projectName}
@@ -272,7 +272,7 @@ export default function CreateTaskScreen({ navigation }: any) {
                   enabled={!isOffline}
                 >
                   <Picker.Item label="Select Subproject" value="" />
-                  {subprojects.map((subproject) => (
+                  {subprojects.map((subproject: any) => (
                     <Picker.Item
                       key={subproject.projectId}
                       label={subproject.projectName}
@@ -296,7 +296,7 @@ export default function CreateTaskScreen({ navigation }: any) {
                 style={styles.picker}
               >
                 <Picker.Item label="Select Priority" value="" />
-                {taskPriorities.map((p) => (
+                {taskPriorities.map((p: any) => (
                   <Picker.Item key={p} label={p} value={p} />
                 ))}
               </Picker>
@@ -314,7 +314,7 @@ export default function CreateTaskScreen({ navigation }: any) {
                 onValueChange={setStatus}
                 style={styles.picker}
               >
-                {taskStatuses.map((s) => (
+                {taskStatuses.map((s: any) => (
                   <Picker.Item key={s} label={s} value={s} />
                 ))}
               </Picker>
@@ -333,7 +333,7 @@ export default function CreateTaskScreen({ navigation }: any) {
                 style={styles.picker}
               >
                 <Picker.Item label="Select User" value="" />
-                {users.map((user) => (
+                {users.map((user: any) => (
                   <Picker.Item
                     key={user.employeeId}
                     label={user.name}

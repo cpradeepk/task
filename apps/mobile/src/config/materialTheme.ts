@@ -16,32 +16,36 @@ export const materialColors = {
   secondary: '#1976D2',     // Blue 700
   secondaryLight: '#42A5F5', // Blue 400
   secondaryDark: '#0D47A1',  // Blue 900
-  
+
   // Surface colors
   surface: '#FFFFFF',
   surfaceVariant: '#F5F5F5',
   surfaceDim: '#E0E0E0',
-  
+
   // Background colors
   background: '#FAFAFA',
   backgroundDark: '#121212',
-  
+
   // Text colors
   text: '#212121',
   textSecondary: '#757575',
+  textTertiary: '#9E9E9E',
   textDisabled: '#BDBDBD',
-  
+
   // Status colors
   success: '#4CAF50',       // Green 500
   warning: '#FF9800',       // Orange 500
+  warningContainer: '#FFF3E0', // Orange 50
+  onWarningContainer: '#E65100', // Orange 900
   error: '#F44336',         // Red 500
   info: '#2196F3',          // Blue 500
-  
+
   // Utility colors
   border: '#E0E0E0',
+  outline: '#79747E',       // Material Design 3 outline
   divider: '#BDBDBD',
   overlay: 'rgba(0, 0, 0, 0.5)',
-  
+
   // Elevation shadows (Material Design 3)
   shadow: '#000000',
 }
@@ -51,31 +55,35 @@ export const materialColorsDark = {
   primary: '#90CAF9',       // Blue 200
   primaryLight: '#BBDEFB',  // Blue 100
   primaryDark: '#42A5F5',   // Blue 400
-  
+
   secondary: '#FFB74D',     // Orange 300
   secondaryLight: '#FFCC80', // Orange 200
   secondaryDark: '#FFA726',  // Orange 400
-  
+
   surface: '#1E1E1E',
   surfaceVariant: '#2C2C2C',
   surfaceDim: '#121212',
-  
+
   background: '#121212',
   backgroundDark: '#000000',
-  
+
   text: '#FFFFFF',
   textSecondary: '#B0B0B0',
+  textTertiary: '#808080',
   textDisabled: '#6E6E6E',
-  
+
   success: '#81C784',       // Green 300
   warning: '#FFB74D',       // Orange 300
+  warningContainer: '#E65100', // Orange 900
+  onWarningContainer: '#FFF3E0', // Orange 50
   error: '#E57373',         // Red 300
   info: '#64B5F6',          // Blue 300
-  
+
   border: '#3E3E3E',
+  outline: '#938F99',       // Material Design 3 outline (dark)
   divider: '#4E4E4E',
   overlay: 'rgba(0, 0, 0, 0.7)',
-  
+
   shadow: '#000000',
 }
 
@@ -97,7 +105,7 @@ export const materialTypography = {
     lineHeight: 44,
     fontWeight: '400' as const,
   },
-  
+
   // Headline styles
   headlineLarge: {
     fontSize: 32,
@@ -114,7 +122,7 @@ export const materialTypography = {
     lineHeight: 32,
     fontWeight: '400' as const,
   },
-  
+
   // Title styles
   titleLarge: {
     fontSize: 22,
@@ -131,7 +139,7 @@ export const materialTypography = {
     lineHeight: 20,
     fontWeight: '500' as const,
   },
-  
+
   // Body styles
   bodyLarge: {
     fontSize: 16,
@@ -148,7 +156,7 @@ export const materialTypography = {
     lineHeight: 16,
     fontWeight: '400' as const,
   },
-  
+
   // Label styles
   labelLarge: {
     fontSize: 14,

@@ -166,7 +166,7 @@ export default function WFHListScreen() {
     <TouchableOpacity
       style={styles.wfhCard}
       onPress={() =>
-        navigation.navigate('WFHDetails' as never, { wfhId: item.id } as never)
+        navigation.navigate('WFHDetails' as never as never, { wfhId: item.id } as never)
       }
     >
       <View style={styles.wfhHeader}>

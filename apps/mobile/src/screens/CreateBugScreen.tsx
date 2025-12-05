@@ -196,7 +196,7 @@ export default function CreateBugScreen() {
               style={styles.picker}
             >
               <Picker.Item label="Select Project" value="" />
-              {projects.map((project) => (
+              {projects.map((project: any) => (
                 <Picker.Item
                   key={project.projectId}
                   label={project.projectName}
@@ -220,7 +220,7 @@ export default function CreateBugScreen() {
               enabled={!!projectId}
             >
               <Picker.Item label="Select Subproject" value="" />
-              {subprojects.map((subproject) => (
+              {subprojects.map((subproject: any) => (
                 <Picker.Item
                   key={subproject.subprojectId}
                   label={subproject.subprojectName}
@@ -271,7 +271,7 @@ export default function CreateBugScreen() {
               style={styles.picker}
             >
               <Picker.Item label="Select Criticality" value="" />
-              {(settings['Bug Severity'] || []).map((setting) => (
+              {(settings['Bug Severity'] || []).map((setting: any) => (
                 <Picker.Item
                   key={setting.id}
                   label={setting.value}
@@ -294,7 +294,7 @@ export default function CreateBugScreen() {
               style={styles.picker}
             >
               <Picker.Item label="Select Category" value="" />
-              {(settings['Bug Category'] || []).map((setting) => (
+              {(settings['Bug Category'] || []).map((setting: any) => (
                 <Picker.Item
                   key={setting.id}
                   label={setting.value}
@@ -317,7 +317,7 @@ export default function CreateBugScreen() {
               style={styles.picker}
             >
               <Picker.Item label="Select Platform" value="" />
-              {(settings['Bug Platform'] || []).map((setting) => (
+              {(settings['Bug Platform'] || []).map((setting: any) => (
                 <Picker.Item
                   key={setting.id}
                   label={setting.value}
@@ -338,7 +338,7 @@ export default function CreateBugScreen() {
               style={styles.picker}
             >
               <Picker.Item label="Select Environment" value="" />
-              {(settings['Bug Environment'] || []).map((setting) => (
+              {(settings['Bug Environment'] || []).map((setting: any) => (
                 <Picker.Item
                   key={setting.id}
                   label={setting.value}

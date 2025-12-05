@@ -15,6 +15,7 @@ import {
   Switch,
   Alert,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, Surface, Divider } from 'react-native-paper'
 import { AuthContext } from '../contexts/AuthContext'

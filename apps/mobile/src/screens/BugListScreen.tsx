@@ -55,7 +55,7 @@ export default function BugListScreen() {
     fetchPolicy: 'cache-and-network',
   })
 
-  const bugs = data?.bugs || []
+  const bugs = (data as any)?.bugs || []
 
   const loadSavedFilters = useCallback(async () => {
     try {
@@ -88,7 +88,7 @@ export default function BugListScreen() {
 
     // Filter by type
     if (typeFilter !== 'All') {
-      filtered = filtered.filter((bug) => {
+      filtered = filtered.filter((bug: any) => {
         if (typeFilter === 'feature') {
           return bug.type === 'feature'
         } else if (typeFilter === 'testcase') {
@@ -100,7 +100,7 @@ export default function BugListScreen() {
 
     // Filter by status
     if (statusFilter !== 'All') {
-      filtered = filtered.filter((bug) => bug.status === statusFilter)
+      filtered = filtered.filter((bug: any) => bug.status === statusFilter)
     }
 
     // Filter by search query
@@ -149,7 +149,7 @@ export default function BugListScreen() {
       <Card
         style={styles.bugCard}
         elevation={1}
-        onPress={() => navigation.navigate('BugDetails' as never, { bugId: item.bugId } as never)}
+        onPress={() => navigation.navigate('BugDetails' as never as never, { bugId: item.bugId } as never)}
       >
         <Card.Content>
           <View style={styles.bugHeader}>
@@ -245,7 +245,7 @@ export default function BugListScreen() {
         contentContainerStyle={styles.filterRowContent}
       >
         <Text style={styles.filterLabel}>Type:</Text>
-        {['All', 'feature', 'testcase'].map((type) => (
+        {['All', 'feature', 'testcase'].map((type: any) => (
           <Chip
             key={type}
             mode={typeFilter === type ? 'flat' : 'outlined'}
@@ -268,7 +268,7 @@ export default function BugListScreen() {
         contentContainerStyle={styles.filterRowContent}
       >
         <Text style={styles.filterLabel}>Status:</Text>
-        {['All', 'New', 'In Progress', 'Resolved', 'Closed', 'Reopened'].map((status) => (
+        {['All', 'New', 'In Progress', 'Resolved', 'Closed', 'Reopened'].map((status: any) => (
           <Chip
             key={status}
             mode={statusFilter === status ? 'flat' : 'outlined'}

@@ -46,7 +46,7 @@ export default function FeedPostDetailsScreen({ route }: any) {
   const [toggleReaction] = useMutation(TOGGLE_FEED_REACTION)
   const [toggleSave] = useMutation(TOGGLE_FEED_SAVE)
 
-  const post = data?.feedPost
+  const post = (data as any)?.feedPost
 
   React.useEffect(() => {
     loadCurrentUser()

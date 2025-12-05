@@ -17,6 +17,7 @@ import {
   StyleSheet,
   RefreshControl,
   Alert,
+  TouchableOpacity,
 } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, Chip } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
@@ -56,7 +57,7 @@ export default function NotificationsScreen() {
   const [markAsRead] = useMutation(MARK_NOTIFICATION_READ)
   const [markAllAsRead] = useMutation(MARK_ALL_NOTIFICATIONS_READ)
 
-  const notifications = data?.notifications || []
+  const notifications = (data as any)?.feedNotifications || []
 
   const handleRefresh = useCallback(async () => {
     try {
@@ -81,11 +82,11 @@ export default function NotificationsScreen() {
 
     // Navigate to related content
     if (notification.relatedType === 'feed_post' && notification.relatedId) {
-      navigation.navigate('FeedPostDetails' as never, { postId: notification.relatedId } as never)
+      navigation.navigate('FeedPostDetails' as never as never, { postId: notification.relatedId } as never)
     } else if (notification.relatedType === 'task' && notification.relatedId) {
-      navigation.navigate('TaskDetails' as never, { taskId: notification.relatedId } as never)
+      navigation.navigate('TaskDetails' as never as never, { taskId: notification.relatedId } as never)
     } else if (notification.relatedType === 'bug' && notification.relatedId) {
-      navigation.navigate('BugDetails' as never, { bugId: notification.relatedId } as never)
+      navigation.navigate('BugDetails' as never as never, { bugId: notification.relatedId } as never)
     }
   }, [markAsRead, refetch, navigation])
 

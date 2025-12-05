@@ -53,7 +53,7 @@ export default function TaskListScreen({ navigation }: any) {
     fetchPolicy: 'cache-and-network',
   })
 
-  const tasks = data?.tasks || []
+  const tasks = (data as any)?.tasks || []
 
   const loadCurrentUser = useCallback(async () => {
     try {
@@ -93,14 +93,14 @@ export default function TaskListScreen({ navigation }: any) {
 
     // Filter by status
     if (statusFilter !== 'All') {
-      filtered = filtered.filter((task) => task.status === statusFilter)
+      filtered = filtered.filter((task: any) => task.status === statusFilter)
     }
 
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
-        (task) =>
+        (task: any) =>
           task.taskId.toLowerCase().includes(query) ||
           task.name?.toLowerCase().includes(query) ||
           task.description.toLowerCase().includes(query)
@@ -298,7 +298,7 @@ export default function TaskListScreen({ navigation }: any) {
         contentContainerStyle={styles.filterContentContainer}
       >
         <Text style={styles.filterLabel}>Status:</Text>
-        {statusOptions.map((status) => (
+        {statusOptions.map((status: any) => (
           <Chip
             key={status}
             selected={statusFilter === status}
