@@ -49,7 +49,7 @@ export default function AttendanceDashboardScreen() {
         )
     }
 
-    const dashboardData = data?.adminDashboardData
+    const dashboardData = (data as any)?.adminDashboardData
 
     if (!dashboardData) {
         return null

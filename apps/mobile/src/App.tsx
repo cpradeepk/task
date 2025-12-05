@@ -90,8 +90,8 @@ function FeedScreen({ navigation }: any) {
     fetchPolicy: 'cache-and-network',
   })
 
-  const topics = topicsData?.feedTopics || []
-  const posts = data?.feedPosts?.posts || []
+  const topics = (topicsData as any)?.feedTopics || []
+  const posts = (data as any)?.feedPosts?.posts || []
 
   const handlePostPress = (postId: string) => {
     navigation.navigate('FeedPostDetails', { postId })
@@ -331,7 +331,6 @@ function BottomTabNavigator({ toggleDrawer }: { toggleDrawer: () => void }) {
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.25,
           shadowRadius: 3.5,
-          elevation: 5,
         },
         tabBarLabelStyle: {
           marginBottom: 10,
@@ -541,22 +540,22 @@ export default function App() {
       switch (type) {
         case 'task':
           if (taskId) {
-            navigationRef.current.navigate('TaskDetails' as never, { taskId } as never)
+            navigationRef.current.navigate('TaskDetails' as any, { taskId })
           }
           break
         case 'bug':
           if (bugId) {
-            navigationRef.current.navigate('BugDetails' as never, { bugId } as never)
+            navigationRef.current.navigate('BugDetails' as any, { bugId })
           }
           break
         case 'leave':
           if (leaveId) {
-            navigationRef.current.navigate('LeaveDetails' as never, { leaveId } as never)
+            navigationRef.current.navigate('LeaveDetails' as any, { leaveId })
           }
           break
         case 'wfh':
           if (wfhId) {
-            navigationRef.current.navigate('WFHDetails' as never, { wfhId } as never)
+            navigationRef.current.navigate('WFHDetails' as any, { wfhId })
           }
           break
         case 'feed':
@@ -564,14 +563,14 @@ export default function App() {
         case 'comment':
         case 'reaction':
           if (postId) {
-            navigationRef.current.navigate('FeedPostDetails' as never, { postId } as never)
+            navigationRef.current.navigate('FeedPostDetails' as any, { postId })
           } else {
-            navigationRef.current.navigate('Feed' as never)
+            navigationRef.current.navigate('Feed' as any)
           }
           break
         default:
           // Navigate to notifications screen if type is unknown
-          navigationRef.current.navigate('Notifications' as never)
+          navigationRef.current.navigate('Notifications' as any)
       }
     } catch (error) {
       console.error('Navigation error:', error)
@@ -678,8 +677,8 @@ export default function App() {
             variables: { employeeId, password },
           })
 
-          if (result.data?.login?.token) {
-            const { token, user } = result.data.login
+          if ((result.data as any)?.login?.token) {
+            const { token, user } = (result.data as any).login
 
             // Save token and user data to SecureStore
             await saveUserToken(token)

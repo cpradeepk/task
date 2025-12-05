@@ -34,10 +34,12 @@ export const materialColors = {
 
   // Status colors
   success: '#4CAF50',       // Green 500
+  successContainer: '#C8E6C9', // Green 100
   warning: '#FF9800',       // Orange 500
   warningContainer: '#FFF3E0', // Orange 50
   onWarningContainer: '#E65100', // Orange 900
   error: '#F44336',         // Red 500
+  errorContainer: '#FFCDD2', // Red 100
   info: '#2196F3',          // Blue 500
 
   // Utility colors

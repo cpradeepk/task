@@ -30,7 +30,7 @@ export default function DailyAttendanceCard() {
         pollInterval: 60000 // Poll every minute
     })
 
-    const attendance = data?.attendance
+    const attendance = (data as any)?.attendance
 
     // Calculate work duration
     useEffect(() => {
