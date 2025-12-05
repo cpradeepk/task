@@ -22,24 +22,45 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
   const { signOut } = React.useContext(AuthContext)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [expandedAdmin, setExpandedAdmin] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const loadUser = async () => {
+    if (visible) {
+      loadUser()
+    }
+  }, [visible])
+
+  const loadUser = async () => {
+    setIsLoading(true)
+    try {
       const userData = await getUserData()
       if (userData) {
         setCurrentUser(userData)
       }
+    } catch (error) {
+      console.error('Failed to load user data:', error)
+    } finally {
+      setIsLoading(false)
     }
-    loadUser()
-  }, [])
+  }
 
   const getNavigationItems = (): NavigationItem[] => {
-    if (!currentUser) return []
-
+    // Show default items even while loading
     const baseItems: NavigationItem[] = [
       { screen: 'Dashboard', label: 'Dashboard', icon: 'view-dashboard' },
     ]
 
+    if (!currentUser) {
+      // Show common items while loading
+      return [
+        ...baseItems,
+        { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle' },
+        { screen: 'BugList', label: 'Development', icon: 'bug' },
+        { screen: 'Feed', label: 'Feed', icon: 'rss' },
+        { screen: 'LeaveList', label: 'Leave', icon: 'calendar-clock' },
+        { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
+      ]
+    }
 
     switch (currentUser.role) {
       case 'amtarikshian':
