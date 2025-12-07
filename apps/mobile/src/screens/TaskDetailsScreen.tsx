@@ -14,6 +14,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import { formatDateTimeIST, formatDateIST } from '../utils/datetime'
 
 export default function TaskDetailsScreen({ route, navigation }: any) {
   const { taskId } = route.params
@@ -366,14 +367,14 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
             <Card.Content>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Start:</Text>
-                <Text style={styles.infoValue}>
-                  {new Date(task.startDate).toLocaleDateString()}
+                <Text style={styles.dateText}>
+                  {formatDateIST(task.startDate)}
                 </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>End:</Text>
-                <Text style={styles.infoValue}>
-                  {new Date(task.endDate).toLocaleDateString()}
+                <Text style={styles.dateText}>
+                  {formatDateIST(task.endDate)}
                 </Text>
               </View>
             </Card.Content>
@@ -496,11 +497,11 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
             <Card.Content>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Created:</Text>
-                <Text style={styles.infoValue}>{new Date(task.createdAt).toLocaleString()}</Text>
+                <Text style={styles.infoValue}>{formatDateTimeIST(task.createdAt)}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Updated:</Text>
-                <Text style={styles.infoValue}>{new Date(task.updatedAt).toLocaleString()}</Text>
+                <Text style={styles.infoValue}>{formatDateTimeIST(task.updatedAt)}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Creator:</Text>
@@ -651,6 +652,11 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     color: materialColors.text,
     fontWeight: '500',
     flex: 1,
+  },
+  dateText: {
+    ...materialTypography.bodyMedium,
+    color: materialColors.text,
+    fontWeight: '500',
   },
   editActions: {
     flexDirection: 'row',

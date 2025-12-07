@@ -18,6 +18,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import { formatDateIST, formatTimeIST } from '../utils/datetime'
 
 interface WFHApplication {
   id: string
@@ -227,19 +228,9 @@ export default function WFHDetailsScreen() {
     )
   }, [wfhId, navigation])
 
-  const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }, [])
-
-  const formatTime = useCallback((timeString: string | null) => {
-    if (!timeString) return 'N/A'
-    return timeString
-  }, [])
+  // Use formatDateIST and formatTimeIST from utils
+  // const formatDate = ...
+  // const formatTime = ...
 
   const calculateDays = useCallback((fromDate: string, toDate: string) => {
     const from = new Date(fromDate)
@@ -335,11 +326,11 @@ export default function WFHDetailsScreen() {
         <Text style={styles.sectionTitle}>WFH Details</Text>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>From:</Text>
-          <Text style={styles.infoValue}>{formatDate(wfh.fromDate)}</Text>
+          <Text style={styles.infoValue}>{formatDateIST(wfh.fromDate)}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>To:</Text>
-          <Text style={styles.infoValue}>{formatDate(wfh.toDate)}</Text>
+          <Text style={styles.infoValue}>{formatDateIST(wfh.toDate)}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Duration:</Text>
@@ -359,11 +350,11 @@ export default function WFHDetailsScreen() {
           <>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Available From:</Text>
-              <Text style={styles.infoValue}>{formatTime(wfh.availableFrom)}</Text>
+              <Text style={styles.infoValue}>{wfh.availableFrom ? formatTimeIST(wfh.availableFrom) : 'N/A'}</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Available To:</Text>
-              <Text style={styles.infoValue}>{formatTime(wfh.availableTo)}</Text>
+              <Text style={styles.infoValue}>{wfh.availableTo ? formatTimeIST(wfh.availableTo) : 'N/A'}</Text>
             </View>
           </>
         )}
@@ -390,7 +381,7 @@ export default function WFHDetailsScreen() {
           {wfh.approvalDate && (
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Date:</Text>
-              <Text style={styles.infoValue}>{formatDate(wfh.approvalDate)}</Text>
+              <Text style={styles.infoValue}>{formatDateIST(wfh.approvalDate)}</Text>
             </View>
           )}
           {wfh.approvalRemarks && (
@@ -409,7 +400,7 @@ export default function WFHDetailsScreen() {
           <View style={styles.timelineDot} />
           <View style={styles.timelineContent}>
             <Text style={styles.timelineTitle}>Application Created</Text>
-            <Text style={styles.timelineDate}>{formatDate(wfh.createdAt)}</Text>
+            <Text style={styles.timelineDate}>{formatDateIST(wfh.createdAt)}</Text>
           </View>
         </View>
         {wfh.approvalDate && (
@@ -424,7 +415,7 @@ export default function WFHDetailsScreen() {
               <Text style={styles.timelineTitle}>
                 {wfh.status === 'Approved' ? 'Approved' : 'Rejected'}
               </Text>
-              <Text style={styles.timelineDate}>{formatDate(wfh.approvalDate)}</Text>
+              <Text style={styles.timelineDate}>{formatDateIST(wfh.approvalDate)}</Text>
             </View>
           </View>
         )}

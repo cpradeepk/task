@@ -10,7 +10,7 @@
  * - Navigate to related content
  */
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import {
   View,
   FlatList,
@@ -18,9 +18,12 @@ import {
   RefreshControl,
   Alert,
   TouchableOpacity,
+  Text,
+  ActivityIndicator,
 } from 'react-native'
-import { Card, Text, Button, ActivityIndicator, Chip } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/types';
 import { useQuery, useMutation } from '@apollo/client/react'
 import {
   GET_NOTIFICATIONS,
@@ -29,8 +32,7 @@ import {
 } from '../config/graphql-queries'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
-import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
-import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import { formatDateTimeIST } from '../utils/datetime';
 
 interface Notification {
   id: string
@@ -139,8 +141,8 @@ export default function NotificationsScreen() {
         >
           {item.message}
         </Text>
-        <Text style={styles.notificationDate}>
-          {new Date(item.createdAt).toLocaleString()}
+        <Text style={styles.notificationTime}>
+          {formatDateTimeIST(item.createdAt)}
         </Text>
       </View>
       {!item.isRead && <View style={styles.unreadDot} />}
@@ -269,7 +271,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
   },
-  notificationDate: {
+  notificationTime: {
     fontSize: responsive.fontSize.xs,
     color: colors.textTertiary,
   },

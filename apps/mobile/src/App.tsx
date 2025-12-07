@@ -12,7 +12,7 @@ import TaskListScreen from './screens/TaskListScreen'
 import TaskDetailsScreen from './screens/TaskDetailsScreen'
 import CreateTaskScreen from './screens/CreateTaskScreen'
 import SettingsScreen from './screens/SettingsScreen'
-// import FeedScreen from './screens/FeedScreen' // Temporarily disabled
+import FeedScreen from './screens/FeedScreen'
 import FeedPostDetailsScreen from './screens/FeedPostDetailsScreen'
 import CreateFeedPostScreen from './screens/CreateFeedPostScreen'
 import NotificationsScreen from './screens/NotificationsScreen'
@@ -23,11 +23,13 @@ import WFHListScreen from './screens/WFHListScreen'
 import WFHDetailsScreen from './screens/WFHDetailsScreen'
 import CreateWFHScreen from './screens/CreateWFHScreen'
 import AttendanceDashboardScreen from './screens/AttendanceDashboardScreen'
+import AttendanceApprovalsScreen from './screens/AttendanceApprovalsScreen'
+import AttendanceCalendarScreen from './screens/AttendanceCalendarScreen'
 import NotificationBell from './components/NotificationBell'
 import CustomDrawerContent from './components/CustomDrawerContent'
 import { OfflineBanner } from './components/OfflineBanner'
 import { ActivityIndicator, View, LogBox, Text, ScrollView, TouchableOpacity } from 'react-native'
-import { IconButton } from 'react-native-paper'
+import { IconButton, Provider as PaperProvider } from 'react-native-paper'
 import { apolloClient, initializeApollo } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData } from './utils/secureStorage'
 import { LOGIN_MUTATION, REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN, GET_FEED_POSTS, GET_FEED_TOPICS } from './config/graphql-queries'
@@ -39,6 +41,8 @@ import { Platform } from 'react-native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { materialColors } from './config/materialTheme'
+import { TabBarProvider } from './context/TabBarContext'
+import AnimatedTabBar from './components/AnimatedTabBar'
 
 // Disable dev tools warnings in production builds
 if (!__DEV__) {
@@ -71,274 +75,16 @@ if (!__DEV__) {
 
 const Tab = createBottomTabNavigator()
 
-// FeedScreen component - displays list of feed posts with topic filtering
-function FeedScreen({ navigation }: any) {
-  const [selectedTopicId, setSelectedTopicId] = React.useState<string | null>(null)
-
-  const { data: topicsData, loading: topicsLoading } = useQuery(GET_FEED_TOPICS, {
-    variables: { includePersonal: true },
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const { data, loading, refetch } = useQuery(GET_FEED_POSTS, {
-    variables: {
-      topicId: selectedTopicId,
-      status: 'published',
-      limit: 20,
-      offset: 0
-    },
-    fetchPolicy: 'cache-and-network',
-  })
-
-  const topics = (topicsData as any)?.feedTopics || []
-  const posts = (data as any)?.feedPosts?.posts || []
-
-  const handlePostPress = (postId: string) => {
-    navigation.navigate('FeedPostDetails', { postId })
-  }
-
-  const handleCreatePost = () => {
-    navigation.navigate('CreateFeedPost')
-  }
-
-  const handleTopicPress = (topicId: string | null) => {
-    setSelectedTopicId(topicId)
-  }
-
-  if (loading && !data) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' }}>
-        <ActivityIndicator size="large" color={materialColors.primary} />
-      </View>
-    )
-  }
-
-  return (
-    <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
-      {/* Topics Filter - Horizontal Scroll */}
-      {!topicsLoading && topics.length > 0 && (
-        <View style={{ backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ paddingVertical: 12, paddingHorizontal: 16 }}
-            contentContainerStyle={{ gap: 8 }}
-          >
-            {/* All Topics Button */}
-            <TouchableOpacity
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                borderRadius: 20,
-                backgroundColor: selectedTopicId === null ? materialColors.primary : '#F3F4F6',
-                marginRight: 8,
-              }}
-              onPress={() => handleTopicPress(null)}
-            >
-              <Text style={{
-                fontSize: 14,
-                fontWeight: '600',
-                color: selectedTopicId === null ? '#FFFFFF' : '#374151',
-              }}>
-                All Topics
-              </Text>
-            </TouchableOpacity>
-
-            {/* Topic Chips */}
-            {topics.map((topic: any) => (
-              <TouchableOpacity
-                key={topic.id}
-                style={{
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 20,
-                  backgroundColor: selectedTopicId === topic.id ? materialColors.primary : '#F3F4F6',
-                  marginRight: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-                onPress={() => handleTopicPress(topic.id)}
-              >
-                {topic.icon && (
-                  <Text style={{ fontSize: 16 }}>{topic.icon}</Text>
-                )}
-                <Text style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: selectedTopicId === topic.id ? '#FFFFFF' : '#374151',
-                }}>
-                  {topic.topicName}
-                </Text>
-                {topic.postCount > 0 && (
-                  <View style={{
-                    backgroundColor: selectedTopicId === topic.id ? 'rgba(255,255,255,0.3)' : '#E5E7EB',
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
-                    borderRadius: 10,
-                  }}>
-                    <Text style={{
-                      fontSize: 11,
-                      fontWeight: '600',
-                      color: selectedTopicId === topic.id ? '#FFFFFF' : '#6B7280',
-                    }}>
-                      {topic.postCount}
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      {/* Posts List */}
-      <ScrollView style={{ flex: 1 }}>
-        {posts.length === 0 ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, marginTop: 60 }}>
-            <Text style={{ fontSize: 18, color: '#6B7280', textAlign: 'center' }}>
-              No posts yet. Be the first to share something!
-            </Text>
-          </View>
-        ) : (
-          posts.map((post: any) => (
-            <TouchableOpacity
-              key={post.postId}
-              style={{
-                backgroundColor: '#FFFFFF',
-                marginBottom: 8,
-                padding: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: '#E5E7EB',
-              }}
-              onPress={() => handlePostPress(post.postId)}
-            >
-              {/* Post Header */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                <View style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: materialColors.primary,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginRight: 12,
-                }}>
-                  <Text style={{ fontSize: 16, color: '#FFFFFF', fontWeight: '600' }}>
-                    {post.author?.name?.charAt(0).toUpperCase() || '?'}
-                  </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: '#111827' }}>
-                    {post.author?.name || 'Unknown'}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: '#6B7280' }}>
-                    {new Date(post.createdAt).toLocaleDateString()}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Post Topics */}
-              {post.topics && post.topics.length > 0 && (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-                  {post.topics.map((topic: any) => (
-                    <View
-                      key={topic.id}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 4,
-                        backgroundColor: '#EEF2FF',
-                        paddingHorizontal: 10,
-                        paddingVertical: 4,
-                        borderRadius: 12,
-                      }}
-                    >
-                      {topic.icon && (
-                        <Text style={{ fontSize: 12 }}>{topic.icon}</Text>
-                      )}
-                      <Text style={{ fontSize: 12, color: '#4F46E5', fontWeight: '500' }}>
-                        {topic.topicName}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {/* Post Content */}
-              <Text style={{ fontSize: 15, color: '#374151', lineHeight: 22 }} numberOfLines={3}>
-                {post.content}
-              </Text>
-
-              {/* Post Stats */}
-              <View style={{ flexDirection: 'row', marginTop: 12, gap: 16 }}>
-                <Text style={{ fontSize: 13, color: '#6B7280' }}>
-                  💬 {post.commentCount || 0}
-                </Text>
-                <Text style={{ fontSize: 13, color: '#6B7280' }}>
-                  ❤️ {post.reactions?.reduce((sum: number, r: any) => sum + r.count, 0) || 0}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
-
-      {/* Floating Create Button */}
-      <TouchableOpacity
-        style={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: materialColors.primary,
-          justifyContent: 'center',
-          alignItems: 'center',
-          elevation: 4,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-        }}
-        onPress={handleCreatePost}
-      >
-        <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
-      </TouchableOpacity>
-    </View>
-  )
-}
+// FeedScreen component moved to src/screens/FeedScreen.tsx
 
 // Bottom Tab Navigator with 5 tabs
 function BottomTabNavigator({ toggleDrawer }: { toggleDrawer: () => void }) {
   return (
     <Tab.Navigator
       initialRouteName="HomeTab"
+      tabBar={props => <AnimatedTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: true,
-        tabBarStyle: {
-          position: 'absolute',
-          bottom: 25,
-          left: 20,
-          right: 20,
-          elevation: 0,
-          backgroundColor: '#ffffff',
-          borderRadius: 15,
-          height: 90,
-          shadowColor: '#7F5DF0',
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.5,
-        },
-        tabBarLabelStyle: {
-          marginBottom: 10,
-          fontSize: 12,
-          fontWeight: '600'
-        },
-        tabBarActiveTintColor: materialColors.primary,
-        tabBarInactiveTintColor: '#748c94',
       }}
     >
       <Tab.Screen
@@ -759,80 +505,82 @@ export default function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <ApolloProvider client={apolloClient}>
-          <AuthContext.Provider value={authContext}>
-            <NavigationContainer ref={navigationRef}>
-              <OfflineBanner />
-              <Stack.Navigator
-                screenOptions={{
-                  headerShown: true,
-                  animationEnabled: true,
-                  animation: 'slide_from_right',
-                  animationDuration: 250,
-                }}
-              >
-                {state.userToken == null ? (
-                  <Stack.Screen
-                    name="Login"
-                    component={LoginScreen}
-                    options={{
-                      headerShown: false,
-                      animationEnabled: false,
+          <PaperProvider>
+            <AuthContext.Provider value={authContext}>
+              <TabBarProvider>
+                <NavigationContainer ref={navigationRef}>
+                  <OfflineBanner />
+                  <Stack.Navigator
+                    screenOptions={{
+                      headerShown: true,
+
+                      animation: 'slide_from_right',
+                      animationDuration: 250,
                     }}
-                  />
-                ) : (
-                  <>
-                    <Stack.Screen name="Main" options={{ headerShown: false }}>
-                      {() => <BottomTabNavigator toggleDrawer={() => setMenuVisible(true)} />}
-                    </Stack.Screen>
+                  >
+                    {state.userToken == null ? (
+                      <Stack.Screen
+                        name="Login"
+                        component={LoginScreen}
+                        options={{
+                          headerShown: false,
+                          animation: 'none',
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <Stack.Screen name="Main" options={{ headerShown: false }}>
+                          {() => <BottomTabNavigator toggleDrawer={() => setMenuVisible(true)} />}
+                        </Stack.Screen>
 
-                    {/* Task Screens */}
-                    <Stack.Screen
-                      name="TaskList"
-                      component={TaskListScreen}
-                      options={{
-                        headerTitle: 'Tasks',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="TaskDetails"
-                      component={TaskDetailsScreen}
-                      options={{
-                        headerTitle: 'Task Details',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="CreateTask"
-                      component={CreateTaskScreen}
-                      options={{
-                        headerTitle: 'Create Task',
-                      }}
-                    />
+                        {/* Task Screens */}
+                        <Stack.Screen
+                          name="TaskList"
+                          component={TaskListScreen}
+                          options={{
+                            headerTitle: 'Tasks',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="TaskDetails"
+                          component={TaskDetailsScreen}
+                          options={{
+                            headerTitle: 'Task Details',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="CreateTask"
+                          component={CreateTaskScreen}
+                          options={{
+                            headerTitle: 'Create Task',
+                          }}
+                        />
 
-                    {/* Bug Screens */}
-                    <Stack.Screen
-                      name="BugList"
-                      component={BugListScreen}
-                      options={{
-                        headerTitle: 'Bugs',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="BugDetails"
-                      component={BugDetailsScreen}
-                      options={{
-                        headerTitle: 'Bug Details',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="CreateBug"
-                      component={CreateBugScreen}
-                      options={{
-                        headerTitle: 'Create Bug',
-                      }}
-                    />
+                        {/* Bug Screens */}
+                        <Stack.Screen
+                          name="BugList"
+                          component={BugListScreen}
+                          options={{
+                            headerTitle: 'Bugs',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="BugDetails"
+                          component={BugDetailsScreen}
+                          options={{
+                            headerTitle: 'Bug Details',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="CreateBug"
+                          component={CreateBugScreen}
+                          options={{
+                            headerTitle: 'Create Bug',
+                          }}
+                        />
 
-                    {/* Feed Screens */}
-                    {/* Temporarily disabled FeedScreen
+                        {/* Feed Screens */}
+                        {/* Temporarily disabled FeedScreen
                     <Stack.Screen
                       name="Feed"
                       component={FeedScreen}
@@ -841,100 +589,116 @@ export default function App() {
                       }}
                     />
                     */}
-                    <Stack.Screen
-                      name="FeedPostDetails"
-                      component={FeedPostDetailsScreen}
-                      options={{
-                        headerTitle: 'Post Details',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="CreateFeedPost"
-                      component={CreateFeedPostScreen}
-                      options={{
-                        headerTitle: 'Create Post',
-                      }}
-                    />
+                        <Stack.Screen
+                          name="FeedPostDetails"
+                          component={FeedPostDetailsScreen}
+                          options={{
+                            headerTitle: 'Post Details',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="CreateFeedPost"
+                          component={CreateFeedPostScreen}
+                          options={{
+                            headerTitle: 'Create Post',
+                          }}
+                        />
 
-                    {/* Notification Screen */}
-                    <Stack.Screen
-                      name="Notifications"
-                      component={NotificationsScreen}
-                      options={{
-                        headerTitle: 'Notifications',
-                      }}
-                    />
+                        {/* Notification Screen */}
+                        <Stack.Screen
+                          name="Notifications"
+                          component={NotificationsScreen}
+                          options={{
+                            headerTitle: 'Notifications',
+                          }}
+                        />
 
-                    {/* Leave Screens */}
-                    <Stack.Screen
-                      name="LeaveList"
-                      component={LeaveListScreen}
-                      options={{
-                        headerTitle: 'Leave Applications',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="LeaveDetails"
-                      component={LeaveDetailsScreen}
-                      options={{
-                        headerTitle: 'Leave Details',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="CreateLeave"
-                      component={CreateLeaveScreen}
-                      options={{
-                        headerTitle: 'Apply for Leave',
-                      }}
-                    />
+                        {/* Leave Screens */}
+                        <Stack.Screen
+                          name="LeaveList"
+                          component={LeaveListScreen}
+                          options={{
+                            headerTitle: 'Leave Applications',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="LeaveDetails"
+                          component={LeaveDetailsScreen}
+                          options={{
+                            headerTitle: 'Leave Details',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="CreateLeave"
+                          component={CreateLeaveScreen}
+                          options={{
+                            headerTitle: 'Apply for Leave',
+                          }}
+                        />
 
-                    {/* WFH Screens */}
-                    <Stack.Screen
-                      name="WFHList"
-                      component={WFHListScreen}
-                      options={{
-                        headerTitle: 'WFH Applications',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="WFHDetails"
-                      component={WFHDetailsScreen}
-                      options={{
-                        headerTitle: 'WFH Details',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="CreateWFH"
-                      component={CreateWFHScreen}
-                      options={{
-                        headerTitle: 'Apply for WFH',
-                      }}
-                    />
+                        {/* WFH Screens */}
+                        <Stack.Screen
+                          name="WFHList"
+                          component={WFHListScreen}
+                          options={{
+                            headerTitle: 'WFH Applications',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="WFHDetails"
+                          component={WFHDetailsScreen}
+                          options={{
+                            headerTitle: 'WFH Details',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="CreateWFH"
+                          component={CreateWFHScreen}
+                          options={{
+                            headerTitle: 'Apply for WFH',
+                          }}
+                        />
 
-                    {/* Settings Screen */}
-                    <Stack.Screen
-                      name="Settings"
-                      component={SettingsScreen}
-                      options={{
-                        headerTitle: 'Settings',
-                      }}
-                    />
-                    <Stack.Screen
-                      name="AttendanceDashboard"
-                      component={AttendanceDashboardScreen}
-                      options={{
-                        headerTitle: 'Attendance Dashboard',
-                      }}
-                    />
-                  </>
-                )}
-              </Stack.Navigator>
-              <CustomDrawerContent
-                visible={menuVisible}
-                onClose={() => setMenuVisible(false)}
-              />
-            </NavigationContainer>
-          </AuthContext.Provider>
+                        {/* Settings Screen */}
+                        <Stack.Screen
+                          name="Settings"
+                          component={SettingsScreen}
+                          options={{
+                            headerTitle: 'Settings',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="AttendanceDashboard"
+                          component={AttendanceDashboardScreen}
+                          options={{
+                            headerTitle: 'Attendance Dashboard',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="AttendanceApprovals"
+                          component={AttendanceApprovalsScreen}
+                          options={{
+                            headerTitle: 'Attendance Approvals',
+                          }}
+                        />
+                        <Stack.Screen
+                          name="AttendanceCalendar"
+                          component={AttendanceCalendarScreen}
+                          options={{
+                            headerTitle: 'My Attendance',
+                          }}
+                        />
+                      </>
+                    )}
+                  </Stack.Navigator>
+                  <CustomDrawerContent
+                    visible={menuVisible}
+                    onClose={() => setMenuVisible(false)}
+                  />
+                </NavigationContainer>
+              </TabBarProvider>
+            </AuthContext.Provider>
+          </PaperProvider>
         </ApolloProvider>
       </ThemeProvider>
     </ErrorBoundary>

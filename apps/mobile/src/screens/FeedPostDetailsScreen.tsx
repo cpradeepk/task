@@ -30,6 +30,7 @@ import {
   TOGGLE_FEED_SAVE,
 } from '../config/graphql-queries'
 import { getUserData } from '../utils/secureStorage'
+import { formatDateTimeIST } from '../utils/datetime'
 
 export default function FeedPostDetailsScreen({ route }: any) {
   const { postId } = route.params
@@ -149,7 +150,7 @@ export default function FeedPostDetailsScreen({ route }: any) {
             <View style={{ flex: 1 }}>
               <Text style={styles.authorName}>{post.author?.name || 'Unknown'}</Text>
               <Text style={styles.postDate}>
-                {new Date(post.createdAt).toLocaleString()}
+                {formatDateTimeIST(post.createdAt)}
               </Text>
             </View>
             <IconButton
@@ -192,7 +193,7 @@ export default function FeedPostDetailsScreen({ route }: any) {
                 <Text style={styles.commentAuthor}>{comment.author?.name || 'Unknown'}</Text>
                 <Text style={styles.commentContent}>{comment.content}</Text>
                 <Text style={styles.commentDate}>
-                  {new Date(comment.createdAt).toLocaleString()}
+                  {formatDateTimeIST(comment.createdAt)}
                 </Text>
               </View>
             ))}

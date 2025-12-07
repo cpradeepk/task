@@ -25,6 +25,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import { formatDateIST } from '../utils/datetime'
 
 interface LeaveApplication {
   id: string
@@ -127,13 +128,8 @@ export default function LeaveListScreen() {
     }
   }, [])
 
-  const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }, [])
+  // Use formatDateIST from utils
+  // const formatDate = (dateString: string) => { ... }
 
   const calculateDays = useCallback((fromDate: string, toDate: string) => {
     const from = new Date(fromDate)
@@ -170,7 +166,7 @@ export default function LeaveListScreen() {
 
           <View style={styles.leaveDates}>
             <Text style={styles.dateText}>
-              {formatDate(item.fromDate)} - {formatDate(item.toDate)}
+              {formatDateIST(item.fromDate)} - {formatDateIST(item.toDate)}
             </Text>
             <Text style={styles.daysText}>
               {calculateDays(item.fromDate, item.toDate)} day(s)
@@ -182,12 +178,12 @@ export default function LeaveListScreen() {
           </Text>
 
           <Text style={styles.leaveDate}>
-            Applied: {formatDate(item.createdAt)}
+            Applied: {formatDateIST(item.createdAt)}
           </Text>
         </Card.Content>
       </Card>
     ),
-    [styles, navigation, getStatusColor, formatDate, calculateDays]
+    [styles, navigation, getStatusColor, calculateDays]
   )
 
   if (loading && !refreshing) {

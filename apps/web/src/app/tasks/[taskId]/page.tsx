@@ -11,6 +11,7 @@ import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
 import { Task, User } from '@/lib/types'
 import { getTaskById, updateTask, canEditTask, canCommentOnTask } from '@/lib/taskService'
+import { formatDateTimeIST } from '@/lib/datetime-utils'
 import UnifiedTimeline from '@/components/UnifiedTimeline'
 import TaskEditModal from '@/components/tasks/TaskEditModal'
 import TaskChecklistManager from '@/components/tasks/TaskChecklistManager'
@@ -799,11 +800,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                 <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-gray-500">
                   <div>
                     <span className="font-medium block mb-1">Created</span>
-                    <span>{new Date(task.createdAt).toLocaleString()}</span>
+                    <span>{formatDateTimeIST(task.createdAt)}</span>
                   </div>
                   <div>
                     <span className="font-medium block mb-1">Updated</span>
-                    <span>{new Date(task.updatedAt).toLocaleString()}</span>
+                    <span>{formatDateTimeIST(task.updatedAt)}</span>
                   </div>
                   <div>
                     <span className="font-medium block mb-1">Creator</span>
@@ -1172,8 +1173,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full ${(task.actualHours || 0) > task.estimatedHours
-                              ? 'bg-red-500'
-                              : 'bg-blue-500'
+                            ? 'bg-red-500'
+                            : 'bg-blue-500'
                             }`}
                           style={{
                             width: `${Math.min(((task.actualHours || 0) / task.estimatedHours) * 100, 100)}%`

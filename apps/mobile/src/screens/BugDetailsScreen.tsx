@@ -26,6 +26,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import { formatDateTimeIST } from '../utils/datetime'
 
 export default function BugDetailsScreen() {
   const route = useRoute()
@@ -217,7 +218,8 @@ export default function BugDetailsScreen() {
     const seconds = totalSeconds % 60
     return `${hours.toString().padStart(2, '0')}:${minutes
       .toString()
-      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      .padStart(2, '0')
+      }:${seconds.toString().padStart(2, '0')} `
   }, [])
 
   if (isLoading) {
@@ -341,13 +343,13 @@ export default function BugDetailsScreen() {
             <Text style={styles.sectionTitle}>Metadata</Text>
             <Divider style={styles.divider} />
             <View style={styles.infoGrid}>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Created</Text>
-                <Text style={styles.infoValue}>{new Date(bug.createdAt).toLocaleString()}</Text>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Created:</Text>
+                <Text style={styles.infoValue}>{formatDateTimeIST(bug.createdAt)}</Text>
               </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Updated</Text>
-                <Text style={styles.infoValue}>{new Date(bug.updatedAt).toLocaleString()}</Text>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Updated:</Text>
+                <Text style={styles.infoValue}>{formatDateTimeIST(bug.updatedAt)}</Text>
               </View>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Reporter</Text>
@@ -449,8 +451,8 @@ export default function BugDetailsScreen() {
               <Surface key={comment.id} style={styles.comment} elevation={0}>
                 <Text style={styles.commentUser}>{comment.userId}</Text>
                 <Text style={styles.commentText}>{comment.comment}</Text>
-                <Text style={styles.commentDate}>
-                  {new Date(comment.createdAt).toLocaleString()}
+                <Text style={styles.commentTime}>
+                  {formatDateTimeIST(comment.createdAt)}
                 </Text>
               </Surface>
             ))}
@@ -616,6 +618,11 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     color: materialColors.text,
     fontWeight: '600',
   },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: materialSpacing.xs,
+  },
   timeContainer: {
     flexDirection: 'row',
     gap: materialSpacing.md,
@@ -657,6 +664,12 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   commentDate: {
     ...materialTypography.labelSmall,
     color: materialColors.textTertiary,
+  },
+  commentTime: {
+    ...materialTypography.labelSmall,
+    color: materialColors.textTertiary,
+    alignSelf: 'flex-end',
+    marginTop: materialSpacing.xs,
   },
   addCommentContainer: {
     marginTop: materialSpacing.md,

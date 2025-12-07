@@ -31,6 +31,21 @@ export interface Bug {
     title: string
     status: string
   }>
+  project?: {
+    projectId: string
+    projectName: string
+    description?: string
+  }
+  subproject?: {
+    subProjectId: string
+    subProjectName: string
+  }
+  assignedToUser?: {
+    employeeId: string
+    name: string
+    email?: string
+    role?: string
+  }
 }
 
 export interface Task {
@@ -49,6 +64,20 @@ export interface Task {
     subtaskId: string
     title: string
     status: string
+  }>
+  project?: {
+    projectId: string
+    projectName: string
+    parentProjectId?: string
+  }
+  subproject?: {
+    subProjectId: string
+    subProjectName: string
+  }
+  assignedToUsers?: Array<{
+    employeeId: string
+    name: string
+    email?: string
   }>
 }
 

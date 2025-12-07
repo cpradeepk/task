@@ -5,6 +5,7 @@ import { Bell } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { executeQuery, executeMutation } from '@/lib/graphql-client'
+import { formatDateTimeIST } from '@/lib/datetime-utils'
 
 interface Notification {
   notificationId: string
@@ -134,11 +135,11 @@ export default function NotificationBell() {
     if (!notification.isRead) {
       await markAsRead(notification.notificationId)
     }
-    
+
     if (notification.linkUrl) {
       router.push(notification.linkUrl)
     }
-    
+
     setIsOpen(false)
   }
 
@@ -226,9 +227,8 @@ export default function NotificationBell() {
                   <button
                     key={notification.notificationId}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-                      !notification.isRead ? 'bg-blue-50' : ''
-                    }`}
+                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${!notification.isRead ? 'bg-blue-50' : ''
+                      }`}
                   >
                     <div className="flex items-start space-x-3">
                       {/* Unread Indicator */}
@@ -246,12 +246,7 @@ export default function NotificationBell() {
                           </p>
                         )}
                         <p className="text-xs text-gray-400 mt-1">
-                          {new Date(notification.createdAt).toLocaleString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: 'numeric',
-                            minute: '2-digit'
-                          })}
+                          {formatDateTimeIST(notification.createdAt)}
                         </p>
                       </div>
                     </div>

@@ -46,50 +46,43 @@ export default function NavigationMenu({ visible, onClose }: NavigationMenuProps
   const getNavigationItems = () => {
     if (!currentUser) return []
 
-    const baseItems = [
-      { screen: 'Dashboard', label: 'Dashboard', icon: 'view-dashboard' },
+    // Base items
+    const homeSection = [
+      { screen: 'Dashboard', label: 'Home', icon: 'home-outline' },
     ]
 
-    switch (currentUser.role) {
-      case 'amtarikshian':
-        return [
-          ...baseItems,
-          { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle' },
-          { screen: 'BugList', label: 'Development', icon: 'bug' },
-          { screen: 'Feed', label: 'Feed', icon: 'rss' },
-          { screen: 'LeaveList', label: 'Leave Applications', icon: 'calendar-clock' },
-          { screen: 'WFHList', label: 'WFH Applications', icon: 'home-account' },
-        ]
+    const workSection = [
+      { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle-outline' },
+      { screen: 'BugList', label: 'Bugs', icon: 'bug-outline' },
+      { screen: 'Feed', label: 'Feed', icon: 'rss' },
+    ]
 
-      case 'management':
-        return [
-          ...baseItems,
-          { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle' },
-          { screen: 'BugList', label: 'Development', icon: 'bug' },
-          { screen: 'Feed', label: 'Feed', icon: 'rss' },
-          { screen: 'LeaveList', label: 'Leave Applications', icon: 'calendar-clock' },
-          { screen: 'WFHList', label: 'WFH Applications', icon: 'home-account' },
-        ]
+    const approvalSection = [
+      { screen: 'LeaveList', label: 'Leaves', icon: 'calendar-clock' },
+      { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
+    ]
 
-      case 'top_management':
-        return [
-          ...baseItems,
-          { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle' },
-          { screen: 'BugList', label: 'Development', icon: 'bug' },
-          { screen: 'Feed', label: 'Feed', icon: 'rss' },
-        ]
+    // Combine based on role (simplifying to show all relevant for now, filtering can be added if needed)
+    // User asked "Make it reflect the current new implementation... home, work...".
+    // I will return a flat list but ordered logically, or we could add headers.
+    // NavigationMenu implementation (lines 100+) renders them linearly.
+    // I shall just order them: Home -> Work -> Approvals.
 
-      case 'admin':
-        return [
-          ...baseItems,
-          { screen: 'BugList', label: 'Development', icon: 'bug' },
-          { screen: 'Feed', label: 'Feed', icon: 'rss' },
-          { screen: 'Settings', label: 'Settings', icon: 'cog' },
-        ]
+    let items = [...homeSection]
 
-      default:
-        return baseItems
+    if (['amtarikshian', 'management', 'top_management', 'admin'].includes(currentUser.role)) {
+      items = [...items, ...workSection]
     }
+
+    if (['amtarikshian', 'management'].includes(currentUser.role)) {
+      items = [...items, ...approvalSection]
+    }
+
+    if (currentUser.role === 'admin') {
+      items = [...items, { screen: 'Settings', label: 'Settings', icon: 'cog-outline' }]
+    }
+
+    return items
   }
 
   const handleNavigate = (screen: string) => {

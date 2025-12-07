@@ -91,3 +91,53 @@ export function parseDateTime(dateStr: string | Date | null | undefined): Date {
 
     return date;
 }
+
+/**
+ * Convert a date to IST (Indian Standard Time, GMT+5:30)
+ * @param date - Date object or string to convert
+ * @returns Date object adjusted to IST
+ */
+export function toIST(date: Date | string): Date {
+    const d = date instanceof Date ? date : new Date(date);
+    // IST is UTC+5:30
+    const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+    const utcTime = d.getTime();
+    return new Date(utcTime + istOffset);
+}
+
+/**
+ * Format a date/time to IST timezone string
+ * @param date - Date object or string to format
+ * @returns Formatted datetime string in IST (e.g., "06 Dec 2025, 4:30 PM")
+ */
+export function formatDateTimeIST(date: Date | string): string {
+    const d = date instanceof Date ? date : new Date(date);
+
+    // Use toLocaleString with Asia/Kolkata timezone
+    return d.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
+/**
+ * Format time only to IST timezone string
+ * @param date - Date object or string to format
+ * @returns Formatted time string in IST (e.g., "4:30 PM")
+ */
+export function formatTimeIST(date: Date | string): string {
+    const d = date instanceof Date ? date : new Date(date);
+
+    // Use toLocaleTimeString with Asia/Kolkata timezone
+    return d.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+}

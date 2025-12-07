@@ -18,6 +18,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import { formatDateIST } from '../utils/datetime'
 
 interface LeaveApplication {
   id: string
@@ -226,14 +227,8 @@ export default function LeaveDetailsScreen() {
     )
   }, [leaveId, navigation])
 
-  const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }, [])
+  // Use formatDateIST from utils
+  // const formatDate = (dateString: string) => { ... }
 
   const calculateDays = useCallback((fromDate: string, toDate: string) => {
     const from = new Date(fromDate)
@@ -304,11 +299,11 @@ export default function LeaveDetailsScreen() {
         <Text style={styles.sectionTitle}>Leave Details</Text>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>From:</Text>
-          <Text style={styles.infoValue}>{formatDate(leave.fromDate)}</Text>
+          <Text style={styles.infoValue}>{formatDateIST(leave.fromDate)}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>To:</Text>
-          <Text style={styles.infoValue}>{formatDate(leave.toDate)}</Text>
+          <Text style={styles.infoValue}>{formatDateIST(leave.toDate)}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Duration:</Text>
@@ -346,7 +341,7 @@ export default function LeaveDetailsScreen() {
           {leave.approvalDate && (
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Date:</Text>
-              <Text style={styles.infoValue}>{formatDate(leave.approvalDate)}</Text>
+              <Text style={styles.infoValue}>{formatDateIST(leave.approvalDate)}</Text>
             </View>
           )}
           {leave.approvalRemarks && (
@@ -365,7 +360,7 @@ export default function LeaveDetailsScreen() {
           <View style={styles.timelineDot} />
           <View style={styles.timelineContent}>
             <Text style={styles.timelineTitle}>Application Created</Text>
-            <Text style={styles.timelineDate}>{formatDate(leave.createdAt)}</Text>
+            <Text style={styles.timelineDate}>{formatDateIST(leave.createdAt)}</Text>
           </View>
         </View>
         {leave.approvalDate && (
@@ -380,7 +375,7 @@ export default function LeaveDetailsScreen() {
               <Text style={styles.timelineTitle}>
                 {leave.status === 'Approved' ? 'Approved' : 'Rejected'}
               </Text>
-              <Text style={styles.timelineDate}>{formatDate(leave.approvalDate)}</Text>
+              <Text style={styles.timelineDate}>{formatDateIST(leave.approvalDate)}</Text>
             </View>
           </View>
         )}

@@ -14,6 +14,7 @@ export interface Bug {
   title: string
   description: string
   severity: string
+  priority: string
   status: string
   category: string
   platform: string

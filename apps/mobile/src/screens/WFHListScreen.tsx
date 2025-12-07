@@ -19,6 +19,7 @@ import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { buildApiUrl } from '../config/api'
+import { formatDateIST } from '../utils/datetime'
 import { TouchableOpacity } from 'react-native'
 
 interface WFHApplication {
@@ -110,13 +111,8 @@ export default function WFHListScreen() {
     fetchWFHApplications()
   }, [fetchWFHApplications])
 
-  const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }, [])
+  // Use formatDateIST from utils
+  // const formatDate = (dateString: string) => { ... }
 
   const calculateDays = useCallback((fromDate: string, toDate: string) => {
     const from = new Date(fromDate)
@@ -195,7 +191,7 @@ export default function WFHListScreen() {
         <View style={styles.dateRow}>
           <Text style={styles.dateLabel}>📅</Text>
           <Text style={styles.dateText}>
-            {formatDate(item.fromDate)} - {formatDate(item.toDate)}
+            {formatDateIST(item.fromDate)} - {formatDateIST(item.toDate)}
           </Text>
           <Text style={styles.daysText}>
             ({calculateDays(item.fromDate, item.toDate)} day
@@ -215,7 +211,7 @@ export default function WFHListScreen() {
         </Text>
 
         <Text style={styles.appliedText}>
-          Applied on {formatDate(item.createdAt)}
+          Applied on {formatDateIST(item.createdAt)}
         </Text>
       </View>
     </TouchableOpacity>

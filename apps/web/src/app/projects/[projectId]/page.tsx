@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Project } from '@/lib/types'
+import { formatDateTimeIST } from '@/lib/datetime-utils'
 import ProjectModal from '@/components/projects/ProjectModal'
 import { Plus } from 'lucide-react'
 
@@ -60,7 +61,7 @@ export default function ProjectDetailsPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch(`/api/projects/${projectId}`)
       if (!response.ok) {
         if (response.status === 404) {
@@ -68,7 +69,7 @@ export default function ProjectDetailsPage() {
         }
         throw new Error('Failed to fetch project')
       }
-      
+
       const data = await response.json()
       setProject(data)
       setEditData({
@@ -143,7 +144,7 @@ export default function ProjectDetailsPage() {
 
     try {
       setDeleting(true)
-      
+
       const response = await fetch(`/api/projects/${projectId}`, {
         method: 'DELETE',
         headers: {
@@ -319,13 +320,12 @@ export default function ProjectDetailsPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-3xl font-bold text-gray-900">{project.projectName}</h1>
-                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-                      project.status === 'Active'
+                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${project.status === 'Active'
                         ? 'bg-green-100 text-green-800'
                         : project.status === 'Inactive'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
                       {project.status}
                     </span>
                   </div>
@@ -373,7 +373,7 @@ export default function ProjectDetailsPage() {
             <div>
               <p className="text-sm text-gray-500">Created At</p>
               <p className="font-medium text-gray-900">
-                {new Date(project.createdAt).toLocaleString()}
+                {formatDateTimeIST(project.createdAt)}
               </p>
             </div>
             {project.parentProjectId && (
@@ -385,7 +385,7 @@ export default function ProjectDetailsPage() {
             <div>
               <p className="text-sm text-gray-500">Last Updated</p>
               <p className="font-medium text-gray-900">
-                {new Date(project.updatedAt).toLocaleString()}
+                {formatDateTimeIST(project.updatedAt)}
               </p>
             </div>
           </div>
@@ -422,11 +422,10 @@ export default function ProjectDetailsPage() {
                         <h3 className="font-semibold text-gray-900">{subProject.projectName}</h3>
                         <p className="text-sm text-gray-600 mt-1">{subProject.projectId}</p>
                       </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        subProject.status === 'Active'
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${subProject.status === 'Active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                        }`}>
                         {subProject.status}
                       </span>
                     </div>

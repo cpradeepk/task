@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getCurrentUser, getTeamMembers } from '@/lib/auth'
 import { hasTabAccess } from '@/lib/permissions'
 import { formatDate, getStatusColor } from '@/lib/data'
+import { formatDateTimeIST } from '@/lib/datetime-utils'
 import { LeaveApplication, WFHApplication } from '@/lib/types'
 import { Check, X, Clock, Calendar, MapPin, Phone, Eye } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
@@ -819,12 +820,12 @@ export default function Approvals() {
                         {request.originalTime && (
                           <div className="flex items-center space-x-2">
                             <Clock className="h-4 w-4" />
-                            <span><strong>Original Time:</strong> {new Date(request.originalTime).toLocaleString()}</span>
+                            <span><strong>Original Time:</strong> {formatDateTimeIST(request.originalTime)}</span>
                           </div>
                         )}
                         <div className="flex items-center space-x-2">
                           <Clock className="h-4 w-4" />
-                          <span><strong>New Time:</strong> {new Date(request.newTime).toLocaleString()}</span>
+                          <span><strong>New Time:</strong> {formatDateTimeIST(request.newTime)}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Clock className="h-4 w-4" />
@@ -918,13 +919,13 @@ export default function Approvals() {
               {selectedAttendanceRequest.originalTime && (
                 <div>
                   <p className="text-sm text-gray-500">Original Time</p>
-                  <p className="font-medium">{new Date(selectedAttendanceRequest.originalTime).toLocaleString()}</p>
+                  <p className="font-medium">{formatDateTimeIST(selectedAttendanceRequest.originalTime)}</p>
                 </div>
               )}
 
               <div>
                 <p className="text-sm text-gray-500">New Time</p>
-                <p className="font-medium">{new Date(selectedAttendanceRequest.newTime).toLocaleString()}</p>
+                <p className="font-medium">{formatDateTimeIST(selectedAttendanceRequest.newTime)}</p>
               </div>
 
               {selectedAttendanceRequest.reason && (

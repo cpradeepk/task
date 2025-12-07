@@ -44,63 +44,58 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
     }
   }
 
-  const getNavigationItems = (): NavigationItem[] => {
-    // Show default items even while loading
-    const baseItems: NavigationItem[] = [
-      { screen: 'Dashboard', label: 'Dashboard', icon: 'view-dashboard' },
-    ]
+  const renderSection = (items: NavigationItem[], title?: string) => (
+    <View>
+      {/* {title && <List.Subheader>{title}</List.Subheader>} */}
+      {/* User didn't explicitly ask for headers, but visual grouping via dividers is good. */}
+      {items.map((item) => (
+        <List.Item
+          key={item.screen}
+          title={item.label}
+          left={(props) => <List.Icon {...props} icon={item.icon} color={materialColors.primary} />}
+          onPress={() => {
+            if (item.screen === 'Dashboard') {
+              navigation.navigate('Main', { screen: 'HomeTab' })
+            } else {
+              navigation.navigate(item.screen)
+            }
+            onClose()
+          }}
+          style={styles.navItem}
+          titleStyle={styles.navItemTitle}
+        />
+      ))}
+    </View>
+  )
 
-    if (!currentUser) {
-      // Show common items while loading
-      return [
-        ...baseItems,
-        { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle' },
-        { screen: 'BugList', label: 'Development', icon: 'bug' },
-        { screen: 'Feed', label: 'Feed', icon: 'rss' },
-        { screen: 'LeaveList', label: 'Leave', icon: 'calendar-clock' },
-        { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
-      ]
+  const homeDetails = [
+    { screen: 'Dashboard', label: 'Home', icon: 'home-outline' },
+  ]
+  const workDetails = [
+    { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle-outline' },
+    { screen: 'BugList', label: 'Bugs', icon: 'bug-outline' },
+    { screen: 'Feed', label: 'Feed', icon: 'rss' },
+  ]
+  const approvalDetails = [
+    { screen: 'LeaveList', label: 'Leaves', icon: 'calendar-clock' },
+    { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
+  ]
+
+  let showWork = false;
+  let showApprovals = false;
+  if (currentUser) {
+    if (['amtarikshian', 'management', 'top_management', 'admin'].includes(currentUser.role)) {
+      showWork = true;
     }
-
-    switch (currentUser.role) {
-      case 'amtarikshian':
-        return [
-          ...baseItems,
-          { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle' },
-          { screen: 'BugList', label: 'Development', icon: 'bug' },
-          { screen: 'Feed', label: 'Feed', icon: 'rss' },
-          { screen: 'LeaveList', label: 'Leave', icon: 'calendar-clock' },
-          { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
-        ]
-
-      case 'management':
-        return [
-          ...baseItems,
-          { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle' },
-          { screen: 'BugList', label: 'Development', icon: 'bug' },
-          { screen: 'Feed', label: 'Feed', icon: 'rss' },
-          { screen: 'LeaveList', label: 'Leave', icon: 'calendar-clock' },
-          { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
-        ]
-
-      case 'top_management':
-        return [
-          ...baseItems,
-          { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle' },
-          { screen: 'BugList', label: 'Development', icon: 'bug' },
-          { screen: 'Feed', label: 'Feed', icon: 'rss' },
-        ]
-
-      case 'admin':
-        return [
-          ...baseItems,
-          { screen: 'BugList', label: 'Development', icon: 'bug' },
-          { screen: 'Feed', label: 'Feed', icon: 'rss' },
-        ]
-
-      default:
-        return baseItems
+    if (['amtarikshian', 'management'].includes(currentUser.role)) {
+      showApprovals = true;
     }
+  }
+
+  // Fallback if no user
+  if (!currentUser) {
+    showWork = true;
+    showApprovals = true;
   }
 
   const adminItems: NavigationItem[] = [
@@ -113,8 +108,6 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
     { screen: 'Settings', label: 'Settings', icon: 'cog' },
     { screen: 'DeletedItems', label: 'Deleted Items', icon: 'delete' },
   ]
-
-  const navigationItems = getNavigationItems()
   const showAdminSection = currentUser?.role === 'admin' || currentUser?.role === 'top_management'
 
   const handleLogout = async () => {
@@ -174,23 +167,21 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
 
             {/* Navigation Items */}
             <View style={styles.navigationSection}>
-              {navigationItems.map((item) => (
-                <List.Item
-                  key={item.screen}
-                  title={item.label}
-                  left={(props) => <List.Icon {...props} icon={item.icon} color={materialColors.primary} />}
-                  onPress={() => {
-                    if (item.screen === 'Dashboard') {
-                      navigation.navigate('Main', { screen: 'HomeTab' })
-                    } else {
-                      navigation.navigate(item.screen)
-                    }
-                    onClose()
-                  }}
-                  style={styles.navItem}
-                  titleStyle={styles.navItemTitle}
-                />
-              ))}
+              {renderSection(homeDetails)}
+
+              {showWork && (
+                <>
+                  <Divider style={styles.divider} />
+                  {renderSection(workDetails)}
+                </>
+              )}
+
+              {showApprovals && (
+                <>
+                  <Divider style={styles.divider} />
+                  {renderSection(approvalDetails)}
+                </>
+              )}
 
               {/* Admin Section */}
               {showAdminSection && (

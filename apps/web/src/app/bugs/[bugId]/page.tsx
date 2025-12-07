@@ -13,7 +13,7 @@ import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
 import { Bug, User } from '@/lib/types'
 import { getBugById, updateBug, canEditBug, canCommentOnBug } from '@/lib/bugService'
-import { getCurrentDateTime } from '@/lib/datetime-utils'
+import { getCurrentDateTime, formatDateTimeIST } from '@/lib/datetime-utils'
 import UnifiedTimeline from '@/components/UnifiedTimeline'
 import BugEditModal from '@/components/bugs/BugEditModal'
 import BugChecklistManager from '@/components/bugs/BugChecklistManager'
@@ -1269,11 +1269,11 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-gray-500">
                 <div>
                   <span className="font-medium block mb-1">Created</span>
-                  <span>{new Date(bug.createdAt).toLocaleString()}</span>
+                  <span>{formatDateTimeIST(bug.createdAt)}</span>
                 </div>
                 <div>
                   <span className="font-medium block mb-1">Updated</span>
-                  <span>{new Date(bug.updatedAt).toLocaleString()}</span>
+                  <span>{formatDateTimeIST(bug.updatedAt)}</span>
                 </div>
                 <div>
                   <span className="font-medium block mb-1">Reporter</span>

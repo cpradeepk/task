@@ -35,8 +35,8 @@ export const LOGIN_MUTATION = gql`
 // ============================================================================
 
 export const GET_TASKS = gql`
-  query GetTasks($assignedTo: String, $status: String, $priority: String, $limit: Int, $offset: Int) {
-    tasks(assignedTo: $assignedTo, status: $status, priority: $priority, limit: $limit, offset: $offset) {
+  query GetTasks($assignedTo: String, $status: String, $priority: String, $projectId: String, $subprojectId: String, $limit: Int, $offset: Int) {
+    tasks(assignedTo: $assignedTo, status: $status, priority: $priority, projectId: $projectId, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
       id
       taskId
       name
@@ -168,8 +168,8 @@ export const UPDATE_TASK = gql`
 // ============================================================================
 
 export const GET_BUGS = gql`
-  query GetBugs($assignedTo: String, $status: String, $severity: String, $limit: Int, $offset: Int) {
-    bugs(assignedTo: $assignedTo, status: $status, severity: $severity, limit: $limit, offset: $offset) {
+  query GetBugs($assignedTo: String, $status: String, $severity: String, $projectId: String, $subprojectId: String, $limit: Int, $offset: Int) {
+    bugs(assignedTo: $assignedTo, status: $status, severity: $severity, projectId: $projectId, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
       id
       bugId
       title
@@ -907,6 +907,46 @@ export const ADMIN_DASHBOARD_QUERY = gql`
         signOutTime
         location
       }
+    }
+  }
+`
+
+export const PENDING_ATTENDANCE_REQUESTS = gql`
+  query PendingAttendanceRequests {
+    pendingAttendanceRequests {
+      id
+      userId
+      attendanceDate
+      requestType
+      originalTime
+      newTime
+      reason
+      status
+      createdAt
+      user {
+        employeeId
+        name
+        department
+        role
+      }
+    }
+  }
+`
+
+export const APPROVE_ATTENDANCE_REQUEST = gql`
+  mutation ApproveAttendanceRequest($requestId: ID!) {
+    approveAttendanceRequest(requestId: $requestId) {
+      id
+      status
+    }
+  }
+`
+
+export const REJECT_ATTENDANCE_REQUEST = gql`
+  mutation RejectAttendanceRequest($requestId: ID!) {
+    rejectAttendanceRequest(requestId: $requestId) {
+      id
+      status
     }
   }
 `

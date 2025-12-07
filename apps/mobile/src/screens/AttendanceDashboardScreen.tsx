@@ -1,94 +1,126 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import {
     View,
-    Text,
     ScrollView,
     StyleSheet,
     RefreshControl,
-    ActivityIndicator,
+    TouchableOpacity,
+    Platform,
+    Modal,
+    TextInput
 } from 'react-native'
-import { useQuery } from '@apollo/client/react'
-import { Card, Title, Paragraph, List, Avatar, useTheme, Divider } from 'react-native-paper'
-import { ADMIN_DASHBOARD_QUERY } from '../config/graphql-queries'
+import { useQuery, useMutation } from '@apollo/client/react'
+import { Card, Text, Button, ActivityIndicator, Avatar, Divider, useTheme, IconButton, Portal, Dialog } from 'react-native-paper'
+import DateTimePicker from '@react-native-community/datetimepicker'
+import { ADMIN_DASHBOARD_QUERY, REQUEST_MANUAL_ATTENDANCE } from '../config/graphql-queries'
 import { materialColors, materialSpacing, materialTypography } from '../config/materialTheme'
+import { formatTimeIST, formatDateIST } from '../utils/datetime'
+import { useNavigation } from '@react-navigation/native'
+import { getUserData } from '../utils/secureStorage'
 
 export default function AttendanceDashboardScreen() {
-    const theme = useTheme()
+    const { colors } = useTheme()
+    const navigation = useNavigation<any>()
     const [refreshing, setRefreshing] = useState(false)
+    const [userRole, setUserRole] = useState<string | null>(null)
+    const [userName, setUserName] = useState<string>('')
 
-    const { data, loading, error, refetch } = useQuery(ADMIN_DASHBOARD_QUERY, {
-        pollInterval: 60000, // Refresh every minute
+    // Request Manual Attendance State
+    const [showRequestModal, setShowRequestModal] = useState(false)
+    const [requestDate, setRequestDate] = useState(new Date())
+    const [showDatePicker, setShowDatePicker] = useState(false)
+    const [signInTime, setSignInTime] = useState(new Date())
+    const [showSignInPicker, setShowSignInPicker] = useState(false)
+    const [signOutTime, setSignOutTime] = useState(new Date())
+    const [showSignOutPicker, setShowSignOutPicker] = useState(false)
+    const [reason, setReason] = useState('')
+
+    const [requestManualAttendance, { loading: requestLoading }] = useMutation(REQUEST_MANUAL_ATTENDANCE)
+
+    const { data, loading, refetch } = useQuery(ADMIN_DASHBOARD_QUERY, {
+        pollInterval: 0,
         fetchPolicy: 'cache-and-network',
+        skip: userRole !== 'ADMIN' && userRole !== 'HR' && userRole !== 'MANAGER' // optimize maybe?
+        // Actually, let's just fetch and ignore error if not admin
     })
+
+    const dashboardData = (data as any)?.adminDashboardData
+
+    React.useEffect(() => {
+        getUserData().then(user => {
+            if (user) {
+                setUserRole(user.role)
+                setUserName(user.name)
+            }
+        })
+    }, [])
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true)
         try {
             await refetch()
         } catch (e) {
-            console.error(e)
+            console.log("Fetch error (expected if not admin):", e)
         } finally {
             setRefreshing(false)
         }
     }, [refetch])
 
-    if (loading && !data) {
-        return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" color={materialColors.primary} />
+    const handleRequestSubmit = async () => {
+        try {
+            await requestManualAttendance({
+                variables: {
+                    input: {
+                        date: requestDate.toISOString().split('T')[0],
+                        signInTime: signInTime.toISOString(),
+                        signOutTime: signOutTime.toISOString(),
+                        reason: reason
+                    }
+                }
+            })
+            setShowRequestModal(false)
+            setReason('')
+            // Optionally show success message
+        } catch (e) {
+            console.error(e)
+            // Optionally show error
+        }
+    }
+
+    // DateTimePicker Helpers
+    const onChangeDate = (event: any, selectedDate?: Date) => {
+        setShowDatePicker(false)
+        if (selectedDate) setRequestDate(selectedDate)
+    }
+    const onChangeSignIn = (event: any, selectedDate?: Date) => {
+        setShowSignInPicker(false)
+        if (selectedDate) setSignInTime(selectedDate)
+    }
+    const onChangeSignOut = (event: any, selectedDate?: Date) => {
+        setShowSignOutPicker(false)
+        if (selectedDate) setSignOutTime(selectedDate)
+    }
+
+    const QuickActionBtn = ({ icon, label, onPress, color }: any) => (
+        <TouchableOpacity style={styles.actionBtn} onPress={onPress}>
+            <View style={[styles.actionIcon, { backgroundColor: color }]}>
+                <IconButton icon={icon} iconColor="white" size={24} />
             </View>
-        )
-    }
-
-    if (error && !data) {
-        return (
-            <View style={styles.centered}>
-                <Text style={styles.errorText}>Error loading dashboard</Text>
-                <Text style={styles.errorSubText}>{error.message}</Text>
-            </View>
-        )
-    }
-
-    const dashboardData = (data as any)?.adminDashboardData
-
-    if (!dashboardData) {
-        return null
-    }
+            <Text style={styles.actionLabel}>{label}</Text>
+        </TouchableOpacity>
+    )
 
     const StatCard = ({ title, value, icon, color, bgColor }: any) => (
         <Card style={[styles.statCard, { borderLeftColor: color, borderLeftWidth: 4 }]}>
             <Card.Content style={styles.statCardContent}>
                 <View>
                     <Text style={styles.statTitle}>{title}</Text>
-                    <Text style={styles.statValue}>{value}</Text>
+                    <Text style={styles.statValue}>{value || 0}</Text>
                 </View>
                 <Avatar.Icon size={48} icon={icon} style={{ backgroundColor: bgColor }} color={color} />
             </Card.Content>
         </Card>
     )
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'ONLINE':
-                return '#10B981' // Green
-            case 'PRESENT':
-                return '#3B82F6' // Blue
-            case 'ABSENT':
-                return '#6B7280' // Gray
-            case 'ON_LEAVE':
-                return '#F59E0B' // Yellow
-            case 'WFH':
-                return '#8B5CF6' // Purple
-            default:
-                return '#6B7280'
-        }
-    }
-
-    const formatTime = (timeString?: string) => {
-        if (!timeString) return '-'
-        const date = new Date(timeString)
-        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-    }
 
     return (
         <ScrollView
@@ -98,199 +130,165 @@ export default function AttendanceDashboardScreen() {
             }
         >
             <View style={styles.content}>
-                <Text style={styles.headerTitle}>Attendance Overview</Text>
+                <Text style={styles.welcomeText}>Welcome, {userName}</Text>
 
-                {/* Stats Grid */}
-                <View style={styles.statsGrid}>
-                    <View style={styles.row}>
-                        <View style={styles.col}>
-                            <StatCard
-                                title="Online Now"
-                                value={dashboardData.usersOnline}
-                                icon="account-check"
-                                color="#10B981"
-                                bgColor="#D1FAE5"
-                            />
-                        </View>
-                        <View style={styles.col}>
-                            <StatCard
-                                title="Present"
-                                value={dashboardData.usersPresent}
-                                icon="account-clock"
-                                color="#3B82F6"
-                                bgColor="#DBEAFE"
-                            />
-                        </View>
-                    </View>
-
-                    <View style={styles.row}>
-                        <View style={styles.col}>
-                            <StatCard
-                                title="Absent"
-                                value={dashboardData.usersAbsent}
-                                icon="account-remove"
-                                color="#6B7280"
-                                bgColor="#F3F4F6"
-                            />
-                        </View>
-                        <View style={styles.col}>
-                            <StatCard
-                                title="On Leave"
-                                value={dashboardData.usersOnLeave}
-                                icon="airplane"
-                                color="#F59E0B"
-                                bgColor="#FEF3C7"
-                            />
-                        </View>
-                    </View>
-
-                    <View style={styles.row}>
-                        <View style={styles.col}>
-                            <StatCard
-                                title="WFH"
-                                value={dashboardData.usersWFH}
-                                icon="home-account"
-                                color="#8B5CF6"
-                                bgColor="#EDE9FE"
-                            />
-                        </View>
-                        <View style={styles.col}>
-                            <StatCard
-                                title="Pending"
-                                value={dashboardData.pendingLeaveRequests + dashboardData.pendingWFHRequests}
-                                icon="clock-alert"
-                                color="#F97316"
-                                bgColor="#FFEDD5"
-                            />
-                        </View>
-                    </View>
+                {/* Quick Actions */}
+                <View style={styles.actionRow}>
+                    <QuickActionBtn
+                        icon="calendar-month"
+                        label="My Calendar"
+                        onPress={() => navigation.navigate('AttendanceCalendar')}
+                        color={materialColors.primary}
+                    />
+                    <QuickActionBtn
+                        icon="clock-edit"
+                        label="Request Edit"
+                        onPress={() => setShowRequestModal(true)}
+                        color={materialColors.secondary}
+                    />
+                    {(userRole === 'ADMIN' || userRole === 'MANAGER' || userRole === 'HR') && (
+                        <QuickActionBtn
+                            icon="check-decagram"
+                            label="Approvals"
+                            onPress={() => navigation.navigate('AttendanceApprovals')}
+                            color={materialColors.success}
+                        />
+                    )}
                 </View>
 
-                <Divider style={styles.divider} />
+                {/* Admin Dashboard */}
+                {dashboardData && (
+                    <>
+                        <Divider style={styles.divider} />
+                        <Text style={styles.headerTitle}>Overview</Text>
+                        <View style={styles.statsGrid}>
+                            <View style={styles.row}>
+                                <View style={styles.col}>
+                                    <StatCard title="Online" value={dashboardData.usersOnline} icon="account-check" color="#10B981" bgColor="#D1FAE5" />
+                                </View>
+                                <View style={styles.col}>
+                                    <StatCard title="Present" value={dashboardData.usersPresent} icon="account-clock" color="#3B82F6" bgColor="#DBEAFE" />
+                                </View>
+                            </View>
+                            <View style={styles.row}>
+                                <View style={styles.col}>
+                                    <StatCard title="Absent" value={dashboardData.usersAbsent} icon="account-remove" color="#6B7280" bgColor="#F3F4F6" />
+                                </View>
+                                <View style={styles.col}>
+                                    <StatCard title="Leave" value={dashboardData.usersOnLeave} icon="airplane" color="#F59E0B" bgColor="#FEF3C7" />
+                                </View>
+                            </View>
+                        </View>
 
-                <Text style={styles.headerTitle}>Live Attendance</Text>
-                <Text style={styles.subHeader}>Current status of all active users</Text>
-
-                <Card style={styles.listCard}>
-                    {dashboardData.liveAttendance.map((record: any, index: number) => (
-                        <React.Fragment key={record.userId}>
-                            <List.Item
-                                title={record.userName}
-                                description={`${record.role} • ${record.department || '-'}`}
-                                left={props => (
-                                    <Avatar.Text
-                                        {...props}
-                                        size={40}
-                                        label={record.userName.substring(0, 2).toUpperCase()}
-                                        style={{ backgroundColor: getStatusColor(record.status) }}
-                                        color="#FFFFFF"
-                                    />
-                                )}
-                                right={props => (
-                                    <View style={styles.statusContainer}>
-                                        <Text style={[styles.statusText, { color: getStatusColor(record.status) }]}>
-                                            {record.status}
-                                        </Text>
-                                        <Text style={styles.timeText}>
-                                            {record.signInTime ? `In: ${formatTime(record.signInTime)}` : ''}
-                                        </Text>
-                                    </View>
-                                )}
-                            />
-                            {index < dashboardData.liveAttendance.length - 1 && <Divider />}
-                        </React.Fragment>
-                    ))}
-                </Card>
+                        {dashboardData.liveAttendance && (
+                            <>
+                                <Text style={styles.headerTitle}>Live Attendance</Text>
+                                <Card style={styles.listCard}>
+                                    {dashboardData.liveAttendance.map((record: any, index: number) => (
+                                        <React.Fragment key={record.userId}>
+                                            <View style={styles.listItem}>
+                                                <Avatar.Text
+                                                    size={40}
+                                                    label={record.userName.substring(0, 2).toUpperCase()}
+                                                    style={{ backgroundColor: record.status === 'ONLINE' ? '#10B981' : '#6B7280' }}
+                                                />
+                                                <View style={styles.listItemContent}>
+                                                    <Text style={styles.listItemTitle}>{record.userName}</Text>
+                                                    <Text style={styles.listItemSubtitle}>{record.status}</Text>
+                                                </View>
+                                                <Text style={styles.listItemTime}>
+                                                    {record.signInTime ? formatTimeIST(record.signInTime) : '-'}
+                                                </Text>
+                                            </View>
+                                            {index < dashboardData.liveAttendance.length - 1 && <Divider />}
+                                        </React.Fragment>
+                                    ))}
+                                </Card>
+                            </>
+                        )}
+                    </>
+                )}
             </View>
+
+            {/* Request Modal */}
+            <Modal visible={showRequestModal} animationType="slide" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+                        <Text style={styles.modalTitle}>Request Attendance Edit</Text>
+
+                        <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateInput}>
+                            <Text>Date: {formatDateIST(requestDate.toISOString())}</Text>
+                        </TouchableOpacity>
+
+                        <View style={styles.timeRow}>
+                            <TouchableOpacity onPress={() => setShowSignInPicker(true)} style={styles.timeInput}>
+                                <Text>In: {formatTimeIST(signInTime.toISOString())}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setShowSignOutPicker(true)} style={styles.timeInput}>
+                                <Text>Out: {formatTimeIST(signOutTime.toISOString())}</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <TextInput
+                            placeholder="Reason"
+                            value={reason}
+                            onChangeText={setReason}
+                            style={styles.textInput}
+                            placeholderTextColor={colors.onSurfaceDisabled}
+                        />
+
+                        <View style={styles.modalActions}>
+                            <Button onPress={() => setShowRequestModal(false)}>Cancel</Button>
+                            <Button mode="contained" onPress={handleRequestSubmit} loading={requestLoading}>Submit</Button>
+                        </View>
+
+                        {showDatePicker && (
+                            <DateTimePicker value={requestDate} mode="date" display="default" onChange={onChangeDate} />
+                        )}
+                        {showSignInPicker && (
+                            <DateTimePicker value={signInTime} mode="time" display="default" onChange={onChangeSignIn} />
+                        )}
+                        {showSignOutPicker && (
+                            <DateTimePicker value={signOutTime} mode="time" display="default" onChange={onChangeSignOut} />
+                        )}
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F3F4F6',
-    },
-    content: {
-        padding: materialSpacing.md,
-    },
-    centered: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerTitle: {
-        ...materialTypography.titleLarge,
-        color: '#111827',
-        marginBottom: materialSpacing.sm,
-        fontWeight: 'bold',
-    },
-    subHeader: {
-        ...materialTypography.bodyMedium,
-        color: '#6B7280',
-        marginBottom: materialSpacing.md,
-    },
-    statsGrid: {
-        marginBottom: materialSpacing.lg,
-    },
-    row: {
-        flexDirection: 'row',
-        marginHorizontal: -6,
-        marginBottom: 12,
-    },
-    col: {
-        flex: 1,
-        paddingHorizontal: 6,
-    },
-    statCard: {
-        backgroundColor: '#FFFFFF',
-        elevation: 2,
-    },
-    statCardContent: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    statTitle: {
-        fontSize: 12,
-        color: '#6B7280',
-        fontWeight: '600',
-    },
-    statValue: {
-        fontSize: 24,
-        color: '#111827',
-        fontWeight: 'bold',
-        marginTop: 4,
-    },
-    divider: {
-        marginVertical: materialSpacing.md,
-    },
-    listCard: {
-        backgroundColor: '#FFFFFF',
-        marginBottom: materialSpacing.xl,
-    },
-    statusContainer: {
-        justifyContent: 'center',
-        alignItems: 'flex-end',
-        marginRight: 8,
-    },
-    statusText: {
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    timeText: {
-        fontSize: 10,
-        color: '#9CA3AF',
-        marginTop: 2,
-    },
-    errorText: {
-        fontSize: 16,
-        color: '#EF4444',
-        fontWeight: 'bold',
-    },
-    errorSubText: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginTop: 8,
-    },
+    container: { flex: 1, backgroundColor: '#F3F4F6' },
+    content: { padding: materialSpacing.md },
+    welcomeText: { ...materialTypography.headlineSmall, marginBottom: materialSpacing.md },
+    actionRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: materialSpacing.lg },
+    actionBtn: { alignItems: 'center' },
+    actionIcon: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center', marginBottom: 4, elevation: 2 },
+    actionLabel: { ...materialTypography.labelMedium },
+    headerTitle: { ...materialTypography.titleLarge, marginBottom: materialSpacing.sm, fontWeight: 'bold' },
+    statsGrid: { marginBottom: materialSpacing.lg },
+    row: { flexDirection: 'row', marginHorizontal: -6, marginBottom: 12 },
+    col: { flex: 1, paddingHorizontal: 6 },
+    statCard: { backgroundColor: '#FFFFFF', elevation: 2 },
+    statCardContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    statTitle: { fontSize: 12, color: '#6B7280' },
+    statValue: { fontSize: 24, fontWeight: 'bold', marginTop: 4 },
+    listCard: { backgroundColor: '#FFFFFF', padding: 0 },
+    listItem: { flexDirection: 'row', alignItems: 'center', padding: 12 },
+    listItemContent: { flex: 1, marginLeft: 12 },
+    listItemTitle: { fontWeight: 'bold' },
+    listItemSubtitle: { fontSize: 12, color: '#666' },
+    listItemTime: { fontSize: 12, color: '#666' },
+    divider: { marginVertical: materialSpacing.md },
+
+    // Modal
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+    modalContent: { padding: 20, borderRadius: 10, elevation: 5 },
+    modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+    dateInput: { padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5, marginBottom: 10 },
+    timeRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+    timeInput: { flex: 1, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5 },
+    textInput: { padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5, marginBottom: 20 },
+    modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
 })

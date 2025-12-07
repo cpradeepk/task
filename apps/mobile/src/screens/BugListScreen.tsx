@@ -20,22 +20,27 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native'
-import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Surface } from 'react-native-paper'
+import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Surface, Portal, Modal, Divider, Button as PaperButton, IconButton } from 'react-native-paper'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useQuery } from '@apollo/client/react'
-import { GET_BUGS } from '../config/graphql-queries'
+import { GET_BUGS, GET_PROJECTS } from '../config/graphql-queries'
 import { Bug } from '../types'
 import { getBugDisplayId, getSeverityColor, getStatusColor } from '../utils/bugHelpers'
+import { formatDateIST } from '../utils/datetime'
 import { save, get, STORAGE_KEYS } from '../utils/secureStorage'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import { useTabBarControl } from '../context/TabBarContext'
+import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 
 interface BugFilters {
   searchQuery: string
   statusFilter: string
   typeFilter: string
+  projectId?: string
 }
 
 export default function BugListScreen() {
@@ -49,10 +54,34 @@ export default function BugListScreen() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('All')
   const [typeFilter, setTypeFilter] = useState<string>('All')
+  const [severityFilter, setSeverityFilter] = useState<string>('All')
+  const [projectId, setProjectId] = useState<string>('')
+  const [isFilterModalVisible, setFilterModalVisible] = useState(false)
+
+  const { handleScroll } = useTabBarControl()
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: handleScroll
+  })
+
+  const statusOptions = ['All', 'Open', 'In Progress', 'Resolved', 'Closed', 'ReOpened']
+  const typeOptions = ['All', 'feature', 'testcase', 'UI', 'Functionality'] // Add more as needed
+  const severityOptions = ['All', 'Critical', 'Major', 'Minor']
+
+  // GraphQL query for projects
+  const { data: projectsData } = useQuery(GET_PROJECTS)
+  const projects = (projectsData as any)?.projects || []
 
   // GraphQL query for bugs
   const { data, loading, error, refetch } = useQuery(GET_BUGS, {
     fetchPolicy: 'cache-and-network',
+    variables: {
+      search: searchQuery || undefined,
+      status: statusFilter === 'All' ? undefined : statusFilter,
+      severity: severityFilter === 'All' ? undefined : severityFilter,
+      projectId: projectId || undefined,
+      limit: 20, // Example limit
+      offset: 0, // Example offset
+    },
   })
 
   const bugs = (data as any)?.bugs || []
@@ -64,6 +93,7 @@ export default function BugListScreen() {
         setSearchQuery(savedFilters.searchQuery || '')
         setStatusFilter(savedFilters.statusFilter || 'All')
         setTypeFilter(savedFilters.typeFilter || 'All')
+        setProjectId(savedFilters.projectId || '')
       }
     } catch (error) {
       console.error('Failed to load saved filters:', error)
@@ -76,46 +106,40 @@ export default function BugListScreen() {
         searchQuery,
         statusFilter,
         typeFilter,
+        projectId,
       }
       await save(STORAGE_KEYS.BUG_FILTERS, filters)
     } catch (error) {
       console.error('Failed to save filters:', error)
     }
-  }, [searchQuery, statusFilter, typeFilter])
+  }, [searchQuery, statusFilter, typeFilter, projectId])
 
   const filterBugs = useCallback(() => {
     let filtered = bugs
 
-    // Filter by type
-    if (typeFilter !== 'All') {
-      filtered = filtered.filter((bug: any) => {
-        if (typeFilter === 'feature') {
-          return bug.type === 'feature'
-        } else if (typeFilter === 'testcase') {
-          return bug.type === 'testcase' || !bug.type
-        }
-        return true
-      })
-    }
-
-    // Filter by status
-    if (statusFilter !== 'All') {
-      filtered = filtered.filter((bug: any) => bug.status === statusFilter)
-    }
-
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
-        (bug) =>
-          bug.bugId.toLowerCase().includes(query) ||
+        (bug: Bug) =>
           bug.title.toLowerCase().includes(query) ||
-          bug.description.toLowerCase().includes(query)
+          bug.bugId.toLowerCase().includes(query)
       )
     }
 
+    if (typeFilter !== 'All') {
+      filtered = filtered.filter((bug: Bug) => bug.type === typeFilter)
+    }
+
+    if (statusFilter !== 'All') {
+      filtered = filtered.filter((bug: Bug) => bug.status === statusFilter)
+    }
+
+    if (projectId) {
+      filtered = filtered.filter((bug: Bug) => bug.project?.projectId === projectId)
+    }
+
     setFilteredBugs(filtered)
-  }, [bugs, searchQuery, statusFilter, typeFilter])
+  }, [bugs, searchQuery, statusFilter, typeFilter, projectId])
 
   const handleRefresh = useCallback(async () => {
     try {
@@ -140,65 +164,46 @@ export default function BugListScreen() {
     saveFilters()
   }, [saveFilters])
 
-  const renderBugItem = ({ item }: { item: any }) => {
+  const renderBug = ({ item }: { item: Bug }) => {
+    // Derive project hierarchy from the projects list
+    let projectDisplay = item.project?.projectName || ''
+    if (item.project?.projectId && projects.length > 0) {
+      const proj = projects.find((p: any) => p.projectId === item.project?.projectId)
+      if (proj && proj.parentProjectId) {
+        const parent = projects.find((p: any) => p.projectId === proj.parentProjectId)
+        if (parent) {
+          projectDisplay = `${parent.projectName} / ${proj.projectName}`
+        }
+      }
+    }
+
     const displayId = getBugDisplayId(item.bugId, item.type)
-    const assignedToName = item.assignedToUser?.name || item.assignedTo || 'Unassigned'
-    const projectName = item.project?.projectName || ''
 
     return (
-      <Card
-        style={styles.bugCard}
-        elevation={1}
-        onPress={() => navigation.navigate('BugDetails' as never as never, { bugId: item.bugId } as never)}
-      >
+      <Card style={styles.card} elevation={1} onPress={() => navigation.navigate('BugDetails' as never, { bugId: item.bugId } as never)}>
         <Card.Content>
-          <View style={styles.bugHeader}>
-            <View style={styles.bugIdContainer}>
-              <Text style={styles.bugId}>{displayId}</Text>
-              {item.type === 'feature' && (
-                <Chip mode="flat" compact style={styles.featureChip} textStyle={styles.featureChipText}>
-                  Feature
-                </Chip>
-              )}
-            </View>
-            <View style={styles.badges}>
-              <Chip
-                mode="flat"
-                compact
-                style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) }]}
-                textStyle={styles.chipText}
-              >
-                {item.status}
-              </Chip>
-              <Chip
-                mode="flat"
-                compact
-                style={[styles.severityChip, { backgroundColor: getSeverityColor(item.severity) }]}
-                textStyle={styles.chipText}
-              >
-                {item.severity}
-              </Chip>
-            </View>
+          <View style={styles.headerRow}>
+            <Text style={styles.bugId}>{displayId}</Text>
+            <Chip
+              style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) }]}
+              textStyle={{ color: '#fff', fontSize: 10 }}
+              compact
+            >
+              {item.status}
+            </Chip>
           </View>
-          <Text style={styles.bugTitle} numberOfLines={2}>
-            {item.title}
-          </Text>
-          {projectName && (
-            <Text style={styles.projectName} numberOfLines={1}>
-              📁 {projectName}
+
+          <Text style={styles.bugTitle} numberOfLines={1}>{item.title}</Text>
+
+          <View style={styles.metaRow}>
+            <MaterialCommunityIcons name="folder-outline" size={14} color={materialColors.textSecondary} />
+            <Text style={styles.projectName}>{projectDisplay}</Text>
+          </View>
+
+          <View style={styles.metaRow}>
+            <Text style={{ ...materialTypography.bodySmall, color: materialColors.textSecondary }}>
+              {item.severity} • {formatDateIST(item.createdAt)} • {item.assignedToUser?.name || item.assignedTo || 'Unassigned'}
             </Text>
-          )}
-          <View style={styles.bugMeta}>
-            <Text style={styles.metaText}>{item.category}</Text>
-            <Text style={styles.metaText}>•</Text>
-            <Text style={styles.metaText}>{item.platform}</Text>
-            <Text style={styles.metaText}>•</Text>
-            <Text style={styles.metaText}>👤 {assignedToName}</Text>
-          </View>
-          <View style={styles.bugMeta}>
-            <Text style={styles.metaText}>📅 {new Date(item.createdAt).toLocaleDateString()}</Text>
-            <Text style={styles.metaText}>•</Text>
-            <Text style={styles.metaText}>🔄 {new Date(item.updatedAt).toLocaleDateString()}</Text>
           </View>
         </Card.Content>
       </Card>
@@ -225,69 +230,30 @@ export default function BugListScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Search Bar */}
-      <Surface style={styles.searchContainer} elevation={0}>
+      <View style={styles.searchRow}>
         <Searchbar
           placeholder="Search bugs..."
-          value={searchQuery}
           onChangeText={setSearchQuery}
+          value={searchQuery}
           style={styles.searchBar}
+          inputStyle={styles.searchInput}
           iconColor={materialColors.primary}
-          inputStyle={materialTypography.bodyMedium}
+          right={() => (
+            <IconButton
+              icon="filter-variant"
+              iconColor={materialColors.primary}
+              onPress={() => setFilterModalVisible(true)}
+            />
+          )}
         />
-      </Surface>
+      </View>
 
-      {/* Type Filter */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterRow}
-        contentContainerStyle={styles.filterRowContent}
-      >
-        <Text style={styles.filterLabel}>Type:</Text>
-        {['All', 'feature', 'testcase'].map((type: any) => (
-          <Chip
-            key={type}
-            mode={typeFilter === type ? 'flat' : 'outlined'}
-            selected={typeFilter === type}
-            onPress={() => setTypeFilter(type)}
-            style={styles.filterChip}
-            textStyle={styles.filterChipText}
-            selectedColor={materialColors.surface}
-          >
-            {type === 'feature' ? 'Feature' : type === 'testcase' ? 'Test Case' : 'All'}
-          </Chip>
-        ))}
-      </ScrollView>
-
-      {/* Status Filter */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterRow}
-        contentContainerStyle={styles.filterRowContent}
-      >
-        <Text style={styles.filterLabel}>Status:</Text>
-        {['All', 'New', 'In Progress', 'Resolved', 'Closed', 'Reopened'].map((status: any) => (
-          <Chip
-            key={status}
-            mode={statusFilter === status ? 'flat' : 'outlined'}
-            selected={statusFilter === status}
-            onPress={() => setStatusFilter(status)}
-            style={styles.filterChip}
-            textStyle={styles.filterChipText}
-            selectedColor={materialColors.surface}
-          >
-            {status}
-          </Chip>
-        ))}
-      </ScrollView>
-
-      {/* Bug List */}
-      <FlatList
+      <Animated.FlatList
         data={filteredBugs}
-        renderItem={renderBugItem}
-        keyExtractor={(item) => item.bugId}
+        renderItem={renderBug}
+        keyExtractor={item => item.bugId}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
@@ -300,7 +266,7 @@ export default function BugListScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {searchQuery || statusFilter !== 'All' || typeFilter !== 'All'
+              {searchQuery || statusFilter !== 'All' || typeFilter !== 'All' || projectId !== ''
                 ? 'No bugs match your filters'
                 : 'No bugs found'}
             </Text>
@@ -308,7 +274,86 @@ export default function BugListScreen() {
         }
       />
 
-      {/* Create Bug FAB */}
+      {/* FILTER MODAL */}
+      <Portal>
+        <Modal visible={isFilterModalVisible} onDismiss={() => setFilterModalVisible(false)} contentContainerStyle={styles.modalContent}>
+          <ScrollView contentContainerStyle={styles.filterScroll}>
+            <Text style={styles.filterTitle}>Filter Bugs</Text>
+            <Divider style={styles.divider} />
+
+            {/* Status Sections */}
+            <Text style={styles.sectionTitle}>Status</Text>
+            <View style={styles.chipRow}>
+              {statusOptions.map(s => (
+                <Chip
+                  key={s}
+                  selected={statusFilter === s}
+                  onPress={() => setStatusFilter(s)}
+                  style={styles.filterChip}
+                  showSelectedOverlay
+                  selectedColor={materialColors.primary}
+                  textStyle={statusFilter === s ? { color: '#ffffff' } : {}}
+                >
+                  {s}
+                </Chip>
+              ))}
+            </View>
+
+            <Divider style={styles.divider} />
+
+            <Text style={styles.sectionTitle}>Type</Text>
+            <View style={styles.chipRow}>
+              {typeOptions.map(t => (
+                <Chip
+                  key={t}
+                  selected={typeFilter === t}
+                  onPress={() => setTypeFilter(t)}
+                  style={styles.filterChip}
+                  showSelectedOverlay
+                  selectedColor={materialColors.primary}
+                  textStyle={typeFilter === t ? { color: '#ffffff' } : {}}
+                >
+                  {t === 'feature' ? 'Feature' : t === 'testcase' ? 'Test Case' : t}
+                </Chip>
+              ))}
+            </View>
+
+            <Divider style={styles.divider} />
+
+            <Text style={styles.sectionTitle}>Project</Text>
+            <View style={styles.chipRow}>
+              <Chip
+                selected={projectId === ''}
+                onPress={() => setProjectId('')}
+                style={styles.filterChip}
+                showSelectedOverlay
+                selectedColor={materialColors.primary}
+                textStyle={projectId === '' ? { color: '#ffffff' } : {}}
+              >
+                All
+              </Chip>
+              {projects.map((p: any) => (
+                <Chip
+                  key={p.projectId}
+                  selected={projectId === p.projectId}
+                  onPress={() => setProjectId(p.projectId)}
+                  style={styles.filterChip}
+                  showSelectedOverlay
+                  selectedColor={materialColors.primary}
+                  textStyle={projectId === p.projectId ? { color: '#ffffff' } : {}}
+                >
+                  {p.projectName}
+                </Chip>
+              ))}
+            </View>
+
+            <PaperButton mode="contained" onPress={() => setFilterModalVisible(false)} style={styles.applyButton}>
+              Done
+            </PaperButton>
+          </ScrollView>
+        </Modal>
+      </Portal>
+
       <FAB
         icon="plus"
         style={styles.fab}
@@ -359,112 +404,106 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     padding: materialSpacing.md,
     backgroundColor: materialColors.surface,
   },
-  searchBar: {
-    backgroundColor: materialColors.surfaceVariant,
-    borderRadius: 28,
-  },
-  filterRow: {
-    flexGrow: 0,
+  searchRow: {
+    padding: materialSpacing.md,
     backgroundColor: materialColors.surface,
-    paddingVertical: materialSpacing.xs,
+    elevation: 2,
   },
-  filterRowContent: {
-    paddingHorizontal: materialSpacing.md,
-    alignItems: 'center',
+  searchBar: {
+    elevation: 0,
+    backgroundColor: materialColors.background,
+    borderWidth: 1,
+    borderColor: materialColors.outline,
   },
-  filterLabel: {
-    ...materialTypography.labelLarge,
-    color: materialColors.text,
-    marginRight: materialSpacing.sm,
-  },
-  filterChip: {
-    marginRight: materialSpacing.xs,
-    height: 32,
-  },
-  filterChipText: {
-    ...materialTypography.labelMedium,
+  searchInput: {
+    minHeight: 0,
   },
   listContent: {
     padding: materialSpacing.md,
+    paddingBottom: 80,
   },
-  bugCard: {
-    backgroundColor: materialColors.surface,
-    borderRadius: 12,
+  card: {
     marginBottom: materialSpacing.md,
+    backgroundColor: materialColors.surface,
   },
-  bugHeader: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: materialSpacing.sm,
-  },
-  bugIdContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: materialSpacing.xs,
-    flex: 1,
+    marginBottom: 4,
   },
   bugId: {
     ...materialTypography.labelLarge,
     color: materialColors.primary,
-    fontWeight: '600',
-  },
-  featureChip: {
-    height: 24,
-    backgroundColor: materialColors.success,
-  },
-  featureChipText: {
-    ...materialTypography.labelSmall,
-    color: materialColors.surface,
-  },
-  badges: {
-    flexDirection: 'row',
-    gap: materialSpacing.xs,
+    fontWeight: 'bold',
   },
   statusChip: {
     height: 24,
-  },
-  severityChip: {
-    height: 24,
-  },
-  chipText: {
-    ...materialTypography.labelSmall,
-    color: materialColors.surface,
+    alignItems: 'center',
   },
   bugTitle: {
     ...materialTypography.titleMedium,
-    color: materialColors.text,
-    marginBottom: materialSpacing.xs,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   projectName: {
     ...materialTypography.bodySmall,
-    color: materialColors.primary,
-    marginBottom: materialSpacing.xs,
-  },
-  bugMeta: {
-    flexDirection: 'row',
-    gap: materialSpacing.xs,
-    flexWrap: 'wrap',
-    alignItems: 'center',
-  },
-  metaText: {
-    ...materialTypography.bodySmall,
     color: materialColors.textSecondary,
+    marginLeft: 4,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    margin: 20,
+    borderRadius: 8,
+    maxHeight: '80%',
+  },
+  filterScroll: {
+    padding: 20,
+  },
+  filterTitle: {
+    ...materialTypography.titleLarge,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  sectionTitle: {
+    ...materialTypography.titleMedium,
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  divider: {
+    marginVertical: 10,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  filterChip: {
+    marginBottom: 4,
+  },
+  applyButton: {
+    marginTop: 20,
   },
   emptyContainer: {
-    padding: materialSpacing.xxl,
+    padding: materialSpacing.xl,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyText: {
     ...materialTypography.bodyLarge,
-    color: materialColors.textTertiary,
+    color: materialColors.textSecondary,
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
-    right: materialSpacing.lg,
-    bottom: materialSpacing.lg,
+    margin: 16,
+    right: 0,
+    bottom: 0,
     backgroundColor: materialColors.primary,
   },
 })
-
