@@ -116,6 +116,7 @@ export default function BugsPage() {
     bugStatuses: Array<{ value: string; icon: string }>;
     severities: Array<{ value: string; icon: string }>;
     categories: Array<{ value: string; icon: string }>;
+    bugTypes: Array<{ value: string; icon: string }>;
   }>({
     bugStatuses: [
       { value: 'New', icon: '🆕' },
@@ -135,6 +136,12 @@ export default function BugsPage() {
       { value: 'Functionality', icon: '⚙️' },
       { value: 'Performance', icon: '🚀' },
       { value: 'Security', icon: '🔒' },
+      { value: 'Other', icon: '📦' }
+    ],
+    bugTypes: [
+      { value: 'Bug', icon: '🐛' },
+      { value: 'Feature', icon: '✨' },
+      { value: 'Testcase', icon: '📋' },
       { value: 'Other', icon: '📦' }
     ]
   })
@@ -209,7 +216,7 @@ export default function BugsPage() {
           }
 
           // Process severities
-          const severitiesSetting = settings.find((s: any) => s.key === 'severities')
+          const severitiesSetting = settings.find((s: any) => s.key === 'bug_severities') || settings.find((s: any) => s.key === 'severities')
           let severities: Array<{ value: string; icon: string }> = []
           if (severitiesSetting) {
             try {
@@ -219,12 +226,12 @@ export default function BugsPage() {
                 icon: '' // Icons are not stored in settings yet
               }))
             } catch (e) {
-              console.error('Failed to parse severities:', e)
+              console.error('Failed to parse bug_severities:', e)
             }
           }
 
           // Process categories
-          const categoriesSetting = settings.find((s: any) => s.key === 'categories')
+          const categoriesSetting = settings.find((s: any) => s.key === 'bug_categories') || settings.find((s: any) => s.key === 'categories')
           let categories: Array<{ value: string; icon: string }> = []
           if (categoriesSetting) {
             try {
@@ -234,7 +241,22 @@ export default function BugsPage() {
                 icon: '' // Icons are not stored in settings yet
               }))
             } catch (e) {
-              console.error('Failed to parse categories:', e)
+              console.error('Failed to parse bug_categories:', e)
+            }
+          }
+
+          // Process bug types
+          const typesSetting = settings.find((s: any) => s.key === 'bug_types')
+          let bugTypes: Array<{ value: string; icon: string }> = []
+          if (typesSetting) {
+            try {
+              const values = JSON.parse(typesSetting.value)
+              bugTypes = values.map((val: string) => ({
+                value: val,
+                icon: '' // Icons are not stored in settings yet
+              }))
+            } catch (e) {
+              console.error('Failed to parse bug_types:', e)
             }
           }
 
@@ -257,6 +279,12 @@ export default function BugsPage() {
               { value: 'Functionality', icon: '⚙️' },
               { value: 'Performance', icon: '🚀' },
               { value: 'Security', icon: '🔒' },
+              { value: 'Other', icon: '📦' }
+            ],
+            bugTypes: bugTypes.length > 0 ? bugTypes : [
+              { value: 'Bug', icon: '🐛' },
+              { value: 'Feature', icon: '✨' },
+              { value: 'Testcase', icon: '📋' },
               { value: 'Other', icon: '📦' }
             ]
           })

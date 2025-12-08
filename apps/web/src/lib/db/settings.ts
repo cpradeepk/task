@@ -387,12 +387,13 @@ export async function createSetting(data: CreateSettingData): Promise<Setting> {
         metadata,
         created_by
       ) VALUES ($1, $2, $3, $4, $5)
+      RETURNING id
     `
 
     const valueJson = JSON.stringify(data.value)
     const metadataJson = data.metadata ? JSON.stringify(data.metadata) : null
 
-    const result = await query(sql, [
+    const result = await query<any[]>(sql, [
       data.key,
       valueJson,
       data.description || null,
@@ -400,7 +401,11 @@ export async function createSetting(data: CreateSettingData): Promise<Setting> {
       data.createdBy
     ])
 
-    const insertId = (result as any).insertId
+    if (!result || result.length === 0) {
+      throw new Error('Failed to create setting - no ID returned')
+    }
+
+    const insertId = result[0].id
     const newSetting = await getSettingById(insertId)
 
     if (!newSetting) {
@@ -411,8 +416,8 @@ export async function createSetting(data: CreateSettingData): Promise<Setting> {
   } catch (error: any) {
     console.error('Error creating setting:', error)
 
-    // Check for duplicate entry error
-    if (error.code === 'ER_DUP_ENTRY') {
+    // Check for duplicate entry error (Postgres: 23505, MySQL: ER_DUP_ENTRY)
+    if (error.code === '23505' || error.code === 'ER_DUP_ENTRY') {
       throw new Error(`A setting with key "${data.key}" already exists`)
     }
 

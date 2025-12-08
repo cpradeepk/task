@@ -68,7 +68,6 @@ export default function BugListScreen() {
   })
 
 
-  const typeOptions = ['All', 'bug', 'feature', 'testcase', 'other']
   // const severityOptions = ['All', 'Critical', 'Major', 'Minor'] // using settings derived
 
   const STATIC_PROJECTS: Project[] = [
@@ -106,14 +105,21 @@ export default function BugListScreen() {
   const settings = (settingsData as any)?.settings || []
 
   // Derive options from settings or defaults
-  const statusOptions = settings.filter((s: (any)) => s.type === 'bug_status').map((s: any) => s.value)
-  const finalStatusOptions = statusOptions.length > 0 ? ['All', ...statusOptions] : ['All', 'Open', 'In Progress', 'Resolved', 'Closed', 'ReOpened']
+  const statusSetting = settings.find((s: any) => s.key === 'bug_statuses')
+  const statusOptions = statusSetting && Array.isArray(statusSetting.value) ? statusSetting.value : []
+  const finalStatusOptions = statusOptions.length > 0 ? ['All', ...statusOptions] : ['All', 'New', 'In Progress', 'Resolved', 'Closed', 'ReOpened']
 
-  const severityOptions = settings.filter((s: any) => s.type === 'severity').map((s: any) => s.value)
+  const severitySetting = settings.find((s: any) => s.key === 'bug_severities')
+  const severityOptions = severitySetting && Array.isArray(severitySetting.value) ? severitySetting.value : []
   const finalSeverityOptions = severityOptions.length > 0 ? ['All', ...severityOptions] : ['All', 'Critical', 'Major', 'Minor']
 
-  const categoryOptions = settings.filter((s: any) => s.type === 'bug_category').map((s: any) => s.value)
+  const categorySetting = settings.find((s: any) => s.key === 'bug_categories')
+  const categoryOptions = categorySetting && Array.isArray(categorySetting.value) ? categorySetting.value : []
   const finalCategoryOptions = categoryOptions.length > 0 ? ['All', ...categoryOptions] : ['All', 'UI', 'Functionality', 'Performance', 'Security', 'Other']
+
+  const typeSetting = settings.find((s: any) => s.key === 'bug_types')
+  const typeOptionsRaw = typeSetting && Array.isArray(typeSetting.value) ? typeSetting.value : ['bug', 'feature', 'testcase', 'other']
+  const typeOptions = ['All', ...typeOptionsRaw]
 
   // GraphQL query for bugs
   const { data, loading, error, refetch } = useQuery(GET_BUGS, {

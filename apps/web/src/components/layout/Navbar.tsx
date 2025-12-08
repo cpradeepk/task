@@ -109,12 +109,10 @@ export default function Navbar() {
       key: 'admin_group',
       children: [
         { label: 'Projects', href: '/projects', icon: FolderKanban, key: 'projects' },
-        { label: 'Master Tasks', href: '/master-tasks', icon: ListTodo, key: 'master_tasks' },
-        { label: 'Master Development', href: '/master-development', icon: Code, key: 'master_development' },
         { label: 'User Management', href: '/users', icon: UserCog, key: 'user_management' },
         { label: 'Feed Topics', href: '/feed-topics', icon: MessageSquare, key: 'feed_topics' },
         { label: 'Approvals', href: '/approvals', icon: ClipboardCheck, key: 'approvals' },
-        { label: 'Settings', href: '/settings', icon: Settings, key: 'settings' },
+        { label: 'Settings', href: '/admin/settings', icon: Settings, key: 'settings' },
         { label: 'Deleted Items', href: '/deleted-items', icon: Trash2, key: 'deleted_items' },
         { label: 'Reports', href: '/reports', icon: BarChart3, key: 'reports' },
       ]

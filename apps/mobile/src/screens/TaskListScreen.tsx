@@ -107,10 +107,12 @@ export default function TaskListScreen({ navigation }: any) {
   const settings = (settingsData as any)?.settings || []
 
   // Derive options from settings or defaults
-  const statusOptions = settings.filter((s: any) => s.type === 'task_status').map((s: any) => s.value)
+  const statusSetting = settings.find((s: any) => s.key === 'task_statuses')
+  const statusOptions = statusSetting && Array.isArray(statusSetting.value) ? statusSetting.value : []
   const finalStatusOptions = statusOptions.length > 0 ? ['All', ...statusOptions] : ['All', 'Yet to Start', 'In Progress', 'Delayed', 'Done', 'Cancel', 'Hold', 'ReOpened', 'Stop']
 
-  const priorityOptions = settings.filter((s: any) => s.type === 'priority').map((s: any) => s.value)
+  const prioritySetting = settings.find((s: any) => s.key === 'task_priorities')
+  const priorityOptions = prioritySetting && Array.isArray(prioritySetting.value) ? prioritySetting.value : []
   const finalPriorityOptions = priorityOptions.length > 0 ? ['All', ...priorityOptions] : ['All', 'High', 'Medium', 'Low', 'U&I', 'NU&I', 'U&NI', 'NU&NI']
 
   // REST API Implementation

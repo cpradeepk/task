@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser } from '@/lib/auth'
 import { Settings, AlertCircle } from 'lucide-react'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import SettingsEditor from '@/components/admin/SettingsEditor'
+import DropdownManager from '@/components/admin/DropdownManager'
 
 export default function AdminSettingsPage() {
   const [isHydrated, setIsHydrated] = useState(false)
@@ -27,8 +27,8 @@ export default function AdminSettingsPage() {
       return
     }
 
-    // Check if user is admin
-    if (currentUser.role !== 'admin') {
+    // Check if user is admin or top_management
+    if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
       router.push('/dashboard')
       return
     }
@@ -47,7 +47,7 @@ export default function AdminSettingsPage() {
     )
   }
 
-  if (!currentUser || currentUser.role !== 'admin') {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'top_management')) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -56,7 +56,7 @@ export default function AdminSettingsPage() {
             <AlertCircle className="h-6 w-6 flex-shrink-0" />
             <div>
               <p className="font-semibold">Access Denied</p>
-              <p className="text-sm">You must be an administrator to access this page.</p>
+              <p className="text-sm">You must be an administrator or top management to access this page.</p>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function AdminSettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -80,8 +80,8 @@ export default function AdminSettingsPage() {
           </p>
         </div>
 
-        {/* Settings Editor Component */}
-        <SettingsEditor />
+        {/* Settings Manager Component */}
+        <DropdownManager />
       </div>
     </div>
   )
