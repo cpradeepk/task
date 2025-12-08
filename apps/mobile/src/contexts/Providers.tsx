@@ -12,6 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 const lightColors = {
   background: '#F9FAFB',
   card: '#FFFFFF',
+  surface: '#FFFFFF',
+  surfaceVariant: '#F3F4F6',
   text: '#111827',
   textSecondary: '#6B7280',
   textTertiary: '#9CA3AF',
@@ -35,6 +37,8 @@ const lightColors = {
 const darkColors = {
   background: '#111827',
   card: '#1F2937',
+  surface: '#1F2937',
+  surfaceVariant: '#374151',
   text: '#F9FAFB',
   textSecondary: '#D1D5DB',
   textTertiary: '#9CA3AF',
@@ -64,7 +68,7 @@ interface ThemeContextType {
 export const ThemeContext = React.createContext<ThemeContextType>({
   theme: 'light',
   colors: lightColors,
-  toggleTheme: () => {},
+  toggleTheme: () => { },
   isDark: false,
 })
 

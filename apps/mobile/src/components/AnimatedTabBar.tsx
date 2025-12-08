@@ -148,12 +148,18 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: Botto
     // Calculate position within the subgroup
     const leftIndicatorPos = useSharedValue(0);
     const rightIndicatorPos = useSharedValue(0);
+    const centerIndicatorOpacity = useSharedValue(0);
 
     useEffect(() => {
         if (activeIndex < 2) {
             leftIndicatorPos.value = withSpring(activeIndex * TAB_ITEM_WIDTH, { damping: 15, stiffness: 100 });
+            centerIndicatorOpacity.value = withTiming(0);
         } else if (activeIndex > 2) {
             rightIndicatorPos.value = withSpring((activeIndex - 3) * TAB_ITEM_WIDTH, { damping: 15, stiffness: 100 });
+            centerIndicatorOpacity.value = withTiming(0);
+        } else {
+            // Center active
+            centerIndicatorOpacity.value = withTiming(1);
         }
     }, [activeIndex]);
 
@@ -165,6 +171,10 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: Botto
     const rightIndicatorStyle = useAnimatedStyle(() => ({
         transform: [{ translateX: rightIndicatorPos.value }],
         opacity: withTiming(isRightActive ? 1 : 0)
+    }));
+
+    const centerIndicatorStyle = useAnimatedStyle(() => ({
+        opacity: centerIndicatorOpacity.value
     }));
 
 
@@ -185,17 +195,26 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: Botto
                     </View>
 
                     {/* Overlay to catch taps when hidden/collapsed acting as a "Handle" area extension - Placed LAST to be on TOP */}
-                    {isTabBarHidden.value === 1 && (
+                    <Animated.View
+                        style={[
+                            StyleSheet.absoluteFill,
+                            { zIndex: 999 },
+                            useAnimatedStyle(() => ({
+                                pointerEvents: isTabBarHidden.value === 1 ? 'auto' : 'none'
+                            }))
+                        ]}
+                    >
                         <TouchableOpacity
                             onPress={() => { runOnJS(showTabBar)(); }}
-                            style={[StyleSheet.absoluteFill, { zIndex: 999 }]}
+                            style={StyleSheet.absoluteFill}
                             activeOpacity={1}
                         />
-                    )}
+                    </Animated.View>
                 </Animated.View>
 
                 {/* CENTER HOME BUTTON */}
                 <Animated.View style={[styles.centerContainer, centerStyle]}>
+                    <Animated.View style={[styles.activeIndicator, { width: '100%' }, centerIndicatorStyle]} />
                     {renderTab(2)}
                 </Animated.View>
 
@@ -210,13 +229,22 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: Botto
                     </View>
 
                     {/* Overlay to catch taps when hidden/collapsed - Placed LAST to be on TOP */}
-                    {isTabBarHidden.value === 1 && (
+                    {/* Overlay to catch taps when hidden/collapsed - Placed LAST to be on TOP */}
+                    <Animated.View
+                        style={[
+                            StyleSheet.absoluteFill,
+                            { zIndex: 999 },
+                            useAnimatedStyle(() => ({
+                                pointerEvents: isTabBarHidden.value === 1 ? 'auto' : 'none'
+                            }))
+                        ]}
+                    >
                         <TouchableOpacity
                             onPress={() => { runOnJS(showTabBar)(); }}
-                            style={[StyleSheet.absoluteFill, { zIndex: 999 }]}
+                            style={StyleSheet.absoluteFill}
                             activeOpacity={1}
                         />
-                    )}
+                    </Animated.View>
                 </Animated.View>
 
             </View>
@@ -257,16 +285,15 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 10,
     },
     centerContainer: {
-        width: TAB_HEIGHT,
+        width: TAB_ITEM_WIDTH, // Match other items
         height: TAB_HEIGHT,
-        borderRadius: TAB_HEIGHT / 2,
+        borderRadius: 20, // Match indicator radius
         backgroundColor: '#fff',
-        // ...SHADOW_STYLES, // Remove shadow from inner circle if it causes visual doubling with outer
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 10,
         marginHorizontal: 5,
-        elevation: 10, // Keep simple elevation
+        // Removed elevation to flatten it
     },
     tabsRow: {
         flexDirection: 'row',

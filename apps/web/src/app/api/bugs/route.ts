@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllBugs, getBugsAssignedTo, getBugsReportedBy, getBugsByStatus, createBug, getLatestBugId } from '@/lib/db/bugs'
+import { getAllBugs, createBug, getLatestBugId } from '@/lib/db/bugs'
 import { Bug } from '@/lib/types'
 import { generateSequentialBugId } from '@/lib/data'
 import { emailService } from '@/lib/email/service'
@@ -9,30 +9,32 @@ import { createActivityLog } from '@/lib/db/activityLog'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const assignedTo = searchParams.get('assignedTo')
-    const reportedBy = searchParams.get('reportedBy')
-    const status = searchParams.get('status')
-    const severity = searchParams.get('severity')
-    const category = searchParams.get('category')
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
     const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined
 
-    console.log('Fetching bugs data from MySQL with pagination:', { limit, offset })
-    let bugs: Bug[]
-
-    if (assignedTo) {
-      bugs = await getBugsAssignedTo(assignedTo)
-    } else if (reportedBy) {
-      bugs = await getBugsReportedBy(reportedBy)
-    } else if (status) {
-      bugs = await getBugsByStatus(status as Bug['status'])
-    } else {
-      bugs = await getAllBugs({ limit, offset })
+    // Helper to parse array params
+    const getArrayParam = (key: string) => {
+      const val = searchParams.get(key)
+      return val ? val.split(',').filter(Boolean) : undefined
     }
 
-    // Apply additional filters
-    if (severity) bugs = bugs.filter(bug => bug.severity === severity)
-    if (category) bugs = bugs.filter(bug => bug.category === category)
+    const filters = {
+      limit,
+      offset,
+      status: getArrayParam('status'),
+      severity: getArrayParam('severity'),
+      category: getArrayParam('category'),
+      type: getArrayParam('type'),
+      assignedTo: getArrayParam('assignedTo'),
+      reportedBy: getArrayParam('reportedBy'),
+      projectId: searchParams.get('projectId') || undefined,
+      subprojectId: searchParams.get('subprojectId') || undefined,
+      search: searchParams.get('search') || undefined
+    }
+
+    console.log('Fetching bugs data from MySQL with params:', filters)
+
+    const bugs = await getAllBugs(filters)
 
     return NextResponse.json({
       success: true,

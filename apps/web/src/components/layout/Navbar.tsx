@@ -372,9 +372,9 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation Menu (Expanded) */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
+          <div className="md:hidden py-4 border-t border-gray-200 pb-24">
             <div className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon
@@ -442,6 +442,51 @@ export default function Navbar() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Bottom Tab Bar (Mobile Only) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-[99999] flex justify-between items-center safe-area-bottom">
+        <Link
+          href="/feed"
+          className={`flex flex-col items-center p-2 ${pathname === '/feed' ? 'text-primary' : 'text-gray-500'}`}
+        >
+          <MessageSquare className="h-6 w-6" />
+          <span className="text-[10px] mt-1">Feed</span>
+        </Link>
+
+        <Link
+          href="/tasks"
+          className={`flex flex-col items-center p-2 ${pathname === '/tasks' ? 'text-primary' : 'text-gray-500'}`}
+        >
+          <CheckSquare className="h-6 w-6" />
+          <span className="text-[10px] mt-1">Tasks</span>
+        </Link>
+
+        <Link
+          href="/home"
+          className="flex flex-col items-center justify-center -mt-8"
+        >
+          <div className={`flex items-center justify-center h-14 w-14 rounded-full shadow-lg ${pathname === '/home' || pathname === '/dashboard' ? 'bg-primary text-white' : 'bg-white text-primary border border-gray-200'}`}>
+            <Home className="h-7 w-7" />
+          </div>
+          <span className="text-[10px] mt-1 font-medium">Home</span>
+        </Link>
+
+        <Link
+          href="/bugs"
+          className={`flex flex-col items-center p-2 ${pathname === '/bugs' ? 'text-primary' : 'text-gray-500'}`}
+        >
+          <Bug className="h-6 w-6" />
+          <span className="text-[10px] mt-1">Dev</span>
+        </Link>
+
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className={`flex flex-col items-center p-2 ${isMenuOpen ? 'text-primary' : 'text-gray-500'}`}
+        >
+          <Menu className="h-6 w-6" />
+          <span className="text-[10px] mt-1">Menu</span>
+        </button>
       </div>
     </nav>
   )

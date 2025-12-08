@@ -14,6 +14,7 @@ import { useLoading } from '@/contexts/LoadingContext'
 import { QUERIES } from '@/lib/graphql-queries'
 import AssigneeList from '@/components/tasks/AssigneeList'
 import HierarchicalTaskRow from '@/components/tasks/HierarchicalTaskRow'
+import MultiSelect from '@/components/ui/MultiSelect'
 import {
   CheckSquare,
   Plus,
@@ -69,9 +70,9 @@ export default function TasksPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [priorityFilter, setPriorityFilter] = useState('all')
-  const [assigneeFilter, setAssigneeFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [priorityFilter, setPriorityFilter] = useState<string[]>([])
+  const [assigneeFilter, setAssigneeFilter] = useState<string[]>([])
   const [projectFilter, setProjectFilter] = useState('all') // NEW: Project filter
   const [subprojectFilter, setSubprojectFilter] = useState('all') // NEW: Subproject filter
 
@@ -122,22 +123,23 @@ export default function TasksPage() {
       if (savedFilters) {
         const filters = JSON.parse(savedFilters)
         setSearchTerm(filters.searchTerm || '')
-        setStatusFilter(filters.statusFilter || 'all')
-        setPriorityFilter(filters.priorityFilter || 'all')
-        setAssigneeFilter(filters.assigneeFilter || (currentUser?.employeeId || 'all'))
+        // Convert old string filters to arrays if necessary
+        setStatusFilter(Array.isArray(filters.statusFilter) ? filters.statusFilter : [])
+        setPriorityFilter(Array.isArray(filters.priorityFilter) ? filters.priorityFilter : [])
+        setAssigneeFilter(Array.isArray(filters.assigneeFilter) ? filters.assigneeFilter : (filters.assigneeFilter === 'me' ? ['me'] : []))
         setProjectFilter(filters.projectFilter || 'all')
         setSubprojectFilter(filters.subprojectFilter || 'all')
       } else {
         // Set default assignee filter to current user if no saved filters
         if (currentUser?.employeeId) {
-          setAssigneeFilter(currentUser.employeeId)
+          setAssigneeFilter([currentUser.employeeId])
         }
       }
     } catch (error) {
       console.error('Failed to load saved filters:', error)
       // Set default assignee filter on error
       if (currentUser?.employeeId) {
-        setAssigneeFilter(currentUser.employeeId)
+        setAssigneeFilter([currentUser.employeeId])
       }
     }
 
@@ -228,14 +230,20 @@ export default function TasksPage() {
         offset: currentOffset
       }
 
-      // Add filters if they're not 'all'
-      if (assigneeFilter && assigneeFilter !== 'all') {
-        variables.assignedTo = assigneeFilter === 'me' ? currentUser?.employeeId : assigneeFilter
+      // Add filters if they're not empty
+      if (assigneeFilter.length > 0) {
+        // Handle "me" logic
+        let filters = [...assigneeFilter]
+        if (filters.includes('me') && currentUser?.employeeId) {
+          filters = filters.filter(id => id !== 'me')
+          filters.push(currentUser.employeeId)
+        }
+        if (filters.length > 0) variables.assignedTo = filters
       }
-      if (statusFilter && statusFilter !== 'all') {
+      if (statusFilter.length > 0) {
         variables.status = statusFilter
       }
-      if (priorityFilter && priorityFilter !== 'all') {
+      if (priorityFilter.length > 0) {
         variables.priority = priorityFilter
       }
       if (projectFilter && projectFilter !== 'all') {
@@ -259,9 +267,17 @@ export default function TasksPage() {
           limit: ITEMS_PER_PAGE.toString(),
           offset: currentOffset.toString()
         })
-        if (assigneeFilter && assigneeFilter !== 'all') params.append('assignedTo', assigneeFilter)
-        if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter)
-        if (priorityFilter && priorityFilter !== 'all') params.append('priority', priorityFilter)
+
+        if (assigneeFilter.length > 0) {
+          let filters = [...assigneeFilter]
+          if (filters.includes('me') && currentUser?.employeeId) {
+            filters = filters.filter(id => id !== 'me')
+            filters.push(currentUser.employeeId)
+          }
+          if (filters.length > 0) params.append('assignedTo', filters.join(','))
+        }
+        if (statusFilter.length > 0) params.append('status', statusFilter.join(','))
+        if (priorityFilter.length > 0) params.append('priority', priorityFilter.join(','))
 
         const response = await fetch(`/api/tasks?${params.toString()}`)
         if (!response.ok) {
@@ -775,23 +791,38 @@ export default function TasksPage() {
               </select>
 
               {/* Assignee Filter */}
-              <select
-                value={assigneeFilter}
-                onChange={(e) => setAssigneeFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="all">All Assignees</option>
-                <option value="me">👤 My Tasks</option>
-                {users.map(user => (
-                  <option key={user.employeeId} value={user.employeeId}>
-                    👤 {user.name}
-                  </option>
-                ))}
-              </select>
+              <MultiSelect
+                label="Assignee"
+                placeholder="All Assignees"
+                options={[
+                  { value: 'me', label: 'My Tasks' },
+                  ...users.map(user => ({ value: user.employeeId, label: user.name }))
+                ]}
+                selectedValues={assigneeFilter}
+                onChange={setAssigneeFilter}
+              />
             </div>
 
             {/* Row 2: Secondary Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Status Filter */}
+              <MultiSelect
+                label="Status"
+                placeholder="Select Statuses"
+                options={settingsData.taskStatuses.map(s => ({ value: s.value, label: s.value }))}
+                selectedValues={statusFilter}
+                onChange={setStatusFilter}
+              />
+
+              {/* Priority Filter */}
+              <MultiSelect
+                label="Priority"
+                placeholder="Select Priorities"
+                options={settingsData.taskPriorities.map(p => ({ value: p.value, label: p.value }))}
+                selectedValues={priorityFilter}
+                onChange={setPriorityFilter}
+              />
+
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -804,41 +835,15 @@ export default function TasksPage() {
                 />
               </div>
 
-              {/* Status Filter */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="all">All Status</option>
-                {settingsData.taskStatuses.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.icon} {status.value}
-                  </option>
-                ))}
-              </select>
 
-              {/* Priority Filter */}
-              <select
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="all">All Priority</option>
-                {settingsData.taskPriorities.map((priority) => (
-                  <option key={priority.value} value={priority.value}>
-                    {priority.icon} {priority.value}
-                  </option>
-                ))}
-              </select>
 
               {/* Clear Filters */}
               <button
                 onClick={() => {
                   setSearchTerm('')
-                  setStatusFilter('all')
-                  setPriorityFilter('all')
-                  setAssigneeFilter(currentUser?.employeeId || 'all')
+                  setStatusFilter([])
+                  setPriorityFilter([])
+                  setAssigneeFilter(currentUser?.employeeId ? [currentUser.employeeId] : [])
                   setProjectFilter('all')
                   setSubprojectFilter('all')
                 }}
@@ -907,9 +912,9 @@ export default function TasksPage() {
                 <button
                   onClick={() => {
                     setSearchTerm('')
-                    setStatusFilter('all')
-                    setPriorityFilter('all')
-                    setAssigneeFilter('all')
+                    setStatusFilter([])
+                    setPriorityFilter([])
+                    setAssigneeFilter([])
                   }}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors"
                 >

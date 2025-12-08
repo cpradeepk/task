@@ -24,11 +24,12 @@ import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Surface, Portal, M
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useQuery } from '@apollo/client/react'
-import { GET_BUGS, GET_PROJECTS } from '../config/graphql-queries'
-import { Bug } from '../types'
-import { getBugDisplayId, getSeverityColor, getStatusColor } from '../utils/bugHelpers'
+import { GET_BUGS, GET_PROJECTS, GET_USERS, GET_SETTINGS } from '../config/graphql-queries'
+import { Project, Bug } from '../types'
+import { getBugDisplayId, getSeverityColor, getStatusColor, getStatusTextColor } from '../utils/bugHelpers'
 import { formatDateIST } from '../utils/datetime'
-import { save, get, STORAGE_KEYS } from '../utils/secureStorage'
+import { save, get, getUserData, STORAGE_KEYS } from '../utils/secureStorage'
+import { FilterHeader, FilterSection, FilterSearch, FilterToggle } from '../components/FilterComponents'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
@@ -38,8 +39,8 @@ import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 
 interface BugFilters {
   searchQuery: string
-  statusFilter: string
-  typeFilter: string
+  statusFilter: string[]
+  typeFilter: string[]
   projectId?: string
 }
 
@@ -52,10 +53,13 @@ export default function BugListScreen() {
 
   const [filteredBugs, setFilteredBugs] = useState<Bug[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('All')
-  const [typeFilter, setTypeFilter] = useState<string>('All')
-  const [severityFilter, setSeverityFilter] = useState<string>('All')
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [typeFilter, setTypeFilter] = useState<string[]>([])
+  const [severityFilter, setSeverityFilter] = useState<string[]>([])
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([])
   const [projectId, setProjectId] = useState<string>('')
+  const [subprojectId, setSubprojectId] = useState<string>('')
+  const [assigneeFilter, setAssigneeFilter] = useState<string[]>([])
   const [isFilterModalVisible, setFilterModalVisible] = useState(false)
 
   const { handleScroll } = useTabBarControl()
@@ -63,24 +67,68 @@ export default function BugListScreen() {
     onScroll: handleScroll
   })
 
-  const statusOptions = ['All', 'Open', 'In Progress', 'Resolved', 'Closed', 'ReOpened']
-  const typeOptions = ['All', 'feature', 'testcase', 'UI', 'Functionality'] // Add more as needed
-  const severityOptions = ['All', 'Critical', 'Major', 'Minor']
+
+  const typeOptions = ['All', 'bug', 'feature', 'testcase', 'other']
+  // const severityOptions = ['All', 'Critical', 'Major', 'Minor'] // using settings derived
+
+  const STATIC_PROJECTS: Project[] = [
+    { projectId: 'dsn', projectName: 'dsn' },
+    { projectId: 'amtariksha', projectName: 'amtariksha' },
+    { projectId: 'task management', projectName: 'task management' },
+    { projectId: 'swarg', projectName: 'swarg' },
+    { projectId: 'other', projectName: 'other' }
+  ]
 
   // GraphQL query for projects
   const { data: projectsData } = useQuery(GET_PROJECTS)
-  const projects = (projectsData as any)?.projects || []
+
+  const projects = useMemo(() => {
+    const fetchedProjects = (projectsData as any)?.projects || []
+    const newProjects = [...STATIC_PROJECTS]
+    fetchedProjects.forEach((p: any) => {
+      if (!newProjects.find(sp => sp.projectId === p.projectId)) {
+        newProjects.push(p)
+      }
+    })
+    return newProjects
+  }, [projectsData])
+
+  // Get current project's subprojects
+  const currentProject = projects.find((p: any) => p.projectId === projectId)
+  const subprojects = projects.filter((p: any) => p.parentProjectId === projectId)
+
+  // GraphQL query for users
+  const { data: usersData } = useQuery(GET_USERS)
+  const users = (usersData as any)?.users || []
+
+  // GraphQL query for settings
+  const { data: settingsData } = useQuery(GET_SETTINGS, { variables: { activeOnly: true } })
+  const settings = (settingsData as any)?.settings || []
+
+  // Derive options from settings or defaults
+  const statusOptions = settings.filter((s: (any)) => s.type === 'bug_status').map((s: any) => s.value)
+  const finalStatusOptions = statusOptions.length > 0 ? ['All', ...statusOptions] : ['All', 'Open', 'In Progress', 'Resolved', 'Closed', 'ReOpened']
+
+  const severityOptions = settings.filter((s: any) => s.type === 'severity').map((s: any) => s.value)
+  const finalSeverityOptions = severityOptions.length > 0 ? ['All', ...severityOptions] : ['All', 'Critical', 'Major', 'Minor']
+
+  const categoryOptions = settings.filter((s: any) => s.type === 'bug_category').map((s: any) => s.value)
+  const finalCategoryOptions = categoryOptions.length > 0 ? ['All', ...categoryOptions] : ['All', 'UI', 'Functionality', 'Performance', 'Security', 'Other']
 
   // GraphQL query for bugs
   const { data, loading, error, refetch } = useQuery(GET_BUGS, {
     fetchPolicy: 'cache-and-network',
     variables: {
       search: searchQuery || undefined,
-      status: statusFilter === 'All' ? undefined : statusFilter,
-      severity: severityFilter === 'All' ? undefined : severityFilter,
+      status: statusFilter.length > 0 ? statusFilter : undefined,
+      severity: severityFilter.length > 0 ? severityFilter : undefined,
+      category: categoryFilter.length > 0 ? categoryFilter : undefined,
+      type: typeFilter.length > 0 ? typeFilter : undefined,
       projectId: projectId || undefined,
-      limit: 20, // Example limit
-      offset: 0, // Example offset
+      subprojectId: subprojectId || undefined,
+      assignedTo: assigneeFilter.length > 0 ? assigneeFilter : undefined,
+      limit: 20,
+      offset: 0,
     },
   })
 
@@ -91,8 +139,8 @@ export default function BugListScreen() {
       const savedFilters = await get<BugFilters>(STORAGE_KEYS.BUG_FILTERS)
       if (savedFilters) {
         setSearchQuery(savedFilters.searchQuery || '')
-        setStatusFilter(savedFilters.statusFilter || 'All')
-        setTypeFilter(savedFilters.typeFilter || 'All')
+        setStatusFilter(savedFilters.statusFilter || [])
+        setTypeFilter(savedFilters.typeFilter || [])
         setProjectId(savedFilters.projectId || '')
       }
     } catch (error) {
@@ -126,20 +174,20 @@ export default function BugListScreen() {
       )
     }
 
-    if (typeFilter !== 'All') {
-      filtered = filtered.filter((bug: Bug) => bug.type === typeFilter)
-    }
-
-    if (statusFilter !== 'All') {
-      filtered = filtered.filter((bug: Bug) => bug.status === statusFilter)
-    }
-
-    if (projectId) {
-      filtered = filtered.filter((bug: Bug) => bug.project?.projectId === projectId)
-    }
-
+    // Client-side filtering removed as backend now supports multi-select for type/category
     setFilteredBugs(filtered)
-  }, [bugs, searchQuery, statusFilter, typeFilter, projectId])
+  }, [bugs, searchQuery])
+
+  const clearFilters = () => {
+    setSearchQuery('')
+    setStatusFilter([])
+    setTypeFilter([])
+    setSeverityFilter([])
+    setCategoryFilter([])
+    setProjectId('')
+    setSubprojectId('')
+    setAssigneeFilter([])
+  }
 
   const handleRefresh = useCallback(async () => {
     try {
@@ -166,14 +214,19 @@ export default function BugListScreen() {
 
   const renderBug = ({ item }: { item: Bug }) => {
     // Derive project hierarchy from the projects list
-    let projectDisplay = item.project?.projectName || ''
-    if (item.project?.projectId && projects.length > 0) {
-      const proj = projects.find((p: any) => p.projectId === item.project?.projectId)
-      if (proj && proj.parentProjectId) {
-        const parent = projects.find((p: any) => p.projectId === proj.parentProjectId)
-        if (parent) {
-          projectDisplay = `${parent.projectName} / ${proj.projectName}`
+    let projectDisplay = ''
+    if (item.projectId) {
+      const proj = projects.find((p: any) => p.projectId === item.projectId)
+      if (proj) {
+        projectDisplay = proj.projectName
+        if (proj.parentProjectId) {
+          const parent = projects.find((p: any) => p.projectId === proj.parentProjectId)
+          if (parent) {
+            projectDisplay = `${parent.projectName} / ${proj.projectName}`
+          }
         }
+      } else {
+        projectDisplay = item.projectId // Fallback to ID if not found
       }
     }
 
@@ -186,7 +239,7 @@ export default function BugListScreen() {
             <Text style={styles.bugId}>{displayId}</Text>
             <Chip
               style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) }]}
-              textStyle={{ color: '#fff', fontSize: 10 }}
+              textStyle={[styles.statusText, { color: getStatusTextColor(item.status) }]}
               compact
             >
               {item.status}
@@ -228,26 +281,24 @@ export default function BugListScreen() {
     )
   }
 
+  // Load Current User for "My Bugs"
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [expandedSection, setExpandedSection] = useState<string>('')
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userData = await getUserData()
+        setCurrentUser(userData)
+      } catch (e) {
+        console.error("Failed to load user", e)
+      }
+    }
+    loadUser()
+  }, [])
+
   return (
     <View style={styles.container}>
-      <View style={styles.searchRow}>
-        <Searchbar
-          placeholder="Search bugs..."
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          style={styles.searchBar}
-          inputStyle={styles.searchInput}
-          iconColor={materialColors.primary}
-          right={() => (
-            <IconButton
-              icon="filter-variant"
-              iconColor={materialColors.primary}
-              onPress={() => setFilterModalVisible(true)}
-            />
-          )}
-        />
-      </View>
-
       <Animated.FlatList
         data={filteredBugs}
         renderItem={renderBug}
@@ -266,7 +317,7 @@ export default function BugListScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {searchQuery || statusFilter !== 'All' || typeFilter !== 'All' || projectId !== ''
+              {searchQuery || statusFilter.length > 0 || typeFilter.length > 0 || projectId !== ''
                 ? 'No bugs match your filters'
                 : 'No bugs found'}
             </Text>
@@ -274,82 +325,237 @@ export default function BugListScreen() {
         }
       />
 
+      <FAB
+        icon="filter-variant"
+        style={styles.filterFab}
+        onPress={() => setFilterModalVisible(true)}
+        color={materialColors.surface}
+        size="small"
+      />
+
+      <FAB
+        icon="plus"
+        style={styles.fab}
+        onPress={() => navigation.navigate('CreateBug' as never)}
+        color="#FFFFFF"
+        size="medium"
+        disabled={isOffline}
+      />
+
       {/* FILTER MODAL */}
       <Portal>
         <Modal visible={isFilterModalVisible} onDismiss={() => setFilterModalVisible(false)} contentContainerStyle={styles.modalContent}>
+          <FilterHeader title="Filters" onClose={() => setFilterModalVisible(false)} />
+
           <ScrollView contentContainerStyle={styles.filterScroll}>
-            <Text style={styles.filterTitle}>Filter Bugs</Text>
-            <Divider style={styles.divider} />
 
-            {/* Status Sections */}
-            <Text style={styles.sectionTitle}>Status</Text>
-            <View style={styles.chipRow}>
-              {statusOptions.map(s => (
+            {/* 1. Projects */}
+            <FilterSection
+              title="All Projects"
+              label={projects.find((p: any) => p.projectId === projectId)?.projectName || "All Projects"}
+              expanded={expandedSection === 'project'}
+              onPress={() => setExpandedSection(expandedSection === 'project' ? '' : 'project')}
+            >
+              <View style={styles.chipRow}>
                 <Chip
-                  key={s}
-                  selected={statusFilter === s}
-                  onPress={() => setStatusFilter(s)}
+                  selected={projectId === ''}
+                  onPress={() => { setProjectId(''); setSubprojectId(''); setExpandedSection(''); }}
                   style={styles.filterChip}
                   showSelectedOverlay
                   selectedColor={materialColors.primary}
-                  textStyle={statusFilter === s ? { color: '#ffffff' } : {}}
                 >
-                  {s}
+                  All Projects
                 </Chip>
-              ))}
-            </View>
+                {projects.filter((p: any) => !p.parentProjectId).map((p: any) => (
+                  <Chip
+                    key={p.projectId}
+                    selected={projectId === p.projectId}
+                    onPress={() => { setProjectId(p.projectId); setSubprojectId(''); setExpandedSection(''); }}
+                    style={styles.filterChip}
+                    showSelectedOverlay
+                    selectedColor={materialColors.primary}
+                  >
+                    {p.projectName}
+                  </Chip>
+                ))}
+              </View>
+            </FilterSection>
+
+            {/* 2. Subprojects */}
+            <FilterSection
+              title="All Subprojects"
+              label={subprojectId ? subprojects.find(p => p.projectId === subprojectId)?.projectName : "All Subprojects"}
+              expanded={expandedSection === 'subproject'}
+              onPress={() => setExpandedSection(expandedSection === 'subproject' ? '' : 'subproject')}
+            >
+              {projectId === '' ? (
+                <Text style={{ padding: 16, color: materialColors.textSecondary }}>Select a project first</Text>
+              ) : subprojects.length === 0 ? (
+                <Text style={{ padding: 16, color: materialColors.textSecondary }}>No subprojects found</Text>
+              ) : (
+                <View style={styles.chipRow}>
+                  <Chip
+                    selected={subprojectId === ''}
+                    onPress={() => { setSubprojectId(''); setExpandedSection(''); }}
+                    style={styles.filterChip}
+                    showSelectedOverlay
+                    selectedColor={materialColors.primary}
+                  >
+                    All Subprojects
+                  </Chip>
+                  {subprojects.map((p: any) => (
+                    <Chip
+                      key={p.projectId}
+                      selected={subprojectId === p.projectId}
+                      onPress={() => { setSubprojectId(p.projectId); setExpandedSection(''); }}
+                      style={styles.filterChip}
+                      showSelectedOverlay
+                      selectedColor={materialColors.primary}
+                    >
+                      {p.projectName}
+                    </Chip>
+                  ))}
+                </View>
+              )}
+            </FilterSection>
 
             <Divider style={styles.divider} />
 
-            <Text style={styles.sectionTitle}>Type</Text>
-            <View style={styles.chipRow}>
-              {typeOptions.map(t => (
-                <Chip
-                  key={t}
-                  selected={typeFilter === t}
-                  onPress={() => setTypeFilter(t)}
-                  style={styles.filterChip}
-                  showSelectedOverlay
-                  selectedColor={materialColors.primary}
-                  textStyle={typeFilter === t ? { color: '#ffffff' } : {}}
-                >
-                  {t === 'feature' ? 'Feature' : t === 'testcase' ? 'Test Case' : t}
-                </Chip>
-              ))}
-            </View>
+            {/* 3. My Bugs Toggle */}
+            <FilterToggle
+              label="👤 My Bugs"
+              value={(assigneeFilter.includes('me') || (currentUser?.employeeId && assigneeFilter.includes(currentUser.employeeId)))}
+              onValueChange={(val) => {
+                const myId = currentUser?.employeeId || 'me';
+                if (val) {
+                  // Add me
+                  setAssigneeFilter(prev => [...prev, myId])
+                } else {
+                  // Remove me
+                  setAssigneeFilter(prev => prev.filter(id => id !== myId && id !== 'me'))
+                }
+              }}
+            />
 
             <Divider style={styles.divider} />
 
-            <Text style={styles.sectionTitle}>Project</Text>
-            <View style={styles.chipRow}>
-              <Chip
-                selected={projectId === ''}
-                onPress={() => setProjectId('')}
-                style={styles.filterChip}
-                showSelectedOverlay
-                selectedColor={materialColors.primary}
-                textStyle={projectId === '' ? { color: '#ffffff' } : {}}
-              >
-                All
-              </Chip>
-              {projects.map((p: any) => (
-                <Chip
-                  key={p.projectId}
-                  selected={projectId === p.projectId}
-                  onPress={() => setProjectId(p.projectId)}
-                  style={styles.filterChip}
-                  showSelectedOverlay
-                  selectedColor={materialColors.primary}
-                  textStyle={projectId === p.projectId ? { color: '#ffffff' } : {}}
-                >
-                  {p.projectName}
-                </Chip>
-              ))}
-            </View>
+            {/* 4. Search Input */}
+            <FilterSearch value={searchQuery} onChangeText={setSearchQuery} placeholder="Search bugs..." />
 
-            <PaperButton mode="contained" onPress={() => setFilterModalVisible(false)} style={styles.applyButton}>
-              Done
-            </PaperButton>
+            {/* 5. Type */}
+            <FilterSection
+              title="All Types"
+              count={typeFilter.length}
+              expanded={expandedSection === 'type'}
+              onPress={() => setExpandedSection(expandedSection === 'type' ? '' : 'type')}
+            >
+              <View style={styles.chipRow}>
+                {typeOptions.filter(t => t !== 'All').map(t => (
+                  <Chip
+                    key={t}
+                    selected={typeFilter.includes(t)}
+                    onPress={() => {
+                      if (typeFilter.includes(t)) setTypeFilter(prev => prev.filter(i => i !== t))
+                      else setTypeFilter(prev => [...prev, t])
+                    }}
+                    style={styles.filterChip}
+                    showSelectedOverlay
+                    selectedColor={materialColors.primary}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </Chip>
+                ))}
+              </View>
+            </FilterSection>
+
+            {/* 6. Status */}
+            <FilterSection
+              title="All Status"
+              count={statusFilter.length}
+              expanded={expandedSection === 'status'}
+              onPress={() => setExpandedSection(expandedSection === 'status' ? '' : 'status')}
+            >
+              <View style={styles.chipRow}>
+                {statusOptions.map((s: string) => (
+                  <Chip
+                    key={s}
+                    selected={statusFilter.includes(s)}
+                    onPress={() => {
+                      if (statusFilter.includes(s)) setStatusFilter(prev => prev.filter(i => i !== s))
+                      else setStatusFilter(prev => [...prev, s])
+                    }}
+                    style={styles.filterChip}
+                    showSelectedOverlay
+                    selectedColor={materialColors.primary}
+                  >
+                    {s}
+                  </Chip>
+                ))}
+              </View>
+            </FilterSection>
+
+            {/* 7. Severity */}
+            <FilterSection
+              title="All Severity"
+              count={severityFilter.length}
+              expanded={expandedSection === 'severity'}
+              onPress={() => setExpandedSection(expandedSection === 'severity' ? '' : 'severity')}
+            >
+              <View style={styles.chipRow}>
+                {severityOptions.map((s: string) => (
+                  <Chip
+                    key={s}
+                    selected={severityFilter.includes(s)}
+                    onPress={() => {
+                      if (severityFilter.includes(s)) setSeverityFilter(prev => prev.filter(i => i !== s))
+                      else setSeverityFilter(prev => [...prev, s])
+                    }}
+                    style={styles.filterChip}
+                    showSelectedOverlay
+                    selectedColor={materialColors.primary}
+                  >
+                    {s}
+                  </Chip>
+                ))}
+              </View>
+            </FilterSection>
+
+            {/* 8. Category */}
+            <FilterSection
+              title="All Categories"
+              count={categoryFilter.length}
+              expanded={expandedSection === 'category'}
+              onPress={() => setExpandedSection(expandedSection === 'category' ? '' : 'category')}
+            >
+              <View style={styles.chipRow}>
+                {categoryOptions.map((c: string) => (
+                  <Chip
+                    key={c}
+                    selected={categoryFilter.includes(c)}
+                    onPress={() => {
+                      if (categoryFilter.includes(c)) setCategoryFilter(prev => prev.filter(i => i !== c))
+                      else setCategoryFilter(prev => [...prev, c])
+                    }}
+                    style={styles.filterChip}
+                    showSelectedOverlay
+                    selectedColor={materialColors.primary}
+                  >
+                    {c}
+                  </Chip>
+                ))}
+              </View>
+            </FilterSection>
+
+            <Divider style={styles.divider} />
+
+            <View style={styles.buttonRow}>
+              <PaperButton mode="outlined" onPress={clearFilters} style={styles.clearButton}>
+                Clear Filters
+              </PaperButton>
+              <PaperButton mode="contained" onPress={() => setFilterModalVisible(false)} style={styles.applyButton}>
+                Done
+              </PaperButton>
+            </View>
           </ScrollView>
         </Modal>
       </Portal>
@@ -365,6 +571,7 @@ export default function BugListScreen() {
     </View>
   )
 }
+
 
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
@@ -438,8 +645,12 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     fontWeight: 'bold',
   },
   statusChip: {
-    height: 24,
     alignItems: 'center',
+    borderRadius: 12,
+  },
+  statusText: {
+    ...materialTypography.labelSmall,
+    fontWeight: '600',
   },
   bugTitle: {
     ...materialTypography.titleMedium,
@@ -487,7 +698,16 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     marginBottom: 4,
   },
   applyButton: {
-    marginTop: 20,
+    flex: 1,
+  },
+  clearButton: {
+    flex: 1,
+    borderColor: materialColors.primary,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20
   },
   emptyContainer: {
     padding: materialSpacing.xl,
@@ -503,7 +723,14 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     position: 'absolute',
     margin: 16,
     right: 0,
-    bottom: 0,
+    bottom: 100,
     backgroundColor: materialColors.primary,
+  },
+  filterFab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 180,
+    backgroundColor: materialColors.secondary,
   },
 })

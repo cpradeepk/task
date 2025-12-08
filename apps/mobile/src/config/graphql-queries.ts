@@ -35,7 +35,7 @@ export const LOGIN_MUTATION = gql`
 // ============================================================================
 
 export const GET_TASKS = gql`
-  query GetTasks($assignedTo: String, $status: String, $priority: String, $projectId: String, $subprojectId: String, $limit: Int, $offset: Int) {
+  query GetTasks($assignedTo: [String], $status: [String], $priority: [String], $projectId: String, $subprojectId: String, $limit: Int, $offset: Int) {
     tasks(assignedTo: $assignedTo, status: $status, priority: $priority, projectId: $projectId, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
       id
       taskId
@@ -73,11 +73,7 @@ export const GET_TASKS = gql`
         name
         email
       }
-      project {
-        projectId
-        projectName
-        parentProjectId
-      }
+
     }
   }
 `
@@ -168,8 +164,8 @@ export const UPDATE_TASK = gql`
 // ============================================================================
 
 export const GET_BUGS = gql`
-  query GetBugs($assignedTo: String, $status: String, $severity: String, $projectId: String, $subprojectId: String, $limit: Int, $offset: Int) {
-    bugs(assignedTo: $assignedTo, status: $status, severity: $severity, projectId: $projectId, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
+  query GetBugs($assignedTo: [String], $status: [String], $severity: [String], $category: [String], $type: [String], $projectId: String, $subprojectId: String, $limit: Int, $offset: Int) {
+    bugs(assignedTo: $assignedTo, status: $status, severity: $severity, category: $category, type: $type, projectId: $projectId, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
       id
       bugId
       title
@@ -223,11 +219,7 @@ export const GET_BUGS = gql`
         status
         remarks
       }
-      project {
-        projectId
-        projectName
-        description
-      }
+      projectId
     }
   }
 `
@@ -362,6 +354,34 @@ export const GET_PROJECT = gql`
       parentProjectId
       createdAt
       updatedAt
+    }
+  }
+`
+
+// ============================================================================
+// USERS & SETTINGS
+// ============================================================================
+
+export const GET_USERS = gql`
+  query GetUsers {
+    users {
+      employeeId
+      name
+      email
+      role
+      department
+    }
+  }
+`
+
+export const GET_SETTINGS = gql`
+  query GetSettings($activeOnly: Boolean) {
+    settings(activeOnly: $activeOnly) {
+      id
+      key
+      value
+      type
+      isActive
     }
   }
 `

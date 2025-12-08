@@ -5,6 +5,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { buildApiUrl } from '../config/api'
+import { getUserToken } from '../utils/secureStorage'
 
 export interface ApiResponse<T = any> {
   success: boolean
@@ -22,12 +23,17 @@ export const apiRequest = async <T = any>(
 ): Promise<ApiResponse<T>> => {
   try {
     // Get auth token
-    const token = await AsyncStorage.getItem('userToken')
+    const token = await getUserToken()
 
     // Build headers
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
+    }
+
+    // If body is FormData, let the browser/native fetch set Content-Type
+    if (options.body instanceof FormData) {
+      delete headers['Content-Type']
     }
 
     if (token) {
@@ -81,7 +87,7 @@ export const post = <T = any>(
 ): Promise<ApiResponse<T>> => {
   return apiRequest<T>(endpoint, {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: body instanceof FormData ? body : JSON.stringify(body),
   })
 }
 
@@ -94,7 +100,7 @@ export const patch = <T = any>(
 ): Promise<ApiResponse<T>> => {
   return apiRequest<T>(endpoint, {
     method: 'PATCH',
-    body: JSON.stringify(body),
+    body: body instanceof FormData ? body : JSON.stringify(body),
   })
 }
 
@@ -103,5 +109,28 @@ export const patch = <T = any>(
  */
 export const del = <T = any>(endpoint: string): Promise<ApiResponse<T>> => {
   return apiRequest<T>(endpoint, { method: 'DELETE' })
+}
+
+/**
+ * PUT request
+ */
+export const put = <T = any>(
+  endpoint: string,
+  body: any
+): Promise<ApiResponse<T>> => {
+  return apiRequest<T>(endpoint, {
+    method: 'PUT',
+    body: body instanceof FormData ? body : JSON.stringify(body),
+  })
+}
+
+// Default export object for convenience
+export default {
+  get,
+  post,
+  put,
+  patch,
+  del,
+  apiRequest
 }
 

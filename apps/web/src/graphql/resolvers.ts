@@ -225,24 +225,21 @@ export const resolvers = {
         const params: any[] = []
         let paramIndex = 1
 
-        if (filters.assignedTo) {
-          // assigned_to is JSONB array, use jsonb_array_elements_text
-          query += ` AND EXISTS (
-            SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
-            WHERE elem = $${paramIndex++}
-          )`
+        if (filters.assignedTo && filters.assignedTo.length > 0) {
+          // assigned_to is JSONB array, check if any of filter values exist in it (Intersection)
+          query += ` AND assigned_to::jsonb ?| $${paramIndex++}`
           params.push(filters.assignedTo)
         }
-        if (filters.assignedBy) {
-          query += ` AND assigned_by = $${paramIndex++}`
+        if (filters.assignedBy && filters.assignedBy.length > 0) {
+          query += ` AND assigned_by = ANY($${paramIndex++})`
           params.push(filters.assignedBy)
         }
-        if (filters.status) {
-          query += ` AND status = $${paramIndex++}`
+        if (filters.status && filters.status.length > 0) {
+          query += ` AND status = ANY($${paramIndex++})`
           params.push(filters.status)
         }
-        if (filters.priority) {
-          query += ` AND priority = $${paramIndex++}`
+        if (filters.priority && filters.priority.length > 0) {
+          query += ` AND priority = ANY($${paramIndex++})`
           params.push(filters.priority)
         }
         if (filters.projectId) {
@@ -306,25 +303,29 @@ export const resolvers = {
         const params: any[] = []
         let paramIndex = 1
 
-        if (filters.assignedTo) {
-          query += ` AND assigned_to = $${paramIndex++}`
+        if (filters.assignedTo && filters.assignedTo.length > 0) {
+          query += ` AND assigned_to = ANY($${paramIndex++})`
           params.push(filters.assignedTo)
         }
-        if (filters.reportedBy) {
-          query += ` AND reported_by = $${paramIndex++}`
+        if (filters.reportedBy && filters.reportedBy.length > 0) {
+          query += ` AND reported_by = ANY($${paramIndex++})`
           params.push(filters.reportedBy)
         }
-        if (filters.status) {
-          query += ` AND status = $${paramIndex++}`
+        if (filters.status && filters.status.length > 0) {
+          query += ` AND status = ANY($${paramIndex++})`
           params.push(filters.status)
         }
-        if (filters.severity) {
-          query += ` AND severity = $${paramIndex++}`
+        if (filters.severity && filters.severity.length > 0) {
+          query += ` AND severity = ANY($${paramIndex++})`
           params.push(filters.severity)
         }
-        if (filters.category) {
-          query += ` AND category = $${paramIndex++}`
+        if (filters.category && filters.category.length > 0) {
+          query += ` AND category = ANY($${paramIndex++})`
           params.push(filters.category)
+        }
+        if (filters.type && filters.type.length > 0) {
+          query += ` AND type = ANY($${paramIndex++})`
+          params.push(filters.type)
         }
         if (filters.projectId) {
           query += ` AND project_id = $${paramIndex++}`

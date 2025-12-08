@@ -30,6 +30,7 @@ export default function CreateFeedPostScreen({ route }: any) {
   const navigation = useNavigation()
   const { topicId: initialTopicId } = route.params || {}
 
+  const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [selectedTopicId, setSelectedTopicId] = useState(initialTopicId || '')
   const [contentType, setContentType] = useState<string>('text')
@@ -43,7 +44,7 @@ export default function CreateFeedPostScreen({ route }: any) {
 
   const [createPost, { loading: creating }] = useMutation(CREATE_FEED_POST)
 
-  const topics = topicsData?.feedTopics || []
+  const topics = (topicsData as any)?.feedTopics || []
 
   useEffect(() => {
     loadCurrentUser()
@@ -59,6 +60,11 @@ export default function CreateFeedPostScreen({ route }: any) {
   }
 
   const handleCreatePost = async () => {
+    if (!title.trim()) {
+      Alert.alert('Error', 'Please enter post title')
+      return
+    }
+
     if (!content.trim()) {
       Alert.alert('Error', 'Please enter post content')
       return
@@ -77,6 +83,7 @@ export default function CreateFeedPostScreen({ route }: any) {
     try {
       await createPost({
         variables: {
+          title,  // Add title to variables
           topicId: selectedTopicId,
           content,
           contentType,
@@ -104,6 +111,18 @@ export default function CreateFeedPostScreen({ route }: any) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
+        {/* Title Input */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Title *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter post title"
+            value={title}
+            onChangeText={setTitle}
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
         {/* Topic Selection */}
         <View style={styles.section}>
           <Text style={styles.label}>Topic *</Text>
@@ -127,7 +146,7 @@ export default function CreateFeedPostScreen({ route }: any) {
                     selectedTopicId === topic.id && styles.topicButtonTextActive,
                   ]}
                 >
-                  {topic.name}
+                  {topic.topicName}
                 </Text>
               </TouchableOpacity>
             ))}

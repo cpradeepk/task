@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Image } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Image, Alert } from 'react-native'
 import { Avatar, Text, Divider, List, Button, IconButton } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
@@ -53,14 +53,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
           key={item.screen}
           title={item.label}
           left={(props) => <List.Icon {...props} icon={item.icon} color={materialColors.primary} />}
-          onPress={() => {
-            if (item.screen === 'Dashboard') {
-              navigation.navigate('Main', { screen: 'HomeTab' })
-            } else {
-              navigation.navigate(item.screen)
-            }
-            onClose()
-          }}
+          onPress={() => handleNavigation(item)}
           style={styles.navItem}
           titleStyle={styles.navItemTitle}
         />
@@ -68,46 +61,65 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
     </View>
   )
 
-  const homeDetails = [
-    { screen: 'Dashboard', label: 'Home', icon: 'home-outline' },
+  // Navigation Sections matching WebApp
+  const homeItems: NavigationItem[] = [
+    { screen: 'Dashboard', label: 'Home', icon: 'home' },
   ]
-  const workDetails = [
-    { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle-outline' },
-    { screen: 'BugList', label: 'Bugs', icon: 'bug-outline' },
+
+  const feedItems: NavigationItem[] = [
     { screen: 'Feed', label: 'Feed', icon: 'rss' },
   ]
-  const approvalDetails = [
-    { screen: 'LeaveList', label: 'Leaves', icon: 'calendar-clock' },
-    { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
+
+  const workItems: NavigationItem[] = [
+    { screen: 'Dashboard', label: 'Dashboard', icon: 'view-dashboard' },
+    { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle-outline' },
+    { screen: 'BugList', label: 'Development', icon: 'bug-outline' },
   ]
 
-  let showWork = false;
-  let showApprovals = false;
-  if (currentUser) {
-    if (['amtarikshian', 'management', 'top_management', 'admin'].includes(currentUser.role)) {
-      showWork = true;
-    }
-    if (['amtarikshian', 'management'].includes(currentUser.role)) {
-      showApprovals = true;
-    }
-  }
-
-  // Fallback if no user
-  if (!currentUser) {
-    showWork = true;
-    showApprovals = true;
-  }
+  const attendanceItems: NavigationItem[] = [
+    { screen: 'LeaveList', label: 'Leave', icon: 'calendar-clock' },
+    { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
+    { screen: 'LeaveList', label: 'Applications', icon: 'file-document-outline' }, // Mapping to LeaveList for now
+  ]
 
   const adminItems: NavigationItem[] = [
-    { screen: 'Projects', label: 'Projects', icon: 'briefcase' },
-    { screen: 'MasterTasks', label: 'Master Tasks', icon: 'checkbox-marked-circle' },
-    { screen: 'MasterBugs', label: 'Master Development', icon: 'bug' },
+    { screen: 'Projects', label: 'Projects', icon: 'folder-outline' },
+    { screen: 'MasterTasks', label: 'Master Tasks', icon: 'format-list-checks' },
+    { screen: 'MasterBugs', label: 'Master Development', icon: 'code-tags' },
     { screen: 'Users', label: 'User Management', icon: 'account-group' },
-    { screen: 'FeedTopics', label: 'Feed Topics', icon: 'rss' },
-    { screen: 'Approvals', label: 'Approvals', icon: 'calendar-check' },
-    { screen: 'Settings', label: 'Settings', icon: 'cog' },
-    { screen: 'DeletedItems', label: 'Deleted Items', icon: 'delete' },
+    { screen: 'FeedTopics', label: 'Feed Topics', icon: 'message-text-outline' },
+    { screen: 'AttendanceApprovals', label: 'Approvals', icon: 'check-decagram' }, // Corrected screen name
+    { screen: 'Settings', label: 'Settings', icon: 'cog-outline' },
+    { screen: 'DeletedItems', label: 'Deleted Items', icon: 'delete-outline' },
+    { screen: 'Reports', label: 'Reports', icon: 'chart-bar' },
   ]
+
+  const accountItems: NavigationItem[] = [
+    { screen: 'Settings', label: 'Account', icon: 'account-circle-outline' },
+  ]
+
+  const handleNavigation = (item: NavigationItem) => {
+    // Handle special cases or missing screens
+    const missingScreens = ['Projects', 'MasterTasks', 'MasterBugs', 'Users', 'FeedTopics', 'DeletedItems', 'Reports'];
+
+    if (missingScreens.includes(item.screen)) {
+      Alert.alert('Coming Soon', 'This feature is not yet available in the mobile app.');
+      return;
+    }
+
+    if (item.screen === 'Dashboard') {
+      navigation.navigate('Main', { screen: 'HomeTab' });
+    } else if (item.screen === 'TaskList') {
+      navigation.navigate('Main', { screen: 'TasksTab' });
+    } else if (item.screen === 'BugList') {
+      navigation.navigate('Main', { screen: 'DevTab' });
+    } else if (item.screen === 'Feed') {
+      navigation.navigate('Main', { screen: 'FeedTab' });
+    } else {
+      navigation.navigate(item.screen);
+    }
+    onClose();
+  }
   const showAdminSection = currentUser?.role === 'admin' || currentUser?.role === 'top_management'
 
   const handleLogout = async () => {
@@ -167,21 +179,61 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
 
             {/* Navigation Items */}
             <View style={styles.navigationSection}>
-              {renderSection(homeDetails)}
+              {renderSection(homeItems)}
 
-              {showWork && (
-                <>
-                  <Divider style={styles.divider} />
-                  {renderSection(workDetails)}
-                </>
-              )}
+              <Divider style={styles.divider} />
+              <List.Accordion
+                title="Feed"
+                left={props => <List.Icon {...props} icon="rss" color={materialColors.primary} />}
+                style={[styles.navItem, { backgroundColor: materialColors.surface }]}
+                titleStyle={styles.navItemTitle}>
+                {feedItems.map(item => (
+                  <List.Item
+                    key={item.label}
+                    title={item.label}
+                    left={props => <List.Icon {...props} icon={item.icon} color={materialColors.textSecondary} />}
+                    onPress={() => handleNavigation(item)}
+                    style={styles.adminNavItem}
+                    titleStyle={styles.adminNavItemTitle}
+                  />
+                ))}
+              </List.Accordion>
 
-              {showApprovals && (
-                <>
-                  <Divider style={styles.divider} />
-                  {renderSection(approvalDetails)}
-                </>
-              )}
+              <Divider style={styles.divider} />
+              <List.Accordion
+                title="Work"
+                left={props => <List.Icon {...props} icon="briefcase" color={materialColors.primary} />}
+                style={[styles.navItem, { backgroundColor: materialColors.surface }]}
+                titleStyle={styles.navItemTitle}>
+                {workItems.map(item => (
+                  <List.Item
+                    key={item.label}
+                    title={item.label}
+                    left={props => <List.Icon {...props} icon={item.icon} color={materialColors.textSecondary} />}
+                    onPress={() => handleNavigation(item)}
+                    style={styles.adminNavItem}
+                    titleStyle={styles.adminNavItemTitle}
+                  />
+                ))}
+              </List.Accordion>
+
+              <Divider style={styles.divider} />
+              <List.Accordion
+                title="Attendance"
+                left={props => <List.Icon {...props} icon="calendar" color={materialColors.primary} />}
+                style={[styles.navItem, { backgroundColor: materialColors.surface }]}
+                titleStyle={styles.navItemTitle}>
+                {attendanceItems.map(item => (
+                  <List.Item
+                    key={item.label}
+                    title={item.label}
+                    left={props => <List.Icon {...props} icon={item.icon} color={materialColors.textSecondary} />}
+                    onPress={() => handleNavigation(item)}
+                    style={styles.adminNavItem}
+                    titleStyle={styles.adminNavItemTitle}
+                  />
+                ))}
+              </List.Accordion>
 
               {/* Admin Section */}
               {showAdminSection && (
@@ -197,13 +249,10 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
                   >
                     {adminItems.map((item) => (
                       <List.Item
-                        key={item.screen}
+                        key={item.label} // Use label as key to be unique since Reports might duplicate keys
                         title={item.label}
                         left={(props) => <List.Icon {...props} icon={item.icon} color={materialColors.textSecondary} />}
-                        onPress={() => {
-                          navigation.navigate(item.screen)
-                          onClose()
-                        }}
+                        onPress={() => handleNavigation(item)}
                         style={styles.adminNavItem}
                         titleStyle={styles.adminNavItemTitle}
                       />
@@ -211,6 +260,9 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
                   </List.Accordion>
                 </>
               )}
+
+              <Divider style={styles.divider} />
+              {renderSection(accountItems)}
             </View>
 
             <Divider style={styles.divider} />

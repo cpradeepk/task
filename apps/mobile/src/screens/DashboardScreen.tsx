@@ -2,12 +2,12 @@ import { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   View,
   StyleSheet,
-  ScrollView,
   Alert,
   RefreshControl,
 } from 'react-native'
 import { Card, Text, ActivityIndicator, IconButton, Surface } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
+import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { DebugMenu } from '../components/DebugMenu'
@@ -15,6 +15,7 @@ import { materialColors, materialTypography, materialSpacing, materialElevation 
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { getUserToken, getUserData } from '../utils/secureStorage'
 import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
+import { useTabBarControl } from '../context/TabBarContext'
 
 export default function DashboardScreen() {
   const navigation = useNavigation()
@@ -28,6 +29,11 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [debugMenuVisible, setDebugMenuVisible] = useState(false)
+
+  const { handleScroll } = useTabBarControl()
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: handleScroll
+  })
 
   const loadData = useCallback(async () => {
     try {
@@ -68,7 +74,7 @@ export default function DashboardScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={materialColors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading dashboard...</Text>
       </View>
     )
@@ -76,28 +82,30 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={[materialColors.primary]}
-            tintColor={materialColors.primary}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       >
         {/* Header */}
         <Surface style={styles.header} elevation={2}>
           <View style={styles.headerTextContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.greetingScroll}>
+            <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.greetingScroll}>
               <Text style={styles.greeting}>Welcome, {user?.name}!</Text>
-            </ScrollView>
+            </Animated.ScrollView>
             <Text style={styles.role}>{user?.role}</Text>
           </View>
           <IconButton
             icon="bug"
             size={24}
-            iconColor={materialColors.surface}
+            iconColor={colors.surface}
             onPress={() => setDebugMenuVisible(true)}
             style={styles.debugButton}
           />
@@ -138,7 +146,7 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-          <ScrollView
+          <Animated.ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.actionsScrollView}
@@ -192,7 +200,7 @@ export default function DashboardScreen() {
                 <Text style={styles.actionDescription}>Work from home requests</Text>
               </Card.Content>
             </Card>
-          </ScrollView>
+          </Animated.ScrollView>
         </View>
 
         {/* Recent Tasks */}
@@ -216,7 +224,7 @@ export default function DashboardScreen() {
           )}
         </View>
 
-      </ScrollView>
+      </Animated.ScrollView>
 
       <DebugMenu
         visible={debugMenuVisible}
@@ -229,21 +237,21 @@ export default function DashboardScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   loadingText: {
     ...materialTypography.bodyLarge,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.md,
   },
   header: {
-    backgroundColor: materialColors.primary,
+    backgroundColor: colors.primary,
     padding: materialSpacing.lg,
     paddingTop: materialSpacing.xxl * 2,
     flexDirection: 'row',
@@ -264,7 +272,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   greeting: {
     ...materialTypography.headlineMedium,
-    color: materialColors.surface,
+    color: colors.surface,
   },
   role: {
     ...materialTypography.bodyMedium,
@@ -278,7 +286,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     borderRadius: 12,
   },
   statCardContent: {
@@ -286,11 +294,11 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   statNumber: {
     ...materialTypography.headlineLarge,
-    color: materialColors.primary,
+    color: colors.primary,
   },
   statLabel: {
     ...materialTypography.bodySmall,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.xs,
   },
   section: {
@@ -298,7 +306,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   sectionTitle: {
     ...materialTypography.titleLarge,
-    color: materialColors.text,
+    color: colors.text,
     marginBottom: materialSpacing.md,
   },
   actionsScrollView: {
@@ -309,49 +317,49 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     paddingRight: materialSpacing.md,
   },
   actionCard: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginBottom: materialSpacing.sm,
   },
   actionCardHorizontal: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginRight: materialSpacing.md,
     width: 200,
   },
   actionTitle: {
     ...materialTypography.titleMedium,
-    color: materialColors.text,
+    color: colors.text,
     marginBottom: materialSpacing.xs,
   },
   actionDescription: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
   },
   taskCard: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginBottom: materialSpacing.sm,
     borderLeftWidth: 4,
-    borderLeftColor: materialColors.primary,
+    borderLeftColor: colors.primary,
   },
   taskTitle: {
     ...materialTypography.bodyLarge,
-    color: materialColors.text,
+    color: colors.text,
     fontWeight: '600',
   },
   taskStatus: {
     ...materialTypography.bodySmall,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.xs,
   },
   emptyCard: {
-    backgroundColor: materialColors.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 12,
   },
   emptyText: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   logoutButton: {

@@ -16,6 +16,7 @@ import FeedScreen from './screens/FeedScreen'
 import FeedPostDetailsScreen from './screens/FeedPostDetailsScreen'
 import CreateFeedPostScreen from './screens/CreateFeedPostScreen'
 import NotificationsScreen from './screens/NotificationsScreen'
+import NotificationSettingsScreen from './screens/NotificationSettingsScreen'
 import LeaveListScreen from './screens/LeaveListScreen'
 import LeaveDetailsScreen from './screens/LeaveDetailsScreen'
 import CreateLeaveScreen from './screens/CreateLeaveScreen'
@@ -113,31 +114,7 @@ function BottomTabNavigator({ toggleDrawer }: { toggleDrawer: () => void }) {
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ focused }) => (
-            <View style={{
-              top: -30,
-              justifyContent: 'center',
-              alignItems: 'center',
-              ...Platform.select({
-                ios: {
-                  shadowColor: '#7F5DF0',
-                  shadowOffset: { width: 0, height: 10 },
-                  shadowOpacity: 0.25,
-                  shadowRadius: 3.5,
-                },
-                android: { elevation: 5 },
-              })
-            }}>
-              <View style={{
-                width: 70,
-                height: 70,
-                borderRadius: 35,
-                backgroundColor: materialColors.primary,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-                <MaterialCommunityIcons name="home" size={35} color="#fff" />
-              </View>
-            </View>
+            <MaterialCommunityIcons name="home" size={25} color={focused ? materialColors.primary : '#748c94'} />
           )
         }}
       />
@@ -479,6 +456,9 @@ export default function App() {
           // Clear Apollo Client cache
           await apolloClient.clearStore()
 
+          // Close the drawer if open
+          setMenuVisible(false)
+
           dispatch({ type: 'SIGN_OUT' })
         } catch (error) {
           console.error('Logout error:', error)
@@ -656,6 +636,15 @@ export default function App() {
                           component={CreateWFHScreen}
                           options={{
                             headerTitle: 'Apply for WFH',
+                          }}
+                        />
+
+                        {/* Notification Settings Screen */}
+                        <Stack.Screen
+                          name="NotificationSettings"
+                          component={NotificationSettingsScreen}
+                          options={{
+                            headerTitle: 'Notification Settings',
                           }}
                         />
 

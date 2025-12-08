@@ -541,5 +541,32 @@ When a feature is completed:
 
 ---
 
+features to be added:
+1. Task Platform
+task.aedhas.com
+2. Project Teams
+Ability to add team members.
+Only team members should be able to:
+View tasks and bugs
+Edit tasks and bugs
+Assign tasks
+Comment on tasks, bugs, and features
+*Project Roles
+Project Manager
+Developer
+Tester
+3. Voice Creation
+Voice input for creating tasks, bugs, features, posts, and local comments.
+4. Notifications
+WhatsApp, Telegram, and in-app notifications.
+5. Gamification
+Provide points or credits to individuals based on their work.
+6. Daily Task Display
+A section that lists all pending tasks for the current day.
+7. Task Assignment Limitation
+Back-to-back task assigning is not possible.
+8.MOM
+9.edit sign/sign out timing for admin
+
 **End of Document**
 

@@ -25,7 +25,7 @@ import { Bug, BugComment } from '../types'
  * This interface  from mysql2 library to ensure
  * type safety when querying the database.
  */
-interface BugRow  {
+interface BugRow {
   id: number                          // Auto-increment primary key
   bug_id: string                      // Unique bug identifier (e.g., "BUG-1735123456789001234")
   title: string                       // Bug title/summary
@@ -69,7 +69,7 @@ interface BugRow  {
  * Use createActivityLog() from @/lib/db/activityLog instead.
  * This interface is kept for backward compatibility only.
  */
-interface BugCommentRow  {
+interface BugCommentRow {
   id: number              // Auto-increment primary key
   bug_id: string          // Foreign key to bugs table
   commented_by: string    // Employee ID of commenter
@@ -135,11 +135,77 @@ function rowToBugComment(row: BugCommentRow): BugComment {
   }
 }
 
-// Get all bugs with optional pagination
-export async function getAllBugs(options?: { limit?: number; offset?: number }): Promise<Bug[]> {
+// Get all bugs with optional pagination and filters
+export async function getAllBugs(options?: {
+  limit?: number;
+  offset?: number;
+  status?: string[];
+  severity?: string[];
+  category?: string[];
+  type?: string[];
+  assignedTo?: string[];
+  reportedBy?: string[];
+  projectId?: string;
+  subprojectId?: string;
+  search?: string;
+}): Promise<Bug[]> {
   return withRetry(async () => {
-    let sql = 'SELECT * FROM bugs ORDER BY updated_at DESC'
+    let sql = 'SELECT * FROM bugs WHERE deleted_at IS NULL'
     const params: any[] = []
+
+    if (options?.status && options.status.length > 0) {
+      sql += ` AND status = ANY($${params.length + 1})`
+      params.push(options.status)
+    }
+
+    if (options?.severity && options.severity.length > 0) {
+      sql += ` AND severity = ANY($${params.length + 1})`
+      params.push(options.severity)
+    }
+
+    if (options?.category && options.category.length > 0) {
+      sql += ` AND category = ANY($${params.length + 1})`
+      params.push(options.category)
+    }
+
+    if (options?.type && options.type.length > 0) {
+      sql += ` AND type = ANY($${params.length + 1})`
+      params.push(options.type)
+    }
+
+    if (options?.assignedTo && options.assignedTo.length > 0) {
+      sql += ` AND assigned_to = ANY($${params.length + 1})`
+      params.push(options.assignedTo)
+    }
+
+    if (options?.reportedBy && options.reportedBy.length > 0) {
+      sql += ` AND reported_by = ANY($${params.length + 1})`
+      params.push(options.reportedBy)
+    }
+
+    if (options?.projectId) {
+      sql += ` AND project_id = $${params.length + 1}`
+      params.push(options.projectId)
+    }
+
+    if (options?.subprojectId) {
+      sql += ` AND subproject_id = $${params.length + 1}`
+      params.push(options.subprojectId)
+    }
+
+    if (options?.search) {
+      sql += ` AND (title ILIKE $${params.length + 1} OR bug_id ILIKE $${params.length + 1} OR description ILIKE $${params.length + 1})`
+      const searchPattern = `%${options.search}%`
+      params.push(searchPattern)
+    }
+
+    // Custom sorting: Resolved/Closed items at bottom
+    sql += ` ORDER BY
+      CASE
+        WHEN status IN ('Resolved', 'Closed') THEN 1
+        ELSE 0
+      END,
+      updated_at DESC`
 
     if (options?.limit) {
       sql += ` LIMIT $${params.length + 1}`

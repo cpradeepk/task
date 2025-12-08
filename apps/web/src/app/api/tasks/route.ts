@@ -15,12 +15,30 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
     const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : undefined
 
-    console.log('🔵 [TASKS-GET] Pagination params:', { limit, offset })
+    // Helper to parse array params
+    const getArrayParam = (key: string) => {
+      const val = searchParams.get(key)
+      return val ? val.split(',').filter(Boolean) : undefined
+    }
+
+    const filters = {
+      limit,
+      offset,
+      status: getArrayParam('status'),
+      priority: getArrayParam('priority'),
+      assignedTo: getArrayParam('assignedTo'),
+      assignedBy: getArrayParam('assignedBy'),
+      projectId: searchParams.get('projectId') || undefined,
+      subprojectId: searchParams.get('subprojectId') || undefined,
+      search: searchParams.get('search') || undefined
+    }
+
+    console.log('🔵 [TASKS-GET] Params:', filters)
 
     // Get tasks from MySQL with timeout
     console.log('🔵 [TASKS-GET] Fetching tasks from database...')
     const tasks = await withTimeout(
-      getAllTasks({ limit, offset }),
+      getAllTasks(filters),
       10000,
       'Failed to fetch tasks - database timeout'
     )

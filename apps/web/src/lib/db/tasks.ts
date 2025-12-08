@@ -3,7 +3,7 @@
 
 import { query, queryOne, withRetry } from './config'
 import { Task } from '../types'
-interface TaskRow  {
+interface TaskRow {
   id: number
   task_id: string
   internal_id: string
@@ -146,11 +146,71 @@ function rowToTask(row: TaskRow): Task {
   }
 }
 
-// Get all tasks (excluding soft-deleted) with optional pagination
-export async function getAllTasks(options?: { limit?: number; offset?: number }): Promise<Task[]> {
+// Get all tasks (excluding soft-deleted) with optional pagination and filters
+export async function getAllTasks(options?: {
+  limit?: number;
+  offset?: number;
+  status?: string[];
+  priority?: string[];
+  assignedTo?: string[];
+  assignedBy?: string[]; // Kept as array for consistency but usually single
+  projectId?: string; // Keep as single for now, or array if needed (User asked for array params "update params to accept arrays")
+  subprojectId?: string;
+  search?: string;
+}): Promise<Task[]> {
   return withRetry(async () => {
-    let sql = 'SELECT * FROM tasks WHERE deleted_at IS NULL ORDER BY updated_at DESC'
+    let sql = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
     const params: any[] = []
+
+    if (options?.status && options.status.length > 0) {
+      sql += ` AND status = ANY($${params.length + 1})`
+      params.push(options.status)
+    }
+
+    if (options?.priority && options.priority.length > 0) {
+      sql += ` AND priority = ANY($${params.length + 1})`
+      params.push(options.priority)
+    }
+
+    if (options?.projectId) {
+      sql += ` AND project_id = $${params.length + 1}`
+      params.push(options.projectId)
+    }
+
+    if (options?.subprojectId) {
+      sql += ` AND subproject_id = $${params.length + 1}`
+      params.push(options.subprojectId)
+    }
+
+    // assignedTo filter (checks if ANY of the provided user IDs are in the task's assigned_to array)
+    if (options?.assignedTo && options.assignedTo.length > 0) {
+      // Logic: OR condition. If task is assigned to UserA OR UserB.
+      // Task's assigned_to is JSONB array ["UserA", "UserC"]
+      // Filter is ["UserA", "UserB"]
+      // Intersection should be non-empty.
+      // Postgres: assigned_to ?| array['UserA', 'UserB']
+      sql += ` AND assigned_to::jsonb ?| $${params.length + 1}`
+      params.push(options.assignedTo)
+    }
+
+    if (options?.assignedBy && options.assignedBy.length > 0) {
+      sql += ` AND assigned_by = ANY($${params.length + 1})`
+      params.push(options.assignedBy)
+    }
+
+    if (options?.search) {
+      sql += ` AND (name ILIKE $${params.length + 1} OR description ILIKE $${params.length + 1} OR task_id ILIKE $${params.length + 1})`
+      const searchPattern = `%${options.search}%`
+      params.push(searchPattern)
+    }
+
+    // Custom sorting: Completed/Cancelled at bottom
+    sql += ` ORDER BY
+      CASE
+        WHEN status IN ('Done', 'Completed', 'Cancelled', 'Cancel') THEN 1
+        ELSE 0
+      END,
+      updated_at DESC`
 
     if (options?.limit) {
       sql += ` LIMIT $${params.length + 1}`

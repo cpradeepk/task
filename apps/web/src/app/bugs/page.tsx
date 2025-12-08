@@ -14,6 +14,7 @@ import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth
 import { useLoading } from '@/contexts/LoadingContext'
 import { QUERIES } from '@/lib/graphql-queries'
 import HierarchicalBugRow from '@/components/bugs/HierarchicalBugRow'
+import MultiSelect from '@/components/ui/MultiSelect'
 import {
   Bug as BugIcon,
   Plus,
@@ -72,11 +73,11 @@ export default function BugsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [severityFilter, setSeverityFilter] = useState('all')
-  const [categoryFilter, setCategoryFilter] = useState('all')
-  const [assigneeFilter, setAssigneeFilter] = useState('all')
-  const [typeFilter, setTypeFilter] = useState('all') // New: Bug type filter
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [severityFilter, setSeverityFilter] = useState<string[]>([])
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([])
+  const [assigneeFilter, setAssigneeFilter] = useState<string[]>([])
+  const [typeFilter, setTypeFilter] = useState<string[]>([]) // New: Bug type filter
   const [projectFilter, setProjectFilter] = useState('all') // NEW: Project filter
   const [subprojectFilter, setSubprojectFilter] = useState('all') // NEW: Subproject filter
 
@@ -152,21 +153,21 @@ export default function BugsPage() {
       if (savedFilters) {
         const filters = JSON.parse(savedFilters)
         setSearchTerm(filters.searchTerm || '')
-        setStatusFilter(filters.statusFilter || 'all')
-        setSeverityFilter(filters.severityFilter || 'all')
-        setCategoryFilter(filters.categoryFilter || 'all')
-        setAssigneeFilter(filters.assigneeFilter || 'me')
-        setTypeFilter(filters.typeFilter || 'all')
+        setStatusFilter(Array.isArray(filters.statusFilter) ? filters.statusFilter : [])
+        setSeverityFilter(Array.isArray(filters.severityFilter) ? filters.severityFilter : [])
+        setCategoryFilter(Array.isArray(filters.categoryFilter) ? filters.categoryFilter : [])
+        setAssigneeFilter(Array.isArray(filters.assigneeFilter) ? filters.assigneeFilter : (filters.assigneeFilter === 'me' ? ['me'] : []))
+        setTypeFilter(Array.isArray(filters.typeFilter) ? filters.typeFilter : [])
         setProjectFilter(filters.projectFilter || 'all')
         setSubprojectFilter(filters.subprojectFilter || 'all')
       } else {
         // Set default assignee filter to "me" (My Bugs) if no saved filters
-        setAssigneeFilter('me')
+        setAssigneeFilter(['me'])
       }
     } catch (error) {
       console.error('Failed to load saved filters:', error)
       // Set default assignee filter to "me" on error
-      setAssigneeFilter('me')
+      setAssigneeFilter(['me'])
     }
 
     // Monitor network status
@@ -289,16 +290,21 @@ export default function BugsPage() {
         offset: currentOffset
       }
 
-      // Add filters if they're not 'all'
-      if (assigneeFilter && assigneeFilter !== 'all') {
-        variables.assignedTo = assigneeFilter === 'me' ? currentUser?.employeeId : assigneeFilter
+      // Add filters if they're not empty
+      if (assigneeFilter.length > 0) {
+        // Handle "me" logic
+        let filters = [...assigneeFilter]
+        if (filters.includes('me') && currentUser?.employeeId) {
+          filters = filters.filter(id => id !== 'me')
+          filters.push(currentUser.employeeId)
+        }
+        if (filters.length > 0) variables.assignedTo = filters
       }
-      if (statusFilter && statusFilter !== 'all') {
-        variables.status = statusFilter
-      }
-      if (severityFilter && severityFilter !== 'all') {
-        variables.severity = severityFilter
-      }
+      if (statusFilter.length > 0) variables.status = statusFilter
+      if (severityFilter.length > 0) variables.severity = severityFilter
+      if (categoryFilter.length > 0) variables.category = categoryFilter
+      if (typeFilter.length > 0) variables.type = typeFilter
+
       if (projectFilter && projectFilter !== 'all') {
         variables.projectId = projectFilter
       }
@@ -320,9 +326,19 @@ export default function BugsPage() {
           limit: ITEMS_PER_PAGE.toString(),
           offset: currentOffset.toString()
         })
-        if (assigneeFilter && assigneeFilter !== 'all') params.append('assignedTo', assigneeFilter)
-        if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter)
-        if (severityFilter && severityFilter !== 'all') params.append('severity', severityFilter)
+
+        if (assigneeFilter.length > 0) {
+          let filters = [...assigneeFilter]
+          if (filters.includes('me') && currentUser?.employeeId) {
+            filters = filters.filter(id => id !== 'me')
+            filters.push(currentUser.employeeId)
+          }
+          if (filters.length > 0) params.append('assignedTo', filters.join(','))
+        }
+        if (statusFilter.length > 0) params.append('status', statusFilter.join(','))
+        if (severityFilter.length > 0) params.append('severity', severityFilter.join(','))
+        if (categoryFilter.length > 0) params.append('category', categoryFilter.join(','))
+        if (typeFilter.length > 0) params.append('type', typeFilter.join(','))
 
         const response = await fetch(`/api/bugs?${params.toString()}`)
         if (!response.ok) {
@@ -576,27 +592,8 @@ export default function BugsPage() {
       )
     }
 
-    // Category filter (client-side only - not supported in GraphQL yet)
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(bug => bug.category === categoryFilter)
-    }
-
-    // Type filter (client-side only - not supported in GraphQL yet)
-    if (typeFilter !== 'all') {
-      if (typeFilter === 'bug') {
-        // Show bugs that are NOT features (null, 'testcase', 'other')
-        filtered = filtered.filter(bug => bug.type !== 'feature')
-      } else if (typeFilter === 'feature') {
-        // Show only features
-        filtered = filtered.filter(bug => bug.type === 'feature')
-      } else if (typeFilter === 'testcase') {
-        // Show only testcases
-        filtered = filtered.filter(bug => bug.type === 'testcase')
-      } else if (typeFilter === 'other') {
-        // Show only 'other' type or null
-        filtered = filtered.filter(bug => bug.type === 'other' || bug.type === null)
-      }
-    }
+    // Category and Type filters are now handled server-side!
+    // No additional client-side filtering needed for them.
 
     // Note: Server already returns bugs sorted by updated_at DESC
     // We don't need additional sorting here
@@ -758,7 +755,7 @@ export default function BugsPage() {
             {/* Bugs Card - Clickable */}
             <div
               className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setTypeFilter('bug')}
+              onClick={() => setTypeFilter(['bug'])}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -775,7 +772,7 @@ export default function BugsPage() {
             {/* Features Card - Clickable */}
             <div
               className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setTypeFilter('feature')}
+              onClick={() => setTypeFilter(['feature'])}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -885,19 +882,16 @@ export default function BugsPage() {
               </select>
 
               {/* Assignee Filter */}
-              <select
-                value={assigneeFilter}
-                onChange={(e) => setAssigneeFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="all">All Assignees</option>
-                <option value="me">👤 My Bugs</option>
-                {users.map(user => (
-                  <option key={user.employeeId} value={user.employeeId}>
-                    👤 {user.name}
-                  </option>
-                ))}
-              </select>
+              <MultiSelect
+                label="Assignee"
+                placeholder="All Assignees"
+                options={[
+                  { value: 'me', label: 'My Bugs' },
+                  ...users.map(user => ({ value: user.employeeId, label: user.name }))
+                ]}
+                selectedValues={assigneeFilter}
+                onChange={setAssigneeFilter}
+              />
             </div>
 
             {/* Row 2: Secondary Filters */}
@@ -915,69 +909,55 @@ export default function BugsPage() {
               </div>
 
               {/* Type Filter */}
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="all">All Types</option>
-                <option value="bug">🐛 Bug</option>
-                <option value="feature">✨ Feature</option>
-                <option value="testcase">🧪 Testcase</option>
-                <option value="other">📝 Other</option>
-              </select>
+              <MultiSelect
+                label="Type"
+                placeholder="Select Types"
+                options={[
+                  { value: 'bug', label: '🐛 Bug' },
+                  { value: 'feature', label: '✨ Feature' },
+                  { value: 'testcase', label: '🧪 Testcase' },
+                  { value: 'other', label: '📝 Other' }
+                ]}
+                selectedValues={typeFilter}
+                onChange={setTypeFilter}
+              />
 
               {/* Status Filter */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="all">All Status</option>
-                {settingsData.bugStatuses.map((status) => (
-                  <option key={status.value} value={status.value}>
-                    {status.icon} {status.value}
-                  </option>
-                ))}
-              </select>
+              <MultiSelect
+                label="Status"
+                placeholder="Select Statuses"
+                options={settingsData.bugStatuses.map((status) => ({ value: status.value, label: status.value }))}
+                selectedValues={statusFilter}
+                onChange={setStatusFilter}
+              />
 
               {/* Severity Filter */}
-              <select
-                value={severityFilter}
-                onChange={(e) => setSeverityFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="all">All Severity</option>
-                {settingsData.severities.map((severity) => (
-                  <option key={severity.value} value={severity.value}>
-                    {severity.icon} {severity.value}
-                  </option>
-                ))}
-              </select>
+              <MultiSelect
+                label="Severity"
+                placeholder="Select Severities"
+                options={settingsData.severities.map((s) => ({ value: s.value, label: s.value }))}
+                selectedValues={severityFilter}
+                onChange={setSeverityFilter}
+              />
 
               {/* Category Filter */}
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="all">All Categories</option>
-                {settingsData.categories.map((category) => (
-                  <option key={category.value} value={category.value}>
-                    {category.icon} {category.value}
-                  </option>
-                ))}
-              </select>
+              <MultiSelect
+                label="Category"
+                placeholder="Select Categories"
+                options={settingsData.categories.map((c) => ({ value: c.value, label: c.value }))}
+                selectedValues={categoryFilter}
+                onChange={setCategoryFilter}
+              />
 
               {/* Clear Filters */}
               <button
                 onClick={() => {
                   setSearchTerm('')
-                  setTypeFilter('all')
-                  setStatusFilter('all')
-                  setSeverityFilter('all')
-                  setCategoryFilter('all')
-                  setAssigneeFilter('all')
+                  setTypeFilter([])
+                  setStatusFilter([])
+                  setSeverityFilter([])
+                  setCategoryFilter([])
+                  setAssigneeFilter([])
                   setProjectFilter('all')
                   setSubprojectFilter('all')
                 }}
@@ -1046,9 +1026,11 @@ export default function BugsPage() {
                 <button
                   onClick={() => {
                     setSearchTerm('')
-                    setStatusFilter('all')
-                    setSeverityFilter('all')
-                    setCategoryFilter('all')
+                    setStatusFilter([])
+                    setSeverityFilter([])
+                    setCategoryFilter([])
+                    setTypeFilter([])
+                    setAssigneeFilter([])
                   }}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors"
                 >

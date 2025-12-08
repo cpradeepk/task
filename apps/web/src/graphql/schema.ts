@@ -414,10 +414,10 @@ export const typeDefs = `#graphql
     
     # Tasks
     tasks(
-      assignedTo: String
-      assignedBy: String
-      status: String
-      priority: String
+      assignedTo: [String!]
+      assignedBy: [String!]
+      status: [String!]
+      priority: [String!]
       projectId: String
       subprojectId: String
       limit: Int
@@ -430,11 +430,12 @@ export const typeDefs = `#graphql
 
     # Bugs
     bugs(
-      assignedTo: String
-      reportedBy: String
-      status: String
-      severity: String
-      category: String
+      assignedTo: [String!]
+      reportedBy: [String!]
+      status: [String!]
+      severity: [String!]
+      category: [String!]
+      type: [String!]
       projectId: String
       subprojectId: String
       limit: Int

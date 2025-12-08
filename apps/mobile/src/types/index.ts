@@ -3,6 +3,14 @@
  * Local type definitions to avoid dependency on @jsr/shared package
  */
 
+export interface Project {
+  projectId: string
+  projectName: string
+  parentProjectId?: string | null
+  description?: string
+  isSubproject?: boolean
+}
+
 export interface Bug {
   bugId: string
   title: string
@@ -12,6 +20,7 @@ export interface Bug {
   category: string
   platform: string
   type: string
+  projectId?: string
   assignedTo?: string
   reportedBy: string
   createdAt: string
@@ -60,6 +69,7 @@ export interface Task {
   updatedAt: string
   dueDate?: string
   projectId?: string
+  parentTaskId?: string | null
   subtasks?: Array<{
     subtaskId: string
     title: string

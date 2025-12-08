@@ -9,9 +9,11 @@ import {
 } from 'react-native'
 import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
 import { Picker } from '@react-native-picker/picker'
+import * as DocumentPicker from 'expo-document-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createTask } from '../services/taskService'
 import { getAllUsers } from '../services/userService'
+import { getUserData } from '../utils/secureStorage'
 import { get } from '../services/apiClient'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
@@ -23,7 +25,11 @@ export default function CreateTaskScreen({ navigation }: any) {
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
   const { isOffline } = useNetworkStatus()
+  const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [selectType, setSelectType] = useState('Normal')
+  const [recursiveType, setRecursiveType] = useState('Weekly') // Default if recursive
+  const [department, setDepartment] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [priority, setPriority] = useState('')
@@ -32,10 +38,24 @@ export default function CreateTaskScreen({ navigation }: any) {
   const [projectId, setProjectId] = useState('')
   const [subprojectId, setSubprojectId] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
+  const [attachedFile, setAttachedFile] = useState<any>(null)
+
+  const STATIC_PROJECTS = [
+    { projectId: 'dsn', projectName: 'dsn' },
+    { projectId: 'amtariksha', projectName: 'amtariksha' },
+    { projectId: 'task management', projectName: 'task management' },
+    { projectId: 'swarg', projectName: 'swarg' },
+    { projectId: 'other', projectName: 'other' }
+  ]
+  const STATIC_SUBPROJECTS = [
+    { projectId: 'testing', projectName: 'testing' },
+    { projectId: 'development', projectName: 'development' },
+    { projectId: 'reporting', projectName: 'reporting' }
+  ]
 
   const [users, setUsers] = useState<any[]>([])
-  const [projects, setProjects] = useState<any[]>([])
-  const [subprojects, setSubprojects] = useState<any[]>([])
+  const [projects, setProjects] = useState<any[]>(STATIC_PROJECTS)
+  const [subprojects, setSubprojects] = useState<any[]>(STATIC_SUBPROJECTS)
   const [settings, setSettings] = useState<any>({})
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -43,11 +63,11 @@ export default function CreateTaskScreen({ navigation }: any) {
   const loadInitialData = useCallback(async () => {
     try {
       // Get current user
-      const userStr = await AsyncStorage.getItem('user')
-      if (userStr) {
-        const user = JSON.parse(userStr)
+      const user = await getUserData()
+      if (user) {
         setCurrentUser(user)
         setAssignedTo(user.employeeId)
+        setDepartment(user.department || '') // Default department from user
       }
 
       // Load users
@@ -59,7 +79,14 @@ export default function CreateTaskScreen({ navigation }: any) {
       // Load projects
       const projectsResponse = await get('/api/projects?type=main')
       if (projectsResponse.success && projectsResponse.data) {
-        setProjects(projectsResponse.data)
+        // Merge with static, avoiding duplicates
+        const newProjects = [...STATIC_PROJECTS]
+        projectsResponse.data.forEach((p: any) => {
+          if (!newProjects.find(sp => sp.projectId === p.projectId)) {
+            newProjects.push(p)
+          }
+        })
+        setProjects(newProjects)
       }
 
       // Load settings
@@ -85,9 +112,11 @@ export default function CreateTaskScreen({ navigation }: any) {
   const loadSubprojects = useCallback(async (parentId: string) => {
     try {
       const response = await get(`/api/projects?parentId=${parentId}`)
+      let newSubprojects = [...STATIC_SUBPROJECTS]
       if (response.success && response.data) {
-        setSubprojects(response.data)
+        newSubprojects = [...newSubprojects, ...response.data] // Add backend ones
       }
+      setSubprojects(newSubprojects)
     } catch (error) {
       console.error('Failed to load subprojects:', error)
     }
@@ -101,7 +130,7 @@ export default function CreateTaskScreen({ navigation }: any) {
     if (projectId) {
       loadSubprojects(projectId)
     } else {
-      setSubprojects([])
+      setSubprojects(STATIC_SUBPROJECTS)
       setSubprojectId('')
     }
   }, [projectId, loadSubprojects])
@@ -126,6 +155,11 @@ export default function CreateTaskScreen({ navigation }: any) {
 
   const handleSubmit = useCallback(async () => {
     // Validation
+    if (!name.trim()) {
+      Alert.alert('Error', 'Please enter task name')
+      return
+    }
+
     if (!description.trim()) {
       Alert.alert('Error', 'Please enter task description')
       return
@@ -161,21 +195,64 @@ export default function CreateTaskScreen({ navigation }: any) {
 
       const estimatedHoursDecimal = convertTimeToHours(estimatedHours)
 
-      const taskData = {
-        selectType: 'Normal' as const,
-        description: description.trim(),
-        assignedTo,
-        assignedBy: currentUser?.employeeId || '',
-        startDate,
-        endDate,
-        priority,
-        estimatedHours: estimatedHoursDecimal,
-        projectId: projectId || undefined,
-        subprojectId: subprojectId || undefined,
-        status: status || 'Open',
+      // Prepare payload
+      let payload: any
+
+      if (attachedFile) {
+        // Use FormData for file upload
+        const formData = new FormData()
+        formData.append('name', name.trim())
+        formData.append('selectType', selectType)
+        if (selectType === 'Recursive') {
+          formData.append('recursiveType', recursiveType)
+        }
+        formData.append('department', department)
+        formData.append('description', description.trim())
+        // Fix: assignedTo must be JSON string of array for FormData parsing on backend, 
+        // OR just append multiple keys if backend supports it. 
+        // Based on "is_array" error, backend likely expects an array directly in JSON.
+        // For FormData, we usually send JSON as a string field or individual fields.
+        // Let's assume standard FormData handling:
+        formData.append('assignedTo', JSON.stringify([assignedTo]))
+        formData.append('assignedBy', currentUser?.employeeId || '')
+        formData.append('startDate', startDate)
+        formData.append('endDate', endDate)
+        formData.append('priority', priority)
+        formData.append('estimatedHours', String(estimatedHoursDecimal))
+        if (projectId) formData.append('projectId', projectId)
+        if (subprojectId) formData.append('subprojectId', subprojectId)
+        formData.append('status', status)
+
+        // Append file
+        formData.append('attachments', {
+          uri: attachedFile.uri,
+          name: attachedFile.name,
+          type: attachedFile.mimeType || 'application/octet-stream',
+        } as any)
+
+        payload = formData
+      } else {
+        // Use JSON
+        payload = {
+          taskId: '',
+          name: name.trim(),
+          selectType: selectType as 'Normal' | 'Recursive',
+          recursiveType: selectType === 'Recursive' ? recursiveType as any : undefined,
+          department: department.trim(),
+          description: description.trim(),
+          assignedTo: [assignedTo], // Fix: Send as Array
+          assignedBy: currentUser?.employeeId || '',
+          startDate,
+          endDate,
+          priority,
+          estimatedHours: estimatedHoursDecimal,
+          projectId: projectId || undefined,
+          subprojectId: subprojectId || undefined,
+          status: status || 'Open',
+        }
       }
 
-      const response = await createTask(taskData)
+      const response = await createTask(payload)
 
       if (response.success) {
         Alert.alert('Success', 'Task created successfully', [
@@ -197,6 +274,23 @@ export default function CreateTaskScreen({ navigation }: any) {
 
   const taskStatuses = useMemo(() => settings.task_statuses || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'], [settings])
   const taskPriorities = useMemo(() => settings.task_priorities || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)'], [settings])
+  const departments = ['Management', 'Marketing', 'Sales', 'Operations', 'Accounts', 'HR', 'Research']
+  const recursionFrequencies = ['Daily', 'Weekly', 'Monthly', 'Annually']
+
+  const handleFilePick = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      })
+
+      if (result.assets && result.assets.length > 0) {
+        setAttachedFile(result.assets[0])
+      }
+    } catch (err) {
+      console.warn(err)
+    }
+  }
 
   return (
     <KeyboardAvoidingView
@@ -210,6 +304,69 @@ export default function CreateTaskScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
       >
         <Surface style={styles.form} elevation={0}>
+          {/* Task Type */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Task Type</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectType}
+                onValueChange={setSelectType}
+                style={styles.picker}
+              >
+                <Picker.Item label="Normal Task" value="Normal" />
+                <Picker.Item label="Recurring Task" value="Recursive" />
+              </Picker>
+            </View>
+          </View>
+
+          {/* Recursion Type (only if Recursive) */}
+          {selectType === 'Recursive' && (
+            <View style={styles.field}>
+              <Text style={styles.label}>Frequency</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={recursiveType}
+                  onValueChange={setRecursiveType}
+                  style={styles.picker}
+                >
+                  {recursionFrequencies.map((freq) => (
+                    <Picker.Item key={freq} label={freq} value={freq} />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+          )}
+
+          {/* Department */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Department</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={department}
+                onValueChange={setDepartment}
+                style={styles.picker}
+              >
+                <Picker.Item label="Select Department" value="" />
+                {departments.map((dept) => (
+                  <Picker.Item key={dept} label={dept} value={dept} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          {/* Task Name */}
+          <TextInput
+            mode="outlined"
+            label="Task Name *"
+            placeholder="Enter task name"
+            value={name}
+            onChangeText={setName}
+            style={styles.input}
+            outlineColor={materialColors.border}
+            activeOutlineColor={materialColors.primary}
+            disabled={isOffline}
+          />
+
           {/* Description */}
           <TextInput
             mode="outlined"
@@ -228,32 +385,28 @@ export default function CreateTaskScreen({ navigation }: any) {
           {/* Project */}
           <View style={styles.field}>
             <Text style={styles.label}>Project</Text>
-            {projects.length === 0 ? (
-              <Text style={styles.helpText}>Loading projects...</Text>
-            ) : (
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={projectId}
-                  onValueChange={(value) => {
-                    console.log('Project selected:', value)
-                    setProjectId(value)
-                    setSubprojectId('')
-                  }}
-                  style={styles.picker}
-                  dropdownIconColor={materialColors.text}
-                  enabled={!isOffline}
-                >
-                  <Picker.Item label="Select Project" value="" />
-                  {projects.map((project: any) => (
-                    <Picker.Item
-                      key={project.projectId}
-                      label={project.projectName}
-                      value={project.projectId}
-                    />
-                  ))}
-                </Picker>
-              </View>
-            )}
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={projectId}
+                onValueChange={(value) => {
+                  console.log('Project selected:', value)
+                  setProjectId(value)
+                  setSubprojectId('')
+                }}
+                style={styles.picker}
+                dropdownIconColor={materialColors.text}
+                enabled={!isOffline}
+              >
+                <Picker.Item label="Select Project" value="" />
+                {projects.map((project: any) => (
+                  <Picker.Item
+                    key={project.projectId}
+                    label={project.projectName}
+                    value={project.projectId}
+                  />
+                ))}
+              </Picker>
+            </View>
           </View>
 
           {/* Subproject */}
@@ -385,6 +538,30 @@ export default function CreateTaskScreen({ navigation }: any) {
           <Text style={styles.helpText}>
             Enter time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
           </Text>
+
+          {/* File Attachment */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Attachment</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Button
+                mode="outlined"
+                onPress={handleFilePick}
+                icon="paperclip"
+              >
+                {attachedFile ? 'Change File' : 'Attach File'}
+              </Button>
+              {attachedFile && (
+                <View style={{ flex: 1 }}>
+                  <Text numberOfLines={1} style={{ color: materialColors.text }}>
+                    {attachedFile.name}
+                  </Text>
+                  <Text style={{ fontSize: 10, color: materialColors.textSecondary }}>
+                    {(attachedFile.size / 1024).toFixed(1)} KB
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>

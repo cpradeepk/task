@@ -23,12 +23,12 @@
  */
 export function getBugDisplayId(bugId: string, bugType?: string | null): string {
   if (!bugId) return ''
-  
+
   // Add FT- prefix for feature-type bugs
-  if (bugType === 'feature') {
+  if (bugType === 'feature' || bugType === 'Feature') {
     return `FT-${bugId}`
   }
-  
+
   return bugId
 }
 
@@ -36,23 +36,25 @@ export function getBugDisplayId(bugId: string, bugType?: string | null): string 
  * Check if a bug is a feature
  */
 export function isFeatureBug(bugType?: string | null): boolean {
-  return bugType === 'feature'
+  return bugType === 'feature' || bugType === 'Feature'
 }
 
 /**
  * Check if a bug is a testcase
  */
 export function isTestcaseBug(bugType?: string | null): boolean {
-  return bugType === 'testcase' || !bugType
+  return bugType === 'testcase' || bugType === 'Testcase' || !bugType
 }
 
 /**
  * Get bug type display name
  */
 export function getBugTypeDisplayName(bugType?: string | null): string {
-  if (bugType === 'feature') return 'Feature'
-  if (bugType === 'testcase') return 'Test Case'
-  return 'Test Case' // Default
+  if (bugType === 'feature' || bugType === 'Feature') return 'Feature'
+  if (bugType === 'testcase' || bugType === 'Testcase') return 'Test Case'
+  if (bugType === 'bug' || bugType === 'Bug') return 'Bug'
+  if (bugType === 'other' || bugType === 'Other') return 'Other'
+  return bugType || 'Bug'
 }
 
 /**
@@ -92,6 +94,18 @@ export function getStatusColor(status: string): string {
 }
 
 /**
+ * Get status text color
+ */
+export function getStatusTextColor(status: string): string {
+  switch (status) {
+    case 'In Progress':
+      return '#000000'
+    default:
+      return '#FFFFFF'
+  }
+}
+
+/**
  * Get priority color
  */
 export function getPriorityColor(priority: string): string {
@@ -105,6 +119,21 @@ export function getPriorityColor(priority: string): string {
     default:
       return '#6B7280'
   }
+}
+
+/**
+ * Get priority text color
+ */
+export function getPriorityTextColor(priority: string): string {
+  return '#FFFFFF'
+}
+
+/**
+ * Get severity text color
+ */
+export function getSeverityTextColor(severity: string): string {
+  if (severity === 'Minor') return '#000000'
+  return '#FFFFFF'
 }
 
 /**
@@ -164,7 +193,7 @@ export function formatTimerDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
   const secs = seconds % 60
-  
+
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
