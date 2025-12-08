@@ -758,14 +758,14 @@ export default function TasksPage() {
 
 
 
-          <div className="space-y-4">
-            {/* Row 1: Primary Filters (Project, Subproject, Assignee) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Project Filter */}
+          {/* Unified Filter Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
+            {/* Project Filter */}
+            <div className="w-full">
               <select
                 value={projectFilter}
                 onChange={(e) => setProjectFilter(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                className="w-full px-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
               >
                 <option value="all">All Projects</option>
                 {projects.map(project => (
@@ -774,13 +774,15 @@ export default function TasksPage() {
                   </option>
                 ))}
               </select>
+            </div>
 
-              {/* Subproject Filter */}
+            {/* Subproject Filter */}
+            <div className="w-full">
               <select
                 value={subprojectFilter}
                 onChange={(e) => setSubprojectFilter(e.target.value)}
                 disabled={projectFilter === 'all' || subprojects.length === 0}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="all">All Subprojects</option>
                 {subprojects.map(subproject => (
@@ -789,55 +791,63 @@ export default function TasksPage() {
                   </option>
                 ))}
               </select>
+            </div>
 
-              {/* Assignee Filter */}
+            {/* Assignee Filter */}
+            <div className="w-full relative z-30">
               <MultiSelect
-                label="Assignee"
-                placeholder="All Assignees"
+                label=""
+                placeholder="Assignee"
                 options={[
                   { value: 'me', label: 'My Tasks' },
                   ...users.map(user => ({ value: user.employeeId, label: user.name }))
                 ]}
                 selectedValues={assigneeFilter}
                 onChange={setAssigneeFilter}
+                className="[&_button]:h-[42px]"
               />
             </div>
 
-            {/* Row 2: Secondary Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Status Filter */}
+            {/* Status Filter */}
+            <div className="w-full relative z-20">
               <MultiSelect
-                label="Status"
-                placeholder="Select Statuses"
+                label=""
+                placeholder="Status"
                 options={settingsData.taskStatuses.map(s => ({ value: s.value, label: s.value }))}
                 selectedValues={statusFilter}
                 onChange={setStatusFilter}
+                className="[&_button]:h-[42px]"
               />
+            </div>
 
-              {/* Priority Filter */}
+            {/* Priority Filter */}
+            <div className="w-full relative z-10">
               <MultiSelect
-                label="Priority"
-                placeholder="Select Priorities"
+                label=""
+                placeholder="Priority"
                 options={settingsData.taskPriorities.map(p => ({ value: p.value, label: p.value }))}
                 selectedValues={priorityFilter}
                 onChange={setPriorityFilter}
+                className="[&_button]:h-[42px]"
               />
+            </div>
 
-              {/* Search */}
-              <div className="relative">
+            {/* Search */}
+            <div className="w-full relative">
+              <div className="relative h-[42px]">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <input
                   type="text"
                   placeholder="Search tasks..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full pl-10 pr-4 h-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
+            </div>
 
-
-
-              {/* Clear Filters */}
+            {/* Clear Filters */}
+            <div className="w-full">
               <button
                 onClick={() => {
                   setSearchTerm('')
@@ -847,7 +857,7 @@ export default function TasksPage() {
                   setProjectFilter('all')
                   setSubprojectFilter('all')
                 }}
-                className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium"
+                className="w-full px-4 h-[42px] border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium flex items-center justify-center whitespace-nowrap"
               >
                 Clear Filters
               </button>

@@ -67,9 +67,11 @@ export default function MultiSelect({
 
     return (
         <div className={`relative ${className}`} ref={containerRef}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-                {label}
-            </label>
+            {label && (
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {label}
+                </label>
+            )}
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
