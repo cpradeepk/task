@@ -27,6 +27,10 @@ import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { formatDateTimeIST } from '../utils/datetime'
+import UnifiedTimeline from '../components/UnifiedTimeline'
+import BugChecklistManager from '../components/BugChecklistManager'
+import RelatedItemsManager from '../components/RelatedItemsManager'
+import BugFlow from '../components/BugFlow'
 
 export default function BugDetailsScreen() {
   const route = useRoute()
@@ -363,6 +367,65 @@ export default function BugDetailsScreen() {
         <Card style={styles.sectionCard} elevation={1}>
           <Card.Content>
             <BugSubtasks bugId={bugId} editable={true} />
+          </Card.Content>
+        </Card>
+
+        {/* Bug Flow Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Bug Flow</Text>
+            <Divider style={styles.divider} />
+            <BugFlow currentStatus={bug.status} />
+          </Card.Content>
+        </Card>
+
+        {/* Activity & Comments Section (Unified Timeline) */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Activity & Comments</Text>
+            <Divider style={styles.divider} />
+            <View style={styles.timelineContainer}>
+              <UnifiedTimeline
+                entityType="bug"
+                entityId={bugId}
+                showCommentInput={true}
+              />
+            </View>
+          </Card.Content>
+        </Card>
+
+        {/* Checklists Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Checklists</Text>
+            <Divider style={styles.divider} />
+            <View style={styles.checklistContainer}>
+              <BugChecklistManager
+                bugId={bugId}
+                canEdit={!isOffline}
+              />
+            </View>
+          </Card.Content>
+        </Card>
+
+        {/* Related Items Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Related Items</Text>
+            <Divider style={styles.divider} />
+            <View style={styles.relatedItemsContainer}>
+              <RelatedItemsManager
+                itemId={bugId}
+                itemType="bug"
+                onItemPress={(item) => {
+                  if (item.type === 'task') {
+                    (navigation as any).push('TaskDetails', { taskId: item.id })
+                  } else {
+                    (navigation as any).push('BugDetails', { bugId: item.id })
+                  }
+                }}
+              />
+            </View>
           </Card.Content>
         </Card>
 
@@ -713,6 +776,18 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   saveButton: {
     flex: 1,
     borderRadius: 8,
+  },
+  timelineContainer: {
+    minHeight: 200,
+    maxHeight: 500,
+  },
+  checklistContainer: {
+    minHeight: 150,
+    maxHeight: 400,
+  },
+  relatedItemsContainer: {
+    minHeight: 150,
+    maxHeight: 400,
   },
 })
 

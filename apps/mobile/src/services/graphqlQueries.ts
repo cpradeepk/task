@@ -140,13 +140,14 @@ export const QUERIES = {
 
   // Get all bugs with optional filters
   GET_BUGS: `
-    query GetBugs($assignedTo: String, $status: String, $severity: String, $category: String) {
+    query GetBugs($assignedTo: [String], $status: [String], $severity: [String], $category: [String]) {
       bugs(assignedTo: $assignedTo, status: $status, severity: $severity, category: $category) {
         id
         bugId
         title
         description
         severity
+        priority
         status
         category
         platform

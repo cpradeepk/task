@@ -15,6 +15,9 @@ import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { formatDateTimeIST, formatDateIST } from '../utils/datetime'
+import UnifiedTimeline from '../components/UnifiedTimeline'
+import TaskChecklistManager from '../components/TaskChecklistManager'
+import RelatedItemsManager from '../components/RelatedItemsManager'
 
 export default function TaskDetailsScreen({ route, navigation }: any) {
   const { taskId } = route.params
@@ -36,6 +39,9 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
     hours: false,
     remarks: false,
     project: false,
+    activity: false,
+    checklists: false,
+    relatedItems: false,
   })
 
   // Edit form state
@@ -511,6 +517,68 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
           </List.Accordion>
         </Card>
 
+        {/* Activity & Comments Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <List.Accordion
+            title="Activity & Comments"
+            expanded={expandedSections.activity}
+            onPress={() => toggleSection('activity')}
+            titleStyle={styles.accordionTitle}
+            style={styles.accordion}
+          >
+            <View style={styles.timelineContainer}>
+              <UnifiedTimeline
+                entityType="task"
+                entityId={taskId}
+                showCommentInput={true}
+              />
+            </View>
+          </List.Accordion>
+        </Card>
+
+        {/* Checklists Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <List.Accordion
+            title="Checklists"
+            expanded={expandedSections.checklists}
+            onPress={() => toggleSection('checklists')}
+            titleStyle={styles.accordionTitle}
+            style={styles.accordion}
+          >
+            <View style={styles.checklistContainer}>
+              <TaskChecklistManager
+                taskId={taskId}
+                canEdit={!isOffline}
+              />
+            </View>
+          </List.Accordion>
+        </Card>
+
+        {/* Related Items Section */}
+        <Card style={styles.sectionCard} elevation={1}>
+          <List.Accordion
+            title="Related Items"
+            expanded={expandedSections.relatedItems}
+            onPress={() => toggleSection('relatedItems')}
+            titleStyle={styles.accordionTitle}
+            style={styles.accordion}
+          >
+            <View style={styles.relatedItemsContainer}>
+              <RelatedItemsManager
+                itemId={taskId}
+                itemType="task"
+                onItemPress={(item) => {
+                  if (item.type === 'task') {
+                    navigation.push('TaskDetails', { taskId: item.id })
+                  } else {
+                    navigation.push('BugDetails', { bugId: item.id })
+                  }
+                }}
+              />
+            </View>
+          </List.Accordion>
+        </Card>
+
         {/* Edit Mode Actions */}
         {isEditing && (
           <View style={styles.editActions}>
@@ -670,6 +738,18 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   saveButton: {
     flex: 1,
     borderRadius: 8,
+  },
+  timelineContainer: {
+    minHeight: 200,
+    maxHeight: 500,
+  },
+  checklistContainer: {
+    minHeight: 150,
+    maxHeight: 400,
+  },
+  relatedItemsContainer: {
+    minHeight: 150,
+    maxHeight: 400,
   },
 })
 

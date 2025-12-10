@@ -222,17 +222,12 @@ export default function TaskListScreen({ navigation }: any) {
         setStatusFilter(savedFilters.statusFilter || [])
         setPriorityFilter(savedFilters.priorityFilter || [])
         setAssigneeFilter(savedFilters.assigneeFilter || [])
-      } else {
-        // Default to "My Tasks" if no filters saved, matching Web App behavior
-        // We need currentUser to be loaded first
-        if (currentUser?.employeeId) {
-          setAssigneeFilter([currentUser.employeeId])
-        }
       }
+      // Default filter is now handled in a separate useEffect that waits for currentUser
     } catch (error) {
       console.error('Failed to load saved filters:', error)
     }
-  }, [currentUser])
+  }, [])
 
   const saveFilters = useCallback(async () => {
     try {
@@ -253,6 +248,15 @@ export default function TaskListScreen({ navigation }: any) {
     loadCurrentUser()
     loadSavedFilters()
   }, [loadCurrentUser, loadSavedFilters])
+
+  // Set default "My Tasks" filter after currentUser loads (if no saved filters)
+  useEffect(() => {
+    if (currentUser?.employeeId && assigneeFilter.length === 0) {
+      // Only set default if no filters are currently set
+      setAssigneeFilter([currentUser.employeeId])
+    }
+  }, [currentUser])
+
   // Refresh when screen comes into focus
   useFocusEffect(
     useCallback(() => {

@@ -152,49 +152,35 @@ export default function DashboardScreen() {
             style={styles.actionsScrollView}
             contentContainerStyle={styles.actionsScrollContent}
           >
-            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('TaskList' as never)}>
-              <Card.Content>
-                <Text style={styles.actionTitle}>📋 Tasks</Text>
-                <Text style={styles.actionDescription}>View and manage tasks</Text>
-              </Card.Content>
-            </Card>
-
-            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('CreateTask' as never)}>
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => (navigation as any).navigate('CreateTask')}>
               <Card.Content>
                 <Text style={styles.actionTitle}>➕ Create Task</Text>
                 <Text style={styles.actionDescription}>Create a new task</Text>
               </Card.Content>
             </Card>
 
-            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('BugList' as never)}>
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => (navigation as any).navigate('CreateBug')}>
               <Card.Content>
-                <Text style={styles.actionTitle}>🐛 Bugs</Text>
-                <Text style={styles.actionDescription}>View and manage bugs</Text>
+                <Text style={styles.actionTitle}>🐛 Report Bug</Text>
+                <Text style={styles.actionDescription}>Report a new bug</Text>
               </Card.Content>
             </Card>
 
-            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('CreateBug' as never)}>
-              <Card.Content>
-                <Text style={styles.actionTitle}>➕ Report Bug</Text>
-                <Text style={styles.actionDescription}>Create a new bug report</Text>
-              </Card.Content>
-            </Card>
-
-            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('Feed' as never)}>
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => (navigation as any).navigate('Feed')}>
               <Card.Content>
                 <Text style={styles.actionTitle}>📰 Feed</Text>
                 <Text style={styles.actionDescription}>View team feed and updates</Text>
               </Card.Content>
             </Card>
 
-            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('LeaveList' as never)}>
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => (navigation as any).navigate('LeaveList')}>
               <Card.Content>
                 <Text style={styles.actionTitle}>🏖️ Leave</Text>
                 <Text style={styles.actionDescription}>Apply for leave</Text>
               </Card.Content>
             </Card>
 
-            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => navigation.navigate('WFHList' as never)}>
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => (navigation as any).navigate('WFHList')}>
               <Card.Content>
                 <Text style={styles.actionTitle}>🏠 WFH</Text>
                 <Text style={styles.actionDescription}>Work from home requests</Text>

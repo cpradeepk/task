@@ -51,6 +51,7 @@ export default function CreateBugScreen() {
   const [stepsToReproduce, setStepsToReproduce] = useState('')
   const [expectedBehavior, setExpectedBehavior] = useState('')
   const [actualBehavior, setActualBehavior] = useState('')
+  const [behaviour, setBehaviour] = useState('') // For feature type
   const [serverLogs, setServerLogs] = useState('')
   const [frontendLogs, setFrontendLogs] = useState('')
 
@@ -172,8 +173,14 @@ export default function CreateBugScreen() {
       // Construct detailed description
       let fullDescription = description.trim()
 
+      // For features, include behaviour field
+      if (bugType === 'feature' && behaviour.trim()) {
+        fullDescription += `\n\n## Behaviour\n${behaviour.trim()}`
+      }
+
       if (stepsToReproduce.trim()) {
-        fullDescription += `\n\n## Steps to Reproduce\n${stepsToReproduce.trim()}`
+        const label = bugType === 'feature' ? 'Feature Description' : 'Steps to Reproduce'
+        fullDescription += `\n\n## ${label}\n${stepsToReproduce.trim()}`
       }
       if (expectedBehavior.trim()) {
         fullDescription += `\n\n## Expected Behavior\n${expectedBehavior.trim()}`
@@ -380,41 +387,72 @@ export default function CreateBugScreen() {
 
           <Text style={styles.sectionHeader}>Reproduction & Behavior</Text>
 
-          <TextInput
-            mode="outlined"
-            label="Steps to Reproduce"
-            value={stepsToReproduce}
-            onChangeText={setStepsToReproduce}
-            placeholder="1. Go to page... 2. Click button..."
-            multiline
-            numberOfLines={3}
-            style={styles.input}
-            disabled={isOffline}
-          />
+          {/* Conditional rendering based on bug type */}
+          {bugType === 'feature' ? (
+            <>
+              <TextInput
+                mode="outlined"
+                label="Feature Description *"
+                value={stepsToReproduce}
+                onChangeText={setStepsToReproduce}
+                placeholder="Describe the feature in detail..."
+                multiline
+                numberOfLines={4}
+                style={styles.input}
+                disabled={isOffline}
+              />
 
-          <TextInput
-            mode="outlined"
-            label="Expected Behavior"
-            value={expectedBehavior}
-            onChangeText={setExpectedBehavior}
-            placeholder="What should happen?"
-            multiline
-            numberOfLines={2}
-            style={styles.input}
-            disabled={isOffline}
-          />
+              <TextInput
+                mode="outlined"
+                label="Behaviour"
+                value={behaviour}
+                onChangeText={setBehaviour}
+                placeholder="Describe the expected behaviour of this feature..."
+                multiline
+                numberOfLines={3}
+                style={styles.input}
+                disabled={isOffline}
+              />
+            </>
+          ) : (
+            <>
+              <TextInput
+                mode="outlined"
+                label="Steps to Reproduce"
+                value={stepsToReproduce}
+                onChangeText={setStepsToReproduce}
+                placeholder="1. Go to page... 2. Click button..."
+                multiline
+                numberOfLines={3}
+                style={styles.input}
+                disabled={isOffline}
+              />
 
-          <TextInput
-            mode="outlined"
-            label="Actual Behavior"
-            value={actualBehavior}
-            onChangeText={setActualBehavior}
-            placeholder="What actually happened?"
-            multiline
-            numberOfLines={2}
-            style={styles.input}
-            disabled={isOffline}
-          />
+              <TextInput
+                mode="outlined"
+                label="Expected Behavior"
+                value={expectedBehavior}
+                onChangeText={setExpectedBehavior}
+                placeholder="What should happen?"
+                multiline
+                numberOfLines={2}
+                style={styles.input}
+                disabled={isOffline}
+              />
+
+              <TextInput
+                mode="outlined"
+                label="Actual Behavior"
+                value={actualBehavior}
+                onChangeText={setActualBehavior}
+                placeholder="What actually happened?"
+                multiline
+                numberOfLines={2}
+                style={styles.input}
+                disabled={isOffline}
+              />
+            </>
+          )}
 
           <TextInput
             mode="outlined"
@@ -497,13 +535,11 @@ export default function CreateBugScreen() {
                 style={styles.picker}
               >
                 <Picker.Item label="Select Criticality" value="" />
-                {(settings['Bug Severity'] || [{ id: 'def1', value: 'Critical' }, { id: 'def2', value: 'High' }, { id: 'def3', value: 'Medium' }, { id: 'def4', value: 'Low' }]).map((setting: any) => (
-                  <Picker.Item
-                    key={setting.id}
-                    label={setting.value}
-                    value={setting.value}
-                  />
-                ))}
+                <Picker.Item label="Blocker" value="Blocker" />
+                <Picker.Item label="Critical" value="Critical" />
+                <Picker.Item label="Major" value="Major" />
+                <Picker.Item label="Minor" value="Minor" />
+                <Picker.Item label="Cosmetic" value="Cosmetic" />
               </Picker>
             </View>
           </View>
@@ -520,13 +556,11 @@ export default function CreateBugScreen() {
                 style={styles.picker}
               >
                 <Picker.Item label="Select Category" value="" />
-                {(settings['Bug Category'] || [{ id: 'c1', value: 'UI' }, { id: 'c2', value: 'Functionality' }, { id: 'c3', value: 'Performance' }, { id: 'c4', value: 'Security' }, { id: 'c5', value: 'Other' }]).map((setting: any) => (
-                  <Picker.Item
-                    key={setting.id}
-                    label={setting.value}
-                    value={setting.value}
-                  />
-                ))}
+                <Picker.Item label="Frontend-Customer" value="Frontend-Customer" />
+                <Picker.Item label="Frontend-Web" value="Frontend-Web" />
+                <Picker.Item label="Frontend-Admin" value="Frontend-Admin" />
+                <Picker.Item label="Backend" value="Backend" />
+                <Picker.Item label="Frontend-Delivery" value="Frontend-Delivery" />
               </Picker>
             </View>
           </View>

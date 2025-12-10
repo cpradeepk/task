@@ -121,24 +121,55 @@ export default function BugListScreen() {
   const typeOptionsRaw = typeSetting && Array.isArray(typeSetting.value) ? typeSetting.value : ['bug', 'feature', 'testcase', 'other']
   const typeOptions = ['All', ...typeOptionsRaw]
 
-  // GraphQL query for bugs
-  const { data, loading, error, refetch } = useQuery(GET_BUGS, {
-    fetchPolicy: 'cache-and-network',
-    variables: {
-      search: searchQuery || undefined,
-      status: statusFilter.length > 0 ? statusFilter : undefined,
-      severity: severityFilter.length > 0 ? severityFilter : undefined,
-      category: categoryFilter.length > 0 ? categoryFilter : undefined,
-      type: typeFilter.length > 0 ? typeFilter : undefined,
-      projectId: projectId || undefined,
-      subprojectId: subprojectId || undefined,
-      assignedTo: assigneeFilter.length > 0 ? assigneeFilter : undefined,
-      limit: 20,
-      offset: 0,
-    },
-  })
+  // Use REST API instead of GraphQL to avoid schema mismatch issues
+  const [bugs, setBugs] = useState<Bug[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<any>(null)
 
-  const bugs = (data as any)?.bugs || []
+  const fetchBugs = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Build query parameters
+      const params = new URLSearchParams()
+      if (searchQuery) params.append('search', searchQuery)
+      if (statusFilter.length > 0) statusFilter.forEach(s => params.append('status', s))
+      if (severityFilter.length > 0) severityFilter.forEach(s => params.append('severity', s))
+      if (categoryFilter.length > 0) categoryFilter.forEach(c => params.append('category', c))
+      if (typeFilter.length > 0) typeFilter.forEach(t => params.append('type', t))
+      if (projectId) params.append('projectId', projectId)
+      if (subprojectId) params.append('subprojectId', subprojectId)
+      if (assigneeFilter.length > 0) assigneeFilter.forEach(a => params.append('assignedTo', a))
+
+      const response = await fetch(`https://task.amtariksha.com/api/bugs?${params.toString()}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const result = await response.json()
+      if (result.success && result.data) {
+        setBugs(Array.isArray(result.data) ? result.data : [])
+      } else {
+        setBugs([])
+      }
+    } catch (err) {
+      console.error('Failed to fetch bugs:', err)
+      setError(err)
+      setBugs([])
+    } finally {
+      setLoading(false)
+    }
+  }, [searchQuery, statusFilter, severityFilter, categoryFilter, typeFilter, projectId, subprojectId, assigneeFilter])
+
+  useEffect(() => {
+    fetchBugs()
+  }, [fetchBugs])
+
+  const refetch = useCallback(() => {
+    fetchBugs()
+  }, [fetchBugs])
 
   const loadSavedFilters = useCallback(async () => {
     try {
@@ -168,6 +199,16 @@ export default function BugListScreen() {
     }
   }, [searchQuery, statusFilter, typeFilter, projectId])
 
+  // Load saved filters on mount
+  useEffect(() => {
+    loadSavedFilters()
+  }, [loadSavedFilters])
+
+  // Apply filters whenever bugs or filters change
+  useEffect(() => {
+    filterBugs()
+  }, [bugs, searchQuery])
+
   const filterBugs = useCallback(() => {
     let filtered = bugs
 
@@ -175,12 +216,12 @@ export default function BugListScreen() {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
         (bug: Bug) =>
-          bug.title.toLowerCase().includes(query) ||
-          bug.bugId.toLowerCase().includes(query)
+          bug.title?.toLowerCase().includes(query) ||
+          bug.bugId?.toLowerCase().includes(query) ||
+          bug.description?.toLowerCase().includes(query)
       )
     }
 
-    // Client-side filtering removed as backend now supports multi-select for type/category
     setFilteredBugs(filtered)
   }, [bugs, searchQuery])
 
@@ -239,7 +280,7 @@ export default function BugListScreen() {
     const displayId = getBugDisplayId(item.bugId, item.type)
 
     return (
-      <Card style={styles.card} elevation={1} onPress={() => navigation.navigate('BugDetails' as never, { bugId: item.bugId } as never)}>
+      <Card style={styles.card} elevation={1} onPress={() => (navigation as any).navigate('BugDetails', { bugId: item.bugId })}>
         <Card.Content>
           <View style={styles.headerRow}>
             <Text style={styles.bugId}>{displayId}</Text>
@@ -269,7 +310,7 @@ export default function BugListScreen() {
     )
   }
 
-  if (loading && !data) {
+  if (loading && bugs.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={materialColors.primary} />

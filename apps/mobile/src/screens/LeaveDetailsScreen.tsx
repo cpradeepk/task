@@ -73,18 +73,33 @@ export default function LeaveDetailsScreen() {
   const fetchLeaveDetails = useCallback(async () => {
     try {
       setLoading(true)
+      console.log('Fetching leave details for ID:', leaveId)
+
       const response = await fetch(`https://task.amtariksha.com/api/leaves/${leaveId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
 
-      const result = await response.json()
-      if (result.success) {
-        setLeave(result.data)
+      console.log('Leave API response status:', response.status)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-    } catch (error) {
+
+      const result = await response.json()
+      console.log('Leave API result:', JSON.stringify(result, null, 2))
+
+      if (result.success && result.data) {
+        setLeave(result.data)
+      } else {
+        const errorMsg = result.error || result.message || 'Failed to load leave details'
+        console.error('Leave API error:', errorMsg)
+        Alert.alert('Error', errorMsg)
+      }
+    } catch (error: any) {
       console.error('Failed to fetch leave details:', error)
-      Alert.alert('Error', 'Failed to load leave details')
+      const errorMessage = error.message || 'Failed to load leave details. Please check your connection and try again.'
+      Alert.alert('Error', errorMessage)
     } finally {
       setLoading(false)
     }

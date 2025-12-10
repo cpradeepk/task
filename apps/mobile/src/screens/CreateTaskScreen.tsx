@@ -38,6 +38,7 @@ export default function CreateTaskScreen({ navigation }: any) {
   const [projectId, setProjectId] = useState('')
   const [subprojectId, setSubprojectId] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
+  const [support, setSupport] = useState<string[]>([]) // Support team members
   const [attachedFile, setAttachedFile] = useState<any>(null)
 
   const STATIC_PROJECTS = [
@@ -242,6 +243,7 @@ export default function CreateTaskScreen({ navigation }: any) {
           description: description.trim(),
           assignedTo: [assignedTo], // Fix: Send as Array
           assignedBy: currentUser?.employeeId || '',
+          support: support.length > 0 ? support : undefined, // Add support team
           startDate,
           endDate,
           priority,
@@ -497,6 +499,38 @@ export default function CreateTaskScreen({ navigation }: any) {
             </View>
           </View>
 
+          {/* Support Team */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Support Team (Optional)</Text>
+            <Text style={styles.helpText}>
+              Select support team members who will assist with this task
+            </Text>
+            {users.filter(u => u.employeeId !== assignedTo).map((user: any) => (
+              <View key={user.employeeId} style={styles.checkboxRow}>
+                <Button
+                  mode={support.includes(user.employeeId) ? 'contained' : 'outlined'}
+                  onPress={() => {
+                    if (support.includes(user.employeeId)) {
+                      setSupport(support.filter(id => id !== user.employeeId))
+                    } else {
+                      setSupport([...support, user.employeeId])
+                    }
+                  }}
+                  compact
+                  style={styles.checkboxButton}
+                  labelStyle={styles.checkboxLabel}
+                >
+                  {user.name}
+                </Button>
+              </View>
+            ))}
+            {support.length > 0 && (
+              <Text style={styles.selectedText}>
+                Selected: {support.map(id => users.find(u => u.employeeId === id)?.name).join(', ')}
+              </Text>
+            )}
+          </View>
+
           {/* Start Date */}
           <TextInput
             mode="outlined"
@@ -643,6 +677,21 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   submitButton: {
     flex: 1,
     marginTop: 0,
+  },
+  checkboxRow: {
+    marginBottom: materialSpacing.xs,
+  },
+  checkboxButton: {
+    justifyContent: 'flex-start',
+  },
+  checkboxLabel: {
+    fontSize: 14,
+  },
+  selectedText: {
+    ...materialTypography.bodySmall,
+    color: materialColors.primary,
+    marginTop: materialSpacing.sm,
+    fontWeight: '600',
   },
 })
 
