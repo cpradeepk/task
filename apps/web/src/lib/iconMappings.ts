@@ -151,6 +151,7 @@ export function getIconForSettingValueSync(
     bug_types: {
       'testcase': '🧪',
       'feature': '✨',
+      'bug': '🐛',
       'other': '📋'
     },
     task_statuses: {
@@ -221,6 +222,7 @@ export function getIconsForSettingSync(settingKey: string): Record<string, strin
     bug_types: {
       'testcase': '🧪',
       'feature': '✨',
+      'bug': '🐛',
       'other': '📋'
     },
     task_statuses: {

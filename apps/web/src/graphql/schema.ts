@@ -129,6 +129,13 @@ export const typeDefs = `#graphql
     type: String
     feature: String
     environment: String
+    expectedBehavior: String
+    actualBehavior: String
+    serverLogs: String
+    frontendLogs: String
+    browserInfo: String
+    deviceInfo: String
+    developmentPrompt: String
     bugType: String
     criticality: String
     parentDevId: String

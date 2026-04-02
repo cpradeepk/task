@@ -72,6 +72,10 @@ function CreateBugPageContent() {
   // Load icons from settings metadata
   const { getIcon, isLoading: isLoadingIcons } = useSettingsIcons()
 
+  // Track if we're converting from a test case
+  const [convertFromId, setConvertFromId] = useState<string | null>(null)
+  const [convertLoaded, setConvertLoaded] = useState(false)
+
   // Handle hydration, get current user, and read parent bug ID from URL
   useEffect(() => {
     setIsHydrated(true)
@@ -83,7 +87,43 @@ function CreateBugPageContent() {
     if (parentDevId) {
       setFormData(prev => ({ ...prev, parentDevId }))
     }
-  }, [searchParams])
+
+    // Check for convertFrom (test case → bug conversion)
+    const convertFrom = searchParams.get('convertFrom')
+    if (convertFrom && !convertLoaded) {
+      setConvertFromId(convertFrom)
+      // Fetch the source test case and pre-fill the form
+      fetch(`/api/bugs/${convertFrom}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.success && result.data) {
+            const source = result.data
+            setFormData(prev => ({
+              ...prev,
+              type: 'bug',
+              title: source.title || prev.title,
+              description: source.description || prev.description,
+              expectedBehavior: source.expectedBehavior || prev.expectedBehavior,
+              actualBehavior: source.actualBehavior || prev.actualBehavior,
+              serverLogs: source.serverLogs || prev.serverLogs,
+              frontendLogs: source.frontendLogs || prev.frontendLogs,
+              severity: source.severity || prev.severity,
+              priority: source.priority || prev.priority,
+              category: source.category || prev.category,
+              platform: source.platform || prev.platform,
+              environment: source.environment || prev.environment,
+              projectId: source.projectId || prev.projectId,
+              subprojectId: source.subprojectId || prev.subprojectId,
+              feature: source.feature || prev.feature,
+              relatedBugs: convertFrom,
+              tags: source.tags || prev.tags,
+            }))
+            setConvertLoaded(true)
+          }
+        })
+        .catch(err => console.error('Failed to load source test case:', err))
+    }
+  }, [searchParams, convertLoaded])
 
   const loadUsers = useCallback(async () => {
     if (usersLoaded) return
@@ -126,7 +166,7 @@ function CreateBugPageContent() {
         setCategoryOptions(grouped.category && grouped.category.length > 0 ? grouped.category : ['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
         setPlatformOptions(grouped.platform && grouped.platform.length > 0 ? grouped.platform : ['Web', 'iOS', 'Android', 'All'])
         setEnvironmentOptions(grouped.environment && grouped.environment.length > 0 ? grouped.environment : ['Development', 'Staging', 'UAT', 'Production'])
-        setBugTypeOptions(grouped.bug_type && grouped.bug_type.length > 0 ? grouped.bug_type : ['testcase', 'feature', 'other'])
+        setBugTypeOptions(grouped.bug_type && grouped.bug_type.length > 0 ? grouped.bug_type : ['testcase', 'feature', 'bug', 'other'])
 
         console.log('Settings loaded successfully:', grouped)
       } else {
@@ -393,19 +433,31 @@ function CreateBugPageContent() {
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">Before reporting a bug:</p>
-                <ul className="list-disc list-inside space-y-1 text-blue-700">
-                  <li>Check if this issue has already been reported</li>
-                  <li>Provide as much detail as possible to help us reproduce the issue</li>
-                  <li>Include screenshots or videos if they help explain the problem</li>
-                </ul>
+          {convertFromId ? (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-orange-800">
+                  <p className="font-medium mb-1">Converting test case {convertFromId} to a bug</p>
+                  <p className="text-orange-700">Fields have been pre-filled from the test case. Edit as needed and submit to create a new bug linked to the original test case.</p>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Before reporting a bug:</p>
+                  <ul className="list-disc list-inside space-y-1 text-blue-700">
+                    <li>Check if this issue has already been reported</li>
+                    <li>Provide as much detail as possible to help us reproduce the issue</li>
+                    <li>Include screenshots or videos if they help explain the problem</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">

@@ -285,6 +285,14 @@ export const QUERIES = {
         platform
         type
         feature
+        environment
+        expectedBehavior
+        actualBehavior
+        serverLogs
+        frontendLogs
+        browserInfo
+        deviceInfo
+        developmentPrompt
         assignedTo
         assignedBy
         reportedBy
@@ -366,6 +374,13 @@ export const QUERIES = {
         type
         feature
         environment
+        expectedBehavior
+        actualBehavior
+        serverLogs
+        frontendLogs
+        browserInfo
+        deviceInfo
+        developmentPrompt
         bugType
         criticality
         createdAt

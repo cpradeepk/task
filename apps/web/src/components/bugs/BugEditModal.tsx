@@ -38,7 +38,7 @@ export default function BugEditModal({ bug, isOpen, onClose, onUpdate }: BugEdit
   const categoryOptions = settings?.category || ['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other']
   const platformOptions = settings?.platform || ['Web', 'iOS', 'Android', 'All']
   const environmentOptions = settings?.environment || ['Development', 'Staging', 'UAT', 'Production']
-  const bugTypeOptions = settings?.bug_type || ['testcase', 'feature', 'other']
+  const bugTypeOptions = settings?.bug_type || ['testcase', 'feature', 'bug', 'other']
 
   // Load users
   useEffect(() => {

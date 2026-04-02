@@ -253,6 +253,13 @@ export const GET_BUG = gql`
       type
       feature
       environment
+      expectedBehavior
+      actualBehavior
+      serverLogs
+      frontendLogs
+      browserInfo
+      deviceInfo
+      developmentPrompt
       bugType
       criticality
       createdAt

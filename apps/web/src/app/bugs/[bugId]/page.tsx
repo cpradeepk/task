@@ -48,7 +48,8 @@ import {
   Pencil,
   ChevronDown,
   ChevronUp,
-  Calendar
+  Calendar,
+  Copy
 } from 'lucide-react'
 
 // Helper function to safely format dates in dd-mm-yyyy format
@@ -983,6 +984,24 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
           </div>
 
           <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+            {bug.type === 'testcase' && (
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams({
+                    convertFrom: bug.bugId,
+                    type: 'bug',
+                    title: bug.title || '',
+                    projectId: bug.projectId || '',
+                    subprojectId: bug.subprojectId || '',
+                  })
+                  router.push(`/bugs/create?${params.toString()}`)
+                }}
+                className="inline-flex items-center px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-medium rounded-lg shadow-sm hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                <span>Convert to Bug</span>
+              </button>
+            )}
             {bug.status === 'Resolved' && canEdit && (
               <button
                 onClick={() => handleStatusChange('Closed')}
