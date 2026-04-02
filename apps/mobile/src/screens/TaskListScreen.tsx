@@ -25,6 +25,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { useQuery } from '@apollo/client/react'
 import { GET_TASKS, GET_PROJECTS, GET_USERS, GET_SETTINGS } from '../config/graphql-queries'
 import { FilterHeader, FilterSection, FilterSearch } from '../components/FilterComponents'
+import { ListSkeleton } from '../components/SkeletonLoaders'
 import { Task, Project } from '../types'
 import { formatDateIST } from '../utils/datetime'
 import { getUserData, save, get, STORAGE_KEYS } from '../utils/secureStorage'
@@ -388,7 +389,7 @@ export default function TaskListScreen({ navigation }: any) {
   }
 
   // Loading/Error views
-  if (loading && !tasks.length) return <View style={styles.centerContainer}><ActivityIndicator size="large" color={materialColors.primary} /><Text style={styles.loadingText}>Loading tasks...</Text></View>
+  if (loading && !tasks.length) return <ListSkeleton count={6} />
   if (error && !tasks.length) return <View style={styles.centerContainer}><Text style={styles.errorText}>Failed to load tasks</Text><PaperButton mode="contained" onPress={onRefresh}>Retry</PaperButton></View>
 
   // Look up Project Name for display

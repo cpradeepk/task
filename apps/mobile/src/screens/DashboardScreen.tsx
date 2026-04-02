@@ -6,6 +6,7 @@ import {
   RefreshControl,
 } from 'react-native'
 import { Card, Text, ActivityIndicator, IconButton, Surface } from 'react-native-paper'
+import { DashboardSkeleton } from '../components/SkeletonLoaders'
 import { useNavigation } from '@react-navigation/native'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { useTheme } from '../contexts/ThemeContext'
@@ -72,12 +73,7 @@ export default function DashboardScreen() {
   }, [loadData])
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading dashboard...</Text>
-      </View>
-    )
+    return <DashboardSkeleton />
   }
 
   return (

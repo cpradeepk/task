@@ -30,6 +30,7 @@ import { getBugDisplayId, getSeverityColor, getStatusColor, getStatusTextColor }
 import { formatDateIST } from '../utils/datetime'
 import { save, get, getUserData, STORAGE_KEYS } from '../utils/secureStorage'
 import { FilterHeader, FilterSection, FilterSearch, FilterToggle } from '../components/FilterComponents'
+import { ListSkeleton } from '../components/SkeletonLoaders'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
@@ -311,12 +312,7 @@ export default function BugListScreen() {
   }
 
   if (loading && bugs.length === 0) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={materialColors.primary} />
-        <Text style={styles.loadingText}>Loading bugs...</Text>
-      </View>
-    )
+    return <ListSkeleton count={6} />
   }
 
   if (error) {

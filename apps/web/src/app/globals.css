@@ -203,19 +203,55 @@
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 255, 255, 255;
   --primary-rgb: 255, 163, 1;
+
+  /* Brand color tokens */
+  --color-brand: #FFA301;
+  --color-brand-dark: #CC8200;
+  --color-brand-light: #FFCA1A;
+  --color-brand-50: #FFF8E6;
+  --color-brand-100: #FFECB3;
+
+  /* Semantic tokens (light) */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #F8F8F8;
+  --color-text: #000000;
+  --color-text-secondary: #606060;
+  --color-text-muted: #A0A0A0;
+  --color-surface: #ffffff;
+  --color-border: #E8E8E8;
+  --color-border-light: #F0F0F0;
+}
+
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 17, 24, 39;
+  --primary-rgb: 255, 186, 59;
+
+  --color-brand: #FFBA3B;
+  --color-brand-dark: #E6920E;
+  --color-brand-light: #FFA301;
+  --color-brand-50: #3D2800;
+  --color-brand-100: #5C3D00;
+
+  --color-bg: #111827;
+  --color-bg-secondary: #1F2937;
+  --color-text: #F9FAFB;
+  --color-text-secondary: #D1D5DB;
+  --color-text-muted: #9CA3AF;
+  --color-surface: #1F2937;
+  --color-border: #374151;
+  --color-border-light: #4B5563;
 }
 
 html {
   scroll-behavior: smooth;
-  /* Prevent horizontal scroll on mobile */
   overflow-x: hidden;
 }
 
 body {
-  color: #000000;
-  background: #ffffff;
+  color: var(--color-text);
+  background: var(--color-bg);
   font-family: "Signika", sans-serif;
-  /* Prevent horizontal scroll on mobile */
   overflow-x: hidden;
   width: 100%;
   position: relative;
@@ -225,8 +261,15 @@ body {
   * {
     @apply border-gray-200;
   }
+  .dark * {
+    border-color: var(--color-border);
+  }
   body {
     @apply bg-white text-black;
+  }
+  .dark body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
   }
 }
 

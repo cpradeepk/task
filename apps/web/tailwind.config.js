@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -21,6 +22,16 @@ module.exports = {
           800: '#B37200',
           900: '#996200',
         },
+        // Semantic tokens using CSS vars (dark mode aware)
+        brand: 'var(--color-brand)',
+        'brand-dark': 'var(--color-brand-dark)',
+        'brand-light': 'var(--color-brand-light)',
+        'bg-primary': 'var(--color-bg)',
+        'bg-secondary': 'var(--color-bg-secondary)',
+        'text-primary': 'var(--color-text)',
+        'text-secondary': 'var(--color-text-secondary)',
+        'surface': 'var(--color-surface)',
+        'border-primary': 'var(--color-border)',
         black: '#000000',
         white: '#FFFFFF',
         gray: {

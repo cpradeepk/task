@@ -134,6 +134,9 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      {/* Gradient accent bar at top */}
+      <View style={styles.gradientBar} />
+
       <View style={styles.content}>
         <Animated.View
           style={[
@@ -144,12 +147,14 @@ export default function LoginScreen() {
             },
           ]}
         >
-          {/* Header */}
+          {/* Header with actual logo */}
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <View style={styles.logoTextContainer}>
-                <Text style={styles.logoText}>AMTARIKSHA</Text>
-              </View>
+              <Image
+                source={require('../../assets/amtariksha_logo.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.title}>JSR Task Management</Text>
             <Text style={styles.subtitle}>Sign in to continue</Text>
@@ -248,6 +253,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: materialColors.background,
   },
+  gradientBar: {
+    height: 4,
+    backgroundColor: materialColors.primary,
+  },
   content: {
     flex: 1,
     justifyContent: 'center',
@@ -264,30 +273,11 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginBottom: materialSpacing.lg,
-    backgroundColor: '#FFFFFF',
-    padding: materialSpacing.lg,
-    borderRadius: 12,
-    borderWidth: 3,
-    borderColor: materialColors.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logoTextContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: materialColors.primary,
-    letterSpacing: 2,
+    paddingVertical: materialSpacing.md,
   },
   logo: {
-    width: 320,
-    height: 80,
+    width: 280,
+    height: 70,
   },
   title: {
     ...materialTypography.headlineLarge,

@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { View, TouchableOpacity, StyleSheet, Dimensions, Platform, Text } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
@@ -13,6 +13,7 @@ import Animated, {
     runOnJS,
 } from 'react-native-reanimated';
 import { useTabBar } from '../context/TabBarContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 // Configuration
@@ -30,9 +31,21 @@ const SHADOW_STYLES = Platform.select({
     android: { elevation: 8 },
 });
 
+// Tab labels for accessibility
+const TAB_LABELS = ['Feed', 'Tasks', 'Home', 'Dev', 'Menu'];
+
 export default function AnimatedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const { isTabBarHidden, showTabBar } = useTabBar();
+    const { colors, isDark } = useTheme();
     const activeIndex = state.index;
+
+    // Theme-aware colors
+    const activeColor = colors.primary;
+    const inactiveColor = isDark ? '#8B95A3' : '#748c94';
+    const bgColor = isDark ? '#1F2937' : '#fff';
+    const indicatorBg = isDark
+        ? 'rgba(255, 186, 59, 0.2)'
+        : 'rgba(255, 163, 1, 0.15)';
 
     // We assume 5 tabs: [0, 1] [2-Home] [3, 4]
     // Left Group: 0, 1
@@ -51,6 +64,7 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: Botto
         const route = state.routes[index];
         const { options } = descriptors[route.key];
         const isFocused = state.index === index;
+        const label = TAB_LABELS[index] || '';
 
         const onPress = () => {
             const event = navigation.emit({
@@ -69,12 +83,21 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: Botto
                 onPress={onPress}
                 style={styles.tabItem}
                 activeOpacity={0.7}
+                accessibilityLabel={label}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isFocused }}
             >
                 {options.tabBarIcon?.({
                     focused: isFocused,
-                    color: isFocused ? '#FF5722' : '#748c94',
-                    size: 24
+                    color: isFocused ? activeColor : inactiveColor,
+                    size: 22
                 })}
+                <Text style={{
+                    fontSize: 9,
+                    marginTop: 2,
+                    fontWeight: isFocused ? '600' : '400',
+                    color: isFocused ? activeColor : inactiveColor,
+                }}>{label}</Text>
             </TouchableOpacity>
         );
     };
@@ -185,9 +208,9 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: Botto
             <View style={styles.barWrapper} pointerEvents="box-none">
 
                 {/* LEFT HALF */}
-                <Animated.View style={[styles.halfContainer, styles.leftContainer, leftHalfStyle]}>
+                <Animated.View style={[styles.halfContainer, styles.leftContainer, { backgroundColor: bgColor }, leftHalfStyle]}>
                     {/* Active Indicator (Left) */}
-                    <Animated.View style={[styles.activeIndicator, leftIndicatorStyle]} />
+                    <Animated.View style={[styles.activeIndicator, { backgroundColor: indicatorBg }, leftIndicatorStyle]} />
 
                     <View style={styles.tabsRow}>
                         {renderTab(0)}
@@ -213,15 +236,15 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: Botto
                 </Animated.View>
 
                 {/* CENTER HOME BUTTON */}
-                <Animated.View style={[styles.centerContainer, centerStyle]}>
-                    <Animated.View style={[styles.activeIndicator, { width: '100%' }, centerIndicatorStyle]} />
+                <Animated.View style={[styles.centerContainer, { backgroundColor: bgColor }, centerStyle]}>
+                    <Animated.View style={[styles.activeIndicator, { width: '100%', backgroundColor: indicatorBg }, centerIndicatorStyle]} />
                     {renderTab(2)}
                 </Animated.View>
 
                 {/* RIGHT HALF */}
-                <Animated.View style={[styles.halfContainer, styles.rightContainer, rightHalfStyle]}>
+                <Animated.View style={[styles.halfContainer, styles.rightContainer, { backgroundColor: bgColor }, rightHalfStyle]}>
                     {/* Active Indicator (Right) */}
-                    <Animated.View style={[styles.activeIndicator, rightIndicatorStyle]} />
+                    <Animated.View style={[styles.activeIndicator, { backgroundColor: indicatorBg }, rightIndicatorStyle]} />
 
                     <View style={styles.tabsRow}>
                         {renderTab(3)}
@@ -270,7 +293,6 @@ const styles = StyleSheet.create({
     halfContainer: {
         height: TAB_HEIGHT,
         width: TAB_ITEM_WIDTH * 2,
-        backgroundColor: '#fff',
         borderRadius: 30,
         overflow: 'hidden',
         ...SHADOW_STYLES,
@@ -285,10 +307,9 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 10,
     },
     centerContainer: {
-        width: TAB_ITEM_WIDTH, // Match other items
+        width: TAB_ITEM_WIDTH,
         height: TAB_HEIGHT,
-        borderRadius: 20, // Match indicator radius
-        backgroundColor: '#fff',
+        borderRadius: 20,
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 10,
@@ -308,7 +329,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: TAB_ITEM_WIDTH,
         height: TAB_HEIGHT,
-        backgroundColor: 'rgba(255, 87, 34, 0.15)', // Light Orange pill
         borderRadius: 20,
     },
 });

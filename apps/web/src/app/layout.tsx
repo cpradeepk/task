@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { LoadingProvider } from '@/contexts/LoadingContext'
 import { SettingsProvider } from '@/contexts/SettingsContext'
@@ -7,8 +6,6 @@ import PageTransition from '@/components/layout/PageTransition'
 import ChunkErrorBoundary from '@/components/error/ChunkErrorBoundary'
 import TimerProvider from '@/components/TimerProvider'
 import ApolloWrapper from '@/components/providers/ApolloWrapper'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Amtariksha - Task Management System',
@@ -46,7 +43,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className={inter.className}>
+      <body className="font-sans antialiased">
         <ChunkErrorBoundary>
           <LoadingProvider>
             <SettingsProvider>

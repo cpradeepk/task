@@ -52,15 +52,15 @@ export const materialColors = {
   shadow: '#000000',
 }
 
-// Dark mode colors
+// Dark mode colors — orange stays primary (lighter tint for dark surfaces)
 export const materialColorsDark = {
-  primary: '#90CAF9',       // Blue 200
-  primaryLight: '#BBDEFB',  // Blue 100
-  primaryDark: '#42A5F5',   // Blue 400
+  primary: '#FFBA3B',       // Orange lighter tint for dark bg
+  primaryLight: '#FFCA1A',  // Orange 400
+  primaryDark: '#E6920E',   // Orange 600
 
-  secondary: '#FFB74D',     // Orange 300
-  secondaryLight: '#FFCC80', // Orange 200
-  secondaryDark: '#FFA726',  // Orange 400
+  secondary: '#94A3B8',     // Slate 400
+  secondaryLight: '#CBD5E1', // Slate 300
+  secondaryDark: '#64748B',  // Slate 500
 
   surface: '#1E1E1E',
   surfaceVariant: '#2C2C2C',
