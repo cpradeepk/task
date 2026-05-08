@@ -5,9 +5,11 @@ import { getAllUsers } from './auth'
 import { DateUtils } from './dateUtils'
 
 // Helper functions to fetch data from APIs
+// Reports are scoped to the user's accessible projects via the scopeByUserProjects flag.
+// Server enforces this for non-admin/non-top_management users.
 async function fetchTasks(): Promise<Task[]> {
   try {
-    const response = await fetch('/api/tasks')
+    const response = await fetch('/api/tasks?scopeByUserProjects=true')
     const result = await response.json()
     return result.success ? result.data : []
   } catch (error) {

@@ -5,6 +5,8 @@ import { emailService } from '@/lib/email/service'
 import { withTimeout } from '@/lib/db/config'
 import { createActivityLog } from '@/lib/db/activityLog'
 import { generateSequentialTaskId } from '@/lib/data'
+import { getAuthUser } from '@/lib/auth-server'
+import { getUserProjectIds } from '@/lib/db/project-users'
 
 export async function GET(request: NextRequest) {
   console.log('🔵 [TASKS-GET] API called')
@@ -37,11 +39,23 @@ export async function GET(request: NextRequest) {
 
     // Get tasks from MySQL with timeout
     console.log('🔵 [TASKS-GET] Fetching tasks from database...')
-    const tasks = await withTimeout(
+    let tasks = await withTimeout(
       getAllTasks(filters),
       10000,
       'Failed to fetch tasks - database timeout'
     )
+
+    // Optional project-access scoping (used by Reports — option B)
+    // When scopeByUserProjects=true, filter to projects the user is assigned to
+    // (admin/top_management always see all)
+    if (searchParams.get('scopeByUserProjects') === 'true') {
+      const authUser = await getAuthUser(request)
+      if (authUser && !['admin', 'top_management'].includes(authUser.role)) {
+        const accessibleProjectIds = await getUserProjectIds(authUser.employeeId)
+        const accessibleSet = new Set(accessibleProjectIds)
+        tasks = tasks.filter((t: any) => !t.projectId || accessibleSet.has(t.projectId))
+      }
+    }
 
     console.log(`✅ [TASKS-GET] Successfully fetched ${tasks.length} tasks`)
 
