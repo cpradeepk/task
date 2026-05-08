@@ -282,11 +282,33 @@ export const resolvers = {
       }
     },
 
-    task: async (_: any, { taskId }: any, { loaders }: any) => {
+    task: async (_: any, { taskId }: any, { loaders, user }: any) => {
       const { startTime } = logResolverStart('task', { taskId })
 
       try {
         const result = await loaders.task.load(taskId)
+
+        // Project-access gate (option F)
+        if (user && result && !['admin', 'top_management'].includes(user.role)) {
+          const employeeId = user.employeeId
+          const isAssignee = Array.isArray(result.assigned_to)
+            ? result.assigned_to.includes(employeeId)
+            : result.assigned_to === employeeId
+          const isAssigner = result.assigned_by === employeeId
+          const isSupporter = Array.isArray(result.support) && result.support.includes(employeeId)
+          let isProjectMember = false
+          if (result.project_id) {
+            const projRes = await getPoolInstance().query(
+              'SELECT 1 FROM project_users WHERE employee_id = $1 AND project_id = $2 LIMIT 1',
+              [employeeId, result.project_id]
+            )
+            isProjectMember = (projRes.rowCount || 0) > 0
+          }
+          if (!isAssignee && !isAssigner && !isSupporter && !isProjectMember) {
+            throw new Error('FORBIDDEN: no access to this task')
+          }
+        }
+
         logResolverSuccess('task', result, startTime)
         return result
       } catch (error) {
@@ -365,10 +387,29 @@ export const resolvers = {
       }
     },
 
-    bug: async (_: any, { bugId }: any, { loaders }: any) => {
+    bug: async (_: any, { bugId }: any, { loaders, user }: any) => {
       const { startTime } = logResolverStart('bug', { bugId })
       try {
         const result = await loaders.bug.load(bugId)
+
+        // Project-access gate (option F)
+        if (user && result && !['admin', 'top_management'].includes(user.role)) {
+          const employeeId = user.employeeId
+          const isReporter = result.reported_by === employeeId
+          const isAssignee = result.assigned_to === employeeId
+          let isProjectMember = false
+          if (result.project_id) {
+            const projRes = await getPoolInstance().query(
+              'SELECT 1 FROM project_users WHERE employee_id = $1 AND project_id = $2 LIMIT 1',
+              [employeeId, result.project_id]
+            )
+            isProjectMember = (projRes.rowCount || 0) > 0
+          }
+          if (!isReporter && !isAssignee && !isProjectMember) {
+            throw new Error('FORBIDDEN: no access to this bug')
+          }
+        }
+
         logResolverSuccess('bug', result, startTime)
         return result
       } catch (error) {

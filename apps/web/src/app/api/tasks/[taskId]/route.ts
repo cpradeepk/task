@@ -2,9 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { updateTask, deleteTask, getTaskById, getAllTasks } from '@/lib/db/tasks'
 import { calculateTotalHours } from '@/lib/dailyHours'
 import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
-import { verifyToken } from '@/lib/auth-server'
+import { verifyToken, getAuthUser } from '@/lib/auth-server'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
+import { getUserProjectIds } from '@/lib/db/project-users'
+
+/**
+ * Check whether an authenticated user can access a specific task.
+ * Admin/top_management always allowed.
+ * Others allowed if they're an assignee, the assigner, a supporter, or a project member.
+ */
+async function canAccessTask(authUser: { employeeId: string; role: string }, task: any): Promise<boolean> {
+  if (['admin', 'top_management'].includes(authUser.role)) return true
+  // assignedTo can be array (multi-assignee) or string (legacy)
+  if (Array.isArray(task.assignedTo) && task.assignedTo.includes(authUser.employeeId)) return true
+  if (typeof task.assignedTo === 'string' && task.assignedTo === authUser.employeeId) return true
+  if (task.assignedBy === authUser.employeeId) return true
+  if (Array.isArray(task.support) && task.support.includes(authUser.employeeId)) return true
+  if (task.projectId) {
+    const accessibleProjectIds = await getUserProjectIds(authUser.employeeId)
+    if (accessibleProjectIds.includes(task.projectId)) return true
+  }
+  return false
+}
 
 export async function GET(
   request: NextRequest,
@@ -21,6 +41,15 @@ export async function GET(
         success: false,
         error: 'Task not found'
       }, { status: 404 })
+    }
+
+    // Project-access gate (option F)
+    const authUser = await getAuthUser(request)
+    if (authUser && !(await canAccessTask(authUser, task))) {
+      return NextResponse.json({
+        success: false,
+        error: 'You do not have access to this task'
+      }, { status: 403 })
     }
 
     return NextResponse.json({
