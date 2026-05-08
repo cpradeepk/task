@@ -9,10 +9,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Project } from '@/lib/types'
+import { Project, User, ProjectUserWithUser } from '@/lib/types'
 import { formatDateTimeIST } from '@/lib/datetime-utils'
 import ProjectModal from '@/components/projects/ProjectModal'
-import { Plus } from 'lucide-react'
+import { Plus, X, UserPlus, Users, Search, AlertTriangle } from 'lucide-react'
 
 interface ProjectWithSubProjects extends Project {
   subProjects?: Project[]
@@ -40,6 +40,20 @@ export default function ProjectDetailsPage() {
   const [isSubprojectModalOpen, setIsSubprojectModalOpen] = useState(false)
   const [subprojectToEdit, setSubprojectToEdit] = useState<Project | null>(null)
 
+  // Assigned users state
+  const [assignedUsers, setAssignedUsers] = useState<ProjectUserWithUser[]>([])
+  const [allUsers, setAllUsers] = useState<User[]>([])
+  const [isAddingUser, setIsAddingUser] = useState(false)
+  const [userSearchTerm, setUserSearchTerm] = useState('')
+  const [loadingAssignedUsers, setLoadingAssignedUsers] = useState(false)
+  const [removingUserId, setRemovingUserId] = useState<string | null>(null)
+  const [removalWarning, setRemovalWarning] = useState<{
+    employeeId: string
+    userName: string
+    taskCount: number
+    bugCount: number
+  } | null>(null)
+
   useEffect(() => {
     // Get user info from localStorage
     const userStr = localStorage.getItem('jsr_current_user')
@@ -55,6 +69,8 @@ export default function ProjectDetailsPage() {
     setIsHydrated(true)
 
     fetchProject()
+    fetchAssignedUsers()
+    fetchAllUsers()
   }, [projectId])
 
   const fetchProject = async () => {
@@ -84,6 +100,108 @@ export default function ProjectDetailsPage() {
       setLoading(false)
     }
   }
+
+  const fetchAssignedUsers = async () => {
+    try {
+      setLoadingAssignedUsers(true)
+      const response = await fetch(`/api/projects/${projectId}/users`)
+      if (response.ok) {
+        const result = await response.json()
+        setAssignedUsers(result.data || [])
+      }
+    } catch (err) {
+      console.error('Error fetching assigned users:', err)
+    } finally {
+      setLoadingAssignedUsers(false)
+    }
+  }
+
+  const fetchAllUsers = async () => {
+    try {
+      const response = await fetch('/api/users?includeInactive=false')
+      if (response.ok) {
+        const result = await response.json()
+        setAllUsers(result.data || [])
+      }
+    } catch (err) {
+      console.error('Error fetching all users:', err)
+    }
+  }
+
+  const handleAssignUser = async (targetEmployeeId: string) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employeeId: targetEmployeeId, assignedBy: employeeId })
+      })
+
+      if (response.ok) {
+        await fetchAssignedUsers()
+        setIsAddingUser(false)
+        setUserSearchTerm('')
+      } else {
+        const result = await response.json()
+        alert(result.error || 'Failed to assign user')
+      }
+    } catch (err) {
+      console.error('Error assigning user:', err)
+      alert('Failed to assign user')
+    }
+  }
+
+  const handleRemoveUserClick = async (targetEmployeeId: string, userName: string) => {
+    setRemovingUserId(targetEmployeeId)
+    try {
+      // Fetch artifact counts for warning
+      const response = await fetch(`/api/projects/${projectId}/users/${targetEmployeeId}/artifacts`)
+      if (response.ok) {
+        const result = await response.json()
+        const { taskCount, bugCount } = result.data
+        setRemovalWarning({ employeeId: targetEmployeeId, userName, taskCount, bugCount })
+      } else {
+        // If artifact count fetch fails, show warning with unknown counts
+        setRemovalWarning({ employeeId: targetEmployeeId, userName, taskCount: -1, bugCount: -1 })
+      }
+    } catch (err) {
+      console.error('Error fetching artifact counts:', err)
+      setRemovalWarning({ employeeId: targetEmployeeId, userName, taskCount: -1, bugCount: -1 })
+    } finally {
+      setRemovingUserId(null)
+    }
+  }
+
+  const confirmRemoveUser = async () => {
+    if (!removalWarning) return
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/users`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employeeId: removalWarning.employeeId })
+      })
+
+      if (response.ok) {
+        await fetchAssignedUsers()
+        setRemovalWarning(null)
+      } else {
+        const result = await response.json()
+        alert(result.error || 'Failed to remove user')
+      }
+    } catch (err) {
+      console.error('Error removing user:', err)
+      alert('Failed to remove user')
+    }
+  }
+
+  // Filter available users for the add-user dropdown
+  const availableUsers = allUsers.filter(user =>
+    user.status === 'active' &&
+    !assignedUsers.some(au => au.employeeId === user.employeeId) &&
+    (userSearchTerm === '' ||
+      user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+      user.employeeId.toLowerCase().includes(userSearchTerm.toLowerCase()))
+  )
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -435,6 +553,183 @@ export default function ProjectDetailsPage() {
             ) : (
               <p className="text-gray-500 text-center py-8">No sub-projects yet. Click "Add Subproject" to create one.</p>
             )}
+          </div>
+        )}
+
+        {/* Assigned Users */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-gray-700" />
+              <h2 className="text-xl font-bold text-gray-900">
+                Assigned Users {assignedUsers.length > 0 && `(${assignedUsers.length})`}
+              </h2>
+            </div>
+            {canManageProjects && !isAddingUser && (
+              <button
+                onClick={() => setIsAddingUser(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+              >
+                <UserPlus className="h-4 w-4" />
+                Add User
+              </button>
+            )}
+          </div>
+
+          {/* Add User Dropdown */}
+          {isAddingUser && canManageProjects && (
+            <div className="mb-4 border border-blue-200 rounded-lg p-4 bg-blue-50">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-700">Assign a user to this project</h3>
+                <button
+                  onClick={() => { setIsAddingUser(false); setUserSearchTerm('') }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)}
+                  placeholder="Search by name or employee ID..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-48 overflow-y-auto space-y-1">
+                {availableUsers.length > 0 ? (
+                  availableUsers.slice(0, 10).map(user => (
+                    <button
+                      key={user.employeeId}
+                      onClick={() => handleAssignUser(user.employeeId)}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-blue-100 rounded-md transition-colors text-sm"
+                    >
+                      <div className="h-7 w-7 bg-blue-200 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-blue-700 font-medium text-xs">
+                          {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-gray-900">{user.name}</span>
+                        <span className="text-gray-500 ml-2">{user.employeeId}</span>
+                      </div>
+                      <span className="text-xs text-gray-500">{user.department}</span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-3">
+                    {userSearchTerm ? 'No matching users found' : 'All active users are already assigned'}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Assigned Users List */}
+          {loadingAssignedUsers ? (
+            <div className="text-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-sm text-gray-500">Loading assigned users...</p>
+            </div>
+          ) : assignedUsers.length > 0 ? (
+            <div className="space-y-2">
+              {assignedUsers.map((au) => (
+                <div
+                  key={au.employeeId}
+                  className="flex items-center justify-between px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-blue-600 font-medium text-xs">
+                        {au.userName.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">{au.userName}</span>
+                      <span className="text-sm text-gray-500 ml-2">{au.employeeId}</span>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      au.userRole === 'admin' ? 'bg-purple-100 text-purple-800' :
+                      au.userRole === 'top_management' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {au.userRole}
+                    </span>
+                    {au.userDepartment && (
+                      <span className="text-xs text-gray-500">{au.userDepartment}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400">
+                      {new Date(au.assignedAt).toLocaleDateString()}
+                    </span>
+                    {canManageProjects && (
+                      <button
+                        onClick={() => handleRemoveUserClick(au.employeeId, au.userName)}
+                        disabled={removingUserId === au.employeeId}
+                        className="text-red-400 hover:text-red-600 p-1 rounded transition-colors disabled:opacity-50"
+                        title="Remove user from project"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-6">
+              No users assigned to this project yet.
+              {canManageProjects && ' Click "Add User" to assign team members.'}
+            </p>
+          )}
+        </div>
+
+        {/* Removal Warning Modal */}
+        {removalWarning && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Remove User</h3>
+              </div>
+
+              <p className="text-gray-700 mb-4">
+                {removalWarning.taskCount >= 0 && removalWarning.bugCount >= 0 ? (
+                  <>
+                    <strong>{removalWarning.userName}</strong> has{' '}
+                    <strong>{removalWarning.taskCount} task{removalWarning.taskCount !== 1 ? 's' : ''}</strong> and{' '}
+                    <strong>{removalWarning.bugCount} bug{removalWarning.bugCount !== 1 ? 's' : ''}</strong> in this project.
+                    They will retain those assignments but lose project access.
+                  </>
+                ) : (
+                  <>
+                    Remove <strong>{removalWarning.userName}</strong> from this project?
+                    They will lose project access but retain any task/bug assignments.
+                  </>
+                )}
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setRemovalWarning(null)}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmRemoveUser}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+                >
+                  Remove User
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

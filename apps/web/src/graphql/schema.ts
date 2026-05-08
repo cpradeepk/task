@@ -192,6 +192,15 @@ export const typeDefs = `#graphql
     createdAt: String!
     updatedAt: String!
     tasks: [Task!]!
+    assignedUsers: [ProjectUser!]!
+  }
+
+  type ProjectUser {
+    projectId: String!
+    employeeId: String!
+    assignedBy: String!
+    assignedAt: String!
+    user: User
   }
 
   type Setting {
@@ -456,6 +465,7 @@ export const typeDefs = `#graphql
     # Projects
     projects: [Project!]!
     project(projectId: ID!): Project
+    projectUsers(projectId: ID!): [ProjectUser!]!
     
     # Dashboard
     dashboard(employeeId: String!, role: String!): DashboardData!
@@ -527,6 +537,10 @@ export const typeDefs = `#graphql
     # Users
     createUser(input: CreateUserInput!): User!
     updateUser(employeeId: ID!, input: UpdateUserInput!): User!
+
+    # Project Users
+    assignUserToProject(projectId: ID!, employeeId: String!, assignedBy: String!): Boolean!
+    removeUserFromProject(projectId: ID!, employeeId: String!): Boolean!
 
     # Feed
     createFeedPost(input: CreateFeedPostInput!): FeedPost!

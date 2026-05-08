@@ -8,12 +8,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { 
-  getAllProjects, 
-  getActiveProjects, 
+import {
+  getAllProjects,
+  getActiveProjects,
   getMainProjects,
-  createProject 
+  createProject
 } from '@/lib/db/projects'
+import { getUserProjectIds } from '@/lib/db/project-users'
+import { getAuthUser } from '@/lib/auth-server'
 import { Project } from '@/lib/types'
 
 /**
@@ -43,6 +45,18 @@ export async function GET(request: NextRequest) {
     } else {
       // Get only active projects (default)
       projects = await getActiveProjects()
+    }
+
+    // Filter by user assignment for non-admin/non-top_management users
+    const authUser = await getAuthUser(request)
+    if (authUser && authUser.role !== 'admin' && authUser.role !== 'top_management') {
+      const userProjectIds = await getUserProjectIds(authUser.employeeId)
+      // Include projects the user is assigned to, plus their sub-projects
+      const assignedSet = new Set(userProjectIds)
+      projects = projects.filter(p =>
+        assignedSet.has(p.projectId) ||
+        (p.parentProjectId && assignedSet.has(p.parentProjectId))
+      )
     }
 
     return NextResponse.json(projects, { status: 200 })

@@ -389,6 +389,28 @@ export interface Project {
   deletedBy?: string | null // Employee ID of who deleted the project
 }
 
+/**
+ * ProjectUser Interface
+ *
+ * Represents a user-project assignment in the project_users junction table.
+ * Used for project access control — only assigned users (plus admin/top_management)
+ * can see a project.
+ */
+export interface ProjectUser {
+  projectId: string
+  employeeId: string
+  assignedBy: string
+  assignedAt: string
+}
+
+export interface ProjectUserWithUser extends ProjectUser {
+  userName: string
+  userEmail: string
+  userRole: string
+  userDepartment: string
+  userStatus: string
+}
+
 // ============================================================================
 // UNIFIED WORK ITEMS (for Dashboard)
 // ============================================================================

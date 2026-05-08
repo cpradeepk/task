@@ -480,6 +480,20 @@ export const QUERIES = {
           endDate
           priority
         }
+        assignedUsers {
+          projectId
+          employeeId
+          assignedBy
+          assignedAt
+          user {
+            employeeId
+            name
+            email
+            role
+            department
+            status
+          }
+        }
       }
     }
   `,
