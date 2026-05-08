@@ -9,6 +9,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllProjects } from '@/lib/db/projects'
+import { getUserProjectIds } from '@/lib/db/project-users'
+import { getAuthUser } from '@/lib/auth-server'
 import { Project } from '@/lib/types'
 
 /**
@@ -47,7 +49,28 @@ export async function GET(request: NextRequest) {
     const allProjects = await getAllProjects(includeDeleted)
 
     // Build hierarchy
-    const hierarchy = buildHierarchy(allProjects)
+    let hierarchy = buildHierarchy(allProjects)
+
+    // Filter by user assignment for non-admin/non-top_management users
+    const authUser = await getAuthUser(request)
+    if (authUser && authUser.role !== 'admin' && authUser.role !== 'top_management') {
+      const userProjectIds = await getUserProjectIds(authUser.employeeId)
+      const assignedSet = new Set(userProjectIds)
+
+      // Keep a root project if the user is assigned to it OR to any of its children
+      hierarchy = hierarchy.filter(node =>
+        assignedSet.has(node.projectId) ||
+        (node.children && node.children.some(child => assignedSet.has(child.projectId)))
+      )
+
+      // Also filter children within kept parents
+      hierarchy = hierarchy.map(node => ({
+        ...node,
+        children: node.children?.filter(child =>
+          assignedSet.has(child.projectId) || assignedSet.has(node.projectId)
+        )
+      }))
+    }
 
     return NextResponse.json(hierarchy, { status: 200 })
   } catch (error) {

@@ -104,8 +104,10 @@ export default function UserManagement() {
       } catch (graphqlError) {
         console.warn('⚠️ [Users] GraphQL failed, falling back to REST:', graphqlError)
 
-        // Fallback to REST API
-        allUsers = await optimizedDataService.getAllUsers(forceRefresh)
+        // Fallback to REST API (include inactive users for user management page)
+        const response = await fetch('/api/users?includeInactive=true')
+        const result = await response.json()
+        allUsers = result.data || []
         console.log('✅ [Users] REST API successful:', allUsers.length, 'users')
       }
 
@@ -148,8 +150,10 @@ export default function UserManagement() {
         } catch (graphqlError) {
           console.warn('⚠️ [Users Init] GraphQL failed, falling back to REST:', graphqlError)
 
-          // Fallback to REST API
-          allUsers = await optimizedDataService.getAllUsers(false)
+          // Fallback to REST API (include inactive users for user management page)
+          const response = await fetch('/api/users?includeInactive=true')
+          const result = await response.json()
+          allUsers = result.data || []
           console.log('✅ [Users Init] REST API successful:', allUsers.length, 'users')
         }
 
@@ -189,6 +193,13 @@ export default function UserManagement() {
     if (statusFilter !== 'all') {
       filtered = filtered.filter(user => user.status === statusFilter)
     }
+
+    // Sort: active users first, then inactive, alphabetically within each group
+    filtered = [...filtered].sort((a, b) => {
+      if (a.status === 'active' && b.status !== 'active') return -1
+      if (a.status !== 'active' && b.status === 'active') return 1
+      return a.name.localeCompare(b.name)
+    })
 
     return filtered
   }, [users, searchTerm, roleFilter, statusFilter])
@@ -507,7 +518,8 @@ export default function UserManagement() {
         </div>
       ) : (
         <div className={`grid gap-4 user-list-container ${isRefreshing ? 'loading' : ''}`}>
-          {filteredUsers.map((user) => (
+          {/* Active Users — full card */}
+          {filteredUsers.filter(u => u.status === 'active').map((user) => (
             <div key={user.employeeId} className="card">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex-1">
@@ -529,10 +541,8 @@ export default function UserManagement() {
                       }`}>
                         {getRoleDisplayName(user.role)}
                       </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {user.status}
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        active
                       </span>
                     </div>
                   </div>
@@ -582,6 +592,52 @@ export default function UserManagement() {
               </div>
             </div>
           ))}
+
+          {/* Inactive Users separator + compact cards */}
+          {filteredUsers.some(u => u.status !== 'active') && (
+            <>
+              <div className="flex items-center gap-4 py-2">
+                <div className="flex-1 border-t border-gray-300"></div>
+                <span className="text-sm font-medium text-gray-500">
+                  Inactive Users ({filteredUsers.filter(u => u.status !== 'active').length})
+                </span>
+                <div className="flex-1 border-t border-gray-300"></div>
+              </div>
+
+              {filteredUsers.filter(u => u.status !== 'active').map((user) => (
+                <div key={user.employeeId} className="card py-3 px-4 opacity-60">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-gray-500 font-medium text-xs">
+                          {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="font-medium text-secondary-700">{user.name}</span>
+                      <span className="text-sm text-secondary-500">{user.employeeId}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                        user.role === 'top_management' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {getRoleDisplayName(user.role)}
+                      </span>
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        inactive
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleEditUser(user)}
+                      className="text-secondary-400 hover:text-secondary-600 p-1"
+                      title="Edit user"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
 

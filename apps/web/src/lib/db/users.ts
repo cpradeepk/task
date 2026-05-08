@@ -51,11 +51,22 @@ function rowToUser(row: UserRow): User {
   }
 }
 
-// Get all users
+// Get all active users
 export async function getAllUsers(): Promise<User[]> {
   return withRetry(async () => {
     const rows = await query<UserRow[]>(
       'SELECT * FROM users WHERE status = $1 ORDER BY name',
+      ['active']
+    )
+    return rows.map(rowToUser)
+  })
+}
+
+// Get all users including inactive (active first, then inactive, alphabetically)
+export async function getAllUsersIncludingInactive(): Promise<User[]> {
+  return withRetry(async () => {
+    const rows = await query<UserRow[]>(
+      'SELECT * FROM users ORDER BY CASE WHEN status = $1 THEN 0 ELSE 1 END, name',
       ['active']
     )
     return rows.map(rowToUser)

@@ -381,13 +381,39 @@ export const resolvers = {
 
     users: async (_: any, __: any, { user }: any) => {
       if (!user) throw new Error('Unauthorized')
-      const result = await getPoolInstance().query('SELECT * FROM users ORDER BY name ASC')
+      const result = await getPoolInstance().query(
+        "SELECT * FROM users ORDER BY CASE WHEN status = 'active' THEN 0 ELSE 1 END, name ASC"
+      )
       return result.rows || []
     },
 
     projects: async (_: any, __: any, { user }: any) => {
       if (!user) throw new Error('Unauthorized')
       const result = await getPoolInstance().query('SELECT * FROM projects WHERE deleted_at IS NULL ORDER BY project_name ASC')
+      let projects = result.rows || []
+
+      // Filter by user assignment for non-admin/non-top_management users
+      if (user.role !== 'admin' && user.role !== 'top_management') {
+        const assignedResult = await getPoolInstance().query(
+          'SELECT project_id FROM project_users WHERE employee_id = $1',
+          [user.employeeId]
+        )
+        const assignedSet = new Set(assignedResult.rows.map((r: any) => r.project_id))
+        projects = projects.filter((p: any) =>
+          assignedSet.has(p.project_id) ||
+          (p.parent_project_id && assignedSet.has(p.parent_project_id))
+        )
+      }
+
+      return projects
+    },
+
+    projectUsers: async (_: any, { projectId }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+      const result = await getPoolInstance().query(
+        'SELECT * FROM project_users WHERE project_id = $1 ORDER BY assigned_at ASC',
+        [projectId]
+      )
       return result.rows || []
     },
 
@@ -1671,6 +1697,28 @@ export const resolvers = {
         [project.project_id]
       )
       return result.rows
+    },
+
+    assignedUsers: async (project: any) => {
+      const result = await getPoolInstance().query(
+        'SELECT * FROM project_users WHERE project_id = $1 ORDER BY assigned_at ASC',
+        [project.project_id]
+      )
+      return result.rows || []
+    }
+  },
+
+  ProjectUser: {
+    projectId: (pu: any) => pu.project_id,
+    employeeId: (pu: any) => pu.employee_id,
+    assignedBy: (pu: any) => pu.assigned_by,
+    assignedAt: (pu: any) => pu.assigned_at,
+    user: async (pu: any) => {
+      const result = await getPoolInstance().query(
+        'SELECT * FROM users WHERE employee_id = $1',
+        [pu.employee_id]
+      )
+      return result.rows[0] || null
     }
   },
 
@@ -2228,6 +2276,35 @@ export const resolvers = {
         [employeeId]
       )
       return result.rows[0]
+    },
+
+    // Project User Mutations
+    assignUserToProject: async (_: any, { projectId, employeeId, assignedBy }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+      if (user.role !== 'admin' && user.role !== 'top_management') {
+        throw new Error('Only admin or top_management can assign users to projects')
+      }
+
+      await getPoolInstance().query(
+        `INSERT INTO project_users (project_id, employee_id, assigned_by)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (project_id, employee_id) DO UPDATE SET updated_at = NOW()`,
+        [projectId, employeeId, assignedBy]
+      )
+      return true
+    },
+
+    removeUserFromProject: async (_: any, { projectId, employeeId }: any, { user }: any) => {
+      if (!user) throw new Error('Unauthorized')
+      if (user.role !== 'admin' && user.role !== 'top_management') {
+        throw new Error('Only admin or top_management can remove users from projects')
+      }
+
+      await getPoolInstance().query(
+        'DELETE FROM project_users WHERE project_id = $1 AND employee_id = $2',
+        [projectId, employeeId]
+      )
+      return true
     },
 
     // Feed Mutations

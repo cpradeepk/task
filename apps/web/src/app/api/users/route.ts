@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllUsers, createUser } from '@/lib/db/users'
+import { getAllUsers, getAllUsersIncludingInactive, createUser } from '@/lib/db/users'
 import { withTimeout } from '@/lib/db/config'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const includeInactive = request.nextUrl.searchParams.get('includeInactive') === 'true'
+
     // Get users from database with timeout
     const users = await withTimeout(
-      getAllUsers(),
+      includeInactive ? getAllUsersIncludingInactive() : getAllUsers(),
       10000, // 10 second timeout
       'Failed to fetch users - database timeout'
     )

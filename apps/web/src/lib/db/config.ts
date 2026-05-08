@@ -6,30 +6,33 @@ import { Pool, PoolConfig } from 'pg'
 // Configuration: Set to true to suppress database connection logs
 const SUPPRESS_DB_LOGS = process.env.NEXT_PUBLIC_GRAPHQL_ERROR_ONLY === 'true' || true // Default to suppressed
 
-// Log environment variable status for debugging (only if not suppressed)
+// DATABASE_URL is required — never fall back to a hardcoded credential.
+// Set it in apps/web/.env.local (local dev) and on Vercel (Production/Preview/Development).
+if (!process.env.DATABASE_URL) {
+  throw new Error(
+    'DATABASE_URL environment variable is required. ' +
+    'Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.'
+  )
+}
+
 if (!SUPPRESS_DB_LOGS) {
-  if (!process.env.DATABASE_URL) {
-    console.warn('⚠️ [DB] DATABASE_URL environment variable not set, using fallback connection string')
-    console.warn('⚠️ [DB] This may cause connection issues on Vercel. Please set DATABASE_URL in Vercel environment variables.')
-  } else {
-    console.log('✅ [DB] DATABASE_URL environment variable found')
-  }
+  console.log('✅ [DB] DATABASE_URL environment variable found')
 }
 
 // Database connection configuration
 // IMPORTANT: Use Supabase's IPv4-compatible pooler hostname (aws-1-ap-south-1.pooler.supabase.com)
 // The old hostname (db.*.supabase.co) only has IPv6, which Vercel doesn't support
 export const DB_CONFIG: PoolConfig = {
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres.rbckjkdohzbclomrufrx:W8zTtc%3EqL3%3F@aws-1-ap-south-1.pooler.supabase.com:6543/postgres',
+  connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false // Supabase requires SSL
   },
   // Connection pool settings - OPTIMIZED FOR SERVERLESS
   // CRITICAL: On Vercel serverless, each function instance creates its own pool
   // With PgBouncer on Supabase, we can use more connections safely
-  max: 10, // ✅ INCREASED: Maximum connections per serverless instance (was 3, now 10)
-  idleTimeoutMillis: 30000, // ✅ INCREASED: Close idle connections after 30 seconds (was 10s)
-  connectionTimeoutMillis: 15000 // ✅ INCREASED: 15 seconds to establish connection (was 5s)
+  max: 10, // Maximum connections per serverless instance
+  idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+  connectionTimeoutMillis: 15000 // 15 seconds to establish connection
 }
 
 // Create connection pool
@@ -49,8 +52,7 @@ export function getPool(): Pool {
           max: DB_CONFIG.max,
           idleTimeoutMillis: DB_CONFIG.idleTimeoutMillis,
           connectionTimeoutMillis: DB_CONFIG.connectionTimeoutMillis,
-          connectionString: maskedConnectionString,
-          usingEnvVar: !!process.env.DATABASE_URL
+          connectionString: maskedConnectionString
         })
       }
 
