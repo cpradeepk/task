@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { 
   generateDailyReport, 
   generateMonthlyReport, 
@@ -60,8 +61,8 @@ export default function Reports() {
       return
     }
 
-    // Only allow top_management to access reports
-    if (currentUser.role !== 'top_management') {
+    // Permission gate
+    if (!hasTabAccess(currentUser, 'reports')) {
       router.push('/dashboard')
       return
     }

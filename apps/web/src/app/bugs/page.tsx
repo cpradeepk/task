@@ -11,6 +11,7 @@ import Navbar from '@/components/layout/Navbar'
 import { Bug } from '@/lib/types'
 import { getAllBugs, getBugStatistics } from '@/lib/bugService'
 import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { useLoading } from '@/contexts/LoadingContext'
 import { QUERIES } from '@/lib/graphql-queries'
 import HierarchicalBugRow from '@/components/bugs/HierarchicalBugRow'
@@ -153,6 +154,11 @@ export default function BugsPage() {
   // Handle hydration and load persisted filters
   useEffect(() => {
     setIsHydrated(true)
+
+    // Permission gate: redirect if user can't access this tab
+    const user = getCurrentUser()
+    if (!user) { router.push('/'); return }
+    if (!hasTabAccess(user, 'bugs')) { router.push('/dashboard'); return }
 
     // Load persisted filters from localStorage
     try {

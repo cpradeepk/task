@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { Task } from '@/lib/types'
 import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { useLoading } from '@/contexts/LoadingContext'
 import { QUERIES } from '@/lib/graphql-queries'
 import AssigneeList from '@/components/tasks/AssigneeList'
@@ -116,6 +117,11 @@ export default function TasksPage() {
   // Handle hydration and load persisted filters
   useEffect(() => {
     setIsHydrated(true)
+
+    // Permission gate: redirect if user can't access this tab
+    const user = getCurrentUser()
+    if (!user) { router.push('/'); return }
+    if (!hasTabAccess(user, 'tasks')) { router.push('/dashboard'); return }
 
     // Load persisted filters from localStorage
     try {

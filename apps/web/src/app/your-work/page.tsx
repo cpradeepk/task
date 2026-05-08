@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { isTaskOwner, isTaskSupporter } from '@/lib/data'
 import { QUERIES } from '@/lib/graphql-queries'
 
@@ -38,8 +39,11 @@ export default function YourWork() {
   const router = useRouter()
   const currentUser = getCurrentUser()
 
-  // Initialize client-side values to avoid hydration mismatch
+  // Initialize client-side values + permission gate
   useEffect(() => {
+    const user = getCurrentUser()
+    if (!user) { router.push('/'); return }
+    if (!hasTabAccess(user, 'your_work')) { router.push('/dashboard'); return }
     setMaxDate(new Date().toISOString().split('T')[0])
   }, [])
 

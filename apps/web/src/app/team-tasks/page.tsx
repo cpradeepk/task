@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, getTeamMembers } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { QUERIES } from '@/lib/graphql-queries'
 
 import { Task, User } from '@/lib/types'
@@ -38,8 +39,8 @@ export default function TeamTasks() {
       return
     }
 
-    // Only managers and admins can access team tasks
-    if (currentUser.role !== 'top_management' && currentUser.role !== 'admin') {
+    // Permission gate
+    if (!hasTabAccess(currentUser, 'team_tasks')) {
       router.push('/dashboard')
       return
     }

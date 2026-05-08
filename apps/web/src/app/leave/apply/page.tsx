@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { Calendar, Clock, Phone, FileText, Save, X, AlertCircle } from 'lucide-react'
 import { optimizedDataService } from '@/lib/optimizedDataService'
 import Navbar from '@/components/layout/Navbar'
@@ -29,6 +30,11 @@ export default function ApplyLeave() {
   useEffect(() => {
     if (!currentUser) {
       router.push('/')
+      return
+    }
+
+    if (!hasTabAccess(currentUser, 'leaves')) {
+      router.push('/dashboard')
       return
     }
 

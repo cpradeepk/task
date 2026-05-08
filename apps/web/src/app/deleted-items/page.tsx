@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser, getUserNameByEmployeeId } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import {
   Trash2,
@@ -88,8 +89,8 @@ export default function DeletedItemsPage() {
       return
     }
 
-    // Only admin can access this page
-    if (user.role !== 'admin') {
+    // Permission gate
+    if (!hasTabAccess(user, 'deleted_items')) {
       router.push('/dashboard')
       return
     }
