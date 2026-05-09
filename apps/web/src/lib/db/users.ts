@@ -314,12 +314,20 @@ export async function resetWarningCount(employee_id: string): Promise<User> {
   })
 }
 
-// Authenticate user by employee ID
+// Authenticate user by identifier (employee ID or email) + password.
+// The identifier parameter accepts either an employee ID (e.g., "AM-0001")
+// or an email address. Email matching is case-insensitive; employee ID is exact.
+// (Parameter named `employee_id` retained for backward compatibility with callers.)
 export async function authenticateUser(employee_id: string, password: string): Promise<User | null> {
   return withRetry(async () => {
+    const identifier = (employee_id || '').trim()
+    if (!identifier) return null
     const row = await queryOne<UserRow>(
-      'SELECT * FROM users WHERE employee_id = $1 AND password = $2 AND status = $3',
-      [employee_id, password, 'active']
+      `SELECT * FROM users
+       WHERE (employee_id = $1 OR LOWER(email) = LOWER($1))
+         AND password = $2
+         AND status = $3`,
+      [identifier, password, 'active']
     )
     return row ? rowToUser(row) : null
   })

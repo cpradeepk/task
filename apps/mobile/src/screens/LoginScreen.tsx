@@ -163,13 +163,14 @@ export default function LoginScreen() {
           {/* Login Form Card */}
           <Surface style={styles.card} elevation={2}>
             <TextInput
-              label="Employee ID"
+              label="Employee ID or Email"
               value={employeeId}
               onChangeText={setEmployeeId}
               mode="outlined"
               disabled={loading || isOffline}
-              autoCapitalize="characters"
-              placeholder="e.g., AM-0001"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              placeholder="AM-0001 or you@example.com"
               left={<TextInput.Icon icon="account" />}
               style={styles.input}
               outlineColor={materialColors.outline}
@@ -240,7 +241,7 @@ export default function LoginScreen() {
 
           {/* Helper Text */}
           <Text style={styles.helperText}>
-            Use your Employee ID (e.g., AM-0001) to login
+            Sign in with your Employee ID (e.g., AM-0001) or email address
           </Text>
         </Animated.View>
       </View>

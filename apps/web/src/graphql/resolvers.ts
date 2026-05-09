@@ -2035,16 +2035,20 @@ export const resolvers = {
       const { startTime } = logResolverStart('login', { employeeId })
 
       try {
+        // The `employeeId` GraphQL arg accepts either an employee ID (e.g., "AM-0001")
+        // or an email address. Email matching is case-insensitive.
+        const identifier = (employeeId || '').trim()
+
         // Query user from database
         const dbStart = logDatabaseQuery(
-          'SELECT * FROM users WHERE employee_id = $1 AND status = $2',
-          [employeeId, 'active'],
+          'SELECT * FROM users WHERE (employee_id = $1 OR LOWER(email) = LOWER($1)) AND status = $2',
+          [identifier, 'active'],
           'login'
         )
 
         const result = await getPoolInstance().query(
-          'SELECT * FROM users WHERE employee_id = $1 AND status = $2',
-          [employeeId, 'active']
+          'SELECT * FROM users WHERE (employee_id = $1 OR LOWER(email) = LOWER($1)) AND status = $2',
+          [identifier, 'active']
         )
 
         logDatabaseResult(result.rows.length, dbStart.startTime, 'login')

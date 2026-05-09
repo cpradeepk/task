@@ -500,7 +500,7 @@ export default function LoginForm() {
               </p>
             )}
 
-            {/* Employee ID */}
+            {/* Employee ID or Email */}
             <div className="relative">
               <input
                 type="text"
@@ -508,7 +508,7 @@ export default function LoginForm() {
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
                 className="peer w-full px-3 pt-5 pb-2 placeholder-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none"
-                placeholder="Employee ID"
+                placeholder="Employee ID or Email"
                 autoComplete="username"
                 aria-invalid={!!error && !employeeId}
               />
@@ -516,7 +516,7 @@ export default function LoginForm() {
                 htmlFor="employeeId"
                 className="absolute left-3 text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
               >
-                Employee ID
+                Employee ID or Email
               </label>
             </div>
 
