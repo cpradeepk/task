@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { Calendar, Clock, Phone, MapPin, FileText, Save, X, AlertCircle } from 'lucide-react'
 import { optimizedDataService } from '@/lib/optimizedDataService'
 import Navbar from '@/components/layout/Navbar'
@@ -28,6 +29,11 @@ export default function ApplyWFH() {
   useEffect(() => {
     if (!currentUser) {
       router.push('/')
+      return
+    }
+
+    if (!hasTabAccess(currentUser, 'wfh')) {
+      router.push('/dashboard')
       return
     }
 

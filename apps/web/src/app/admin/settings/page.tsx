@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { Settings, AlertCircle } from 'lucide-react'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import DropdownManager from '@/components/admin/DropdownManager'
@@ -27,8 +28,8 @@ export default function AdminSettingsPage() {
       return
     }
 
-    // Check if user is admin or top_management
-    if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
+    // Permission gate
+    if (!hasTabAccess(currentUser, 'settings')) {
       router.push('/dashboard')
       return
     }
@@ -47,7 +48,7 @@ export default function AdminSettingsPage() {
     )
   }
 
-  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'top_management')) {
+  if (!currentUser || !hasTabAccess(currentUser, 'settings')) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />

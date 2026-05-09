@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, addUser, updateUser, getRoleDisplayName } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { optimizedDataService } from '@/lib/optimizedDataService'
 import { User } from '@/lib/types'
 import { QUERIES } from '@/lib/graphql-queries'
@@ -131,8 +132,8 @@ export default function UserManagement() {
         return
       }
 
-      // Only Admin and Top Management can access User Management
-      if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
+      // Permission gate
+      if (!hasTabAccess(currentUser, 'user_management')) {
         router.push('/dashboard')
         return
       }

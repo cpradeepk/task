@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { User } from '@/lib/types'
 import { Plus, Edit2, Trash2, Save, X } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
@@ -72,8 +73,8 @@ export default function FeedTopicsPage() {
       return
     }
     
-    // Check if user is admin or top_management
-    if (user.role !== 'admin' && user.role !== 'top_management') {
+    // Permission gate
+    if (!hasTabAccess(user, 'feed_topics')) {
       router.push('/dashboard')
       return
     }

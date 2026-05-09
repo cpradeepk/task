@@ -89,6 +89,8 @@ export default function Navbar() {
       key: 'work_group', // Virtual key for grouping
       children: [
         { label: 'Dashboard', href: '/dashboard', icon: Briefcase, key: 'home' }, // Dashboard usually accessible with home or specific key
+        { label: 'Your Work', href: '/your-work', icon: ListTodo, key: 'your_work' },
+        { label: 'Team Tasks', href: '/team-tasks', icon: Users, key: 'team_tasks' },
         { label: 'Tasks', href: '/tasks', icon: CheckSquare, key: 'tasks' },
         { label: 'Development', href: '/bugs', icon: Bug, key: 'bugs' },
       ]

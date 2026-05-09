@@ -12,6 +12,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Project } from '@/lib/types'
 import { QUERIES } from '@/lib/graphql-queries'
+import { hasTabAccess } from '@/lib/permissions'
+import { getCurrentUser } from '@/lib/auth'
 import Navbar from '@/components/layout/Navbar'
 import { Edit, Trash2, Plus } from 'lucide-react'
 import ProjectModal from '@/components/projects/ProjectModal'
@@ -46,15 +48,18 @@ export default function ProjectsPage() {
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
+    // Permission gate
+    const user = getCurrentUser()
+    if (!user) { router.push('/'); return }
+    if (!hasTabAccess(user, 'projects')) { router.push('/dashboard'); return }
+
     // Get user info from localStorage
     const userStr = localStorage.getItem('jsr_current_user')
     if (userStr) {
       try {
-        const user = JSON.parse(userStr)
-        const role = user.role || ''
-        const empId = user.employeeId || ''
-
-        console.log('🔍 Projects Page - User Info:', { role, empId, user })
+        const parsed = JSON.parse(userStr)
+        const role = parsed.role || ''
+        const empId = parsed.employeeId || ''
 
         setUserRole(role)
         setEmployeeId(empId)

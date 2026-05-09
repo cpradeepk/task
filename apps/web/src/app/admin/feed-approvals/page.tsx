@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { User } from '@/lib/types'
 import ConditionalNavbar from '@/components/layout/ConditionalNavbar'
 import { Check, X, Eye } from 'lucide-react'
@@ -22,8 +23,8 @@ export default function FeedApprovalsPage() {
       router.push('/')
       return
     }
-    if (!['admin', 'management', 'top_management'].includes(user.role)) {
-      router.push('/feed')
+    if (!hasTabAccess(user, 'approvals')) {
+      router.push('/dashboard')
       return
     }
     setCurrentUser(user)

@@ -5,6 +5,8 @@ import { generateSequentialBugId } from '@/lib/data'
 import { emailService } from '@/lib/email/service'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { createActivityLog } from '@/lib/db/activityLog'
+import { getAuthUser } from '@/lib/auth-server'
+import { getUserProjectIds } from '@/lib/db/project-users'
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,7 +36,17 @@ export async function GET(request: NextRequest) {
 
     console.log('Fetching bugs data from MySQL with params:', filters)
 
-    const bugs = await getAllBugs(filters)
+    let bugs = await getAllBugs(filters)
+
+    // Optional project-access scoping (used by Reports — option B)
+    if (searchParams.get('scopeByUserProjects') === 'true') {
+      const authUser = await getAuthUser(request)
+      if (authUser && !['admin', 'top_management'].includes(authUser.role)) {
+        const accessibleProjectIds = await getUserProjectIds(authUser.employeeId)
+        const accessibleSet = new Set(accessibleProjectIds)
+        bugs = bugs.filter((b: any) => !b.projectId || accessibleSet.has(b.projectId))
+      }
+    }
 
     return NextResponse.json({
       success: true,

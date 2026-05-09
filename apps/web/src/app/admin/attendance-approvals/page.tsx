@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { User } from '@/lib/types'
 import ConditionalNavbar from '@/components/layout/ConditionalNavbar'
 import { Check, X, Eye, Clock } from 'lucide-react'
@@ -79,8 +80,8 @@ export default function AttendanceApprovalsPage() {
             router.push('/')
             return
         }
-        if (!['admin', 'management', 'top_management'].includes(user.role)) {
-            router.push('/admin/attendance')
+        if (!hasTabAccess(user, 'approvals')) {
+            router.push('/dashboard')
             return
         }
         setCurrentUser(user)

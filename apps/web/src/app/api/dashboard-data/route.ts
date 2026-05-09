@@ -6,6 +6,7 @@ import { getUsersByEmployeeIds, getAllUsers } from '@/lib/db/users'
 import { getDropdownSettings } from '@/lib/db/settings'
 import { getSubTasksByAssignedTo } from '@/lib/db/taskChecklists'
 import { getBugSubTasksByAssignedTo } from '@/lib/db/bugSubtasks'
+import { getUserProjectIds } from '@/lib/db/project-users'
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     const settingsPromise = withTimeout(getDropdownSettings(), 8000, 'Failed to fetch settings')
 
-    const [tasks, bugs, settings, users, subtasks, bugSubtasks] = await Promise.all([
+    let [tasks, bugs, settings, users, subtasks, bugSubtasks] = await Promise.all([
       tasksPromise!,
       bugsPromise!,
       settingsPromise,
@@ -43,6 +44,16 @@ export async function GET(request: NextRequest) {
       subtasksPromise || Promise.resolve([]),
       bugSubtasksPromise || Promise.resolve([])
     ])
+
+    // Project-access scoping for non-admin users (Dashboard widgets — option C)
+    // Admin/top_management see everything; others see only items in projects they're assigned to.
+    if (!['admin', 'top_management'].includes(role) && employeeId) {
+      const accessibleProjectIds = await getUserProjectIds(employeeId)
+      const accessibleSet = new Set(accessibleProjectIds)
+      // Items without a projectId stay visible (treat as not-project-scoped)
+      tasks = tasks.filter((t: any) => !t.projectId || accessibleSet.has(t.projectId))
+      bugs = bugs.filter((b: any) => !b.projectId || accessibleSet.has(b.projectId))
+    }
 
     // Build user map from referenced IDs
     const idSet = new Set<string>()

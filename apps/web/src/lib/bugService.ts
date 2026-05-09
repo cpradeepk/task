@@ -102,6 +102,8 @@ export async function getBugById(bugId: string): Promise<Bug | null> {
     const response = await fetch(`/api/bugs/${bugId}`)
     if (!response.ok) {
       if (response.status === 404) return null
+      // 403 = access denied to this project's bug — treat like not-found from caller's perspective
+      if (response.status === 403) return null
       throw new Error('Failed to fetch bug')
     }
 

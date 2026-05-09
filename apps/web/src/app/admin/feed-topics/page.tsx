@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser } from '@/lib/auth'
+import { hasTabAccess } from '@/lib/permissions'
 import { Plus, Edit2, Trash2, Save, X, GripVertical } from 'lucide-react'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
@@ -41,8 +42,8 @@ export default function FeedTopicsAdminPage() {
       return
     }
 
-    // Check if user is admin
-    if (currentUser.role !== 'admin') {
+    // Permission gate
+    if (!hasTabAccess(currentUser, 'feed_topics')) {
       router.push('/dashboard')
       return
     }
@@ -144,7 +145,7 @@ export default function FeedTopicsAdminPage() {
     )
   }
 
-  if (!currentUser || currentUser.role !== 'admin') {
+  if (!currentUser || !hasTabAccess(currentUser, 'feed_topics')) {
     return null
   }
 

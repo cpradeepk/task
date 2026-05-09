@@ -3,7 +3,24 @@ import { getBugById, updateBug, deleteBug } from '@/lib/db/bugs'
 import { emailService } from '@/lib/email/service'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
-import { verifyToken } from '@/lib/auth-server'
+import { verifyToken, getAuthUser } from '@/lib/auth-server'
+import { getUserProjectIds } from '@/lib/db/project-users'
+
+/**
+ * Check whether an authenticated user can access a specific bug.
+ * Admin/top_management always allowed.
+ * Others allowed if they're the reporter, an assignee, or a project member.
+ */
+async function canAccessBug(authUser: { employeeId: string; role: string }, bug: any): Promise<boolean> {
+  if (['admin', 'top_management'].includes(authUser.role)) return true
+  if (bug.reportedBy === authUser.employeeId) return true
+  if (bug.assignedTo === authUser.employeeId) return true
+  if (bug.projectId) {
+    const accessibleProjectIds = await getUserProjectIds(authUser.employeeId)
+    if (accessibleProjectIds.includes(bug.projectId)) return true
+  }
+  return false
+}
 
 export async function GET(
   request: NextRequest,
@@ -26,6 +43,15 @@ export async function GET(
         success: false,
         error: 'Bug not found'
       }, { status: 404 })
+    }
+
+    // Project-access gate (option F)
+    const authUser = await getAuthUser(request)
+    if (authUser && !(await canAccessBug(authUser, bug))) {
+      return NextResponse.json({
+        success: false,
+        error: 'You do not have access to this bug'
+      }, { status: 403 })
     }
 
     return NextResponse.json({
