@@ -202,14 +202,14 @@
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 255, 255, 255;
-  --primary-rgb: 255, 163, 1;
+  --primary-rgb: 134, 239, 172;
 
-  /* Brand color tokens */
-  --color-brand: #FFA301;
-  --color-brand-dark: #CC8200;
-  --color-brand-light: #FFCA1A;
-  --color-brand-50: #FFF8E6;
-  --color-brand-100: #FFECB3;
+  /* Brand color tokens — sage green (#86EFAC) */
+  --color-brand: #86EFAC;
+  --color-brand-dark: #22C55E;
+  --color-brand-light: #BBF7D0;
+  --color-brand-50: #F0FDF4;
+  --color-brand-100: #DCFCE7;
 
   /* Semantic tokens (light) */
   --color-bg: #ffffff;
@@ -225,13 +225,14 @@
 .dark {
   --foreground-rgb: 255, 255, 255;
   --background-rgb: 17, 24, 39;
-  --primary-rgb: 255, 186, 59;
+  --primary-rgb: 187, 247, 208;
 
-  --color-brand: #FFBA3B;
-  --color-brand-dark: #E6920E;
-  --color-brand-light: #FFA301;
-  --color-brand-50: #3D2800;
-  --color-brand-100: #5C3D00;
+  /* Lighter sage in dark mode for better surface contrast */
+  --color-brand: #BBF7D0;
+  --color-brand-dark: #4ADE80;
+  --color-brand-light: #86EFAC;
+  --color-brand-50: #14532D;
+  --color-brand-100: #166534;
 
   --color-bg: #111827;
   --color-bg-secondary: #1F2937;
@@ -536,7 +537,7 @@ body {
 .id-card-print {
   width: 3.375in;
   height: 2.125in;
-  border: 2px solid #ffa301;
+  border: 2px solid #86EFAC;
   border-radius: 12px;
   padding: 16px;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -556,7 +557,7 @@ body {
 .id-card-print .company-name {
   font-size: 14px;
   font-weight: bold;
-  color: #ffa301;
+  color: #86EFAC;
   margin-bottom: 2px;
 }
 
@@ -576,7 +577,7 @@ body {
 .id-card-print .avatar {
   width: 48px;
   height: 48px;
-  background: #ffa301;
+  background: #86EFAC;
   border-radius: 50%;
   display: flex;
   align-items: center;

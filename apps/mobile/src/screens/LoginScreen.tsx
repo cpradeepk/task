@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     top: 12,
     padding: 12,
     zIndex: 10,
-    backgroundColor: 'rgba(255, 163, 1, 0.1)',
+    backgroundColor: 'rgba(134, 239, 172, 0.15)',
     borderRadius: 20,
   },
   loginButton: {

@@ -8,7 +8,7 @@ import * as React from 'react'
 import type { ReactNode } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-// Light theme colors — orange primary to match brand (#FFA301)
+// Light theme colors — sage green primary brand (#86EFAC)
 const lightColors = {
   background: '#F9FAFB',
   card: '#FFFFFF',
@@ -19,9 +19,9 @@ const lightColors = {
   textTertiary: '#9CA3AF',
   border: '#E5E7EB',
   borderLight: '#F3F4F6',
-  primary: '#FFA301',
-  primaryLight: '#FFF8E6',
-  primaryDark: '#CC8200',
+  primary: '#86EFAC',
+  primaryLight: '#F0FDF4',
+  primaryDark: '#22C55E',
   success: '#10B981',
   successLight: '#D1FAE5',
   warning: '#F59E0B',
@@ -34,7 +34,7 @@ const lightColors = {
   pinkLight: '#FCE7F3',
 }
 
-// Dark theme colors — orange stays primary (lighter tint for dark surfaces)
+// Dark theme colors — lighter sage stays primary for dark surfaces
 const darkColors = {
   background: '#111827',
   card: '#1F2937',
@@ -45,9 +45,9 @@ const darkColors = {
   textTertiary: '#9CA3AF',
   border: '#374151',
   borderLight: '#4B5563',
-  primary: '#FFBA3B',
-  primaryLight: '#3D2800',
-  primaryDark: '#E6920E',
+  primary: '#BBF7D0',
+  primaryLight: '#14532D',
+  primaryDark: '#4ADE80',
   success: '#34D399',
   successLight: '#064E3B',
   warning: '#FBBF24',

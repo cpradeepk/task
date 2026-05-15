@@ -44,8 +44,8 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: Botto
     const inactiveColor = isDark ? '#8B95A3' : '#748c94';
     const bgColor = isDark ? '#1F2937' : '#fff';
     const indicatorBg = isDark
-        ? 'rgba(255, 186, 59, 0.2)'
-        : 'rgba(255, 163, 1, 0.15)';
+        ? 'rgba(187, 247, 208, 0.25)'  // sage tint for dark mode
+        : 'rgba(134, 239, 172, 0.2)';  // sage tint for light mode
 
     // We assume 5 tabs: [0, 1] [2-Home] [3, 4]
     // Left Group: 0, 1

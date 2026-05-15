@@ -5,12 +5,12 @@
 
 import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper'
 
-// Material Design 3 Color Palette (matching web app orange theme)
+// Material Design 3 Color Palette (matching web app sage green theme)
 export const materialColors = {
-  // Primary colors (orange to match web app)
-  primary: '#FFA301',       // Orange (web app primary)
-  primaryLight: '#FFCA1A',  // Orange 400
-  primaryDark: '#CC8200',   // Orange 700
+  // Primary colors (sage green to match web app)
+  primary: '#86EFAC',       // Sage green (web app primary)
+  primaryLight: '#BBF7D0',  // Green 200 (lighter sage)
+  primaryDark: '#22C55E',   // Green 500 (darker for hover/active)
 
   // Secondary colors
   secondary: '#1976D2',     // Blue 700
@@ -52,11 +52,11 @@ export const materialColors = {
   shadow: '#000000',
 }
 
-// Dark mode colors — orange stays primary (lighter tint for dark surfaces)
+// Dark mode colors — lighter sage stays primary for dark surfaces
 export const materialColorsDark = {
-  primary: '#FFBA3B',       // Orange lighter tint for dark bg
-  primaryLight: '#FFCA1A',  // Orange 400
-  primaryDark: '#E6920E',   // Orange 600
+  primary: '#BBF7D0',       // Green 200 — lighter sage for dark bg contrast
+  primaryLight: '#86EFAC',  // Sage (the brand color)
+  primaryDark: '#4ADE80',   // Green 400 — slightly darker for hover/active
 
   secondary: '#94A3B8',     // Slate 400
   secondaryLight: '#CBD5E1', // Slate 300

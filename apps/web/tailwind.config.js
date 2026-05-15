@@ -10,17 +10,17 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#FFA301',
-          50: '#FFF8E6',
-          100: '#FFECB3',
-          200: '#FFE080',
-          300: '#FFD54D',
-          400: '#FFCA1A',
-          500: '#FFA301',
-          600: '#E6920E',
-          700: '#CC8200',
-          800: '#B37200',
-          900: '#996200',
+          DEFAULT: '#86EFAC',
+          50: '#F0FDF4',
+          100: '#DCFCE7',
+          200: '#BBF7D0',
+          300: '#A7F3C5',
+          400: '#86EFAC',
+          500: '#86EFAC',
+          600: '#4ADE80',
+          700: '#22C55E',
+          800: '#16A34A',
+          900: '#15803D',
         },
         // Semantic tokens using CSS vars (dark mode aware)
         brand: 'var(--color-brand)',
