@@ -15,6 +15,7 @@ import { useLoading } from '@/contexts/LoadingContext'
 import { QUERIES } from '@/lib/graphql-queries'
 import AssigneeList from '@/components/tasks/AssigneeList'
 import HierarchicalTaskRow from '@/components/tasks/HierarchicalTaskRow'
+import TaskGridView from '@/components/tasks/TaskGridView'
 import MultiSelect from '@/components/ui/MultiSelect'
 import {
   CheckSquare,
@@ -27,7 +28,9 @@ import {
   Eye,
   BarChart3,
   RefreshCw,
-  Target
+  Target,
+  LayoutGrid,
+  Table as TableIcon
 } from 'lucide-react'
 
 // Helper function to execute GraphQL queries
@@ -76,6 +79,7 @@ export default function TasksPage() {
   const [assigneeFilter, setAssigneeFilter] = useState<string[]>([])
   const [projectFilter, setProjectFilter] = useState('all') // NEW: Project filter
   const [subprojectFilter, setSubprojectFilter] = useState('all') // NEW: Subproject filter
+  const [viewMode, setViewMode] = useState<'cards' | 'grid'>('cards')
 
   // Type for task statistics
   type TaskStatistics = {
@@ -135,6 +139,9 @@ export default function TasksPage() {
         setAssigneeFilter(Array.isArray(filters.assigneeFilter) ? filters.assigneeFilter : (filters.assigneeFilter === 'me' ? ['me'] : []))
         setProjectFilter(filters.projectFilter || 'all')
         setSubprojectFilter(filters.subprojectFilter || 'all')
+        if (filters.viewMode === 'grid' || filters.viewMode === 'cards') {
+          setViewMode(filters.viewMode)
+        }
       } else {
         // Set default assignee filter to current user if no saved filters
         if (currentUser?.employeeId) {
@@ -284,6 +291,8 @@ export default function TasksPage() {
         }
         if (statusFilter.length > 0) params.append('status', statusFilter.join(','))
         if (priorityFilter.length > 0) params.append('priority', priorityFilter.join(','))
+        if (projectFilter && projectFilter !== 'all') params.append('projectId', projectFilter)
+        if (subprojectFilter && subprojectFilter !== 'all') params.append('subprojectId', subprojectFilter)
 
         const response = await fetch(`/api/tasks?${params.toString()}`)
         if (!response.ok) {
@@ -361,13 +370,14 @@ export default function TasksPage() {
         priorityFilter,
         assigneeFilter,
         projectFilter,
-        subprojectFilter
+        subprojectFilter,
+        viewMode
       }
       localStorage.setItem('taskFilters', JSON.stringify(filters))
     } catch (error) {
       console.error('Failed to save filters:', error)
     }
-  }, [searchTerm, statusFilter, priorityFilter, assigneeFilter, projectFilter, subprojectFilter, isHydrated])
+  }, [searchTerm, statusFilter, priorityFilter, assigneeFilter, projectFilter, subprojectFilter, viewMode, isHydrated])
 
   // Reload tasks when filters change (reset pagination)
   useEffect(() => {
@@ -649,6 +659,41 @@ export default function TasksPage() {
             </div>
           </div>
           <div className="flex items-center space-x-3 mt-6 sm:mt-0">
+            {/* View mode toggle */}
+            <div
+              role="group"
+              aria-label="View mode"
+              className="inline-flex rounded-lg border border-gray-300 overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => setViewMode('cards')}
+                aria-pressed={viewMode === 'cards'}
+                className={`px-3 py-2 text-sm flex items-center gap-1.5 transition ${
+                  viewMode === 'cards'
+                    ? 'bg-primary text-black'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                title="Card view"
+              >
+                <LayoutGrid className="h-4 w-4" />
+                <span className="hidden sm:inline">Cards</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                aria-pressed={viewMode === 'grid'}
+                className={`px-3 py-2 text-sm flex items-center gap-1.5 border-l border-gray-300 transition ${
+                  viewMode === 'grid'
+                    ? 'bg-primary text-black'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                title="Grid view (editable)"
+              >
+                <TableIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Grid</span>
+              </button>
+            </div>
             <button
               onClick={() => router.push('/tasks/analytics')}
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors flex items-center space-x-2"
@@ -947,19 +992,29 @@ export default function TasksPage() {
           </div>
         ) : (
           <>
-            <div className="space-y-4">
-              {filteredTasks.map((task) => (
-                <HierarchicalTaskRow
-                  key={task.taskId}
-                  task={task}
-                  currentUserId={currentUser.employeeId}
-                  getStatusColor={getStatusColor}
-                  getPriorityColor={getPriorityColor}
-                  getStatusIcon={getStatusIcon}
-                  ProjectDisplay={ProjectDisplay}
-                />
-              ))}
-            </div>
+            {viewMode === 'grid' ? (
+              <TaskGridView
+                tasks={filteredTasks}
+                users={users}
+                projects={projects}
+                settingsData={settingsData}
+                onTasksChange={setTasks}
+              />
+            ) : (
+              <div className="space-y-4">
+                {filteredTasks.map((task) => (
+                  <HierarchicalTaskRow
+                    key={task.taskId}
+                    task={task}
+                    currentUserId={currentUser.employeeId}
+                    getStatusColor={getStatusColor}
+                    getPriorityColor={getPriorityColor}
+                    getStatusIcon={getStatusIcon}
+                    ProjectDisplay={ProjectDisplay}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Infinite scroll trigger element */}
             {hasMore && (

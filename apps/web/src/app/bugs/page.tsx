@@ -380,6 +380,8 @@ export default function BugsPage() {
         if (severityFilter.length > 0) params.append('severity', severityFilter.join(','))
         if (categoryFilter.length > 0) params.append('category', categoryFilter.join(','))
         if (typeFilter.length > 0) params.append('type', typeFilter.join(','))
+        if (projectFilter && projectFilter !== 'all') params.append('projectId', projectFilter)
+        if (subprojectFilter && subprojectFilter !== 'all') params.append('subprojectId', subprojectFilter)
 
         const response = await fetch(`/api/bugs?${params.toString()}`)
         if (!response.ok) {
