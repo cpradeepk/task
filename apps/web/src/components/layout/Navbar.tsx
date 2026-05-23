@@ -230,7 +230,7 @@ export default function Navbar() {
               <div className="h-10 flex items-center justify-center">
                 <Image
                   src="/images/logos/amtariksha_logo.png"
-                  alt="Amtariksha Logo"
+                  alt="Karmayog Logo"
                   width={160}
                   height={40}
                   className="object-contain"

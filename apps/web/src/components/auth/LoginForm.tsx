@@ -477,7 +477,7 @@ export default function LoginForm() {
             >
               <Image
                 src="/images/logos/amtariksha_icon.png"
-                alt="Amtariksha Logo"
+                alt="Karmayog Logo"
                 width={80}
                 height={80}
                 className="object-contain drop-shadow-2xl"
