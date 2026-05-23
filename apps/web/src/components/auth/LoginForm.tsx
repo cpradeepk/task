@@ -555,7 +555,21 @@ export default function LoginForm() {
 
             {/* Helper Text */}
             <div className="text-center text-sm text-white/80">
-              <p>Use your Employee ID (e.g., AM-0001) to login</p>
+              <p>Use your Employee ID (e.g., AM-0001) or email to login</p>
+            </div>
+
+            {/* Legal footer links */}
+            <div className="pt-6 border-t border-white/10 text-center text-xs text-white/70">
+              <a href="/privacy" className="hover:text-white underline-offset-4 hover:underline">
+                Privacy Policy
+              </a>
+              <span className="mx-2">·</span>
+              <a href="/terms" className="hover:text-white underline-offset-4 hover:underline">
+                Terms &amp; Conditions
+              </a>
+              <p className="mt-2 text-white/50">
+                © {new Date().getFullYear()} Amtariksha Tech Pvt Ltd
+              </p>
             </div>
           </form>
         </div>
