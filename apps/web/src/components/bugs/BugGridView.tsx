@@ -25,8 +25,15 @@ import {
   X,
   Loader2,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Circle as CircleIcon,
 } from 'lucide-react'
+import {
+  getBugStatusStyle,
+  getBugSeverityStyle,
+  getBugTypeStyle,
+  type BadgeStyle,
+} from '@/lib/statusColors'
 
 interface SettingItem { value: string; icon?: string }
 
@@ -49,35 +56,9 @@ type EditableField =
 
 type EditingCell = { bugId: string; field: EditableField } | null
 
-function getStatusColor(status: string): string {
-  switch (status) {
-    case 'New': return 'bg-blue-100 text-blue-800 border-blue-200'
-    case 'In Progress': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    case 'Resolved': return 'bg-green-100 text-green-800 border-green-200'
-    case 'Closed': return 'bg-gray-100 text-gray-800 border-gray-200'
-    case 'Reopened': return 'bg-orange-100 text-orange-800 border-orange-200'
-    default: return 'bg-gray-100 text-gray-800 border-gray-200'
-  }
-}
-
-function getSeverityColor(sev: string): string {
-  switch (sev) {
-    case 'Critical': return 'bg-red-100 text-red-800 border-red-200'
-    case 'Major': return 'bg-orange-100 text-orange-800 border-orange-200'
-    case 'Minor': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    default: return 'bg-gray-100 text-gray-800 border-gray-200'
-  }
-}
-
-function getTypeColor(type: string | null | undefined): string {
-  switch (type) {
-    case 'bug': return 'bg-red-100 text-red-800 border-red-200'
-    case 'testcase': return 'bg-purple-100 text-purple-800 border-purple-200'
-    case 'feature': return 'bg-blue-100 text-blue-800 border-blue-200'
-    case 'other': return 'bg-gray-100 text-gray-800 border-gray-200'
-    default: return 'bg-gray-50 text-gray-500 border-gray-200'
-  }
-}
+// Status/severity/type colors now come from the shared semantic system
+// (see @/lib/statusColors). Every badge pairs color with an icon so
+// colorblind users aren't relying on color alone.
 
 const TOTAL_COLUMNS = 10
 
@@ -242,7 +223,7 @@ export default function BugGridView({
     field: EditableField,
     value: string | null | undefined,
     options: string[],
-    colorFn: (v: string) => string,
+    styleResolver: (v: string | null | undefined) => BadgeStyle,
     placeholder = '—'
   ) => {
     const isEditing = editing?.bugId === bug.bugId && editing.field === field
@@ -254,7 +235,7 @@ export default function BugGridView({
           onChange={e => setDraftValue(e.target.value)}
           onBlur={() => saveEdit(bug)}
           onKeyDown={e => handleKeyDown(e, bug)}
-          className="w-full px-2 py-1 text-xs border-2 border-primary rounded focus:outline-none"
+          className="w-full px-2 py-1 text-xs border-2 border-primary rounded focus:outline-none bg-white dark:bg-gray-800 dark:text-white"
         >
           <option value="">—</option>
           {options.map(opt => (
@@ -263,16 +244,29 @@ export default function BugGridView({
         </select>
       )
     }
+    if (!value) {
+      return (
+        <button
+          type="button"
+          onClick={() => startEdit(bug.bugId, field, '')}
+          className="px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition bg-neutral-50 text-neutral-500 border-dashed border-neutral-300 dark:bg-transparent dark:text-neutral-400 dark:border-neutral-700"
+          title="Click to edit"
+        >
+          {placeholder}
+        </button>
+      )
+    }
+    const s = styleResolver(value)
+    const Icon = s.icon
     return (
       <button
         type="button"
         onClick={() => startEdit(bug.bugId, field, value ?? '')}
-        className={`px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition ${
-          value ? colorFn(value) : 'bg-gray-50 text-gray-400 border-dashed border-gray-300'
-        }`}
-        title="Click to edit"
+        className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition ${s.className}`}
+        title={`${s.label} (click to edit)`}
       >
-        {value || placeholder}
+        <Icon className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
+        <span className="truncate">{value}</span>
       </button>
     )
   }
@@ -431,24 +425,29 @@ export default function BugGridView({
 
         {/* Type */}
         <td className="px-3 py-2 w-28">
-          {renderEditableBadge(bug, 'type', bug.type, TYPE_OPTIONS as string[], getTypeColor, 'set type')}
+          {renderEditableBadge(bug, 'type', bug.type, TYPE_OPTIONS as string[], getBugTypeStyle, 'set type')}
         </td>
 
         {/* Status */}
         <td className="px-3 py-2 w-32">
-          {renderEditableBadge(bug, 'status', bug.status, statusOptions, getStatusColor)}
+          {renderEditableBadge(bug, 'status', bug.status, statusOptions, getBugStatusStyle)}
         </td>
 
         {/* Severity */}
         <td className="px-3 py-2 w-28">
-          {renderEditableBadge(bug, 'severity', bug.severity, SEVERITY_OPTIONS, getSeverityColor)}
+          {renderEditableBadge(bug, 'severity', bug.severity, SEVERITY_OPTIONS, getBugSeverityStyle)}
         </td>
 
-        {/* Category */}
+        {/* Category — uses neutral-info tone (no urgency semantics) */}
         <td className="px-3 py-2 w-32">
           {renderEditableBadge(
             bug, 'category', bug.category, CATEGORY_OPTIONS,
-            () => 'bg-indigo-50 text-indigo-800 border-indigo-200'
+            () => ({
+              tone: 'info' as const,
+              className: 'bg-info-100 text-info-700 border-info-500/40 dark:bg-info-500/15 dark:text-info-300 dark:border-info-500/40',
+              icon: CircleIcon,
+              label: bug.category || '—',
+            })
           )}
         </td>
 

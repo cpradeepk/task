@@ -72,7 +72,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
         name: 'Default',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#86EFAC',
+        lightColor: '#8B5CF6',
       })
 
       // Create additional channels for different notification types
@@ -80,7 +80,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
         name: 'Tasks',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#86EFAC',
+        lightColor: '#8B5CF6',
       })
 
       await Notifications.setNotificationChannelAsync('bugs', {

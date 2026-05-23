@@ -5,12 +5,12 @@
 
 import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper'
 
-// Material Design 3 Color Palette (matching web app sage green theme)
+// Material Design 3 Color Palette — matches web app's Vibrant Purple brand
 export const materialColors = {
-  // Primary colors (sage green to match web app)
-  primary: '#86EFAC',       // Sage green (web app primary)
-  primaryLight: '#BBF7D0',  // Green 200 (lighter sage)
-  primaryDark: '#22C55E',   // Green 500 (darker for hover/active)
+  // Primary colors (Vibrant Purple — Energetic Startup theme)
+  primary: '#8B5CF6',       // Vibrant Purple (web app primary)
+  primaryLight: '#C4B5FD',  // Purple 300
+  primaryDark: '#7C3AED',   // Purple 600 (darker for hover/active)
 
   // Secondary colors
   secondary: '#1976D2',     // Blue 700
@@ -52,11 +52,11 @@ export const materialColors = {
   shadow: '#000000',
 }
 
-// Dark mode colors — lighter sage stays primary for dark surfaces
+// Dark mode colors — brighter purple stays primary for dark surfaces
 export const materialColorsDark = {
-  primary: '#BBF7D0',       // Green 200 — lighter sage for dark bg contrast
-  primaryLight: '#86EFAC',  // Sage (the brand color)
-  primaryDark: '#4ADE80',   // Green 400 — slightly darker for hover/active
+  primary: '#A78BFA',       // Purple 400 — brighter for dark bg contrast
+  primaryLight: '#C4B5FD',  // Purple 300
+  primaryDark: '#8B5CF6',   // Purple 500 (the brand color)
 
   secondary: '#94A3B8',     // Slate 400
   secondaryLight: '#CBD5E1', // Slate 300

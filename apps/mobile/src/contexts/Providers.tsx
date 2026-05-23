@@ -8,54 +8,60 @@ import * as React from 'react'
 import type { ReactNode } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-// Light theme colors — sage green primary brand (#86EFAC)
+// Light theme colors — Vibrant Purple primary (#8B5CF6)
 const lightColors = {
-  background: '#F9FAFB',
+  background: '#F8FAFC',
   card: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceVariant: '#F3F4F6',
+  surfaceVariant: '#F1F5F9',
   text: '#111827',
-  textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
-  border: '#E5E7EB',
-  borderLight: '#F3F4F6',
-  primary: '#86EFAC',
-  primaryLight: '#F0FDF4',
-  primaryDark: '#22C55E',
-  success: '#10B981',
-  successLight: '#D1FAE5',
+  textSecondary: '#475569',
+  textTertiary: '#94A3B8',
+  border: '#E2E8F0',
+  borderLight: '#F1F5F9',
+  primary: '#8B5CF6',
+  primaryLight: '#EDE9FE',
+  primaryDark: '#7C3AED',
+  // Semantic status colors (universally understood)
+  success: '#22C55E',
+  successLight: '#DCFCE7',
   warning: '#F59E0B',
   warningLight: '#FEF3C7',
   error: '#EF4444',
   errorLight: '#FEE2E2',
+  info: '#3B82F6',
+  infoLight: '#DBEAFE',
+  // Legacy accents kept for any existing references
   purple: '#8B5CF6',
   purpleLight: '#EDE9FE',
   pink: '#EC4899',
   pinkLight: '#FCE7F3',
 }
 
-// Dark theme colors — lighter sage stays primary for dark surfaces
+// Dark theme colors — dark gunmetal background (#121212) with brighter purple
 const darkColors = {
-  background: '#111827',
-  card: '#1F2937',
-  surface: '#1F2937',
-  surfaceVariant: '#374151',
-  text: '#F9FAFB',
-  textSecondary: '#D1D5DB',
-  textTertiary: '#9CA3AF',
-  border: '#374151',
-  borderLight: '#4B5563',
-  primary: '#BBF7D0',
-  primaryLight: '#14532D',
-  primaryDark: '#4ADE80',
-  success: '#34D399',
-  successLight: '#064E3B',
+  background: '#121212',
+  card: '#1E1E1E',
+  surface: '#2A2A2A',
+  surfaceVariant: '#1E1E1E',
+  text: '#F3F4F6',
+  textSecondary: '#CBD5E1',
+  textTertiary: '#94A3B8',
+  border: '#2A2A2A',
+  borderLight: '#1E1E1E',
+  primary: '#A78BFA',
+  primaryLight: '#3B1376',
+  primaryDark: '#8B5CF6',
+  success: '#4ADE80',
+  successLight: '#14532D',
   warning: '#FBBF24',
   warningLight: '#78350F',
   error: '#F87171',
   errorLight: '#7F1D1D',
+  info: '#60A5FA',
+  infoLight: '#1E3A8A',
   purple: '#A78BFA',
-  purpleLight: '#4C1D95',
+  purpleLight: '#3B1376',
   pink: '#F472B6',
   pinkLight: '#831843',
 }
@@ -79,7 +85,9 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('light')
+  // Default to dark mode — matches the 'Energetic Startup' design direction.
+  // Users can toggle to light; their choice is persisted in AsyncStorage.
+  const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
 
   React.useEffect(() => {
     loadTheme()

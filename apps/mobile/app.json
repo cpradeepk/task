@@ -21,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#86EFAC"
+        "backgroundColor": "#8B5CF6"
       },
       "package": "com.amtariksha.tasks",
       "versionCode": 1,
@@ -62,7 +62,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#86EFAC",
+          "color": "#8B5CF6",
           "sounds": [],
           "mode": "production"
         }

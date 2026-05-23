@@ -29,8 +29,13 @@ import {
   X,
   Loader2,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react'
+import {
+  getTaskStatusStyle,
+  getTaskPriorityStyle,
+  type BadgeStyle,
+} from '@/lib/statusColors'
 
 interface SettingItem { value: string; icon?: string }
 
@@ -56,36 +61,9 @@ const DEFAULT_STATUS_OPTIONS: Task['status'][] = [
 ]
 const DEFAULT_PRIORITY_OPTIONS: Task['priority'][] = ['U&I', 'NU&I', 'U&NI', 'NU&NI']
 
-function getStatusColor(status: string): string {
-  switch (status) {
-    case 'Yet to Start': return 'bg-gray-100 text-gray-800 border-gray-200'
-    case 'In Progress': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    case 'Delayed': return 'bg-red-100 text-red-800 border-red-200'
-    case 'Done': return 'bg-green-100 text-green-800 border-green-200'
-    case 'Cancel': return 'bg-gray-200 text-gray-600 border-gray-300'
-    case 'Hold': return 'bg-purple-100 text-purple-800 border-purple-200'
-    case 'ReOpened': return 'bg-orange-100 text-orange-800 border-orange-200'
-    case 'Stop': return 'bg-red-50 text-red-700 border-red-200'
-    default: return 'bg-gray-100 text-gray-800 border-gray-200'
-  }
-}
-
-function getPriorityColor(priority: string): string {
-  switch (priority) {
-    case 'U&I': return 'bg-red-100 text-red-800 border-red-200'
-    case 'NU&I': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    case 'U&NI': return 'bg-orange-100 text-orange-800 border-orange-200'
-    case 'NU&NI': return 'bg-green-100 text-green-800 border-green-200'
-    default: return 'bg-gray-100 text-gray-800 border-gray-200'
-  }
-}
-
-const PRIORITY_LABELS: Record<string, string> = {
-  'U&I': 'Urgent & Important',
-  'NU&I': 'Important',
-  'U&NI': 'Urgent',
-  'NU&NI': 'Low'
-}
+// Status/priority styles come from the shared semantic system
+// (@/lib/statusColors). Every badge pairs color with an icon so colorblind
+// users aren't relying on color alone.
 
 const TOTAL_COLUMNS = 10
 
@@ -272,8 +250,8 @@ export default function TaskGridView({
     field: EditableField,
     value: string | null | undefined,
     options: string[],
-    colorFn: (v: string) => string,
-    labelFn: (v: string) => string = v => v,
+    styleResolver: (v: string | null | undefined) => BadgeStyle,
+    optionLabelFn: (v: string) => string = v => v,
     placeholder = '—'
   ) => {
     const isEditing = editing?.taskId === task.taskId && editing.field === field
@@ -285,25 +263,38 @@ export default function TaskGridView({
           onChange={e => setDraftValue(e.target.value)}
           onBlur={() => saveEdit(task)}
           onKeyDown={e => handleKeyDown(e, task)}
-          className="w-full px-2 py-1 text-xs border-2 border-primary rounded focus:outline-none"
+          className="w-full px-2 py-1 text-xs border-2 border-primary rounded focus:outline-none bg-white dark:bg-gray-800 dark:text-white"
         >
           <option value="">—</option>
           {options.map(opt => (
-            <option key={opt} value={opt}>{labelFn(opt)}</option>
+            <option key={opt} value={opt}>{optionLabelFn(opt)}</option>
           ))}
         </select>
       )
     }
+    if (!value) {
+      return (
+        <button
+          type="button"
+          onClick={() => startEdit(task.taskId, field, '')}
+          className="px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition bg-neutral-50 text-neutral-500 border-dashed border-neutral-300 dark:bg-transparent dark:text-neutral-400 dark:border-neutral-700"
+          title="Click to edit"
+        >
+          {placeholder}
+        </button>
+      )
+    }
+    const s = styleResolver(value)
+    const Icon = s.icon
     return (
       <button
         type="button"
         onClick={() => startEdit(task.taskId, field, value ?? '')}
-        className={`px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition ${
-          value ? colorFn(value) : 'bg-gray-50 text-gray-400 border-dashed border-gray-300'
-        }`}
-        title={value ? labelFn(value) : 'Click to set'}
+        className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition ${s.className}`}
+        title={`${s.label} (click to edit)`}
       >
-        {value ? labelFn(value) : placeholder}
+        <Icon className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
+        <span className="truncate">{s.label}</span>
       </button>
     )
   }
@@ -471,7 +462,7 @@ export default function TaskGridView({
 
         {/* Status */}
         <td className="px-3 py-2 w-32">
-          {renderEditableBadge(task, 'status', task.status, statusOptions, getStatusColor)}
+          {renderEditableBadge(task, 'status', task.status, statusOptions, getTaskStatusStyle)}
         </td>
 
         {/* Priority */}
@@ -481,8 +472,7 @@ export default function TaskGridView({
             'priority',
             task.priority,
             priorityOptions,
-            getPriorityColor,
-            v => PRIORITY_LABELS[v] || v
+            getTaskPriorityStyle
           )}
         </td>
 

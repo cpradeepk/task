@@ -200,48 +200,49 @@
 }
 
 :root {
-  --foreground-rgb: 0, 0, 0;
+  --foreground-rgb: 17, 24, 39;
   --background-rgb: 255, 255, 255;
-  --primary-rgb: 134, 239, 172;
+  --primary-rgb: 139, 92, 246;
 
-  /* Brand color tokens — sage green (#86EFAC) */
-  --color-brand: #86EFAC;
-  --color-brand-dark: #22C55E;
-  --color-brand-light: #BBF7D0;
-  --color-brand-50: #F0FDF4;
-  --color-brand-100: #DCFCE7;
+  /* Brand color tokens — Vibrant Purple (#8B5CF6) */
+  --color-brand: #8B5CF6;
+  --color-brand-dark: #7C3AED;
+  --color-brand-light: #C4B5FD;
+  --color-brand-50: #F5F3FF;
+  --color-brand-100: #EDE9FE;
 
-  /* Semantic tokens (light) */
+  /* Light mode neutrals — 60% backgrounds (whites/grays), gentle on the eyes */
   --color-bg: #ffffff;
-  --color-bg-secondary: #F8F8F8;
-  --color-text: #000000;
-  --color-text-secondary: #606060;
-  --color-text-muted: #A0A0A0;
+  --color-bg-secondary: #F8FAFC;
+  --color-text: #111827;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
   --color-surface: #ffffff;
-  --color-border: #E8E8E8;
-  --color-border-light: #F0F0F0;
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
 }
 
 .dark {
-  --foreground-rgb: 255, 255, 255;
-  --background-rgb: 17, 24, 39;
-  --primary-rgb: 187, 247, 208;
+  --foreground-rgb: 243, 244, 246;
+  --background-rgb: 18, 18, 18;
+  --primary-rgb: 167, 139, 250;
 
-  /* Lighter sage in dark mode for better surface contrast */
-  --color-brand: #BBF7D0;
-  --color-brand-dark: #4ADE80;
-  --color-brand-light: #86EFAC;
-  --color-brand-50: #14532D;
-  --color-brand-100: #166534;
+  /* Brighter purple in dark mode for better contrast on dark surfaces */
+  --color-brand: #A78BFA;
+  --color-brand-dark: #8B5CF6;
+  --color-brand-light: #C4B5FD;
+  --color-brand-50: #2E1065;
+  --color-brand-100: #3B1376;
 
-  --color-bg: #111827;
-  --color-bg-secondary: #1F2937;
-  --color-text: #F9FAFB;
-  --color-text-secondary: #D1D5DB;
-  --color-text-muted: #9CA3AF;
-  --color-surface: #1F2937;
-  --color-border: #374151;
-  --color-border-light: #4B5563;
+  /* Dark gunmetal palette (not pure black — easier on eyes per design brief) */
+  --color-bg: #121212;
+  --color-bg-secondary: #1E1E1E;
+  --color-text: #F3F4F6;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #94A3B8;
+  --color-surface: #2A2A2A;
+  --color-border: #2A2A2A;
+  --color-border-light: #1E1E1E;
 }
 
 html {
@@ -537,7 +538,7 @@ body {
 .id-card-print {
   width: 3.375in;
   height: 2.125in;
-  border: 2px solid #86EFAC;
+  border: 2px solid #8B5CF6;
   border-radius: 12px;
   padding: 16px;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -557,7 +558,7 @@ body {
 .id-card-print .company-name {
   font-size: 14px;
   font-weight: bold;
-  color: #86EFAC;
+  color: #8B5CF6;
   margin-bottom: 2px;
 }
 
@@ -577,7 +578,7 @@ body {
 .id-card-print .avatar {
   width: 48px;
   height: 48px;
-  background: #86EFAC;
+  background: #8B5CF6;
   border-radius: 50%;
   display: flex;
   align-items: center;

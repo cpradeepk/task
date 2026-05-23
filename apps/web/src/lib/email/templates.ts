@@ -37,7 +37,7 @@ const getBaseTemplate = (content: string, title: string) => `
         }
         
         .email-header {
-            background: linear-gradient(135deg, #86EFAC 0%, #22C55E 100%);
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
             color: #000000;
             padding: 30px 20px;
             text-align: center;
@@ -52,7 +52,7 @@ const getBaseTemplate = (content: string, title: string) => `
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 20px rgba(134, 239, 172, 0.3);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
             border: 3px solid #FFFFFF;
             overflow: hidden;
         }
@@ -90,7 +90,7 @@ const getBaseTemplate = (content: string, title: string) => `
         
         .highlight-box {
             background-color: #f8f9fa;
-            border-left: 4px solid #86EFAC;
+            border-left: 4px solid #8B5CF6;
             padding: 20px;
             margin: 20px 0;
             border-radius: 4px;
@@ -149,7 +149,7 @@ const getBaseTemplate = (content: string, title: string) => `
         .status-pending {
             background-color: #F0FDF4;
             color: #f57c00;
-            border: 1px solid #86EFAC;
+            border: 1px solid #8B5CF6;
         }
         
         .priority-high {
@@ -161,7 +161,7 @@ const getBaseTemplate = (content: string, title: string) => `
         .priority-medium {
             background-color: #F0FDF4;
             color: #f57c00;
-            border: 1px solid #86EFAC;
+            border: 1px solid #8B5CF6;
         }
 
         .priority-low {
@@ -173,19 +173,19 @@ const getBaseTemplate = (content: string, title: string) => `
         .button {
             display: inline-block;
             padding: 12px 24px;
-            background: linear-gradient(135deg, #86EFAC 0%, #22C55E 100%);
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
             color: #000000;
             text-decoration: none;
             border-radius: 6px;
             font-weight: 600;
             margin: 10px 5px;
             transition: transform 0.2s;
-            box-shadow: 0 4px 12px rgba(134, 239, 172, 0.3);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
         }
 
         .button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(134, 239, 172, 0.4);
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
         }
         
         .button-secondary {
@@ -193,13 +193,13 @@ const getBaseTemplate = (content: string, title: string) => `
         }
         
         .credentials-box {
-            background: linear-gradient(135deg, #86EFAC 0%, #22C55E 100%);
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
             color: #000000;
             padding: 20px;
             border-radius: 8px;
             text-align: center;
             margin: 20px 0;
-            box-shadow: 0 4px 15px rgba(134, 239, 172, 0.3);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
         }
         
         .credentials-item {
@@ -240,7 +240,7 @@ const getBaseTemplate = (content: string, title: string) => `
         }
         
         .footer-links a {
-            color: #86EFAC;
+            color: #8B5CF6;
             text-decoration: none;
             margin: 0 10px;
             font-size: 12px;
@@ -572,7 +572,7 @@ export const getUserCredentialsTemplate = (data: {
     </div>
 
     <div class="content-section">
-        <p>If you have any questions or need assistance, please don't hesitate to contact our support team at <a href="mailto:${EMAIL_CONFIG.templates.supportContact}" style="color: #86EFAC;">${EMAIL_CONFIG.templates.supportContact}</a>.</p>
+        <p>If you have any questions or need assistance, please don't hesitate to contact our support team at <a href="mailto:${EMAIL_CONFIG.templates.supportContact}" style="color: #8B5CF6;">${EMAIL_CONFIG.templates.supportContact}</a>.</p>
     </div>
   `
 
