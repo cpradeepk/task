@@ -70,8 +70,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "d5eaa1b3-d1a5-4f59-836b-814831a766dd"
+        "projectId": "46456ef5-ee4f-49dc-b244-f265d16402d6"
       }
-    }
+    },
+    "owner": "whokevalshah"
   }
 }
