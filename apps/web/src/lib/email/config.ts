@@ -21,7 +21,7 @@ export const EMAIL_CONFIG = {
 
   // Default sender information
   from: {
-    name: process.env.EMAIL_FROM_NAME || 'Amtariksha Task Management',
+    name: process.env.EMAIL_FROM_NAME || 'Karmayog',
     email: process.env.EMAIL_FROM_EMAIL || 'manager@eassy.life',
   },
 
@@ -31,8 +31,9 @@ export const EMAIL_CONFIG = {
   templates: {
     baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
     logoUrl: process.env.EMAIL_LOGO_URL || '/images/logos/amtariksha_icon.png',
-    companyName: 'Amtariksha',
-    supportContact: 'mailcpk@gmail.com',
+    // Product name shown in emails (Karmayog by Amtariksha Tech Pvt Ltd)
+    companyName: 'Karmayog',
+    supportContact: 'contactus@amtariksha.com',
   },
 
   // Feature flags

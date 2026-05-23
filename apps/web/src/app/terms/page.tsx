@@ -26,7 +26,7 @@ export default function TermsAndConditionsPage() {
           <section>
             <p>
               These Terms &amp; Conditions (&ldquo;Terms&rdquo;) govern your
-              access to and use of <strong>Amtariksha Tasks</strong>
+              access to and use of <strong>Karmayog</strong>
               {' '}(the &ldquo;Service&rdquo;), operated by{' '}
               <strong>Amtariksha Tech Pvt Ltd</strong> (&ldquo;Amtariksha&rdquo;,
               &ldquo;we&rdquo;, &ldquo;us&rdquo;), a company incorporated under

@@ -1,7 +1,7 @@
-# Amtariksha Tasks — Android Release Guide
+# Karmayog — Android Release Guide
 
 > **For:** the developer responsible for cutting a release to the Google Play Store.
-> **App package:** `com.amtariksha.tasks`
+> **App package:** `com.karmayog`
 > **Build platform:** Expo + EAS Build (cloud)
 > **Last updated:** 2026-05-09
 
@@ -85,12 +85,12 @@ eas credentials
 
 1. Go to https://play.google.com/console
 2. **Create app**
-   - App name: **Amtariksha Tasks**
+   - App name: **Karmayog**
    - Default language: English (en-US)
    - App or game: App
    - Free or paid: Free (or paid if charging)
    - Accept declarations
-3. After creation, set the **package name** to `com.amtariksha.tasks` (Play Console will lock it forever after the first upload, so double-check).
+3. After creation, set the **package name** to `com.karmayog` (Play Console will lock it forever after the first upload, so double-check).
 
 Fill in the mandatory listing fields before your first upload:
 - **App access** (declare if any features are gated behind login — for us: yes, all features behind login)
@@ -110,7 +110,7 @@ The `eas submit` command uploads builds to Play directly. To do that it needs a 
 2. You'll be sent to Google Cloud. Create a service account named `eas-submit`. No roles needed in Google Cloud itself — Play handles permissions.
 3. Generate a JSON key for that account. Download it.
 4. Back in **Play Console** → API access → grant the new service account these permissions:
-   - **App-level access** for `com.amtariksha.tasks`:
+   - **App-level access** for `com.karmayog`:
      - Release to production
      - Release to testing tracks
      - Manage store presence

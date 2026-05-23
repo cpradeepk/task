@@ -8,8 +8,8 @@ import TimerProvider from '@/components/TimerProvider'
 import ApolloWrapper from '@/components/providers/ApolloWrapper'
 
 export const metadata: Metadata = {
-  title: 'Amtariksha - Task Management System',
-  description: 'Amtariksha Task Management System for efficient workflow management',
+  title: 'Karmayog — Task Management',
+  description: 'Karmayog by Amtariksha Tech — task, bug, and project management for teams.',
   icons: {
     icon: [
       { url: '/icon.png', sizes: 'any' },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Amtariksha'
+    title: 'Karmayog'
   }
 }
 

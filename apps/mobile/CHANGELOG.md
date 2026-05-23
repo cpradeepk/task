@@ -1,4 +1,4 @@
-# Amtariksha Tasks — Changelog
+# Karmayog — Changelog
 
 This file tracks user-facing changes to the mobile app. The text in each
 version section can be copy-pasted into Play Console's "What's new in
@@ -17,7 +17,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Sign in with email address in addition to employee ID
 
 ### Changed
-- App branded as **Amtariksha Tasks** (was "JSR Task Management")
+- App branded as **Karmayog** (was "JSR Task Management")
 - New "Energetic Startup" theme: Vibrant Purple primary, dark mode by
   default
 - Status / priority / severity badges now use a consistent semantic
@@ -31,7 +31,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [1.0.0] — Initial release
 
-First release of Amtariksha Tasks. Includes:
+First release of Karmayog. Includes:
 
 - Task and bug tracking with project assignment
 - Attendance, leave, and WFH application flow

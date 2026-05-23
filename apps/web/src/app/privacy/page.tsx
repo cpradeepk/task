@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
               This Privacy Policy explains how <strong>Amtariksha Tech Pvt Ltd</strong>{' '}
               (&ldquo;Amtariksha&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) collects,
               uses, discloses, and protects information in connection with the
-              <strong> Amtariksha Tasks</strong> web and mobile application
+              <strong> Karmayog</strong> web and mobile application
               (the &ldquo;Service&rdquo;). It applies to employees of
               Amtariksha and to external collaborators (clients, vendors,
               contractors) who are granted access to the Service.

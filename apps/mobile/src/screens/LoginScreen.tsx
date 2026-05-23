@@ -156,7 +156,7 @@ export default function LoginScreen() {
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.title}>Amtariksha Tasks</Text>
+            <Text style={styles.title}>Karmayog</Text>
             <Text style={styles.subtitle}>Sign in to continue</Text>
           </View>
 

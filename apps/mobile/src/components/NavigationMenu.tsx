@@ -114,7 +114,7 @@ export default function NavigationMenu({ visible, onClose }: NavigationMenuProps
               style={styles.logo}
               resizeMode="contain"
             />
-            <Text style={styles.appTitle}>Amtariksha Tasks</Text>
+            <Text style={styles.appTitle}>Karmayog</Text>
             <IconButton
               icon="close"
               size={24}

@@ -486,10 +486,10 @@ export default function LoginForm() {
             {/* Brand Name */}
             <h1 className="text-3xl md:text-4xl font-extrabold tracking-wide mb-2">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300">
-                Amtariksha
+                Karmayog
               </span>
             </h1>
-            <p className="text-sm md:text-base text-white/70">space • infinity</p>
+            <p className="text-sm md:text-base text-white/70">the yoga of action</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

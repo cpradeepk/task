@@ -123,7 +123,7 @@ export class EmailService {
         priority: nodemailerPriority || 'normal',
         headers: {
           'X-Email-Type': options.type,
-          'X-Mailer': 'Amtariksha Task Management System',
+          'X-Mailer': 'Karmayog',
         },
       }
 

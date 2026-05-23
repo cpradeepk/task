@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Amtariksha Tasks",
-    "slug": "amtariksha-tasks",
+    "name": "Karmayog",
+    "slug": "karmayog",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "amtariksha",
+    "scheme": "karmayog",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -16,14 +16,14 @@
       "**/*"
     ],
     "ios": {
-      "bundleIdentifier": "com.amtariksha.tasks"
+      "bundleIdentifier": "com.karmayog"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#8B5CF6"
       },
-      "package": "com.amtariksha.tasks",
+      "package": "com.karmayog",
       "versionCode": 1,
       "permissions": [
         "android.permission.RECORD_AUDIO",
@@ -36,7 +36,7 @@
           "action": "VIEW",
           "data": [
             {
-              "scheme": "amtariksha"
+              "scheme": "karmayog"
             }
           ],
           "category": [
