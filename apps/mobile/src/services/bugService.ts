@@ -34,6 +34,15 @@ export interface Bug {
   closedAt?: string
   timerTotalTime?: number
   actualHours?: number
+  // Additional fields surfaced by the web schema
+  type?: 'testcase' | 'feature' | 'bug' | 'other' | null
+  expectedBehavior?: string | null
+  actualBehavior?: string | null
+  serverLogs?: string | null
+  frontendLogs?: string | null
+  developmentPrompt?: string | null
+  parentDevId?: string | null
+  feature?: string | null
 }
 
 export interface BugComment {

@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "JSR Task Management",
-    "slug": "jsr-task-management",
+    "name": "Amtariksha Tasks",
+    "slug": "amtariksha-tasks",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "jsrtask",
+    "scheme": "amtariksha",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -16,14 +16,15 @@
       "**/*"
     ],
     "ios": {
-      "bundleIdentifier": "com.jsr.taskmanagement"
+      "bundleIdentifier": "com.amtariksha.tasks"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#86EFAC"
       },
-      "package": "com.jsr.taskmanagement",
+      "package": "com.amtariksha.tasks",
+      "versionCode": 1,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.RECEIVE_BOOT_COMPLETED",
@@ -35,7 +36,7 @@
           "action": "VIEW",
           "data": [
             {
-              "scheme": "jsrtask"
+              "scheme": "amtariksha"
             }
           ],
           "category": [
@@ -61,7 +62,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#FFA301",
+          "color": "#86EFAC",
           "sounds": [],
           "mode": "production"
         }

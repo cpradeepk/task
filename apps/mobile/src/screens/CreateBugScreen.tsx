@@ -19,14 +19,33 @@ import { createBug } from '../services/bugService'
 import { getProjectHierarchy, ProjectHierarchy } from '../services/projectService'
 import { getAllSettings, GroupedSettings } from '../services/settingsService'
 import { getAllUsers, getCurrentUser, User } from '../services/userService'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
+interface CreateBugRouteParams {
+  convertFrom?: string
+  type?: string
+  title?: string
+  description?: string
+  expectedBehavior?: string
+  actualBehavior?: string
+  serverLogs?: string
+  frontendLogs?: string
+  projectId?: string
+  subprojectId?: string
+  category?: string
+  severity?: string
+  platform?: string
+  environment?: string
+}
+
 export default function CreateBugScreen() {
   const navigation = useNavigation()
+  const route = useRoute()
+  const routeParams = (route.params || {}) as CreateBugRouteParams
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
@@ -120,6 +139,25 @@ export default function CreateBugScreen() {
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  // Pre-fill form when navigating with conversion params (Test Case → Bug)
+  useEffect(() => {
+    if (!routeParams.convertFrom) return
+    if (routeParams.type) setBugType(routeParams.type)
+    if (routeParams.title) setTitle(routeParams.title)
+    if (routeParams.description) setStepsToReproduce(routeParams.description)
+    if (routeParams.expectedBehavior) setExpectedBehavior(routeParams.expectedBehavior)
+    if (routeParams.actualBehavior) setActualBehavior(routeParams.actualBehavior)
+    if (routeParams.serverLogs) setServerLogs(routeParams.serverLogs)
+    if (routeParams.frontendLogs) setFrontendLogs(routeParams.frontendLogs)
+    if (routeParams.projectId) setProjectId(routeParams.projectId)
+    if (routeParams.subprojectId) setSubprojectId(routeParams.subprojectId)
+    if (routeParams.category) setCategory(routeParams.category)
+    if (routeParams.severity) setSeverity(routeParams.severity)
+    if (routeParams.platform) setPlatform(routeParams.platform)
+    if (routeParams.environment) setEnvironment(routeParams.environment)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeParams.convertFrom])
 
   const handleFilePick = async () => {
     try {
@@ -287,6 +325,16 @@ export default function CreateBugScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Surface style={styles.form} elevation={0}>
+          {/* Conversion banner */}
+          {routeParams.convertFrom && (
+            <View style={styles.convertBanner}>
+              <Text style={styles.convertBannerText}>
+                Converting test case {routeParams.convertFrom} to a bug. Fields
+                have been pre-filled — review and submit.
+              </Text>
+            </View>
+          )}
+
           {/* Project */}
           <View style={styles.field}>
             <Text style={styles.label}>
@@ -645,6 +693,18 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   form: {
     padding: materialSpacing.md,
     gap: materialSpacing.md,
+  },
+  convertBanner: {
+    backgroundColor: materialColors.primaryLight,
+    borderLeftWidth: 4,
+    borderLeftColor: materialColors.primary,
+    padding: materialSpacing.sm,
+    borderRadius: 6,
+    marginBottom: materialSpacing.md,
+  },
+  convertBannerText: {
+    ...materialTypography.bodySmall,
+    color: materialColors.text,
   },
   field: {
     marginBottom: materialSpacing.md,

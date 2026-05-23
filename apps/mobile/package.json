@@ -1,8 +1,8 @@
 {
-  "name": "@jsr/mobile",
+  "name": "@amtariksha/mobile",
   "version": "1.0.0",
   "private": true,
-  "description": "JSR Task Management System - React Native + Expo Mobile App",
+  "description": "Amtariksha Tasks - React Native + Expo Mobile App",
   "main": "index.js",
   "scripts": {
     "dev": "expo start",
@@ -19,7 +19,7 @@
     "build:cloud:preview": "eas build --platform android --profile preview",
     "install:local": "adb install -r android/app/build/outputs/apk/debug/app-debug.apk",
     "install:local:release": "adb install -r android/app/build/outputs/apk/release/app-release.apk",
-    "uninstall": "adb uninstall com.jsr.taskmanagement",
+    "uninstall": "adb uninstall com.amtariksha.tasks",
     "reinstall:local": "npm run uninstall && npm run install:local",
     "lint": "eslint .",
     "type-check": "tsc --noEmit"

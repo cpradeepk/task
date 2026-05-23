@@ -95,8 +95,17 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
         setEditedDescription(response.data.description)
         setEditedRemarks(response.data.remarks || '')
       } else {
-        Alert.alert('Error', response.error || 'Failed to load task')
-        navigation.goBack()
+        const err = (response.error || '').toLowerCase()
+        if (err.includes('forbidden') || err.includes('no access') || err.includes('403')) {
+          Alert.alert(
+            'No Access',
+            "You don't have access to this item. It may belong to a project you're not assigned to.",
+            [{ text: 'OK', onPress: () => navigation.goBack() }]
+          )
+        } else {
+          Alert.alert('Error', response.error || 'Failed to load task')
+          navigation.goBack()
+        }
       }
     } catch (error) {
       console.error('Failed to load task:', error)

@@ -73,6 +73,16 @@ export default function BugDetailsScreen() {
         setEditedStatus(bugResponse.data.status)
         setEditedPriority(bugResponse.data.priority)
         setEditedDescription(bugResponse.data.description)
+      } else if (!bugResponse.success) {
+        const err = (bugResponse.error || '').toLowerCase()
+        if (err.includes('forbidden') || err.includes('no access') || err.includes('403')) {
+          Alert.alert(
+            'No Access',
+            "You don't have access to this item. It may belong to a project you're not assigned to.",
+            [{ text: 'OK', onPress: () => navigation.goBack() }]
+          )
+          return
+        }
       }
 
       if (commentsResponse.success && commentsResponse.data) {
@@ -84,7 +94,7 @@ export default function BugDetailsScreen() {
     } finally {
       setIsLoading(false)
     }
-  }, [bugId])
+  }, [bugId, navigation])
 
   useEffect(() => {
     loadData()
@@ -282,6 +292,94 @@ export default function BugDetailsScreen() {
             <Text style={styles.description}>{bug.description}</Text>
           </Card.Content>
         </Card>
+
+        {/* Convert Test Case to Bug button */}
+        {bug.type === 'testcase' && (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Convert to Bug</Text>
+              <Divider style={styles.divider} />
+              <Text style={[styles.description, { marginBottom: materialSpacing.sm }]}>
+                Promote this test case to a tracked bug. Title, description,
+                behaviors, logs, and project context will be pre-filled on the
+                new bug; this test case stays linked to it.
+              </Text>
+              <Button
+                mode="contained"
+                icon="bug"
+                onPress={() => {
+                  (navigation as any).navigate('CreateBug', {
+                    convertFrom: bug.bugId,
+                    type: 'bug',
+                    title: bug.title,
+                    description: bug.description,
+                    expectedBehavior: (bug as any).expectedBehavior || '',
+                    actualBehavior: (bug as any).actualBehavior || '',
+                    serverLogs: (bug as any).serverLogs || '',
+                    frontendLogs: (bug as any).frontendLogs || '',
+                    projectId: bug.projectId || '',
+                    subprojectId: (bug as any).subprojectId || '',
+                    category: bug.category || '',
+                    severity: bug.severity || '',
+                    platform: bug.platform || '',
+                    environment: bug.environment || '',
+                  })
+                }}
+                disabled={isOffline}
+              >
+                Convert to Bug
+              </Button>
+            </Card.Content>
+          </Card>
+        )}
+
+        {/* Expected Behavior */}
+        {(bug as any).expectedBehavior ? (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Expected Behavior</Text>
+              <Divider style={styles.divider} />
+              <Text style={styles.description}>{(bug as any).expectedBehavior}</Text>
+            </Card.Content>
+          </Card>
+        ) : null}
+
+        {/* Actual Behavior */}
+        {(bug as any).actualBehavior ? (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Actual Behavior</Text>
+              <Divider style={styles.divider} />
+              <Text style={styles.description}>{(bug as any).actualBehavior}</Text>
+            </Card.Content>
+          </Card>
+        ) : null}
+
+        {/* Server Logs */}
+        {(bug as any).serverLogs ? (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Server Logs</Text>
+              <Divider style={styles.divider} />
+              <Text style={[styles.description, styles.logsText]} selectable>
+                {(bug as any).serverLogs}
+              </Text>
+            </Card.Content>
+          </Card>
+        ) : null}
+
+        {/* Frontend Logs */}
+        {(bug as any).frontendLogs ? (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Frontend Logs</Text>
+              <Divider style={styles.divider} />
+              <Text style={[styles.description, styles.logsText]} selectable>
+                {(bug as any).frontendLogs}
+              </Text>
+            </Card.Content>
+          </Card>
+        ) : null}
 
         {/* Bug Information Card */}
         <Card style={styles.sectionCard} elevation={1}>
@@ -661,6 +759,15 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     ...materialTypography.bodyMedium,
     color: materialColors.textSecondary,
     lineHeight: 22,
+  },
+  logsText: {
+    fontFamily: 'monospace',
+    fontSize: 12,
+    lineHeight: 18,
+    color: materialColors.text,
+    backgroundColor: materialColors.surfaceVariant,
+    padding: materialSpacing.sm,
+    borderRadius: 6,
   },
   infoGrid: {
     gap: materialSpacing.sm,
