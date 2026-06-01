@@ -12,6 +12,8 @@ node_modules/
 
 # Large files
 *.node
+*.apk
+*.aab
 
 # Production
 /build

@@ -1,4 +1,4 @@
-package com.jsr.taskmanagement
+package com.karmayog
 
 import android.app.Application
 import android.content.res.Configuration
