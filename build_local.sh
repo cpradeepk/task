@@ -140,7 +140,19 @@ case "$COMMAND" in
     pod install
     cd ..
     
-    # 5. Compile iOS Build (simulator release or archive)
+    # 5. Apply space-in-path patches (required because project path has spaces)
+    echo "🔧 Applying iOS space-in-path patches..."
+    bash scripts/patch-ios-spaces.sh
+    
+    # 6. Sync version from app.json into Xcode project
+    echo "🔢 Syncing version into Xcode project..."
+    APP_VERSION=$(python3 -c "import json; print(json.load(open('app.json'))['expo']['version'])" 2>/dev/null || echo "1.0.0")
+    BUILD_NUMBER=$(python3 -c "import json; print(json.load(open('app.json'))['expo']['ios']['buildNumber'])" 2>/dev/null || echo "1")
+    sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $APP_VERSION/g" ios/Karmayog.xcodeproj/project.pbxproj
+    sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = $BUILD_NUMBER/g" ios/Karmayog.xcodeproj/project.pbxproj
+    echo "   Version: $APP_VERSION (build $BUILD_NUMBER)"
+    
+    # 7. Compile iOS Build (simulator release or archive)
     echo "🔨 Building iOS app..."
     echo "Choose build target:"
     echo "  1) Archive (.xcarchive for App Store/Device - requires codesigning)"
@@ -150,6 +162,7 @@ case "$COMMAND" in
     echo -n "Enter selection (1 or 2): "
     read -r SELECTION
     echo ""
+
     
     if [[ "$SELECTION" == "1" ]]; then
       echo "📦 Creating Xcode Release Archive..."
