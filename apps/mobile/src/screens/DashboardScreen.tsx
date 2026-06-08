@@ -5,6 +5,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { Card, Text, ActivityIndicator, IconButton, Surface } from 'react-native-paper'
 import { DashboardSkeleton } from '../components/SkeletonLoaders'
 import { useNavigation } from '@react-navigation/native'
@@ -15,6 +16,7 @@ import { DebugMenu } from '../components/DebugMenu'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { getUserToken, getUserData } from '../utils/secureStorage'
+import apiClient from '../services/apiClient'
 import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
 import { useTabBarControl } from '../context/TabBarContext'
 
@@ -39,21 +41,12 @@ export default function DashboardScreen() {
   const loadData = useCallback(async () => {
     try {
       const userData = await getUserData()
-      const token = await getUserToken()
-
       if (userData) {
         setUser(userData)
       }
-
-      if (token) {
-        // Fetch tasks using API client
-        const { buildApiUrl } = require('../config/api')
-        const response = await fetch(buildApiUrl('/api/tasks'), {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const data = await response.json()
-        setTasks(data.data || [])
-      }
+      // Fetch tasks using API client
+      const data = await apiClient.get('/api/tasks')
+      setTasks(data.data || [])
     } catch (error) {
       console.error('Failed to load data:', error)
       Alert.alert('Error', 'Failed to load data')
@@ -77,10 +70,11 @@ export default function DashboardScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -162,7 +156,7 @@ export default function DashboardScreen() {
               </Card.Content>
             </Card>
 
-            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => (navigation as any).navigate('Feed')}>
+            <Card style={styles.actionCardHorizontal} elevation={1} onPress={() => (navigation as any).navigate('FeedTab')}>
               <Card.Content>
                 <Text style={styles.actionTitle}>📰 Feed</Text>
                 <Text style={styles.actionDescription}>View team feed and updates</Text>
@@ -212,7 +206,7 @@ export default function DashboardScreen() {
         visible={debugMenuVisible}
         onClose={() => setDebugMenuVisible(false)}
       />
-    </View>
+    </SafeAreaView>
   )
 }
 

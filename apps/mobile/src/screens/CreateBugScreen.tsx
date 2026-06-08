@@ -13,7 +13,7 @@ import {
   Platform,
 } from 'react-native'
 import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
-import { Picker } from '@react-native-picker/picker'
+import { SearchablePicker } from '../components/SearchablePicker'
 import * as DocumentPicker from 'expo-document-picker'
 import { createBug } from '../services/bugService'
 import { getProjectHierarchy, ProjectHierarchy } from '../services/projectService'
@@ -298,6 +298,23 @@ export default function CreateBugScreen() {
     }
   }, [title, description, projectId, subprojectId, bugType, severity, category, platform, environment, browser, device, assignedTo, currentUser, navigation, attachedFile, stepsToReproduce, expectedBehavior, actualBehavior, serverLogs, frontendLogs])
 
+  // Helper to safely format picker items and avoid undefined properties causing native Picker crashes
+  const getPickerItems = (items: any) => {
+    if (!Array.isArray(items)) return [];
+    return items.map((item, index) => {
+      if (typeof item === 'string') {
+        return { id: `item-${index}`, label: item, value: item };
+      }
+      if (item && typeof item === 'object') {
+        const val = item.value !== undefined ? item.value : (item.projectId || item.subprojectId || item.employeeId || item.settingValue || item.name || '');
+        const label = item.label || item.projectName || item.subprojectName || item.name || val || '';
+        const id = item.id !== undefined ? String(item.id) : (item.projectId || item.subprojectId || item.employeeId || `item-${index}`);
+        return { id, label, value: val };
+      }
+      return { id: `item-${index}`, label: String(item), value: String(item) };
+    });
+  };
+
   const selectedProject = useMemo(() => projects.find((p) => p.projectId === projectId), [projects, projectId])
   const subprojects = useMemo(() => {
     const dynamicSubs = selectedProject?.subprojects || []
@@ -336,74 +353,42 @@ export default function CreateBugScreen() {
           )}
 
           {/* Project */}
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              Project <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={projectId}
-                onValueChange={(value) => {
-                  setProjectId(value)
-                  setSubprojectId('') // Reset subproject
-                }}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select Project" value="" />
-                {projects.map((project: any) => (
-                  <Picker.Item
-                    key={project.projectId}
-                    label={project.projectName}
-                    value={project.projectId}
-                  />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Project"
+            placeholder="Select Project"
+            selectedValue={projectId}
+            onValueChange={(value) => {
+              setProjectId(value)
+              setSubprojectId('') // Reset subproject
+            }}
+            items={getPickerItems(projects)}
+            required
+          />
 
           {/* Subproject */}
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              Subproject <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={subprojectId}
-                onValueChange={setSubprojectId}
-                style={styles.picker}
-                enabled={!!projectId}
-              >
-                <Picker.Item label="Select Subproject" value="" />
-                {/* Prioritize standard subprojects if they exist in data, else show all */}
-                {subprojects.map((subproject: any) => (
-                  <Picker.Item
-                    key={subproject.subprojectId}
-                    label={subproject.subprojectName}
-                    value={subproject.subprojectId}
-                  />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Subproject"
+            placeholder="Select Subproject"
+            selectedValue={subprojectId}
+            onValueChange={setSubprojectId}
+            items={getPickerItems(subprojects)}
+            disabled={!projectId}
+            required
+          />
 
           {/* Bug Type */}
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              Bug Type <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={bugType}
-                onValueChange={setBugType}
-                style={styles.picker}
-              >
-                <Picker.Item label="Bug" value="bug" />
-                <Picker.Item label="Feature" value="feature" />
-                <Picker.Item label="Test Case" value="testcase" />
-                <Picker.Item label="Others" value="other" />
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Bug Type"
+            selectedValue={bugType}
+            onValueChange={setBugType}
+            items={[
+              { label: 'Bug', value: 'bug' },
+              { label: 'Feature', value: 'feature' },
+              { label: 'Test Case', value: 'testcase' },
+              { label: 'Others', value: 'other' },
+            ]}
+            required
+          />
 
           {/* Feature (Title) */}
           <TextInput
@@ -551,111 +536,68 @@ export default function CreateBugScreen() {
           </View>
 
           {/* Assigned To */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Assign To</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={assignedTo}
-                onValueChange={setAssignedTo}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select User" value="" />
-                {users.map((user: any) => (
-                  <Picker.Item
-                    key={user.employeeId}
-                    label={user.name}
-                    value={user.employeeId}
-                  />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Assign To"
+            placeholder="Select User"
+            selectedValue={assignedTo}
+            onValueChange={setAssignedTo}
+            items={users.map((user: any, index: number) => ({
+              label: user.name || user.employeeId || '',
+              value: user.employeeId || '',
+            }))}
+            disabled={isOffline}
+          />
 
           {/* Criticality (Severity) */}
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              Criticality <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={severity}
-                onValueChange={setSeverity}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select Criticality" value="" />
-                <Picker.Item label="Blocker" value="Blocker" />
-                <Picker.Item label="Critical" value="Critical" />
-                <Picker.Item label="Major" value="Major" />
-                <Picker.Item label="Minor" value="Minor" />
-                <Picker.Item label="Cosmetic" value="Cosmetic" />
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Criticality"
+            placeholder="Select Criticality"
+            selectedValue={severity}
+            onValueChange={setSeverity}
+            items={[
+              { label: 'Blocker', value: 'Blocker' },
+              { label: 'Critical', value: 'Critical' },
+              { label: 'Major', value: 'Major' },
+              { label: 'Minor', value: 'Minor' },
+              { label: 'Cosmetic', value: 'Cosmetic' },
+            ]}
+            required
+          />
 
           {/* Category */}
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              Category <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={category}
-                onValueChange={setCategory}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select Category" value="" />
-                <Picker.Item label="Frontend-Customer" value="Frontend-Customer" />
-                <Picker.Item label="Frontend-Web" value="Frontend-Web" />
-                <Picker.Item label="Frontend-Admin" value="Frontend-Admin" />
-                <Picker.Item label="Backend" value="Backend" />
-                <Picker.Item label="Frontend-Delivery" value="Frontend-Delivery" />
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Category"
+            placeholder="Select Category"
+            selectedValue={category}
+            onValueChange={setCategory}
+            items={[
+              { label: 'Frontend-Customer', value: 'Frontend-Customer' },
+              { label: 'Frontend-Web', value: 'Frontend-Web' },
+              { label: 'Frontend-Admin', value: 'Frontend-Admin' },
+              { label: 'Backend', value: 'Backend' },
+              { label: 'Frontend-Delivery', value: 'Frontend-Delivery' },
+            ]}
+            required
+          />
 
           {/* Platform */}
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              Platform <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={platform}
-                onValueChange={setPlatform}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select Platform" value="" />
-                {(settings['Bug Platform'] || [{ id: 'p1', value: 'Web' }, { id: 'p2', value: 'Mobile' }, { id: 'p3', value: 'Desktop' }, { id: 'p4', value: 'API' }]).map((setting: any) => (
-                  <Picker.Item
-                    key={setting.id}
-                    label={setting.value}
-                    value={setting.value}
-                  />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Platform"
+            placeholder="Select Platform"
+            selectedValue={platform}
+            onValueChange={setPlatform}
+            items={getPickerItems(settings['Bug Platform'] || settings['platform'] || [{ id: 'p1', value: 'Web' }, { id: 'p2', value: 'Mobile' }, { id: 'p3', value: 'Desktop' }, { id: 'p4', value: 'API' }])}
+            required
+          />
 
           {/* Environment */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Environment</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={environment}
-                onValueChange={setEnvironment}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select Environment" value="" />
-                {(settings['Bug Environment'] || [{ id: 'e1', value: 'Development' }, { id: 'e2', value: 'QA' }, { id: 'e3', value: 'Staging' }, { id: 'e4', value: 'Production' }]).map((setting: any) => (
-                  <Picker.Item
-                    key={setting.id}
-                    label={setting.value}
-                    value={setting.value}
-                  />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Environment"
+            placeholder="Select Environment"
+            selectedValue={environment}
+            onValueChange={setEnvironment}
+            items={getPickerItems(settings['Bug Environment'] || settings['environment'] || [{ id: 'e1', value: 'Development' }, { id: 'e2', value: 'QA' }, { id: 'e3', value: 'Staging' }, { id: 'e4', value: 'Production' }])}
+          />
 
           {/* Submit Button */}
           <Button
@@ -664,7 +606,7 @@ export default function CreateBugScreen() {
             disabled={isSubmitting || isOffline}
             loading={isSubmitting}
             style={styles.submitButton}
-            buttonColor={materialColors.primary}
+            buttonColor={colors.primary}
           >
             {isSubmitting ? 'Creating...' : 'Create Bug'}
           </Button>
@@ -677,18 +619,18 @@ export default function CreateBugScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   loadingText: {
     ...materialTypography.bodyLarge,
     marginTop: materialSpacing.md,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
   },
   form: {
     padding: materialSpacing.md,

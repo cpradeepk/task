@@ -13,6 +13,7 @@ import {
 import { Text, Chip, ActivityIndicator, Divider } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import apiClient from '../services/apiClient'
 
 interface RelatedItem {
     id: string
@@ -43,17 +44,12 @@ export default function RelatedItemsManager({
     const fetchRelatedItems = async () => {
         try {
             // Fetch related items from API
-            const endpoint =
+            const path =
                 itemType === 'task'
-                    ? `https://task.amtariksha.com/api/tasks/${itemId}/related`
-                    : `https://task.amtariksha.com/api/bugs/${itemId}/related`
+                    ? `/api/tasks/${itemId}/related`
+                    : `/api/bugs/${itemId}/related`
 
-            const response = await fetch(endpoint, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-            })
-
-            const data = await response.json()
+            const data = await apiClient.get(path)
             if (data.success) {
                 setRelatedItems(data.data || [])
             }

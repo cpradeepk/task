@@ -20,6 +20,7 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Surface, Portal, Modal, Divider, Button as PaperButton, IconButton } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
@@ -36,6 +37,7 @@ import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { useTabBarControl } from '../context/TabBarContext'
+import apiClient from '../services/apiClient'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 
 interface BugFilters {
@@ -51,6 +53,9 @@ export default function BugListScreen() {
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
   const { isOffline } = useNetworkStatus()
+  const insets = useSafeAreaInsets()
+  const fabBottom = 60 + Math.max(insets.bottom, 10) + 16
+  const filterFabBottom = fabBottom + 64
 
   const [filteredBugs, setFilteredBugs] = useState<Bug[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -62,6 +67,8 @@ export default function BugListScreen() {
   const [subprojectId, setSubprojectId] = useState<string>('')
   const [assigneeFilter, setAssigneeFilter] = useState<string[]>([])
   const [isFilterModalVisible, setFilterModalVisible] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [expandedSection, setExpandedSection] = useState<string>('')
 
   const { handleScroll } = useTabBarControl()
   const scrollHandler = useAnimatedScrollHandler({
@@ -143,13 +150,7 @@ export default function BugListScreen() {
       if (subprojectId) params.append('subprojectId', subprojectId)
       if (assigneeFilter.length > 0) assigneeFilter.forEach(a => params.append('assignedTo', a))
 
-      const response = await fetch(`https://task.amtariksha.com/api/bugs?${params.toString()}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      const result = await response.json()
+      const result = await apiClient.get(`/api/bugs?${params.toString()}`)
       if (result.success && result.data) {
         setBugs(Array.isArray(result.data) ? result.data : [])
       } else {
@@ -204,6 +205,19 @@ export default function BugListScreen() {
   useEffect(() => {
     loadSavedFilters()
   }, [loadSavedFilters])
+
+  // Load Current User for "My Bugs"
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userData = await getUserData()
+        setCurrentUser(userData)
+      } catch (e) {
+        console.error("Failed to load user", e)
+      }
+    }
+    loadUser()
+  }, [])
 
   // Apply filters whenever bugs or filters change
   useEffect(() => {
@@ -297,12 +311,12 @@ export default function BugListScreen() {
           <Text style={styles.bugTitle} numberOfLines={1}>{item.title}</Text>
 
           <View style={styles.metaRow}>
-            <MaterialCommunityIcons name="folder-outline" size={14} color={materialColors.textSecondary} />
+            <MaterialCommunityIcons name="folder-outline" size={14} color={colors.textSecondary} />
             <Text style={styles.projectName}>{projectDisplay}</Text>
           </View>
 
           <View style={styles.metaRow}>
-            <Text style={{ ...materialTypography.bodySmall, color: materialColors.textSecondary }}>
+            <Text style={{ ...materialTypography.bodySmall, color: colors.textSecondary }}>
               {item.severity} • {formatDateIST(item.createdAt)} • {item.assignedToUser?.name || item.assignedTo || 'Unassigned'}
             </Text>
           </View>
@@ -324,24 +338,8 @@ export default function BugListScreen() {
     )
   }
 
-  // Load Current User for "My Bugs"
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [expandedSection, setExpandedSection] = useState<string>('')
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await getUserData()
-        setCurrentUser(userData)
-      } catch (e) {
-        console.error("Failed to load user", e)
-      }
-    }
-    loadUser()
-  }, [])
-
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Animated.FlatList
         data={filteredBugs}
         renderItem={renderBug}
@@ -353,8 +351,8 @@ export default function BugListScreen() {
           <RefreshControl
             refreshing={loading}
             onRefresh={handleRefresh}
-            tintColor={materialColors.primary}
-            colors={[materialColors.primary]}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
         ListEmptyComponent={
@@ -370,19 +368,10 @@ export default function BugListScreen() {
 
       <FAB
         icon="filter-variant"
-        style={styles.filterFab}
+        style={[styles.filterFab, { bottom: filterFabBottom }]}
         onPress={() => setFilterModalVisible(true)}
-        color={materialColors.surface}
-        size="small"
-      />
-
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => navigation.navigate('CreateBug' as never)}
         color="#FFFFFF"
-        size="medium"
-        disabled={isOffline}
+        size="small"
       />
 
       {/* FILTER MODAL */}
@@ -405,7 +394,7 @@ export default function BugListScreen() {
                   onPress={() => { setProjectId(''); setSubprojectId(''); setExpandedSection(''); }}
                   style={styles.filterChip}
                   showSelectedOverlay
-                  selectedColor={materialColors.primary}
+                  selectedColor={colors.primary}
                 >
                   All Projects
                 </Chip>
@@ -416,7 +405,7 @@ export default function BugListScreen() {
                     onPress={() => { setProjectId(p.projectId); setSubprojectId(''); setExpandedSection(''); }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     {p.projectName}
                   </Chip>
@@ -432,9 +421,9 @@ export default function BugListScreen() {
               onPress={() => setExpandedSection(expandedSection === 'subproject' ? '' : 'subproject')}
             >
               {projectId === '' ? (
-                <Text style={{ padding: 16, color: materialColors.textSecondary }}>Select a project first</Text>
+                <Text style={{ padding: 16, color: colors.textSecondary }}>Select a project first</Text>
               ) : subprojects.length === 0 ? (
-                <Text style={{ padding: 16, color: materialColors.textSecondary }}>No subprojects found</Text>
+                <Text style={{ padding: 16, color: colors.textSecondary }}>No subprojects found</Text>
               ) : (
                 <View style={styles.chipRow}>
                   <Chip
@@ -442,7 +431,7 @@ export default function BugListScreen() {
                     onPress={() => { setSubprojectId(''); setExpandedSection(''); }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     All Subprojects
                   </Chip>
@@ -453,7 +442,7 @@ export default function BugListScreen() {
                       onPress={() => { setSubprojectId(p.projectId); setExpandedSection(''); }}
                       style={styles.filterChip}
                       showSelectedOverlay
-                      selectedColor={materialColors.primary}
+                      selectedColor={colors.primary}
                     >
                       {p.projectName}
                     </Chip>
@@ -503,7 +492,7 @@ export default function BugListScreen() {
                     }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     {t.charAt(0).toUpperCase() + t.slice(1)}
                   </Chip>
@@ -529,7 +518,7 @@ export default function BugListScreen() {
                     }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     {s}
                   </Chip>
@@ -555,7 +544,7 @@ export default function BugListScreen() {
                     }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     {s}
                   </Chip>
@@ -581,7 +570,7 @@ export default function BugListScreen() {
                     }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     {c}
                   </Chip>
@@ -592,10 +581,10 @@ export default function BugListScreen() {
             <Divider style={styles.divider} />
 
             <View style={styles.buttonRow}>
-              <PaperButton mode="outlined" onPress={clearFilters} style={styles.clearButton}>
+              <PaperButton mode="outlined" onPress={clearFilters} style={styles.clearButton} textColor={colors.primary}>
                 Clear Filters
               </PaperButton>
-              <PaperButton mode="contained" onPress={() => setFilterModalVisible(false)} style={styles.applyButton}>
+              <PaperButton mode="contained" onPress={() => setFilterModalVisible(false)} style={styles.applyButton} textColor="#FFFFFF">
                 Done
               </PaperButton>
             </View>
@@ -605,13 +594,13 @@ export default function BugListScreen() {
 
       <FAB
         icon="plus"
-        style={styles.fab}
+        style={[styles.fab, { bottom: fabBottom }]}
         onPress={() => navigation.navigate('CreateBug' as never)}
         color="#FFFFFF"
         size="medium"
         disabled={isOffline}
       />
-    </View>
+    </SafeAreaView>
   )
 }
 
@@ -619,62 +608,62 @@ export default function BugListScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   loadingText: {
     ...materialTypography.bodyLarge,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.md,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
     padding: materialSpacing.xl,
   },
   errorText: {
     ...materialTypography.headlineSmall,
-    color: materialColors.error,
+    color: colors.error,
     marginBottom: materialSpacing.sm,
     textAlign: 'center',
   },
   errorSubtext: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   searchContainer: {
     padding: materialSpacing.md,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   searchRow: {
     padding: materialSpacing.md,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     elevation: 2,
   },
   searchBar: {
     elevation: 0,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: materialColors.outline,
+    borderColor: colors.border,
   },
   searchInput: {
     minHeight: 0,
   },
   listContent: {
     padding: materialSpacing.md,
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   card: {
     marginBottom: materialSpacing.md,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   headerRow: {
     flexDirection: 'row',
@@ -684,7 +673,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   bugId: {
     ...materialTypography.labelLarge,
-    color: materialColors.primary,
+    color: colors.primary,
     fontWeight: 'bold',
   },
   statusChip: {
@@ -707,11 +696,11 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   projectName: {
     ...materialTypography.bodySmall,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginLeft: 4,
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: colors.surface,
     margin: 20,
     borderRadius: 8,
     maxHeight: '80%',
@@ -723,14 +712,17 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     ...materialTypography.titleLarge,
     marginBottom: 10,
     textAlign: 'center',
+    color: colors.text,
   },
   sectionTitle: {
     ...materialTypography.titleMedium,
     marginTop: 10,
     marginBottom: 5,
+    color: colors.text,
   },
   divider: {
     marginVertical: 10,
+    backgroundColor: colors.border,
   },
   chipRow: {
     flexDirection: 'row',
@@ -742,10 +734,11 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   applyButton: {
     flex: 1,
+    backgroundColor: colors.primary,
   },
   clearButton: {
     flex: 1,
-    borderColor: materialColors.primary,
+    borderColor: colors.primary,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -759,21 +752,17 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   emptyText: {
     ...materialTypography.bodyLarge,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 100,
-    backgroundColor: materialColors.primary,
+    right: 16,
+    backgroundColor: colors.primary,
   },
   filterFab: {
     position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 180,
-    backgroundColor: materialColors.secondary,
+    right: 24,
+    backgroundColor: colors.secondary,
   },
 })

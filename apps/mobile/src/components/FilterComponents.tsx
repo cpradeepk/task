@@ -1,16 +1,17 @@
 import React from 'react'
 import { View, StyleSheet, TouchableOpacity } from 'react-native'
-import { Text, Switch, TextInput, List, IconButton, useTheme, Divider, Surface } from 'react-native-paper'
+import { Text, Switch, TextInput, List, IconButton, Divider, Surface } from 'react-native-paper'
+import { useTheme } from '../contexts/ThemeContext'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 
 // Header Component
 export const FilterHeader = ({ title, onClose }: { title: string; onClose?: () => void }) => {
-    const theme = useTheme()
+    const { colors } = useTheme()
     return (
         <View style={styles.headerContainer}>
-            <Text style={[materialTypography.titleLarge, { flex: 1, fontWeight: 'bold' }]}>{title}</Text>
+            <Text style={[materialTypography.titleLarge, { flex: 1, fontWeight: 'bold', color: colors.text }]}>{title}</Text>
             {onClose && (
-                <IconButton icon="close" size={24} onPress={onClose} />
+                <IconButton icon="close" size={24} onPress={onClose} iconColor={colors.text} />
             )}
         </View>
     )
@@ -26,7 +27,7 @@ export const FilterSearch = ({
     onChangeText: (text: string) => void;
     placeholder?: string;
 }) => {
-    const theme = useTheme()
+    const { colors } = useTheme()
     return (
         <View style={styles.searchContainer}>
             <TextInput
@@ -34,8 +35,12 @@ export const FilterSearch = ({
                 value={value}
                 onChangeText={onChangeText}
                 placeholder={placeholder}
-                left={<TextInput.Icon icon="magnify" />}
-                style={styles.searchInput}
+                left={<TextInput.Icon icon="magnify" color={colors.textSecondary} />}
+                style={[styles.searchInput, { backgroundColor: colors.surfaceVariant }]}
+                textColor={colors.text}
+                placeholderTextColor={colors.textTertiary}
+                activeOutlineColor={colors.primary}
+                outlineColor={colors.border}
                 dense
             />
         </View>
@@ -54,27 +59,19 @@ export const FilterToggle = ({
     onValueChange: (val: boolean) => void;
     icon?: string;
 }) => {
-    const theme = useTheme()
+    const { colors } = useTheme()
     return (
-        <View style={styles.toggleContainer}>
+        <View style={[styles.toggleContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.toggleLabelRow}>
-                {icon && <IconButton icon={icon} size={20} style={{ margin: 0, marginRight: 8 }} />}
-                <Text style={materialTypography.bodyLarge}>{label}</Text>
+                {icon && <IconButton icon={icon} size={20} style={{ margin: 0, marginRight: 8 }} iconColor={colors.textSecondary} />}
+                <Text style={[materialTypography.bodyLarge, { color: colors.text }]}>{label}</Text>
             </View>
-            <Switch value={value} onValueChange={onValueChange} color={materialColors.primary} />
+            <Switch value={value} onValueChange={onValueChange} color={colors.primary} />
         </View>
     )
 }
 
 // Dropdown/Accordion Section Component
-interface FilterSectionProps {
-    title: string;
-    count?: number; // Show count of selected items
-    children: React.ReactNode;
-    expanded?: boolean;
-    onPress?: () => void;
-}
-
 export const FilterSection = ({
     title,
     count = 0,
@@ -90,7 +87,7 @@ export const FilterSection = ({
     expanded: boolean;
     onPress: () => void;
 }) => {
-    const theme = useTheme()
+    const { colors } = useTheme()
 
     // If a specific label is provided (like "Project: Alpha"), use it.
     // Otherwise use title.
@@ -106,18 +103,20 @@ export const FilterSection = ({
                 styles.accordionHeader,
                 {
                     borderBottomWidth: 1,
-                    borderBottomColor: materialColors.outline,
-                    backgroundColor: materialColors.surface
+                    borderBottomColor: colors.border,
+                    backgroundColor: colors.surface
                 }
             ]}
             titleStyle={[
                 styles.accordionTitle,
-                label ? { color: materialColors.primary, fontWeight: 'bold' } : {}
+                { color: colors.text },
+                label ? { color: colors.primary, fontWeight: 'bold' } : {}
             ]}
-            left={props => <List.Icon {...props} icon="chevron-down" style={{ marginRight: 0 }} />}
+            descriptionStyle={{ color: colors.textSecondary }}
+            left={props => <List.Icon {...props} icon="chevron-down" style={{ marginRight: 0 }} color={colors.textSecondary} />}
             right={props => null} // Hide default arrow to control position if needed, or keep default
         >
-            <View style={styles.accordionContent}>
+            <View style={[styles.accordionContent, { backgroundColor: colors.background }]}>
                 {children}
             </View>
         </List.Accordion>
@@ -135,7 +134,7 @@ const styles = StyleSheet.create({
         marginBottom: materialSpacing.md,
     },
     searchInput: {
-        backgroundColor: materialColors.surface,
+        // Background color is handled dynamically in style prop now
     },
     toggleContainer: {
         flexDirection: 'row',
@@ -143,18 +142,15 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: materialSpacing.sm,
         paddingHorizontal: materialSpacing.sm,
-        backgroundColor: materialColors.surface, // Or transparent
         marginBottom: materialSpacing.sm,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: materialColors.outline,
     },
     toggleLabelRow: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     accordionHeader: {
-        backgroundColor: materialColors.surface,
         paddingVertical: 0,
     },
     accordionTitle: {
@@ -162,14 +158,12 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     accordionDesc: {
-        color: materialColors.textSecondary,
+        // Handled dynamically
     },
     accordionDescActive: {
-        color: materialColors.primary,
         fontWeight: 'bold',
     },
     accordionContent: {
         padding: materialSpacing.sm,
-        backgroundColor: materialColors.background, // Slightly different bg for content
     }
 })

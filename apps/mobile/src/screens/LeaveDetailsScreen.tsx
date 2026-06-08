@@ -19,6 +19,7 @@ import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { formatDateIST } from '../utils/datetime'
+import apiClient from '../services/apiClient'
 
 interface LeaveApplication {
   id: string
@@ -75,18 +76,7 @@ export default function LeaveDetailsScreen() {
       setLoading(true)
       console.log('Fetching leave details for ID:', leaveId)
 
-      const response = await fetch(`https://task.amtariksha.com/api/leaves/${leaveId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      console.log('Leave API response status:', response.status)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const result = await apiClient.get(`/api/leaves/${leaveId}`)
       console.log('Leave API result:', JSON.stringify(result, null, 2))
 
       if (result.success && result.data) {
@@ -131,19 +121,14 @@ export default function LeaveDetailsScreen() {
           onPress: async () => {
             try {
               setActionLoading(true)
-              const response = await fetch(
-                `https://task.amtariksha.com/api/leaves/${leaveId}/approve`,
+              const result = await apiClient.post(
+                `/api/leaves/${leaveId}/approve`,
                 {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    approverId: currentUser.employeeId,
-                    remarks: remarks || null,
-                  }),
+                  approverId: currentUser.employeeId,
+                  remarks: remarks || null,
                 }
               )
 
-              const result = await response.json()
               if (result.success) {
                 Alert.alert('Success', 'Leave application approved')
                 navigation.goBack()
@@ -178,19 +163,15 @@ export default function LeaveDetailsScreen() {
           onPress: async () => {
             try {
               setActionLoading(true)
-              const response = await fetch(
-                `https://task.amtariksha.com/api/leaves/${leaveId}/reject`,
+              const result = await apiClient.post(
+                `/api/leaves/${leaveId}/reject`,
                 {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    approverId: currentUser.employeeId,
-                    reason: remarks,
-                  }),
+                  approverId: currentUser.employeeId,
+                  remarks: remarks,
+                  reason: remarks,
                 }
               )
 
-              const result = await response.json()
               if (result.success) {
                 Alert.alert('Success', 'Leave application rejected')
                 navigation.goBack()
@@ -220,11 +201,8 @@ export default function LeaveDetailsScreen() {
           onPress: async () => {
             try {
               setActionLoading(true)
-              const response = await fetch(`https://task.amtariksha.com/api/leaves/${leaveId}`, {
-                method: 'DELETE',
-              })
+              const result = await apiClient.del(`/api/leaves/${leaveId}`)
 
-              const result = await response.json()
               if (result.success) {
                 Alert.alert('Success', 'Leave application deleted')
                 navigation.goBack()

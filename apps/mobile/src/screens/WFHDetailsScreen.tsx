@@ -19,6 +19,7 @@ import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { formatDateIST, formatTimeIST } from '../utils/datetime'
+import apiClient from '../services/apiClient'
 
 interface WFHApplication {
   id: string
@@ -64,13 +65,8 @@ export default function WFHDetailsScreen() {
   const fetchWFHDetails = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch(`https://task.amtariksha.com/api/wfh/${wfhId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      const result = await response.json()
-      if (result.success) {
+      const result = await apiClient.get(`/api/wfh/${wfhId}`)
+      if (result.success && result.data) {
         setWFH(result.data)
       }
     } catch (error) {
@@ -117,19 +113,14 @@ export default function WFHDetailsScreen() {
           onPress: async () => {
             try {
               setActionLoading(true)
-              const response = await fetch(
-                `https://task.amtariksha.com/api/wfh/${wfhId}/approve`,
+              const result = await apiClient.post(
+                `/api/wfh/${wfhId}/approve`,
                 {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    approverId: currentUser.employeeId,
-                    remarks: remarks || null,
-                  }),
+                  approverId: currentUser.employeeId,
+                  remarks: remarks || null,
                 }
               )
 
-              const result = await response.json()
               if (result.success) {
                 Alert.alert('Success', 'WFH application approved')
                 navigation.goBack()
@@ -164,19 +155,15 @@ export default function WFHDetailsScreen() {
           onPress: async () => {
             try {
               setActionLoading(true)
-              const response = await fetch(
-                `https://task.amtariksha.com/api/wfh/${wfhId}/reject`,
+              const result = await apiClient.post(
+                `/api/wfh/${wfhId}/reject`,
                 {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    approverId: currentUser.employeeId,
-                    reason: remarks,
-                  }),
+                  approverId: currentUser.employeeId,
+                  reason: remarks,
+                  remarks: remarks,
                 }
               )
 
-              const result = await response.json()
               if (result.success) {
                 Alert.alert('Success', 'WFH application rejected')
                 navigation.goBack()
@@ -206,11 +193,8 @@ export default function WFHDetailsScreen() {
           onPress: async () => {
             try {
               setActionLoading(true)
-              const response = await fetch(`https://task.amtariksha.com/api/wfh/${wfhId}`, {
-                method: 'DELETE',
-              })
+              const result = await apiClient.del(`/api/wfh/${wfhId}`)
 
-              const result = await response.json()
               if (result.success) {
                 Alert.alert('Success', 'WFH application deleted')
                 navigation.goBack()

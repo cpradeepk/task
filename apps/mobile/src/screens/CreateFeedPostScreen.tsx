@@ -10,25 +10,31 @@
  * - Link preview
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
   ActivityIndicator,
   Alert,
 } from 'react-native'
+import { TextInput, Button, Surface } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { GET_FEED_TOPICS, CREATE_FEED_POST } from '../config/graphql-queries'
 import { getUserData } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
+import { useResponsive } from '../hooks/useResponsive'
+import { materialSpacing, materialTypography } from '../config/materialTheme'
 
 export default function CreateFeedPostScreen({ route }: any) {
   const navigation = useNavigation()
   const { topicId: initialTopicId } = route.params || {}
+  const { colors } = useTheme()
+  const responsive = useResponsive()
+  const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -38,7 +44,8 @@ export default function CreateFeedPostScreen({ route }: any) {
   const [currentUser, setCurrentUser] = useState<any>(null)
 
   // GraphQL queries and mutations
-  const { data: topicsData } = useQuery(GET_FEED_TOPICS, {
+  const { data: topicsData, loading: topicsLoading } = useQuery(GET_FEED_TOPICS, {
+    variables: { includePersonal: true },
     fetchPolicy: 'cache-and-network',
   })
 
@@ -60,11 +67,6 @@ export default function CreateFeedPostScreen({ route }: any) {
   }
 
   const handleCreatePost = async () => {
-    if (!title.trim()) {
-      Alert.alert('Error', 'Please enter post title')
-      return
-    }
-
     if (!content.trim()) {
       Alert.alert('Error', 'Please enter post content')
       return
@@ -83,12 +85,13 @@ export default function CreateFeedPostScreen({ route }: any) {
     try {
       await createPost({
         variables: {
-          title,  // Add title to variables
-          topicId: selectedTopicId,
-          content,
-          contentType,
-          linkUrl: contentType === 'link' ? linkUrl : null,
-          createdBy: currentUser?.employeeId,
+          input: {
+            contentType,
+            content: content.trim(),
+            linkUrl: (contentType === 'link' || contentType === 'youtube') ? linkUrl.trim() : null,
+            linkTitle: title.trim() || null,
+            topicIds: [selectedTopicId],
+          }
         },
       })
 
@@ -113,13 +116,16 @@ export default function CreateFeedPostScreen({ route }: any) {
       <View style={styles.content}>
         {/* Title Input */}
         <View style={styles.section}>
-          <Text style={styles.label}>Title *</Text>
+          <Text style={styles.label}>Title (Optional)</Text>
           <TextInput
-            style={styles.input}
+            mode="outlined"
             placeholder="Enter post title"
             value={title}
             onChangeText={setTitle}
-            placeholderTextColor="#9CA3AF"
+            style={styles.input}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
           />
         </View>
 
@@ -130,23 +136,25 @@ export default function CreateFeedPostScreen({ route }: any) {
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.topicScroll}
+            contentContainerStyle={{ gap: 8 }}
           >
             {topics.map((topic: any) => (
               <TouchableOpacity
                 key={topic.id}
                 style={[
                   styles.topicButton,
-                  selectedTopicId === topic.id && styles.topicButtonActive,
+                  selectedTopicId === topic.id && { backgroundColor: colors.primary, borderColor: colors.primary },
+                  selectedTopicId !== topic.id && { backgroundColor: colors.surfaceVariant, borderColor: colors.border }
                 ]}
                 onPress={() => setSelectedTopicId(topic.id)}
               >
                 <Text
                   style={[
                     styles.topicButtonText,
-                    selectedTopicId === topic.id && styles.topicButtonTextActive,
+                    { color: selectedTopicId === topic.id ? '#FFFFFF' : colors.text }
                   ]}
                 >
-                  {topic.topicName}
+                  {topic.icon} {topic.topicName}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -160,13 +168,15 @@ export default function CreateFeedPostScreen({ route }: any) {
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.typeScroll}
+            contentContainerStyle={{ gap: 8 }}
           >
             {contentTypes.map((type) => (
               <TouchableOpacity
                 key={type.value}
                 style={[
                   styles.typeButton,
-                  contentType === type.value && styles.typeButtonActive,
+                  contentType === type.value && { backgroundColor: colors.primary, borderColor: colors.primary },
+                  contentType !== type.value && { backgroundColor: colors.surfaceVariant, borderColor: colors.border }
                 ]}
                 onPress={() => setContentType(type.value)}
               >
@@ -174,7 +184,7 @@ export default function CreateFeedPostScreen({ route }: any) {
                 <Text
                   style={[
                     styles.typeButtonText,
-                    contentType === type.value && styles.typeButtonTextActive,
+                    { color: contentType === type.value ? '#FFFFFF' : colors.text }
                   ]}
                 >
                   {type.label.replace(/[^\w\s]/g, '')}
@@ -188,14 +198,16 @@ export default function CreateFeedPostScreen({ route }: any) {
         <View style={styles.section}>
           <Text style={styles.label}>Content *</Text>
           <TextInput
-            style={styles.contentInput}
+            mode="outlined"
             placeholder="What's on your mind?"
             value={content}
             onChangeText={setContent}
             multiline
             numberOfLines={6}
-            textAlignVertical="top"
-            placeholderTextColor="#9CA3AF"
+            style={styles.contentInput}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
           />
         </View>
 
@@ -206,7 +218,7 @@ export default function CreateFeedPostScreen({ route }: any) {
               {contentType === 'youtube' ? 'YouTube URL *' : 'Link URL *'}
             </Text>
             <TextInput
-              style={styles.input}
+              mode="outlined"
               placeholder={
                 contentType === 'youtube'
                   ? 'https://www.youtube.com/watch?v=...'
@@ -216,14 +228,17 @@ export default function CreateFeedPostScreen({ route }: any) {
               onChangeText={setLinkUrl}
               autoCapitalize="none"
               keyboardType="url"
-              placeholderTextColor="#9CA3AF"
+              style={styles.input}
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              textColor={colors.text}
             />
           </View>
         )}
 
         {/* Create Button */}
         <TouchableOpacity
-          style={[styles.createButton, creating && styles.createButtonDisabled]}
+          style={[styles.createButton, creating && styles.createButtonDisabled, { backgroundColor: colors.primary }]}
           onPress={handleCreatePost}
           disabled={creating}
         >
@@ -238,42 +253,36 @@ export default function CreateFeedPostScreen({ route }: any) {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   content: {
-    padding: 16,
+    padding: materialSpacing.md,
+    maxWidth: responsive.maxContentWidth,
+    alignSelf: 'center',
+    width: '100%',
   },
   section: {
-    marginBottom: 24,
+    marginBottom: materialSpacing.lg,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+    ...materialTypography.labelLarge,
+    color: colors.text,
+    marginBottom: materialSpacing.xs,
   },
   topicScroll: {
     flexGrow: 0,
   },
   topicButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
+    paddingHorizontal: materialSpacing.md,
+    paddingVertical: materialSpacing.sm,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-  },
-  topicButtonActive: {
-    backgroundColor: '#3B82F6',
+    borderWidth: 1,
   },
   topicButtonText: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  topicButtonTextActive: {
-    color: '#FFFFFF',
+    ...materialTypography.bodyMedium,
     fontWeight: '600',
   },
   typeScroll: {
@@ -282,46 +291,27 @@ const styles = StyleSheet.create({
   typeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 8,
+    paddingHorizontal: materialSpacing.md,
+    paddingVertical: materialSpacing.sm,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
-  },
-  typeButtonActive: {
-    backgroundColor: '#3B82F6',
+    borderWidth: 1,
   },
   typeIcon: {
     fontSize: 18,
     marginRight: 6,
   },
   typeButtonText: {
-    fontSize: 13,
-    color: '#6B7280',
-  },
-  typeButtonTextActive: {
-    color: '#FFFFFF',
+    ...materialTypography.bodyMedium,
     fontWeight: '600',
   },
   contentInput: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     minHeight: 120,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   createButton: {
-    backgroundColor: '#3B82F6',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

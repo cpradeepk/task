@@ -9,7 +9,9 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const { approverId, remarks } = await request.json()
+    const body = await request.json()
+    const { approverId } = body
+    const remarks = body.remarks || body.reason
 
     if (!id) {
       return NextResponse.json({

@@ -172,7 +172,7 @@ export async function executeQuery<T = any>(
       variables,
     })
     
-    return result.data
+    return result.data as T
   } catch (error) {
     console.error('GraphQL query error:', error)
     throw error
@@ -192,7 +192,7 @@ export async function executeMutation<T = any>(
       variables,
     })
     
-    return result.data
+    return result.data as T
   } catch (error) {
     console.error('GraphQL mutation error:', error)
     throw error

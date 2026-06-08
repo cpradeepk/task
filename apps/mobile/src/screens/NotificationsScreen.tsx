@@ -34,6 +34,8 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { formatDateTimeIST } from '../utils/datetime';
 
+import { getUserData } from '../utils/secureStorage';
+
 interface Notification {
   id: string
   type: string
@@ -46,28 +48,41 @@ interface Notification {
 }
 
 export default function NotificationsScreen() {
-  const navigation = useNavigation()
+  const navigation = useNavigation<any>()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    getUserData().then(user => {
+      if (user?.employeeId) {
+        setUserId(user.employeeId)
+      }
+    })
+  }, [])
 
   // GraphQL queries and mutations
-  const { data, loading, refetch } = useQuery(GET_NOTIFICATIONS, {
+  const { data, loading, refetch } = useQuery<any, any>(GET_NOTIFICATIONS, {
+    variables: { userId },
+    skip: !userId,
     fetchPolicy: 'cache-and-network',
   })
 
-  const [markAsRead] = useMutation(MARK_NOTIFICATION_READ)
-  const [markAllAsRead] = useMutation(MARK_ALL_NOTIFICATIONS_READ)
+  const [markAsRead] = useMutation<any, any>(MARK_NOTIFICATION_READ)
+  const [markAllAsRead] = useMutation<any, any>(MARK_ALL_NOTIFICATIONS_READ)
 
   const notifications = (data as any)?.feedNotifications || []
 
   const handleRefresh = useCallback(async () => {
     try {
-      await refetch()
+      if (userId) {
+        await refetch()
+      }
     } catch (error) {
       console.error('Failed to refresh notifications:', error)
     }
-  }, [refetch])
+  }, [refetch, userId])
 
   const handleNotificationPress = useCallback(async (notification: Notification) => {
     // Mark as read
@@ -84,23 +99,25 @@ export default function NotificationsScreen() {
 
     // Navigate to related content
     if (notification.relatedType === 'feed_post' && notification.relatedId) {
-      navigation.navigate('FeedPostDetails' as never as never, { postId: notification.relatedId } as never)
+      navigation.navigate('FeedPostDetails', { postId: notification.relatedId })
     } else if (notification.relatedType === 'task' && notification.relatedId) {
-      navigation.navigate('TaskDetails' as never as never, { taskId: notification.relatedId } as never)
+      navigation.navigate('TaskDetails', { taskId: notification.relatedId })
     } else if (notification.relatedType === 'bug' && notification.relatedId) {
-      navigation.navigate('BugDetails' as never as never, { bugId: notification.relatedId } as never)
+      navigation.navigate('BugDetails', { bugId: notification.relatedId })
     }
   }, [markAsRead, refetch, navigation])
 
   const handleMarkAllAsRead = useCallback(async () => {
     try {
-      await markAllAsRead()
+      await markAllAsRead({
+        variables: { userId }
+      })
       refetch()
       Alert.alert('Success', 'All notifications marked as read')
     } catch (error) {
       Alert.alert('Error', 'Failed to mark all as read')
     }
-  }, [markAllAsRead, refetch])
+  }, [markAllAsRead, refetch, userId])
 
   const getNotificationIcon = useCallback((type: string) => {
     switch (type) {

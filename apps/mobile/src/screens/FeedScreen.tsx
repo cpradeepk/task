@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
     View,
     ScrollView,
@@ -7,8 +7,10 @@ import {
     ActivityIndicator,
     StyleSheet,
 } from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQuery } from '@apollo/client/react'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useTheme } from '../contexts/ThemeContext'
 
 import { GET_FEED_POSTS, GET_FEED_TOPICS } from '../config/graphql-queries'
 import { materialColors } from '../config/materialTheme'
@@ -16,11 +18,15 @@ import { useTabBarControl } from '../context/TabBarContext'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 
 export default function FeedScreen({ navigation }: any) {
+    const { colors } = useTheme()
+    const styles = useMemo(() => getStyles(colors), [colors])
     const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null)
     const { handleScroll } = useTabBarControl()
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: handleScroll
     })
+    const insets = useSafeAreaInsets()
+    const fabBottom = 60 + Math.max(insets.bottom, 10) + 16
 
     const { data: topicsData, loading: topicsLoading } = useQuery(GET_FEED_TOPICS, {
         variables: { includePersonal: true },
@@ -55,13 +61,13 @@ export default function FeedScreen({ navigation }: any) {
     if (loading && !data) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={materialColors.primary} />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         )
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             {/* Topics Filter - Horizontal Scroll */}
             {!topicsLoading && topics.length > 0 && (
                 <View style={styles.topicsContainer}>
@@ -75,13 +81,13 @@ export default function FeedScreen({ navigation }: any) {
                         <TouchableOpacity
                             style={[
                                 styles.topicChip,
-                                { backgroundColor: selectedTopicId === null ? materialColors.primary : '#F3F4F6' }
+                                { backgroundColor: selectedTopicId === null ? colors.primary : colors.surfaceVariant }
                             ]}
                             onPress={() => handleTopicPress(null)}
                         >
                             <Text style={[
                                 styles.topicText,
-                                { color: selectedTopicId === null ? '#FFFFFF' : '#374151' }
+                                { color: selectedTopicId === null ? '#FFFFFF' : colors.text }
                             ]}>
                                 All Topics
                             </Text>
@@ -93,7 +99,7 @@ export default function FeedScreen({ navigation }: any) {
                                 key={topic.id}
                                 style={[
                                     styles.topicChip,
-                                    { backgroundColor: selectedTopicId === topic.id ? materialColors.primary : '#F3F4F6', flexDirection: 'row', alignItems: 'center', gap: 6 }
+                                    { backgroundColor: selectedTopicId === topic.id ? colors.primary : colors.surfaceVariant, flexDirection: 'row', alignItems: 'center', gap: 6 }
                                 ]}
                                 onPress={() => handleTopicPress(topic.id)}
                             >
@@ -102,13 +108,13 @@ export default function FeedScreen({ navigation }: any) {
                                 )}
                                 <Text style={[
                                     styles.topicText,
-                                    { color: selectedTopicId === topic.id ? '#FFFFFF' : '#374151' }
+                                    { color: selectedTopicId === topic.id ? '#FFFFFF' : colors.text }
                                 ]}>
                                     {topic.topicName}
                                 </Text>
                                 {topic.postCount > 0 && (
                                     <View style={{
-                                        backgroundColor: selectedTopicId === topic.id ? 'rgba(255,255,255,0.3)' : '#E5E7EB',
+                                        backgroundColor: selectedTopicId === topic.id ? 'rgba(255,255,255,0.3)' : colors.border,
                                         paddingHorizontal: 6,
                                         paddingVertical: 2,
                                         borderRadius: 10,
@@ -116,7 +122,7 @@ export default function FeedScreen({ navigation }: any) {
                                         <Text style={{
                                             fontSize: 11,
                                             fontWeight: '600',
-                                            color: selectedTopicId === topic.id ? '#FFFFFF' : '#6B7280',
+                                            color: selectedTopicId === topic.id ? '#FFFFFF' : colors.textSecondary,
                                         }}>
                                             {topic.postCount}
                                         </Text>
@@ -133,6 +139,7 @@ export default function FeedScreen({ navigation }: any) {
                 style={styles.postsList}
                 onScroll={scrollHandler}
                 scrollEventThrottle={16}
+                contentContainerStyle={{ paddingBottom: 100 }}
             >
                 {posts.length === 0 ? (
                     <View style={styles.emptyContainer}>
@@ -149,7 +156,7 @@ export default function FeedScreen({ navigation }: any) {
                         >
                             {/* Post Header */}
                             <View style={styles.postHeader}>
-                                <View style={[styles.avatar, { backgroundColor: materialColors.primary }]}>
+                                <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
                                     <Text style={styles.avatarText}>
                                         {post.author?.name?.charAt(0).toUpperCase() || '?'}
                                     </Text>
@@ -204,19 +211,19 @@ export default function FeedScreen({ navigation }: any) {
 
             {/* Floating Create Button */}
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { bottom: fabBottom }]}
                 onPress={handleCreatePost}
             >
                 <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
             </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     )
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F9FAFB' },
-    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' },
-    topicsContainer: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+const getStyles = (colors: any) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
+    topicsContainer: { backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
     topicsScroll: { paddingVertical: 12, paddingHorizontal: 16 },
     topicsContent: { gap: 8 },
     topicChip: {
@@ -231,13 +238,13 @@ const styles = StyleSheet.create({
     },
     postsList: { flex: 1 },
     emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, marginTop: 60 },
-    emptyText: { fontSize: 18, color: '#6B7280', textAlign: 'center' },
+    emptyText: { fontSize: 18, color: colors.textSecondary, textAlign: 'center' },
     postCard: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
         marginBottom: 8,
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
+        borderBottomColor: colors.border,
     },
     postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
     avatar: {
@@ -249,22 +256,22 @@ const styles = StyleSheet.create({
         marginRight: 12,
     },
     avatarText: { fontSize: 16, color: '#FFFFFF', fontWeight: '600' },
-    authorName: { fontSize: 15, fontWeight: '600', color: '#111827' },
-    timestamp: { fontSize: 12, color: '#6B7280' },
+    authorName: { fontSize: 15, fontWeight: '600', color: colors.text },
+    timestamp: { fontSize: 12, color: colors.textSecondary },
     postTopics: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
     postTopicChip: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: '#EEF2FF',
+        backgroundColor: colors.primaryLight,
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 12,
     },
-    postTopicText: { fontSize: 12, color: '#4F46E5', fontWeight: '500' },
-    postContent: { fontSize: 15, color: '#374151', lineHeight: 22 },
+    postTopicText: { fontSize: 12, color: colors.primary, fontWeight: '500' },
+    postContent: { fontSize: 15, color: colors.textSecondary, lineHeight: 22 },
     postStats: { flexDirection: 'row', marginTop: 12, gap: 16 },
-    statText: { fontSize: 13, color: '#6B7280' },
+    statText: { fontSize: 13, color: colors.textSecondary },
     fab: {
         position: 'absolute',
         bottom: 20,
@@ -272,7 +279,7 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: materialColors.primary,
+        backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 4,

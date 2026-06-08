@@ -977,3 +977,16 @@ export const REJECT_ATTENDANCE_REQUEST = gql`
     }
   }
 `
+
+export const CREATE_FEED_TOPIC = gql`
+  mutation CreateFeedTopic($input: CreateFeedTopicInput!) {
+    createFeedTopic(input: $input) {
+      id
+      topicName
+      description
+      icon
+      displayOrder
+    }
+  }
+`
+

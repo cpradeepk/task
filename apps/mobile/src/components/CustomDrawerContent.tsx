@@ -70,22 +70,29 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
     { screen: 'Feed', label: 'Feed', icon: 'rss' },
   ]
 
-  const workItems: NavigationItem[] = [
-    { screen: 'Dashboard', label: 'Dashboard', icon: 'view-dashboard' },
-    { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle-outline' },
-    { screen: 'BugList', label: 'Development', icon: 'bug-outline' },
-  ]
+  const workItems = React.useMemo(() => {
+    const items: NavigationItem[] = [
+      { screen: 'Dashboard', label: 'Dashboard', icon: 'view-dashboard' },
+      { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle-outline' },
+      { screen: 'BugList', label: 'Development', icon: 'bug-outline' },
+    ]
+    if (currentUser?.role === 'amtarikshian') {
+      items.push({ screen: 'YourWork', label: 'Your Work', icon: 'file-document-edit-outline' })
+    }
+    if (['admin', 'top_management', 'management'].includes(currentUser?.role?.toLowerCase() || '')) {
+      items.push({ screen: 'TeamTasks', label: 'Team Tasks', icon: 'account-multiple-outline' })
+    }
+    return items
+  }, [currentUser])
 
   const attendanceItems: NavigationItem[] = [
     { screen: 'LeaveList', label: 'Leave', icon: 'calendar-clock' },
     { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
-    { screen: 'LeaveList', label: 'Applications', icon: 'file-document-outline' }, // Mapping to LeaveList for now
+    { screen: 'AttendanceDashboard', label: 'Attendance Dashboard', icon: 'clock-outline' },
   ]
 
   const adminItems: NavigationItem[] = [
     { screen: 'Projects', label: 'Projects', icon: 'folder-outline' },
-    { screen: 'MasterTasks', label: 'Master Tasks', icon: 'format-list-checks' },
-    { screen: 'MasterBugs', label: 'Master Development', icon: 'code-tags' },
     { screen: 'Users', label: 'User Management', icon: 'account-group' },
     { screen: 'FeedTopics', label: 'Feed Topics', icon: 'message-text-outline' },
     { screen: 'AttendanceApprovals', label: 'Approvals', icon: 'check-decagram' }, // Corrected screen name
@@ -100,7 +107,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
 
   const handleNavigation = (item: NavigationItem) => {
     // Handle special cases or missing screens
-    const missingScreens = ['Projects', 'MasterTasks', 'MasterBugs', 'Users', 'FeedTopics', 'DeletedItems', 'Reports'];
+    const missingScreens: string[] = [];
 
     if (missingScreens.includes(item.screen)) {
       Alert.alert('Coming Soon', 'This feature is not yet available in the mobile app.');

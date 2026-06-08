@@ -21,6 +21,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import apiClient from '../services/apiClient'
 
 const LEAVE_TYPES = [
   'Sick Leave',
@@ -118,13 +119,7 @@ export default function CreateLeaveScreen() {
         managerId: currentUser.managerId || null,
       }
 
-      const response = await fetch('https://task.amtariksha.com/api/leaves', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(leaveData),
-      })
-
-      const result = await response.json()
+      const result = await apiClient.post('/api/leaves', leaveData)
 
       if (result.success) {
         Alert.alert('Success', 'Leave application submitted successfully', [
@@ -238,12 +233,16 @@ export default function CreateLeaveScreen() {
               Reason <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
-              style={styles.textArea}
+              mode="outlined"
               placeholder="Enter reason for leave..."
               value={reason}
               onChangeText={setReason}
               multiline
               numberOfLines={4}
+              style={styles.textArea}
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              textColor={colors.text}
             />
           </View>
 
@@ -251,11 +250,15 @@ export default function CreateLeaveScreen() {
           <View style={styles.field}>
             <Text style={styles.label}>Emergency Contact (Optional)</Text>
             <TextInput
-              style={styles.input}
+              mode="outlined"
               placeholder="Phone number"
               value={emergencyContact}
               onChangeText={setEmergencyContact}
               keyboardType="phone-pad"
+              style={styles.input}
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              textColor={colors.text}
             />
           </View>
 
@@ -415,24 +418,11 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     color: colors.text,
   },
   input: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    padding: responsive.spacing.sm,
-    fontSize: responsive.fontSize.sm,
-    color: colors.text,
+    backgroundColor: colors.surface,
   },
   textArea: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    padding: responsive.spacing.sm,
-    fontSize: responsive.fontSize.sm,
-    color: colors.text,
+    backgroundColor: colors.surface,
     minHeight: 100,
-    textAlignVertical: 'top',
   },
   submitButtonDisabled: {
     backgroundColor: colors.textTertiary,
@@ -457,7 +447,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   submitButtonText: {
     fontSize: responsive.fontSize.md,
     fontWeight: '600',
-    color: colors.card,
+    color: '#FFFFFF',
   },
 })
 

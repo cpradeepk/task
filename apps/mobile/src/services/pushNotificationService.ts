@@ -39,9 +39,8 @@ export interface PushNotificationData {
  */
 export async function registerForPushNotifications(): Promise<string | null> {
   try {
-    // Check if running on physical device (push notifications don't work on emulator)
-    if (!Constants.isDevice) {
-      console.warn('Push notifications only work on physical devices')
+    // Check if running on native platform (push notifications don't work on web)
+    if (Platform.OS === 'web') {
       return null
     }
 
@@ -99,8 +98,18 @@ export async function registerForPushNotifications(): Promise<string | null> {
     }
 
     return tokenData.data
-  } catch (error) {
-    console.error('Error registering for push notifications:', error)
+  } catch (error: any) {
+    const errStr = error ? (error.message || String(error)) : ''
+    if (
+      errStr.includes('FirebaseApp') ||
+      errStr.includes('Default FirebaseApp') ||
+      errStr.includes('fcm-credentials') ||
+      errStr.includes('credentials')
+    ) {
+      console.warn('Push notifications: Firebase is not initialized (expected in local dev builds).')
+    } else {
+      console.error('Error registering for push notifications:', error)
+    }
     return null
   }
 }

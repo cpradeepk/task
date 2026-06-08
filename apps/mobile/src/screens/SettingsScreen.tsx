@@ -19,7 +19,7 @@ import {
   Modal
 } from 'react-native'
 import { Text, Button, ActivityIndicator, Divider, Surface, Switch, IconButton, TextInput as PaperInput } from 'react-native-paper'
-import { Picker } from '@react-native-picker/picker'
+import { SearchablePicker } from '../components/SearchablePicker'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as DocumentPicker from 'expo-document-picker'
 import { useNavigation } from '@react-navigation/native'
@@ -469,24 +469,18 @@ export default function SettingsScreen() {
 
               {/* Department Dropdown */}
               <View style={styles.inputGroup}>
-                <Text style={[styles.label, { color: colors.text }]}>Department <Text style={{ color: materialColors.error }}>*</Text></Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={formData.department}
-                    onValueChange={(val) => handleEditChange('department', val)}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="Select Department" value="" color="#999" />
-                    {departmentOptions.length > 0 ? (
-                      departmentOptions.map((dept, index) => (
-                        <Picker.Item key={index} label={dept} value={dept} />
-                      ))
-                    ) : (
-                      // Fallback if options failed to load but user has one
-                      formData.department ? <Picker.Item label={formData.department} value={formData.department} /> : null
-                    )}
-                  </Picker>
-                </View>
+                <SearchablePicker
+                  label="Department *"
+                  placeholder="Select Department"
+                  selectedValue={formData.department}
+                  onValueChange={(val) => handleEditChange('department', val)}
+                  items={(
+                    departmentOptions.length > 0
+                      ? departmentOptions
+                      : (formData.department ? [formData.department] : [])
+                  ).map((dept: string) => ({ label: dept, value: dept }))}
+                  required
+                />
               </View>
 
               {/* Manager Email */}

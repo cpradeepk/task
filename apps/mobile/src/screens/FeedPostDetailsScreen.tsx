@@ -10,7 +10,7 @@
  * - Share post
  */
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   View,
   Text,
@@ -31,8 +31,11 @@ import {
 } from '../config/graphql-queries'
 import { getUserData } from '../utils/secureStorage'
 import { formatDateTimeIST } from '../utils/datetime'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function FeedPostDetailsScreen({ route }: any) {
+  const { colors } = useTheme()
+  const styles = useMemo(() => getStyles(colors), [colors])
   const { postId } = route.params
   const [commentText, setCommentText] = useState('')
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -43,9 +46,9 @@ export default function FeedPostDetailsScreen({ route }: any) {
     fetchPolicy: 'cache-and-network',
   })
 
-  const [createComment, { loading: commentLoading }] = useMutation(CREATE_FEED_COMMENT)
-  const [toggleReaction] = useMutation(TOGGLE_FEED_REACTION)
-  const [toggleSave] = useMutation(TOGGLE_FEED_SAVE)
+  const [createComment, { loading: commentLoading }] = useMutation<any, any>(CREATE_FEED_COMMENT)
+  const [toggleReaction] = useMutation<any, any>(TOGGLE_FEED_REACTION)
+  const [toggleSave] = useMutation<any, any>(TOGGLE_FEED_SAVE)
 
   const post = (data as any)?.feedPost
 
@@ -123,7 +126,7 @@ export default function FeedPostDetailsScreen({ route }: any) {
   if (loading && !data) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     )
   }
@@ -158,7 +161,7 @@ export default function FeedPostDetailsScreen({ route }: any) {
               selected={post.isSaved}
               onPress={handleSave}
               size={24}
-              iconColor={post.isSaved ? '#3B82F6' : '#6B7280'}
+              iconColor={post.isSaved ? colors.primary : colors.textSecondary}
             />
           </View>
 
@@ -209,7 +212,7 @@ export default function FeedPostDetailsScreen({ route }: any) {
           value={commentText}
           onChangeText={setCommentText}
           multiline
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
         />
         <TouchableOpacity
           style={[styles.sendButton, !commentText.trim() && styles.sendButtonDisabled]}
@@ -227,25 +230,26 @@ export default function FeedPostDetailsScreen({ route }: any) {
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.background,
   },
   errorText: {
     fontSize: 16,
-    color: '#EF4444',
+    color: colors.error,
   },
   scrollView: {
     flex: 1,
   },
   postCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     padding: 16,
   },
   postHeader: {
@@ -257,7 +261,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -270,28 +274,28 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
   postDate: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   postContent: {
     fontSize: 16,
-    color: '#374151',
+    color: colors.textSecondary,
     lineHeight: 24,
     marginBottom: 20,
   },
   reactionsContainer: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
     paddingTop: 16,
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 12,
   },
   reactionButtons: {
@@ -303,7 +307,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -312,55 +316,59 @@ const styles = StyleSheet.create({
   },
   reactionCount: {
     fontSize: 14,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   commentsContainer: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
     paddingTop: 16,
   },
   commentCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.background,
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
   commentAuthor: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 4,
   },
   commentContent: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   commentDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   commentInputContainer: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.border,
     alignItems: 'flex-end',
   },
   commentInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginRight: 8,
     maxHeight: 100,
     fontSize: 15,
+    backgroundColor: colors.surface,
+    color: colors.text,
   },
   sendButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,

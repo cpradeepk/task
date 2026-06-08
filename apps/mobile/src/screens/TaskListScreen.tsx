@@ -19,6 +19,7 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Button as PaperButton, IconButton, Modal, Portal, Divider } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
@@ -48,6 +49,9 @@ export default function TaskListScreen({ navigation }: any) {
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
   const { isOffline } = useNetworkStatus()
+  const insets = useSafeAreaInsets()
+  const fabBottom = 60 + Math.max(insets.bottom, 10) + 16
+  const filterFabBottom = fabBottom + 64
 
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -396,13 +400,13 @@ export default function TaskListScreen({ navigation }: any) {
   const selectedProjectName = projects.find((p: any) => p.projectId === projectId)?.projectName || 'All Projects';
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Task List */}
       <Animated.FlatList
         data={filteredTasks}
         keyExtractor={(item) => item.taskId}
         renderItem={renderTask}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={materialColors.primary} colors={[materialColors.primary]} />}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         contentContainerStyle={styles.listContent}
@@ -415,15 +419,15 @@ export default function TaskListScreen({ navigation }: any) {
 
       <FAB
         icon="filter-variant"
-        style={styles.filterFab}
+        style={[styles.filterFab, { bottom: filterFabBottom }]}
         onPress={() => setFilterModalVisible(true)}
-        color={materialColors.surface}
+        color="#FFFFFF"
         size="small"
       />
 
       <FAB
         icon="plus"
-        style={styles.fab}
+        style={[styles.fab, { bottom: fabBottom }]}
         onPress={() => navigation.navigate('CreateTask')}
         disabled={isOffline}
         color="#FFFFFF"
@@ -450,7 +454,7 @@ export default function TaskListScreen({ navigation }: any) {
                   onPress={() => { setProjectId(''); setSubprojectId(''); setExpandedSection(''); }}
                   style={styles.filterChip}
                   showSelectedOverlay
-                  selectedColor={materialColors.primary}
+                  selectedColor={colors.primary}
                 >
                   All Projects
                 </Chip>
@@ -461,7 +465,7 @@ export default function TaskListScreen({ navigation }: any) {
                     onPress={() => { setProjectId(p.projectId); setSubprojectId(''); setExpandedSection(''); }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     {p.projectName}
                   </Chip>
@@ -477,9 +481,9 @@ export default function TaskListScreen({ navigation }: any) {
               onPress={() => setExpandedSection(expandedSection === 'subproject' ? '' : 'subproject')}
             >
               {projectId === '' ? (
-                <Text style={{ padding: 16, color: materialColors.textSecondary }}>Select a project first</Text>
+                <Text style={{ padding: 16, color: colors.textSecondary }}>Select a project first</Text>
               ) : subprojects.length === 0 ? (
-                <Text style={{ padding: 16, color: materialColors.textSecondary }}>No subprojects found</Text>
+                <Text style={{ padding: 16, color: colors.textSecondary }}>No subprojects found</Text>
               ) : (
                 <View style={styles.chipRow}>
                   <Chip
@@ -487,7 +491,7 @@ export default function TaskListScreen({ navigation }: any) {
                     onPress={() => { setSubprojectId(''); setExpandedSection(''); }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     All Subprojects
                   </Chip>
@@ -498,7 +502,7 @@ export default function TaskListScreen({ navigation }: any) {
                       onPress={() => { setSubprojectId(p.projectId); setExpandedSection(''); }}
                       style={styles.filterChip}
                       showSelectedOverlay
-                      selectedColor={materialColors.primary}
+                      selectedColor={colors.primary}
                     >
                       {p.projectName}
                     </Chip>
@@ -530,7 +534,7 @@ export default function TaskListScreen({ navigation }: any) {
                   }}
                   style={styles.filterChip}
                   showSelectedOverlay
-                  selectedColor={materialColors.primary}
+                  selectedColor={colors.primary}
                 >
                   My Tasks
                 </Chip>
@@ -544,7 +548,7 @@ export default function TaskListScreen({ navigation }: any) {
                     }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     {u.name}
                   </Chip>
@@ -565,15 +569,15 @@ export default function TaskListScreen({ navigation }: any) {
               <View style={styles.chipRow}>
                 {statusOptions.map((s: string) => (
                   <Chip
-                    key={s}
-                    selected={statusFilter.includes(s)}
-                    onPress={() => {
-                      if (statusFilter.includes(s)) setStatusFilter(prev => prev.filter(i => i !== s))
-                      else setStatusFilter(prev => [...prev, s])
-                    }}
-                    style={styles.filterChip}
-                    showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                     key={s}
+                     selected={statusFilter.includes(s)}
+                     onPress={() => {
+                       if (statusFilter.includes(s)) setStatusFilter(prev => prev.filter(i => i !== s))
+                       else setStatusFilter(prev => [...prev, s])
+                     }}
+                     style={styles.filterChip}
+                     showSelectedOverlay
+                     selectedColor={colors.primary}
                   >
                     {s}
                   </Chip>
@@ -599,7 +603,7 @@ export default function TaskListScreen({ navigation }: any) {
                     }}
                     style={styles.filterChip}
                     showSelectedOverlay
-                    selectedColor={materialColors.primary}
+                    selectedColor={colors.primary}
                   >
                     {p}
                   </Chip>
@@ -620,7 +624,7 @@ export default function TaskListScreen({ navigation }: any) {
           </ScrollView>
         </Modal>
       </Portal>
-    </View>
+    </SafeAreaView>
   )
 }
 
@@ -666,10 +670,8 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   filterFab: {
     position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 180, // Above + FAB
-    backgroundColor: materialColors.secondary,
+    right: 24,
+    backgroundColor: colors.secondary,
   },
   filterLabel: {
     ...materialTypography.labelLarge,
@@ -698,8 +700,8 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   dropdownButton: {
     flex: 1,
-    borderColor: materialColors.outline,
-    borderBottomColor: materialColors.outline,
+    borderColor: colors.border,
+    borderBottomColor: colors.border,
     backgroundColor: colors.surface,
   },
   dropdownLabel: {
@@ -708,6 +710,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   listContent: {
     padding: materialSpacing.md,
+    paddingBottom: 100,
   },
   taskCard: {
     backgroundColor: colors.surface,
@@ -779,8 +782,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: materialSpacing.lg,
-    bottom: 100,
+    right: 16,
     backgroundColor: colors.primary,
   },
   modalContent: {

@@ -8,7 +8,8 @@ import {
   Platform,
 } from 'react-native'
 import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
-import { Picker } from '@react-native-picker/picker'
+import { SearchablePicker } from '../components/SearchablePicker'
+import { MultiSelectPicker } from '../components/MultiSelectPicker'
 import * as DocumentPicker from 'expo-document-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createTask } from '../services/taskService'
@@ -60,6 +61,23 @@ export default function CreateTaskScreen({ navigation }: any) {
   const [settings, setSettings] = useState<any>({})
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Helper to safely format picker items and avoid undefined properties causing native Picker crashes
+  const getPickerItems = (items: any) => {
+    if (!Array.isArray(items)) return [];
+    return items.map((item, index) => {
+      if (typeof item === 'string') {
+        return { id: `item-${index}`, label: item, value: item };
+      }
+      if (item && typeof item === 'object') {
+        const val = item.value !== undefined ? item.value : (item.projectId || item.employeeId || item.settingValue || item.name || '');
+        const label = item.label || item.projectName || item.name || val || '';
+        const id = item.id !== undefined ? String(item.id) : (item.projectId || item.employeeId || `item-${index}`);
+        return { id, label, value: val };
+      }
+      return { id: `item-${index}`, label: String(item), value: String(item) };
+    });
+  };
 
   const loadInitialData = useCallback(async () => {
     try {
@@ -307,54 +325,34 @@ export default function CreateTaskScreen({ navigation }: any) {
       >
         <Surface style={styles.form} elevation={0}>
           {/* Task Type */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Task Type</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectType}
-                onValueChange={setSelectType}
-                style={styles.picker}
-              >
-                <Picker.Item label="Normal Task" value="Normal" />
-                <Picker.Item label="Recurring Task" value="Recursive" />
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Task Type"
+            selectedValue={selectType}
+            onValueChange={setSelectType}
+            items={[
+              { label: 'Normal Task', value: 'Normal' },
+              { label: 'Recurring Task', value: 'Recursive' },
+            ]}
+          />
 
           {/* Recursion Type (only if Recursive) */}
           {selectType === 'Recursive' && (
-            <View style={styles.field}>
-              <Text style={styles.label}>Frequency</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={recursiveType}
-                  onValueChange={setRecursiveType}
-                  style={styles.picker}
-                >
-                  {recursionFrequencies.map((freq) => (
-                    <Picker.Item key={freq} label={freq} value={freq} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
+            <SearchablePicker
+              label="Frequency"
+              selectedValue={recursiveType}
+              onValueChange={setRecursiveType}
+              items={recursionFrequencies.map((freq) => ({ label: freq, value: freq }))}
+            />
           )}
 
           {/* Department */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Department</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={department}
-                onValueChange={setDepartment}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select Department" value="" />
-                {departments.map((dept) => (
-                  <Picker.Item key={dept} label={dept} value={dept} />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Department"
+            placeholder="Select Department"
+            selectedValue={department}
+            onValueChange={setDepartment}
+            items={departments.map((dept) => ({ label: dept, value: dept }))}
+          />
 
           {/* Task Name */}
           <TextInput
@@ -364,8 +362,8 @@ export default function CreateTaskScreen({ navigation }: any) {
             value={name}
             onChangeText={setName}
             style={styles.input}
-            outlineColor={materialColors.border}
-            activeOutlineColor={materialColors.primary}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
             disabled={isOffline}
           />
 
@@ -379,157 +377,81 @@ export default function CreateTaskScreen({ navigation }: any) {
             multiline
             numberOfLines={4}
             style={styles.input}
-            outlineColor={materialColors.border}
-            activeOutlineColor={materialColors.primary}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
             disabled={isOffline}
           />
 
           {/* Project */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Project</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={projectId}
-                onValueChange={(value) => {
-                  console.log('Project selected:', value)
-                  setProjectId(value)
-                  setSubprojectId('')
-                }}
-                style={styles.picker}
-                dropdownIconColor={materialColors.text}
-                enabled={!isOffline}
-              >
-                <Picker.Item label="Select Project" value="" />
-                {projects.map((project: any) => (
-                  <Picker.Item
-                    key={project.projectId}
-                    label={project.projectName}
-                    value={project.projectId}
-                  />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Project"
+            placeholder="Select Project"
+            selectedValue={projectId}
+            onValueChange={(value) => {
+              console.log('Project selected:', value)
+              setProjectId(value)
+              setSubprojectId('')
+            }}
+            items={getPickerItems(projects)}
+            disabled={isOffline}
+          />
 
           {/* Subproject */}
           {projectId && subprojects.length > 0 && (
-            <View style={styles.field}>
-              <Text style={styles.label}>Subproject</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={subprojectId}
-                  onValueChange={(value) => {
-                    console.log('Subproject selected:', value)
-                    setSubprojectId(value)
-                  }}
-                  style={styles.picker}
-                  dropdownIconColor={materialColors.text}
-                  enabled={!isOffline}
-                >
-                  <Picker.Item label="Select Subproject" value="" />
-                  {subprojects.map((subproject: any) => (
-                    <Picker.Item
-                      key={subproject.projectId}
-                      label={subproject.projectName}
-                      value={subproject.projectId}
-                    />
-                  ))}
-                </Picker>
-              </View>
-            </View>
+            <SearchablePicker
+              label="Subproject"
+              placeholder="Select Subproject"
+              selectedValue={subprojectId}
+              onValueChange={(value) => {
+                console.log('Subproject selected:', value)
+                setSubprojectId(value)
+              }}
+              items={getPickerItems(subprojects)}
+              disabled={isOffline}
+            />
           )}
 
           {/* Priority */}
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              Priority <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={priority}
-                onValueChange={setPriority}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select Priority" value="" />
-                {taskPriorities.map((p: any) => (
-                  <Picker.Item key={p} label={p} value={p} />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Priority"
+            placeholder="Select Priority"
+            selectedValue={priority}
+            onValueChange={setPriority}
+            items={getPickerItems(taskPriorities)}
+            required
+          />
 
           {/* Status */}
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              Status <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={status}
-                onValueChange={setStatus}
-                style={styles.picker}
-              >
-                {taskStatuses.map((s: any) => (
-                  <Picker.Item key={s} label={s} value={s} />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Status"
+            selectedValue={status}
+            onValueChange={setStatus}
+            items={getPickerItems(taskStatuses)}
+            required
+          />
 
           {/* Assigned To */}
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              Assigned To <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={assignedTo}
-                onValueChange={setAssignedTo}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select User" value="" />
-                {users.map((user: any) => (
-                  <Picker.Item
-                    key={user.employeeId}
-                    label={user.name}
-                    value={user.employeeId}
-                  />
-                ))}
-              </Picker>
-            </View>
-          </View>
+          <SearchablePicker
+            label="Assigned To"
+            placeholder="Select User"
+            selectedValue={assignedTo}
+            onValueChange={setAssignedTo}
+            items={getPickerItems(users)}
+            required
+          />
 
           {/* Support Team */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Support Team (Optional)</Text>
-            <Text style={styles.helpText}>
-              Select support team members who will assist with this task
-            </Text>
-            {users.filter(u => u.employeeId !== assignedTo).map((user: any) => (
-              <View key={user.employeeId} style={styles.checkboxRow}>
-                <Button
-                  mode={support.includes(user.employeeId) ? 'contained' : 'outlined'}
-                  onPress={() => {
-                    if (support.includes(user.employeeId)) {
-                      setSupport(support.filter(id => id !== user.employeeId))
-                    } else {
-                      setSupport([...support, user.employeeId])
-                    }
-                  }}
-                  compact
-                  style={styles.checkboxButton}
-                  labelStyle={styles.checkboxLabel}
-                >
-                  {user.name}
-                </Button>
-              </View>
-            ))}
-            {support.length > 0 && (
-              <Text style={styles.selectedText}>
-                Selected: {support.map(id => users.find(u => u.employeeId === id)?.name).join(', ')}
-              </Text>
-            )}
-          </View>
+          <MultiSelectPicker
+            label="Support Team (Optional)"
+            placeholder="Select support members"
+            selectedValues={support}
+            onValuesChange={setSupport}
+            items={users.filter(u => u.employeeId !== assignedTo).map(u => ({
+              label: u.name,
+              value: u.employeeId,
+            }))}
+            disabled={isOffline}
+          />
 
           {/* Start Date */}
           <TextInput
@@ -586,10 +508,10 @@ export default function CreateTaskScreen({ navigation }: any) {
               </Button>
               {attachedFile && (
                 <View style={{ flex: 1 }}>
-                  <Text numberOfLines={1} style={{ color: materialColors.text }}>
+                  <Text numberOfLines={1} style={{ color: colors.text }}>
                     {attachedFile.name}
                   </Text>
-                  <Text style={{ fontSize: 10, color: materialColors.textSecondary }}>
+                  <Text style={{ fontSize: 10, color: colors.textSecondary }}>
                     {(attachedFile.size / 1024).toFixed(1)} KB
                   </Text>
                 </View>
@@ -614,7 +536,7 @@ export default function CreateTaskScreen({ navigation }: any) {
               disabled={isSubmitting || isOffline}
               loading={isSubmitting}
               style={styles.submitButton}
-              buttonColor={materialColors.primary}
+              buttonColor={colors.primary}
             >
               {isSubmitting ? 'Creating...' : 'Create Task'}
             </Button>
@@ -628,41 +550,42 @@ export default function CreateTaskScreen({ navigation }: any) {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   form: {
     padding: materialSpacing.md,
     gap: materialSpacing.md,
+    backgroundColor: colors.background,
   },
   field: {
     marginBottom: materialSpacing.md,
   },
   label: {
     ...materialTypography.labelLarge,
-    color: materialColors.text,
+    color: colors.text,
     marginBottom: materialSpacing.xs,
   },
   required: {
-    color: materialColors.error,
+    color: colors.error,
   },
   input: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   pickerContainer: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: materialColors.border,
+    borderColor: colors.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
   picker: {
     height: 50,
-    color: materialColors.text,
+    color: colors.text,
   },
 
   helpText: {
     ...materialTypography.bodySmall,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.xs,
   },
   buttonContainer: {
@@ -672,7 +595,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    borderColor: materialColors.border,
+    borderColor: colors.border,
   },
   submitButton: {
     flex: 1,
@@ -689,7 +612,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   selectedText: {
     ...materialTypography.bodySmall,
-    color: materialColors.primary,
+    color: colors.primary,
     marginTop: materialSpacing.sm,
     fontWeight: '600',
   },

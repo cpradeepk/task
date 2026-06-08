@@ -14,6 +14,7 @@ import {
 import { Text, TextInput, Button, Checkbox, IconButton, Divider } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import apiClient from '../services/apiClient'
 
 interface ChecklistItem {
     id: number
@@ -43,15 +44,7 @@ export default function TaskChecklistManager({
 
     const fetchChecklists = async () => {
         try {
-            const response = await fetch(
-                `https://task.amtariksha.com/api/development-checklists?taskId=${taskId}`,
-                {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                }
-            )
-
-            const data = await response.json()
+            const data = await apiClient.get(`/api/development-checklists?taskId=${taskId}`)
             if (data.success) {
                 setChecklists(data.data || [])
             }
@@ -67,17 +60,11 @@ export default function TaskChecklistManager({
 
         setIsAdding(true)
         try {
-            const response = await fetch('https://task.amtariksha.com/api/development-checklists', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    taskId,
-                    itemText: newItemText.trim(),
-                    isCompleted: false,
-                }),
+            const data = await apiClient.post('/api/development-checklists', {
+                taskId,
+                itemText: newItemText.trim(),
+                isCompleted: false,
             })
-
-            const data = await response.json()
             if (data.success) {
                 setNewItemText('')
                 await fetchChecklists()
@@ -94,18 +81,9 @@ export default function TaskChecklistManager({
 
     const handleToggleItem = async (item: ChecklistItem) => {
         try {
-            const response = await fetch(
-                `https://task.amtariksha.com/api/development-checklists/${item.id}`,
-                {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        isCompleted: !item.isCompleted,
-                    }),
-                }
-            )
-
-            const data = await response.json()
+            const data = await apiClient.put(`/api/development-checklists/${item.id}`, {
+                isCompleted: !item.isCompleted,
+            })
             if (data.success) {
                 await fetchChecklists()
             } else {
@@ -128,12 +106,7 @@ export default function TaskChecklistManager({
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const response = await fetch(
-                                `https://task.amtariksha.com/api/development-checklists/${itemId}`,
-                                { method: 'DELETE' }
-                            )
-
-                            const data = await response.json()
+                            const data = await apiClient.del(`/api/development-checklists/${itemId}`)
                             if (data.success) {
                                 await fetchChecklists()
                             } else {

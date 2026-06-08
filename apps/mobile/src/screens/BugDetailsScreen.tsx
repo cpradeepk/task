@@ -108,7 +108,7 @@ export default function BugDetailsScreen() {
           <IconButton
             icon="pencil"
             size={24}
-            iconColor={materialColors.primary}
+            iconColor={colors.primary}
             onPress={() => setIsEditing(true)}
             disabled={isOffline}
           />
@@ -239,7 +239,7 @@ export default function BugDetailsScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={materialColors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading bug details...</Text>
       </View>
     )
@@ -541,8 +541,8 @@ export default function BugDetailsScreen() {
                 value={editedStatus}
                 onChangeText={setEditedStatus}
                 style={styles.textInput}
-                outlineColor={materialColors.outline}
-                activeOutlineColor={materialColors.primary}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
                 disabled={isOffline}
               />
 
@@ -553,8 +553,8 @@ export default function BugDetailsScreen() {
                 value={editedPriority}
                 onChangeText={setEditedPriority}
                 style={styles.textInput}
-                outlineColor={materialColors.outline}
-                activeOutlineColor={materialColors.primary}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
                 disabled={isOffline}
               />
 
@@ -567,8 +567,8 @@ export default function BugDetailsScreen() {
                 multiline
                 numberOfLines={4}
                 style={styles.textInput}
-                outlineColor={materialColors.outline}
-                activeOutlineColor={materialColors.primary}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
                 disabled={isOffline}
               />
 
@@ -592,7 +592,8 @@ export default function BugDetailsScreen() {
                   loading={isSaving}
                   disabled={isSaving || isOffline}
                   style={styles.saveButton}
-                  buttonColor={materialColors.primary}
+                  buttonColor={colors.primary}
+                  textColor="#FFFFFF"
                 >
                   {isSaving ? 'Saving...' : 'Save Changes'}
                 </Button>
@@ -628,8 +629,8 @@ export default function BugDetailsScreen() {
                 multiline
                 numberOfLines={3}
                 style={styles.commentInput}
-                outlineColor={materialColors.outline}
-                activeOutlineColor={materialColors.primary}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
                 disabled={isOffline}
               />
               <Button
@@ -638,7 +639,8 @@ export default function BugDetailsScreen() {
                 disabled={!newComment.trim() || isSubmittingComment || isOffline}
                 loading={isSubmittingComment}
                 style={styles.commentButton}
-                buttonColor={materialColors.primary}
+                buttonColor={colors.primary}
+                textColor="#FFFFFF"
               >
                 {isSubmittingComment ? 'Posting...' : 'Post Comment'}
               </Button>
@@ -654,7 +656,8 @@ export default function BugDetailsScreen() {
             mode="contained"
             onPress={() => handleStatusChange('In Progress')}
             style={styles.actionButton}
-            buttonColor={materialColors.warning}
+            buttonColor={colors.warning}
+            textColor="#000000"
             disabled={isOffline}
           >
             Start Progress
@@ -665,7 +668,8 @@ export default function BugDetailsScreen() {
             mode="contained"
             onPress={() => handleStatusChange('Resolved')}
             style={styles.actionButton}
-            buttonColor={materialColors.success}
+            buttonColor={colors.success}
+            textColor="#FFFFFF"
             disabled={isOffline}
           >
             Mark Resolved
@@ -679,29 +683,29 @@ export default function BugDetailsScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   loadingText: {
     ...materialTypography.bodyLarge,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.md,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
     padding: materialSpacing.xl,
   },
   errorText: {
     ...materialTypography.headlineSmall,
-    color: materialColors.error,
+    color: colors.error,
     textAlign: 'center',
   },
   scrollView: {
@@ -710,7 +714,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   headerCard: {
     marginBottom: materialSpacing.md,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   header: {
     flexDirection: 'row',
@@ -720,7 +724,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   bugId: {
     ...materialTypography.headlineMedium,
-    color: materialColors.primary,
+    color: colors.primary,
     fontWeight: '700',
   },
   badges: {
@@ -735,37 +739,37 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   chipText: {
     ...materialTypography.labelMedium,
-    color: materialColors.surface,
+    color: colors.surface,
   },
   title: {
     ...materialTypography.titleLarge,
-    color: materialColors.text,
+    color: colors.text,
     marginTop: materialSpacing.xs,
   },
   sectionCard: {
     marginBottom: materialSpacing.md,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   sectionTitle: {
     ...materialTypography.titleMedium,
-    color: materialColors.text,
+    color: colors.text,
     marginBottom: materialSpacing.xs,
   },
   divider: {
     marginBottom: materialSpacing.md,
-    backgroundColor: materialColors.outline,
+    backgroundColor: colors.border,
   },
   description: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     lineHeight: 22,
   },
   logsText: {
     fontFamily: 'monospace',
     fontSize: 12,
     lineHeight: 18,
-    color: materialColors.text,
-    backgroundColor: materialColors.surfaceVariant,
+    color: colors.text,
+    backgroundColor: colors.surfaceVariant,
     padding: materialSpacing.sm,
     borderRadius: 6,
   },
@@ -777,15 +781,15 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: materialSpacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: materialColors.outline,
+    borderBottomColor: colors.border,
   },
   infoLabel: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
   },
   infoValue: {
     ...materialTypography.bodyMedium,
-    color: materialColors.text,
+    color: colors.text,
     fontWeight: '600',
   },
   infoRow: {
@@ -800,44 +804,44 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   timeItem: {
     flex: 1,
     padding: materialSpacing.md,
-    backgroundColor: materialColors.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 12,
     alignItems: 'center',
   },
   timeLabel: {
     ...materialTypography.labelMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: materialSpacing.xs,
   },
   timeValue: {
     ...materialTypography.headlineSmall,
-    color: materialColors.text,
+    color: colors.text,
     fontWeight: '700',
   },
   comment: {
     padding: materialSpacing.md,
-    backgroundColor: materialColors.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 12,
     marginBottom: materialSpacing.sm,
   },
   commentUser: {
     ...materialTypography.labelLarge,
-    color: materialColors.text,
+    color: colors.text,
     fontWeight: '600',
     marginBottom: materialSpacing.xs,
   },
   commentText: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: materialSpacing.xs,
   },
   commentDate: {
     ...materialTypography.labelSmall,
-    color: materialColors.textTertiary,
+    color: colors.textTertiary,
   },
   commentTime: {
     ...materialTypography.labelSmall,
-    color: materialColors.textTertiary,
+    color: colors.textTertiary,
     alignSelf: 'flex-end',
     marginTop: materialSpacing.xs,
   },
@@ -846,7 +850,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     gap: materialSpacing.sm,
   },
   commentInput: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   commentButton: {
     marginTop: materialSpacing.xs,
@@ -855,21 +859,21 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     flexDirection: 'row',
     padding: materialSpacing.md,
     gap: materialSpacing.sm,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: materialColors.outline,
+    borderTopColor: colors.border,
   },
   actionButton: {
     flex: 1,
   },
   fieldLabel: {
     ...materialTypography.labelMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.md,
     marginBottom: materialSpacing.xs,
   },
   textInput: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   editActions: {
     flexDirection: 'row',

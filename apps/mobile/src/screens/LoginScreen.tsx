@@ -8,6 +8,7 @@ import {
   Platform,
   Image,
   TouchableOpacity,
+  Linking,
 } from 'react-native'
 import { TextInput, Button, Text, Surface } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -20,10 +21,15 @@ import {
   getBiometricTypeName
 } from '../utils/biometricAuth'
 import { getUserToken, getUserData } from '../utils/secureStorage'
-import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
+import { materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
+import { useTheme } from '../contexts/ThemeContext'
+import { useToast } from '../contexts/ToastContext'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 export default function LoginScreen() {
+  const { colors, theme } = useTheme()
+  const { showToast } = useToast()
+  const styles = React.useMemo(() => getStyles(colors), [colors])
   const [employeeId, setEmployeeId] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -69,7 +75,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!employeeId || !password) {
-      Alert.alert('Error', 'Please enter both employee ID and password')
+      showToast('Please enter both employee ID and password', 'warning')
       return
     }
 
@@ -77,7 +83,7 @@ export default function LoginScreen() {
     try {
       const result = await signIn(employeeId, password)
       if (!result.success) {
-        Alert.alert('Login Failed', result.error as string || 'Invalid credentials')
+        showToast(result.error as string || 'Invalid credentials', 'error')
       }
     } finally {
       setLoading(false)
@@ -91,7 +97,7 @@ export default function LoginScreen() {
       const authResult = await authenticateWithBiometrics(`Login with ${biometricType}`)
 
       if (!authResult.success) {
-        Alert.alert('Authentication Failed', authResult.error || 'Biometric authentication failed')
+        showToast(authResult.error || 'Biometric authentication failed', 'error')
         setLoading(false)
         return
       }
@@ -101,9 +107,9 @@ export default function LoginScreen() {
       const userData = await getUserData()
 
       if (!token || !userData) {
-        Alert.alert(
-          'No Saved Credentials',
-          'Please login with your employee ID and password first to enable biometric login.'
+        showToast(
+          'Please login with your employee ID and password first to enable biometric login.',
+          'warning'
         )
         setLoading(false)
         return
@@ -117,13 +123,13 @@ export default function LoginScreen() {
       const result = await signIn(userData.employeeId, '')
 
       if (!result.success) {
-        Alert.alert(
-          'Session Expired',
-          'Your session has expired. Please login again with your credentials.'
+        showToast(
+          'Your session has expired. Please login again with your credentials.',
+          'error'
         )
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Biometric login failed')
+      showToast(error.message || 'Biometric login failed', 'error')
     } finally {
       setLoading(false)
     }
@@ -171,10 +177,11 @@ export default function LoginScreen() {
               autoCapitalize="none"
               keyboardType="email-address"
               placeholder="AM-0001 or you@example.com"
-              left={<TextInput.Icon icon="account" />}
+              left={<TextInput.Icon icon="account" color={colors.textSecondary} />}
               style={styles.input}
-              outlineColor={materialColors.outline}
-              activeOutlineColor={materialColors.primary}
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              textColor={colors.text}
             />
 
             <View style={styles.passwordContainer}>
@@ -186,10 +193,11 @@ export default function LoginScreen() {
                 disabled={loading || isOffline}
                 secureTextEntry={!showPassword}
                 placeholder="Enter your password"
-                left={<TextInput.Icon icon="lock" color={materialColors.primary} />}
+                left={<TextInput.Icon icon="lock" color={colors.primary} />}
                 style={[styles.input, styles.passwordInput]}
-                outlineColor={materialColors.outline}
-                activeOutlineColor={materialColors.primary}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
+                textColor={colors.text}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
@@ -199,7 +207,7 @@ export default function LoginScreen() {
                 <MaterialCommunityIcons
                   name={showPassword ? 'eye-off' : 'eye'}
                   size={24}
-                  color={materialColors.primary}
+                  color={colors.primary}
                 />
               </TouchableOpacity>
             </View>
@@ -243,20 +251,31 @@ export default function LoginScreen() {
           <Text style={styles.helperText}>
             Sign in with your Employee ID (e.g., AM-0001) or email address
           </Text>
+
+          {/* Legal Links */}
+          <View style={styles.legalLinks}>
+            <TouchableOpacity onPress={() => Linking.openURL('https://task.amtariksha.com/privacy')}>
+              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalLinkSeparator}>  •  </Text>
+            <TouchableOpacity onPress={() => Linking.openURL('https://task.amtariksha.com/terms')}>
+              <Text style={styles.legalLinkText}>Terms of Service</Text>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
       </View>
     </KeyboardAvoidingView>
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   gradientBar: {
     height: 4,
-    backgroundColor: materialColors.primary,
+    backgroundColor: colors.primary,
   },
   content: {
     flex: 1,
@@ -282,28 +301,28 @@ const styles = StyleSheet.create({
   },
   title: {
     ...materialTypography.headlineLarge,
-    color: materialColors.text,
+    color: colors.text,
     textAlign: 'center',
     marginBottom: materialSpacing.xs,
   },
   subtitle: {
     ...materialTypography.bodyLarge,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   card: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: materialSpacing.lg,
     elevation: materialElevation.level2,
-    shadowColor: materialColors.shadow,
+    shadowColor: colors.shadow || '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
   input: {
     marginBottom: materialSpacing.md,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.card,
   },
   passwordContainer: {
     position: 'relative',
@@ -319,44 +338,60 @@ const styles = StyleSheet.create({
     top: 12,
     padding: 12,
     zIndex: 10,
-    backgroundColor: 'rgba(134, 239, 172, 0.15)',
+    backgroundColor: colors.primaryLight ? `${colors.primary}1A` : 'rgba(134, 239, 172, 0.15)',
     borderRadius: 20,
   },
   loginButton: {
     marginTop: materialSpacing.sm,
     borderRadius: 8,
-    backgroundColor: materialColors.primary,
+    backgroundColor: colors.primary,
   },
   buttonContent: {
     paddingVertical: materialSpacing.xs,
   },
   buttonLabel: {
     ...materialTypography.labelLarge,
+    color: '#FFFFFF',
   },
   biometricButton: {
     marginTop: materialSpacing.md,
     borderRadius: 8,
-    borderColor: materialColors.primary,
+    borderColor: colors.primary,
   },
   biometricButtonLabel: {
     ...materialTypography.labelLarge,
-    color: materialColors.primary,
+    color: colors.primary,
   },
   offlineNotice: {
     marginTop: materialSpacing.md,
     padding: materialSpacing.sm,
-    backgroundColor: materialColors.warningContainer,
+    backgroundColor: colors.warningLight || '#FEF3C7',
     borderRadius: 8,
   },
   offlineText: {
     ...materialTypography.bodySmall,
-    color: materialColors.onWarningContainer,
+    color: colors.warning || '#F59E0B',
     textAlign: 'center',
   },
   helperText: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: materialSpacing.lg,
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: materialSpacing.md,
+    alignItems: 'center',
+  },
+  legalLinkText: {
+    ...materialTypography.bodySmall,
+    color: colors.primary,
+    textDecorationLine: 'underline',
+  },
+  legalLinkSeparator: {
+    ...materialTypography.bodySmall,
+    color: colors.textTertiary,
   },
 })

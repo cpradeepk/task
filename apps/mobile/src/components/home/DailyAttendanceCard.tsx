@@ -3,11 +3,13 @@ import { View, StyleSheet, Alert } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, useTheme, Surface } from 'react-native-paper'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { format } from 'date-fns'
+import { useNavigation } from '@react-navigation/native'
 import { GET_ATTENDANCE, SIGN_IN, SIGN_OUT } from '../../config/graphql-queries'
 import { materialColors, materialSpacing, materialTypography } from '../../config/materialTheme'
 
 export default function DailyAttendanceCard() {
     const theme = useTheme()
+    const navigation = useNavigation<any>()
     const [currentTime, setCurrentTime] = useState(new Date())
     const [workDuration, setWorkDuration] = useState<string>('00:00:00')
     const [loadingAction, setLoadingAction] = useState(false)
@@ -134,7 +136,7 @@ export default function DailyAttendanceCard() {
     const isSignedIn = !!attendance?.signInTime && !isSignedOut
 
     return (
-        <Card style={styles.card} elevation={1}>
+        <Card style={styles.card} elevation={1} onPress={() => navigation.navigate('AttendanceDashboard')}>
             <Card.Content>
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>

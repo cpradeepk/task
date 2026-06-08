@@ -3,9 +3,9 @@
  * Centralized GraphQL client with REST fallback for the mobile app
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { buildApiUrl } from '../config/api'
 import { ApiResponse } from './apiClient'
+import { getUserToken } from '../utils/secureStorage'
 
 export interface GraphQLResponse<T = any> {
   data?: T
@@ -24,7 +24,7 @@ export const executeGraphQLQuery = async <T = any>(
 ): Promise<T> => {
   try {
     // Get auth token
-    const token = await AsyncStorage.getItem('userToken')
+    const token = await getUserToken()
     
     // Build headers
     const headers: HeadersInit = {

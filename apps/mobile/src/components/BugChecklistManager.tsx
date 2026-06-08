@@ -13,6 +13,7 @@ import {
 import { Text, TextInput, Button, Checkbox, IconButton, Divider } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import apiClient from '../services/apiClient'
 
 interface ChecklistItem {
     id: number
@@ -42,15 +43,7 @@ export default function BugChecklistManager({
 
     const fetchChecklists = async () => {
         try {
-            const response = await fetch(
-                `https://task.amtariksha.com/api/bug-checklists?bugId=${bugId}`,
-                {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                }
-            )
-
-            const data = await response.json()
+            const data = await apiClient.get(`/api/bug-checklists?bugId=${bugId}`)
             if (data.success) {
                 setChecklists(data.data || [])
             }
@@ -66,17 +59,11 @@ export default function BugChecklistManager({
 
         setIsAdding(true)
         try {
-            const response = await fetch('https://task.amtariksha.com/api/bug-checklists', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    bugId,
-                    itemText: newItemText.trim(),
-                    isCompleted: false,
-                }),
+            const data = await apiClient.post('/api/bug-checklists', {
+                bugId,
+                itemText: newItemText.trim(),
+                isCompleted: false,
             })
-
-            const data = await response.json()
             if (data.success) {
                 setNewItemText('')
                 await fetchChecklists()
@@ -93,18 +80,9 @@ export default function BugChecklistManager({
 
     const handleToggleItem = async (item: ChecklistItem) => {
         try {
-            const response = await fetch(
-                `https://task.amtariksha.com/api/bug-checklists/${item.id}`,
-                {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        isCompleted: !item.isCompleted,
-                    }),
-                }
-            )
-
-            const data = await response.json()
+            const data = await apiClient.put(`/api/bug-checklists/${item.id}`, {
+                isCompleted: !item.isCompleted,
+            })
             if (data.success) {
                 await fetchChecklists()
             } else {
@@ -127,12 +105,7 @@ export default function BugChecklistManager({
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const response = await fetch(
-                                `https://task.amtariksha.com/api/bug-checklists/${itemId}`,
-                                { method: 'DELETE' }
-                            )
-
-                            const data = await response.json()
+                            const data = await apiClient.del(`/api/bug-checklists/${itemId}`)
                             if (data.success) {
                                 await fetchChecklists()
                             } else {

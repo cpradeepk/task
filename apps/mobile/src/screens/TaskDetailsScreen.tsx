@@ -6,7 +6,7 @@ import {
   StyleSheet,
 } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, TextInput as PaperTextInput, Chip, IconButton, List, Divider } from 'react-native-paper'
-import { Picker } from '@react-native-picker/picker'
+import { SearchablePicker } from '../components/SearchablePicker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getTaskById, updateTask, deleteTask, Task } from '../services/taskService'
 import { get } from '../services/apiClient'
@@ -130,7 +130,7 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
           <IconButton
             icon="pencil"
             size={24}
-            iconColor={materialColors.primary}
+            iconColor={colors.primary}
             onPress={() => setIsEditing(true)}
             disabled={isOffline}
           />
@@ -236,7 +236,7 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={materialColors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading task details...</Text>
       </View>
     )
@@ -267,14 +267,14 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
                     <IconButton
                       icon="pencil"
                       size={20}
-                      iconColor={materialColors.primary}
+                      iconColor={colors.primary}
                       onPress={() => setIsEditing(true)}
                       disabled={isOffline}
                     />
                     <IconButton
                       icon="delete"
                       size={20}
-                      iconColor={materialColors.error}
+                      iconColor={colors.error}
                       onPress={handleDelete}
                       disabled={isOffline}
                     />
@@ -332,19 +332,13 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
         {isEditing && (
           <Card style={styles.sectionCard} elevation={1}>
             <Card.Content>
-              <Text style={styles.sectionTitle}>Status</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={editedStatus}
-                  onValueChange={setEditedStatus}
-                  style={styles.picker}
-                  enabled={!isOffline}
-                >
-                  {taskStatuses.map((s: any) => (
-                    <Picker.Item key={s} label={s} value={s} />
-                  ))}
-                </Picker>
-              </View>
+              <SearchablePicker
+                label="Status"
+                selectedValue={editedStatus}
+                onValueChange={setEditedStatus}
+                items={taskStatuses.map((s: any) => ({ label: s, value: s }))}
+                disabled={isOffline}
+              />
             </Card.Content>
           </Card>
         )}
@@ -353,19 +347,13 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
         {isEditing && (
           <Card style={styles.sectionCard} elevation={1}>
             <Card.Content>
-              <Text style={styles.sectionTitle}>Priority</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={editedPriority}
-                  onValueChange={setEditedPriority}
-                  style={styles.picker}
-                  enabled={!isOffline}
-                >
-                  {taskPriorities.map((p: any) => (
-                    <Picker.Item key={p} label={p} value={p} />
-                  ))}
-                </Picker>
-              </View>
+              <SearchablePicker
+                label="Priority"
+                selectedValue={editedPriority}
+                onValueChange={setEditedPriority}
+                items={taskPriorities.map((p: any) => ({ label: p, value: p }))}
+                disabled={isOffline}
+              />
             </Card.Content>
           </Card>
         )}
@@ -623,23 +611,23 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
     padding: materialSpacing.lg,
   },
   loadingText: {
     ...materialTypography.bodyLarge,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.md,
   },
   errorText: {
     ...materialTypography.bodyLarge,
-    color: materialColors.error,
+    color: colors.error,
     marginBottom: materialSpacing.md,
   },
   backButton: {
@@ -649,7 +637,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     padding: materialSpacing.md,
   },
   headerCard: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginBottom: materialSpacing.sm,
   },
@@ -660,7 +648,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   taskId: {
     ...materialTypography.headlineMedium,
-    color: materialColors.text,
+    color: colors.text,
   },
   headerActions: {
     flexDirection: 'row',
@@ -677,43 +665,43 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   chipText: {
     ...materialTypography.labelSmall,
-    color: materialColors.surface,
+    color: colors.surface,
   },
   sectionCard: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginBottom: materialSpacing.sm,
   },
   accordion: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   accordionTitle: {
     ...materialTypography.titleMedium,
-    color: materialColors.text,
+    color: colors.text,
   },
   sectionTitle: {
     ...materialTypography.titleSmall,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: materialSpacing.sm,
     textTransform: 'uppercase',
   },
   sectionContent: {
     ...materialTypography.bodyMedium,
-    color: materialColors.text,
+    color: colors.text,
     lineHeight: 22,
   },
   textInput: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   pickerContainer: {
-    backgroundColor: materialColors.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 8,
     overflow: 'hidden',
     marginTop: materialSpacing.xs,
   },
   picker: {
     height: 50,
-    color: materialColors.text,
+    color: colors.text,
   },
   infoRow: {
     flexDirection: 'row',
@@ -721,18 +709,18 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   infoLabel: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     width: 120,
   },
   infoValue: {
     ...materialTypography.bodyMedium,
-    color: materialColors.text,
+    color: colors.text,
     fontWeight: '500',
     flex: 1,
   },
   dateText: {
     ...materialTypography.bodyMedium,
-    color: materialColors.text,
+    color: colors.text,
     fontWeight: '500',
   },
   editActions: {

@@ -17,6 +17,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { getUserData } from '../utils/secureStorage'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { formatDateTimeIST } from '../utils/datetime'
+import apiClient from '../services/apiClient'
 
 interface ActivityLog {
     id: number
@@ -70,16 +71,10 @@ export default function UnifiedTimeline({
 
     const fetchActivities = async () => {
         try {
-            const response = await fetch(
-                `https://task.amtariksha.com/api/activity-log?entityType=${entityType}&entityId=${entityId}&sortOrder=desc`,
-                {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                }
+            const data = await apiClient.get(
+                `/api/activity-log?entityType=${entityType}&entityId=${entityId}&sortOrder=desc`
             )
-
-            const data = await response.json()
-            if (data.success) {
+            if (data.success && data.data) {
                 setActivities(data.data || [])
             }
         } catch (error) {
@@ -120,19 +115,13 @@ export default function UnifiedTimeline({
 
         setIsSubmitting(true)
         try {
-            const response = await fetch('https://task.amtariksha.com/api/activity-log', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    entityType,
-                    entityId,
-                    actionType: 'comment',
-                    description: commentText.trim(),
-                    isComment: true,
-                }),
+            const data = await apiClient.post('/api/activity-log', {
+                entityType,
+                entityId,
+                actionType: 'comment',
+                description: commentText.trim(),
+                isComment: true,
             })
-
-            const data = await response.json()
             if (data.success) {
                 setCommentText('')
                 await fetchActivities()

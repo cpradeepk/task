@@ -16,6 +16,7 @@ import {
 } from 'react-native'
 import { logger } from '../utils/debugLogger'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { buildApiUrl } from '../config/api'
 
 interface DebugMenuProps {
   visible: boolean
@@ -176,7 +177,7 @@ export const DebugMenu: React.FC<DebugMenuProps> = ({ visible, onClose }) => {
           {activeTab === 'info' && (
             <View style={styles.infoContainer}>
               <InfoRow label="Environment" value={__DEV__ ? 'Development' : 'Production'} />
-              <InfoRow label="API URL" value={require('../config/apollo').apolloClient.link} />
+              <InfoRow label="API URL" value={buildApiUrl('/api/graphql')} />
               <InfoRow label="Platform" value={require('react-native').Platform.OS} />
               <InfoRow label="Version" value={require('react-native').Platform.Version.toString()} />
             </View>
@@ -201,10 +202,12 @@ export const DebugMenu: React.FC<DebugMenuProps> = ({ visible, onClose }) => {
   )
 }
 
-const InfoRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+const InfoRow: React.FC<{ label: string; value: any }> = ({ label, value }) => (
   <View style={styles.infoRow}>
     <Text style={styles.infoLabel}>{label}:</Text>
-    <Text style={styles.infoValue}>{value}</Text>
+    <Text style={styles.infoValue}>
+      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+    </Text>
   </View>
 )
 

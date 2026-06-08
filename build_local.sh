@@ -33,11 +33,13 @@ show_help() {
   echo "Usage: ./build_local.sh [command]"
   echo ""
   echo "Commands:"
-  echo "  apk      - Build local release Android APK"
-  echo "  aab      - Build local release Android App Bundle (AAB)"
-  echo "  ios      - Build local release iOS App"
-  echo "  clean    - Clean android and ios build caches"
-  echo "  help     - Show this help message"
+  echo "  apk         - Build local release Android APK"
+  echo "  aab         - Build local release Android App Bundle (AAB)"
+  echo "  ios         - Build local release iOS App"
+  echo "  run-android - Build and run on a connected physical Android device"
+  echo "  run-ios     - Build and run on a connected physical iOS device"
+  echo "  clean       - Clean android and ios build caches"
+  echo "  help        - Show this help message"
   echo ""
 }
 
@@ -188,6 +190,86 @@ case "$COMMAND" in
       echo "✅ iOS Simulator Release App Built Successfully!"
       echo "📦 Location: apps/mobile/ios/build/Build/Products/Release-iphonesimulator/Karmayog.app"
     fi
+    
+    popd > /dev/null
+    ;;
+
+  run-android)
+    echo "🤖 Staging and running on connected Android device..."
+    pushd apps/mobile > /dev/null
+    
+    # 1. Run prebuild to sync versions and generate native android directory
+    echo "⚙️ Running Expo prebuild..."
+    npx expo prebuild --platform android --no-install
+    
+    # 2. Regenerate branding assets and patch build.gradle dynamically
+    echo "🎨 Regenerating branding assets..."
+    python3 "/Users/eassylife/.gemini/antigravity-ide/brain/1e9e45f8-f2b8-41f9-a0ca-db43d5d84536/scratch/update_all_assets.py"
+    
+    # 3. Detect connected devices using adb and extract the model name
+    export ANDROID_HOME="/Users/eassylife/Library/Android/sdk"
+    export PATH="$ANDROID_HOME/platform-tools:$PATH"
+    DEVICE_NAME=$(adb devices -l | grep "device " | sed -n 's/.*model:\([^ ]*\).*/\1/p' | head -n 1 || true)
+    
+    EXPO_RUN_ARGS=""
+    if [ -n "$DEVICE_NAME" ]; then
+      echo "📱 Auto-detected connected physical device: $DEVICE_NAME"
+      EXPO_RUN_ARGS="--device $DEVICE_NAME"
+    else
+      echo "⚠️ No physical device detected via adb. Expo will prompt/use default emulator."
+      EXPO_RUN_ARGS="--device"
+    fi
+    
+    # 4. Compile and run on device
+    echo "🚀 Building and running on physical device..."
+    JAVA_HOME="/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home" \
+    ANDROID_HOME="/Users/eassylife/Library/Android/sdk" \
+    PATH="/opt/homebrew/opt/openjdk@17/bin:/Users/eassylife/Library/Android/sdk/platform-tools:$PATH" \
+    npx expo run:android $EXPO_RUN_ARGS
+    
+    popd > /dev/null
+    ;;
+
+  run-ios)
+    echo "🍎 Staging and running on connected iOS device..."
+    
+    # 1. Ensure Xcode is available (macOS only)
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+      echo "❌ Error: iOS runs can only be performed on macOS."
+      exit 1
+    fi
+    
+    pushd apps/mobile > /dev/null
+    
+    # 2. Run prebuild to sync versions and generate native ios directory
+    echo "⚙️ Running Expo prebuild..."
+    npx expo prebuild --platform ios --no-install
+    
+    # 3. Regenerate branding assets
+    echo "🎨 Regenerating branding assets..."
+    python3 "/Users/eassylife/.gemini/antigravity-ide/brain/1e9e45f8-f2b8-41f9-a0ca-db43d5d84536/scratch/update_all_assets.py"
+    
+    # 4. Install Pod dependencies
+    echo "📦 Installing CocoaPods dependencies..."
+    cd ios
+    pod install
+    cd ..
+    
+    # 5. Apply space-in-path patches (required because project path has spaces)
+    echo "🔧 Applying iOS space-in-path patches..."
+    bash scripts/patch-ios-spaces.sh
+    
+    # 6. Sync version from app.json into Xcode project
+    echo "🔢 Syncing version into Xcode project..."
+    APP_VERSION=$(python3 -c "import json; print(json.load(open('app.json'))['expo']['version'])" 2>/dev/null || echo "1.0.0")
+    BUILD_NUMBER=$(python3 -c "import json; print(json.load(open('app.json'))['expo']['ios']['buildNumber'])" 2>/dev/null || echo "1")
+    sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $APP_VERSION/g" ios/Karmayog.xcodeproj/project.pbxproj
+    sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = $BUILD_NUMBER/g" ios/Karmayog.xcodeproj/project.pbxproj
+    echo "   Version: $APP_VERSION (build $BUILD_NUMBER)"
+    
+    # 7. Compile and run on device
+    echo "🚀 Building and running on physical iOS device..."
+    npx expo run:ios --device
     
     popd > /dev/null
     ;;

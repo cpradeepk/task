@@ -21,6 +21,16 @@ export type RootStackParamList = {
     WFHDetails: { wfhId: string };
     CreateWFH: undefined;
     AttendanceDashboard: undefined;
+    AttendanceApprovals: undefined;
+    AttendanceCalendar: undefined;
     Settings: undefined;
     Feed: undefined;
+    YourWork: undefined;
+    TeamTasks: undefined;
+    Projects: undefined;
+    ProjectDetails: { projectId: string };
+    Users: undefined;
+    FeedTopics: undefined;
+    DeletedItems: undefined;
+    Reports: undefined;
 };

@@ -12,17 +12,22 @@ IOS_DIR="$MOBILE_DIR/ios"
 echo "🔧 Patching iOS project files for paths with spaces..."
 
 # 1. Fix EXConstants script phase in Pods.xcodeproj
+#    The unpatched line looks like:
+#      shellScript = "bash -l -c \"$PODS_TARGET_SRCROOT/../scripts/get-app-config-ios.sh\"";
+#    We need to quote $PODS_TARGET_SRCROOT so paths with spaces work:
+#      shellScript = "bash -l -c '\"$PODS_TARGET_SRCROOT\"/../scripts/get-app-config-ios.sh'";
 PODS_PBXPROJ="$IOS_DIR/Pods/Pods.xcodeproj/project.pbxproj"
 if [ -f "$PODS_PBXPROJ" ]; then
+  # Use perl for reliable matching of the exact unpatched pattern
   if grep -q 'bash -l -c \\"$PODS_TARGET_SRCROOT/../scripts/get-app-config-ios.sh\\"' "$PODS_PBXPROJ"; then
-    sed -i '' 's|bash -l -c \\"$PODS_TARGET_SRCROOT/../scripts/get-app-config-ios.sh\\"|bash -l -c '\''\\"\$PODS_TARGET_SRCROOT\\"/../scripts/get-app-config-ios.sh'\''|g' "$PODS_PBXPROJ"
+    perl -i -pe 's|bash -l -c \\"\\$PODS_TARGET_SRCROOT/\.\./scripts/get-app-config-ios\.sh\\"|bash -l -c '\''\\"\$PODS_TARGET_SRCROOT\\"/../scripts/get-app-config-ios.sh'\''|g' "$PODS_PBXPROJ"
     echo "  ✓ Fixed EXConstants script phase in Pods.xcodeproj"
   else
     echo "  ✓ EXConstants script phase already patched or not found"
   fi
 fi
 
-# 2. Fix unquoted $PROJECT_DIR in get-app-config-ios.sh
+# 2. Fix unquoted $PROJECT_DIR in get-app-config-ios.sh (if present)
 CONFIG_SCRIPT="$MOBILE_DIR/node_modules/expo-constants/scripts/get-app-config-ios.sh"
 if [ -f "$CONFIG_SCRIPT" ]; then
   if grep -q 'basename $PROJECT_DIR)' "$CONFIG_SCRIPT"; then
@@ -33,17 +38,50 @@ if [ -f "$CONFIG_SCRIPT" ]; then
   fi
 fi
 
-# 3. Fix "Bundle React Native code and images" backtick execution in main project
-MAIN_PBXPROJ="$IOS_DIR/Karmayog.xcodeproj/project.pbxproj"
-if [ -f "$MAIN_PBXPROJ" ]; then
-  # Check if the problematic backtick pattern exists
-  if grep -q '`\\"$NODE_BINARY\\" --print \\"require' "$MAIN_PBXPROJ"; then
-    # Replace backtick execution with properly quoted /bin/sh -c invocation
-    sed -i '' 's|`\\"$NODE_BINARY\\" --print \\"require('\''path'\'').dirname(require.resolve('\''react-native/package.json'\'')) + '\''/scripts/react-native-xcode.sh'\''\\"`|WITH_ENVIRONMENT=\\"$(\\"$NODE_BINARY\\" --print \\"require('\''path'\'').dirname(require.resolve('\''react-native/package.json'\'')) + '\''/scripts/react-native-xcode.sh'\''\\")\\"\\\n/bin/sh -c '\''\\"$0\\" \\"$@\\"'\'' \\"$WITH_ENVIRONMENT\\"|g' "$MAIN_PBXPROJ"
-    echo "  ✓ Fixed Bundle RN script phase in Karmayog.xcodeproj"
-  else
-    echo "  ✓ Bundle RN script phase already patched or not found"
-  fi
+# 3. Fix AppDelegate.swift to read ip.txt directly on physical iOS devices
+APP_DELEGATE="$IOS_DIR/Karmayog/AppDelegate.swift"
+if [ -f "$APP_DELEGATE" ]; then
+  python3 -c '
+import sys
+file_path = sys.argv[1]
+with open(file_path, "r") as f:
+    content = f.read()
+
+target = """  override func bundleURL() -> URL? {
+#if DEBUG
+    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: \".expo/.virtual-metro-entry\")
+#else
+    return Bundle.main.url(forResource: \"main\", withExtension: \"jsbundle\")
+#endif
+  }"""
+
+replacement = """  override func bundleURL() -> URL? {
+#if DEBUG
+    if let ipPath = Bundle.main.path(forResource: \"ip\", ofType: \"txt\"),
+       let ipString = try? String(contentsOfFile: ipPath, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines),
+       !ipString.isEmpty {
+      return RCTBundleURLProvider.jsBundleURL(
+        forBundleRoot: \".expo/.virtual-metro-entry\",
+        packagerHost: ipString,
+        enableDev: true,
+        enableMinification: false,
+        inlineSourceMap: false
+      )
+    }
+    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: \".expo/.virtual-metro-entry\")
+#else
+    return Bundle.main.url(forResource: \"main\", withExtension: \"jsbundle\")
+#endif
+  }"""
+
+if target in content:
+    content = content.replace(target, replacement)
+    with open(file_path, "w") as f:
+        f.write(content)
+    print("  ✓ Patched AppDelegate.swift for physical device bundle loading")
+else:
+    print("  ✓ AppDelegate.swift already patched or target not found")
+' "$APP_DELEGATE"
 fi
 
 echo "✅ iOS space-in-path patches applied successfully!"

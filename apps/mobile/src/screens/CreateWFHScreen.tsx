@@ -17,6 +17,7 @@ import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-nativ
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
+import apiClient from '../services/apiClient'
 import { useTheme } from '../contexts/ThemeContext'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
@@ -152,14 +153,7 @@ export default function CreateWFHScreen() {
         managerId: currentUser.managerId || null,
       }
 
-      const { buildApiUrl } = require('../config/api')
-      const response = await fetch(buildApiUrl('/api/wfh'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(wfhData),
-      })
-
-      const result = await response.json()
+      const result = await apiClient.post('/api/wfh', wfhData)
 
       if (result.success) {
         Alert.alert('Success', 'WFH application submitted successfully', [
@@ -258,10 +252,14 @@ export default function CreateWFHScreen() {
               Work Location <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
-              style={styles.input}
+              mode="outlined"
               placeholder="e.g., Home, Coworking Space, etc."
               value={workLocation}
               onChangeText={setWorkLocation}
+              style={styles.input}
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              textColor={colors.text}
             />
           </View>
 
@@ -271,11 +269,15 @@ export default function CreateWFHScreen() {
               Contact Number <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
-              style={styles.input}
+              mode="outlined"
               placeholder="Phone number"
               value={contactNumber}
               onChangeText={setContactNumber}
               keyboardType="phone-pad"
+              style={styles.input}
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              textColor={colors.text}
             />
           </View>
 
@@ -309,12 +311,16 @@ export default function CreateWFHScreen() {
               Reason <Text style={styles.required}>*</Text>
             </Text>
             <TextInput
-              style={styles.textArea}
+              mode="outlined"
               placeholder="Enter reason for WFH..."
               value={reason}
               onChangeText={setReason}
               multiline
               numberOfLines={4}
+              style={styles.textArea}
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              textColor={colors.text}
             />
           </View>
 
@@ -465,24 +471,11 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     fontWeight: '500',
   },
   input: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    padding: responsive.spacing.sm,
-    fontSize: responsive.fontSize.sm,
-    color: colors.text,
+    backgroundColor: colors.surface,
   },
   textArea: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: responsive.borderRadius.md,
-    padding: responsive.spacing.sm,
-    fontSize: responsive.fontSize.sm,
-    color: colors.text,
+    backgroundColor: colors.surface,
     minHeight: 100,
-    textAlignVertical: 'top',
   },
   submitButtonDisabled: {
     backgroundColor: colors.textTertiary,
@@ -507,7 +500,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   submitButtonText: {
     fontSize: responsive.fontSize.md,
     fontWeight: '600',
-    color: colors.card,
+    color: '#FFFFFF',
   },
 })
 

@@ -7,12 +7,16 @@ import {
     RefreshControl,
     Dimensions
 } from 'react-native'
-import { Card, Text, ActivityIndicator, IconButton, useTheme, Surface } from 'react-native-paper'
+import { Card, Text, ActivityIndicator, IconButton, Surface } from 'react-native-paper'
 import { useQuery } from '@apollo/client/react'
+import { SearchablePicker } from '../components/SearchablePicker'
 import { GET_MONTHLY_ATTENDANCE } from '../config/graphql-queries'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useResponsive } from '../hooks/useResponsive'
 import { formatTimeIST } from '../utils/datetime'
+import { useTheme } from '../contexts/ThemeContext'
+import { getUserData } from '../utils/secureStorage'
+import apiClient from '../services/apiClient'
 
 interface AttendanceRecord {
     id: string
@@ -33,12 +37,58 @@ export default function AttendanceCalendarScreen() {
 
     const [currentDate, setCurrentDate] = useState(new Date())
     const [selectedDate, setSelectedDate] = useState<string | null>(null)
+    const [userId, setUserId] = useState<string | null>(null)
+    const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
+    const [teamMembersList, setTeamMembersList] = useState<any[]>([])
+
+    useEffect(() => {
+        const loadUserAndTeam = async () => {
+            const user = await getUserData()
+            if (!user) return
+
+            setUserId(user.employeeId)
+            setCurrentUserRole(user.role)
+            const list = [{ employeeId: user.employeeId, name: 'Myself' }]
+
+            try {
+                const roleLower = user.role?.toLowerCase()
+                if (['admin', 'top_management'].includes(roleLower)) {
+                    // Fetch all users using api
+                    const result = await apiClient.get('/api/users')
+                    const allUsers = result.success ? result.data : []
+                    if (Array.isArray(allUsers)) {
+                        allUsers.forEach((u: any) => {
+                            if (u.employeeId !== user.employeeId) {
+                                list.push({ employeeId: u.employeeId, name: u.name })
+                            }
+                        })
+                    }
+                } else if (roleLower === 'management') {
+                    // Fetch team members
+                    const result = await apiClient.get(`/api/users/team/${user.employeeId}`)
+                    const team = result.success ? result.data : []
+                    if (Array.isArray(team)) {
+                        team.forEach((u: any) => {
+                            if (u.employeeId !== user.employeeId) {
+                                list.push({ employeeId: u.employeeId, name: u.name })
+                            }
+                        })
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load team list for calendar:', e)
+            }
+            setTeamMembersList(list)
+        }
+        loadUserAndTeam()
+    }, [])
 
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth() + 1 // 1-indexed for API
 
-    const { data, loading, refetch } = useQuery(GET_MONTHLY_ATTENDANCE, {
-        variables: { year, month },
+    const { data, loading, refetch } = useQuery<any, any>(GET_MONTHLY_ATTENDANCE, {
+        variables: { userId, year, month },
+        skip: !userId,
         fetchPolicy: 'cache-and-network',
     })
 
@@ -99,34 +149,34 @@ export default function AttendanceCalendarScreen() {
             const isSelected = selectedDate === dateStr
             const isToday = new Date().toISOString().split('T')[0] === dateStr
 
-            let statusColor = colors.surfaceDisabled // Default/Absent
+            let statusColor = colors.surfaceVariant // Default/Absent
             let textColor = colors.text
 
             if (record) {
                 switch (record.status) {
                     case 'Present':
-                        statusColor = materialColors.successContainer
-                        textColor = materialColors.onSuccessContainer
+                        statusColor = colors.successLight
+                        textColor = colors.success
                         break
                     case 'Absent':
-                        statusColor = materialColors.errorContainer
-                        textColor = materialColors.onErrorContainer
+                        statusColor = colors.errorLight
+                        textColor = colors.error
                         break
                     case 'Leave':
-                        statusColor = '#FFF9C4' // Yellow-ish
-                        textColor = '#FBC02D'
+                        statusColor = colors.warningLight
+                        textColor = colors.warning
                         break
                     case 'WFH':
-                        statusColor = '#E3F2FD' // Blue-ish
-                        textColor = '#1976D2'
+                        statusColor = colors.infoLight
+                        textColor = colors.info
                         break
                     case 'Holiday':
-                        statusColor = '#E8F5E9' // Green-ish
-                        textColor = '#388E3C'
+                        statusColor = colors.successLight
+                        textColor = colors.success
                         break
                     case 'Half Day':
-                        statusColor = '#FFF3E0' // Orange-ish
-                        textColor = '#F57C00'
+                        statusColor = colors.warningLight
+                        textColor = colors.warning
                         break
                 }
             }
@@ -179,8 +229,27 @@ export default function AttendanceCalendarScreen() {
 
     const selectedRecord = selectedDate ? attendanceMap.get(selectedDate) : null
 
+    const showTeamPicker = ['admin', 'top_management', 'management'].includes(currentUserRole?.toLowerCase() || '')
+
     return (
         <View style={styles.container}>
+            {showTeamPicker && teamMembersList.length > 1 && (
+                <View style={styles.pickerContainer}>
+                    <SearchablePicker
+                        label="View Calendar"
+                        selectedValue={userId || ''}
+                        onValueChange={(itemValue) => {
+                            setUserId(itemValue)
+                            setSelectedDate(null)
+                        }}
+                        items={teamMembersList.map((member) => ({
+                            label: member.name,
+                            value: member.employeeId,
+                        }))}
+                    />
+                </View>
+            )}
+
             <View style={styles.monthSelector}>
                 <IconButton icon="chevron-left" onPress={handlePrevMonth} />
                 <Text style={styles.monthTitle}>
@@ -318,5 +387,30 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     noDataText: {
         color: colors.textSecondary,
         fontStyle: 'italic',
+    },
+    pickerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: materialSpacing.md,
+        paddingVertical: materialSpacing.sm,
+        backgroundColor: colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    pickerLabel: {
+        ...materialTypography.bodyMedium,
+        color: colors.textSecondary,
+        fontWeight: '600',
+        marginRight: 10,
+    },
+    pickerWrapper: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 8,
+        backgroundColor: colors.background,
+        overflow: 'hidden',
+        height: 45,
+        justifyContent: 'center',
     },
 })

@@ -26,6 +26,7 @@ import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { formatDateIST } from '../utils/datetime'
+import apiClient from '../services/apiClient'
 
 interface LeaveApplication {
   id: string
@@ -44,7 +45,7 @@ interface LeaveApplication {
 }
 
 export default function LeaveListScreen() {
-  const navigation = useNavigation()
+  const navigation = useNavigation<any>()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
@@ -77,15 +78,10 @@ export default function LeaveListScreen() {
   const fetchLeaves = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch(
-        `https://task.amtariksha.com/api/leaves/user/${currentUser.employeeId}`,
-        {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        }
+      const result = await apiClient.get(
+        `/api/leaves/user/${currentUser.employeeId}`
       )
 
-      const result = await response.json()
       if (result.success) {
         let filteredLeaves = result.data
         if (selectedStatus !== 'All') {
@@ -145,7 +141,7 @@ export default function LeaveListScreen() {
         style={styles.leaveCard}
         elevation={1}
         onPress={() =>
-          navigation.navigate('LeaveDetails' as never as never, { leaveId: item.id } as never)
+          navigation.navigate('LeaveDetails', { leaveId: item.id })
         }
       >
         <Card.Content>
@@ -189,7 +185,7 @@ export default function LeaveListScreen() {
   if (loading && !refreshing) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={materialColors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading leaves...</Text>
       </View>
     )
@@ -211,7 +207,7 @@ export default function LeaveListScreen() {
             selected={selectedStatus === status}
             onPress={() => setSelectedStatus(status)}
             style={styles.filterButton}
-            selectedColor={materialColors.surface}
+            selectedColor={selectedStatus === status ? '#FFFFFF' : colors.primary}
           >
             {status}
           </Chip>
@@ -237,7 +233,7 @@ export default function LeaveListScreen() {
         }
         ListFooterComponent={
           loading && page > 1 ? (
-            <ActivityIndicator size="small" color={materialColors.primary} style={{ padding: materialSpacing.md }} />
+            <ActivityIndicator size="small" color={colors.primary} style={{ padding: materialSpacing.md }} />
           ) : null
         }
       />
@@ -258,46 +254,49 @@ export default function LeaveListScreen() {
 const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   loadingText: {
     ...materialTypography.bodyLarge,
     marginTop: materialSpacing.md,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
   },
   filterContainer: {
-    backgroundColor: materialColors.surface,
+    flexGrow: 0,
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: materialColors.outline,
-    paddingVertical: materialSpacing.sm,
+    borderBottomColor: colors.border,
   },
   filterContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: materialSpacing.md,
+    paddingVertical: materialSpacing.sm,
     gap: materialSpacing.sm,
   },
   filterButton: {
     marginRight: materialSpacing.sm,
   },
   filterButtonActive: {
-    backgroundColor: materialColors.primary,
+    backgroundColor: colors.primary,
   },
   filterText: {
     ...materialTypography.labelMedium,
   },
   filterTextActive: {
-    color: materialColors.surface,
+    color: colors.surface,
   },
   listContent: {
     padding: materialSpacing.md,
   },
   leaveCard: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     marginBottom: materialSpacing.md,
   },
@@ -315,7 +314,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   leaveType: {
     ...materialTypography.titleMedium,
-    color: materialColors.text,
+    color: colors.text,
   },
   statusBadge: {
     paddingHorizontal: materialSpacing.sm,
@@ -324,11 +323,11 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   statusText: {
     ...materialTypography.labelSmall,
-    color: materialColors.surface,
+    color: colors.surface,
   },
   leaveId: {
     ...materialTypography.bodySmall,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
   },
   leaveDates: {
     flexDirection: 'row',
@@ -338,20 +337,20 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   dateText: {
     ...materialTypography.bodyMedium,
-    color: materialColors.text,
+    color: colors.text,
   },
   daysText: {
     ...materialTypography.bodySmall,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
   },
   leaveReason: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: materialSpacing.sm,
   },
   leaveDate: {
     ...materialTypography.bodySmall,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
   },
   emptyContainer: {
     padding: materialSpacing.xxl,
@@ -363,13 +362,14 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   emptyText: {
     ...materialTypography.bodyLarge,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
     right: materialSpacing.md,
     bottom: materialSpacing.md,
+    backgroundColor: colors.primary,
   },
 })
 

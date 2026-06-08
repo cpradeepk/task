@@ -18,7 +18,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
-import { buildApiUrl } from '../config/api'
+import apiClient from '../services/apiClient'
 import { formatDateIST } from '../utils/datetime'
 import { TouchableOpacity } from 'react-native'
 
@@ -45,7 +45,7 @@ interface WFHApplication {
 }
 
 export default function WFHListScreen() {
-  const navigation = useNavigation()
+  const navigation = useNavigation<any>()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
@@ -66,30 +66,8 @@ export default function WFHListScreen() {
   const fetchWFHApplications = useCallback(async () => {
     try {
       setLoading(true)
-      // Use the correct API endpoint with /api prefix
-      const response = await fetch(
-        buildApiUrl(`/api/wfh/user/${currentUser.employeeId}`),
-        {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        }
-      )
-
-      // Check if response is ok before parsing
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const text = await response.text()
-      let result
-      try {
-        result = JSON.parse(text)
-      } catch (e) {
-        console.error('Failed to parse WFH response as JSON:', text.substring(0, 100))
-        throw new Error('Invalid server response')
-      }
-
-      if (result.success) {
+      const result = await apiClient.get(`/api/wfh/user/${currentUser.employeeId}`)
+      if (result.success && result.data) {
         let filteredWFH = result.data
         if (selectedStatus !== 'All') {
           filteredWFH = filteredWFH.filter(
@@ -97,9 +75,12 @@ export default function WFHListScreen() {
           )
         }
         setWFHApplications(filteredWFH)
+      } else {
+        setWFHApplications([])
       }
     } catch (error) {
       console.error('Failed to fetch WFH applications:', error)
+      setWFHApplications([])
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -162,7 +143,7 @@ export default function WFHListScreen() {
     <TouchableOpacity
       style={styles.wfhCard}
       onPress={() =>
-        navigation.navigate('WFHDetails' as never as never, { wfhId: item.id } as never)
+        navigation.navigate('WFHDetails', { wfhId: item.id })
       }
     >
       <View style={styles.wfhHeader}>
@@ -455,7 +436,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     position: 'absolute',
     right: materialSpacing.lg,
     bottom: materialSpacing.lg,
-    backgroundColor: materialColors.primary,
+    backgroundColor: colors.primary,
   },
 })
 

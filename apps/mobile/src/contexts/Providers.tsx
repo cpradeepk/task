@@ -66,7 +66,7 @@ const darkColors = {
   pinkLight: '#831843',
 }
 
-interface ThemeContextType {
+export interface ThemeContextType {
   theme: 'light' | 'dark'
   colors: typeof lightColors
   toggleTheme: () => void

@@ -8,6 +8,7 @@ import { get, ApiResponse } from './apiClient'
 import { API_ENDPOINTS } from '../config/api'
 import { executeGraphQLWithFallback } from './graphqlClient'
 import { QUERIES } from './graphqlQueries'
+import { getUserData } from '../utils/secureStorage'
 
 export interface User {
   employeeId: string
@@ -51,19 +52,9 @@ export const getUserById = async (
 }
 
 /**
- * Get current user from AsyncStorage
+ * Get current user from SecureStore
  */
 export const getCurrentUser = async (): Promise<User | null> => {
-  try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default
-    const userJson = await AsyncStorage.getItem('user')
-    if (userJson) {
-      return JSON.parse(userJson)
-    }
-    return null
-  } catch (error) {
-    console.error('Failed to get current user:', error)
-    return null
-  }
+  return getUserData<User>()
 }
 

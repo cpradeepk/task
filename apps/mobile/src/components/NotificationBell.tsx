@@ -13,13 +13,25 @@ import { TouchableOpacity, Text, View, StyleSheet } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useQuery } from '@apollo/client/react'
 import { GET_UNREAD_COUNT } from '../config/graphql-queries'
+import { getUserData } from '../utils/secureStorage'
 
 export default function NotificationBell() {
-  const navigation = useNavigation()
+  const navigation = useNavigation<any>()
   const [unreadCount, setUnreadCount] = useState(0)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  useEffect(() => {
+    getUserData().then(user => {
+      if (user) {
+        setCurrentUser(user)
+      }
+    })
+  }, [])
 
   // Query unread count with polling
-  const { data, refetch } = useQuery(GET_UNREAD_COUNT, {
+  const { data, refetch } = useQuery<any, any>(GET_UNREAD_COUNT, {
+    variables: { userId: currentUser?.employeeId },
+    skip: !currentUser?.employeeId,
     fetchPolicy: 'network-only',
     pollInterval: 60000, // Poll every 60 seconds
   })

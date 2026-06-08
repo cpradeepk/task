@@ -10,16 +10,18 @@ import {
     TextInput
 } from 'react-native'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { Card, Text, Button, ActivityIndicator, Avatar, Divider, useTheme, IconButton, Portal, Dialog } from 'react-native-paper'
+import { Card, Text, Button, ActivityIndicator, Avatar, Divider, IconButton, Portal, Dialog } from 'react-native-paper'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { ADMIN_DASHBOARD_QUERY, REQUEST_MANUAL_ATTENDANCE } from '../config/graphql-queries'
 import { materialColors, materialSpacing, materialTypography } from '../config/materialTheme'
 import { formatTimeIST, formatDateIST } from '../utils/datetime'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function AttendanceDashboardScreen() {
     const { colors } = useTheme()
+    const styles = useMemo(() => getStyles(colors), [colors])
     const navigation = useNavigation<any>()
     const [refreshing, setRefreshing] = useState(false)
     const [userRole, setUserRole] = useState<string | null>(null)
@@ -37,11 +39,16 @@ export default function AttendanceDashboardScreen() {
 
     const [requestManualAttendance, { loading: requestLoading }] = useMutation(REQUEST_MANUAL_ATTENDANCE)
 
-    const { data, loading, refetch } = useQuery(ADMIN_DASHBOARD_QUERY, {
+    const isDashboardAdmin = useMemo(() => {
+        if (!userRole) return false;
+        const role = userRole.toLowerCase();
+        return ['admin', 'hr', 'management', 'top_management'].includes(role);
+    }, [userRole])
+
+    const { data, loading, refetch } = useQuery<any, any>(ADMIN_DASHBOARD_QUERY, {
         pollInterval: 0,
         fetchPolicy: 'cache-and-network',
-        skip: userRole !== 'ADMIN' && userRole !== 'HR' && userRole !== 'MANAGER' // optimize maybe?
-        // Actually, let's just fetch and ignore error if not admin
+        skip: !isDashboardAdmin
     })
 
     const dashboardData = (data as any)?.adminDashboardData
@@ -126,7 +133,7 @@ export default function AttendanceDashboardScreen() {
         <ScrollView
             style={styles.container}
             refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[materialColors.primary]} />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
             }
         >
             <View style={styles.content}>
@@ -138,20 +145,20 @@ export default function AttendanceDashboardScreen() {
                         icon="calendar-month"
                         label="My Calendar"
                         onPress={() => navigation.navigate('AttendanceCalendar')}
-                        color={materialColors.primary}
+                        color={colors.primary}
                     />
                     <QuickActionBtn
                         icon="clock-edit"
                         label="Request Edit"
                         onPress={() => setShowRequestModal(true)}
-                        color={materialColors.secondary}
+                        color={colors.primary}
                     />
-                    {(userRole === 'ADMIN' || userRole === 'MANAGER' || userRole === 'HR') && (
+                    {['admin', 'management', 'top_management'].includes(userRole?.toLowerCase() || '') && (
                         <QuickActionBtn
                             icon="check-decagram"
                             label="Approvals"
                             onPress={() => navigation.navigate('AttendanceApprovals')}
-                            color={materialColors.success}
+                            color={colors.success}
                         />
                     )}
                 </View>
@@ -200,7 +207,7 @@ export default function AttendanceDashboardScreen() {
                                                     {record.signInTime ? formatTimeIST(record.signInTime) : '-'}
                                                 </Text>
                                             </View>
-                                            {index < dashboardData.liveAttendance.length - 1 && <Divider />}
+                                            {index < dashboardData.liveAttendance.length - 1 && <Divider style={styles.divider} />}
                                         </React.Fragment>
                                     ))}
                                 </Card>
@@ -217,15 +224,15 @@ export default function AttendanceDashboardScreen() {
                         <Text style={styles.modalTitle}>Request Attendance Edit</Text>
 
                         <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateInput}>
-                            <Text>Date: {formatDateIST(requestDate.toISOString())}</Text>
+                            <Text style={{ color: colors.text }}>Date: {formatDateIST(requestDate.toISOString())}</Text>
                         </TouchableOpacity>
 
                         <View style={styles.timeRow}>
                             <TouchableOpacity onPress={() => setShowSignInPicker(true)} style={styles.timeInput}>
-                                <Text>In: {formatTimeIST(signInTime.toISOString())}</Text>
+                                <Text style={{ color: colors.text }}>In: {formatTimeIST(signInTime.toISOString())}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setShowSignOutPicker(true)} style={styles.timeInput}>
-                                <Text>Out: {formatTimeIST(signOutTime.toISOString())}</Text>
+                                <Text style={{ color: colors.text }}>Out: {formatTimeIST(signOutTime.toISOString())}</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -234,12 +241,12 @@ export default function AttendanceDashboardScreen() {
                             value={reason}
                             onChangeText={setReason}
                             style={styles.textInput}
-                            placeholderTextColor={colors.onSurfaceDisabled}
+                            placeholderTextColor={colors.textTertiary}
                         />
 
                         <View style={styles.modalActions}>
-                            <Button onPress={() => setShowRequestModal(false)}>Cancel</Button>
-                            <Button mode="contained" onPress={handleRequestSubmit} loading={requestLoading}>Submit</Button>
+                            <Button onPress={() => setShowRequestModal(false)} textColor={colors.textSecondary}>Cancel</Button>
+                            <Button mode="contained" onPress={handleRequestSubmit} loading={requestLoading} buttonColor={colors.primary} textColor="#FFFFFF">Submit</Button>
                         </View>
 
                         {showDatePicker && (
@@ -258,37 +265,37 @@ export default function AttendanceDashboardScreen() {
     )
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F3F4F6' },
+const getStyles = (colors: any) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
     content: { padding: materialSpacing.md },
-    welcomeText: { ...materialTypography.headlineSmall, marginBottom: materialSpacing.md },
+    welcomeText: { ...materialTypography.headlineSmall, color: colors.text, marginBottom: materialSpacing.md },
     actionRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: materialSpacing.lg },
     actionBtn: { alignItems: 'center' },
     actionIcon: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center', marginBottom: 4, elevation: 2 },
-    actionLabel: { ...materialTypography.labelMedium },
-    headerTitle: { ...materialTypography.titleLarge, marginBottom: materialSpacing.sm, fontWeight: 'bold' },
+    actionLabel: { ...materialTypography.labelMedium, color: colors.text },
+    headerTitle: { ...materialTypography.titleLarge, marginBottom: materialSpacing.sm, fontWeight: 'bold', color: colors.text },
     statsGrid: { marginBottom: materialSpacing.lg },
     row: { flexDirection: 'row', marginHorizontal: -6, marginBottom: 12 },
     col: { flex: 1, paddingHorizontal: 6 },
-    statCard: { backgroundColor: '#FFFFFF', elevation: 2 },
+    statCard: { backgroundColor: colors.surface, elevation: 2 },
     statCardContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    statTitle: { fontSize: 12, color: '#6B7280' },
-    statValue: { fontSize: 24, fontWeight: 'bold', marginTop: 4 },
-    listCard: { backgroundColor: '#FFFFFF', padding: 0 },
+    statTitle: { fontSize: 12, color: colors.textSecondary },
+    statValue: { fontSize: 24, fontWeight: 'bold', marginTop: 4, color: colors.text },
+    listCard: { backgroundColor: colors.surface, padding: 0 },
     listItem: { flexDirection: 'row', alignItems: 'center', padding: 12 },
     listItemContent: { flex: 1, marginLeft: 12 },
-    listItemTitle: { fontWeight: 'bold' },
-    listItemSubtitle: { fontSize: 12, color: '#666' },
-    listItemTime: { fontSize: 12, color: '#666' },
-    divider: { marginVertical: materialSpacing.md },
+    listItemTitle: { fontWeight: 'bold', color: colors.text },
+    listItemSubtitle: { fontSize: 12, color: colors.textSecondary },
+    listItemTime: { fontSize: 12, color: colors.textSecondary },
+    divider: { marginVertical: materialSpacing.md, backgroundColor: colors.border },
 
     // Modal
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
     modalContent: { padding: 20, borderRadius: 10, elevation: 5 },
-    modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
-    dateInput: { padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5, marginBottom: 10 },
+    modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: colors.text },
+    dateInput: { padding: 10, borderWidth: 1, borderColor: colors.border, borderRadius: 5, marginBottom: 10, backgroundColor: colors.surfaceVariant },
     timeRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-    timeInput: { flex: 1, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5 },
-    textInput: { padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5, marginBottom: 20 },
+    timeInput: { flex: 1, padding: 10, borderWidth: 1, borderColor: colors.border, borderRadius: 5, backgroundColor: colors.surfaceVariant },
+    textInput: { padding: 10, borderWidth: 1, borderColor: colors.border, borderRadius: 5, marginBottom: 20, backgroundColor: colors.surfaceVariant, color: colors.text },
     modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
 })
