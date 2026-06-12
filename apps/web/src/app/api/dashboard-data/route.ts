@@ -7,12 +7,35 @@ import { getDropdownSettings } from '@/lib/db/settings'
 import { getSubTasksByAssignedTo } from '@/lib/db/taskChecklists'
 import { getBugSubTasksByAssignedTo } from '@/lib/db/bugSubtasks'
 import { getUserProjectIds } from '@/lib/db/project-users'
+import { getAuthUser } from '@/lib/auth-server'
 
 export async function GET(request: NextRequest) {
   try {
+    const authUser = await getAuthUser(request)
+    if (!authUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const sp = request.nextUrl.searchParams
-    const employeeId = sp.get('employeeId') || ''
-    const role = (sp.get('role') || 'amtarikshian').toLowerCase()
+    
+    // Override search parameters with authUser info unless requester is admin or top_management
+    let employeeId = sp.get('employeeId') || ''
+    let role = (sp.get('role') || 'amtarikshian').toLowerCase()
+
+    const isAdminOrTopMgmt = ['admin', 'top_management'].includes(authUser.role.toLowerCase())
+
+    if (!isAdminOrTopMgmt) {
+      employeeId = authUser.employeeId
+      role = authUser.role.toLowerCase()
+    } else {
+      if (!employeeId) {
+        employeeId = authUser.employeeId
+      }
+      if (!sp.get('role')) {
+        role = authUser.role.toLowerCase()
+      }
+    }
+
     const includeUsers = sp.get('includeUsers') === 'true' || ['admin', 'top_management'].includes(role)
 
     // Load core data in parallel based on role

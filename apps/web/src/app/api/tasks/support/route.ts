@@ -133,29 +133,21 @@ export async function POST(request: NextRequest) {
       const task = await createTask(supportTask)
       createdTaskIds.push(task.taskId)
 
-      // Send email notification to support member
-      // Don't fail task creation if email fails
+      // Send in-app, push & email notifications via createNotification
       try {
-        if (emailService.isAvailable()) {
-          // Get assignedBy user details for email
-          const assignedByUser = await getUserByEmployeeId(mainTask.assignedBy)
-
-          await emailService.sendSupportAssignedEmail({
-            supportMemberEmail: supportUser.email,
-            supportMemberName: supportUser.name,
-            mainTaskId: mainTask.taskId,
-            mainTaskDescription: mainTask.description,
-            priority: mainTask.priority,
-            dueDate: mainTask.endDate,
-            assignedBy: assignedByUser?.name || mainTask.assignedBy,
-            supportTaskId: task.taskId,
-          })
-
-          console.log(`✅ Support assignment email sent to ${supportUser.email}`)
-        }
-      } catch (emailError) {
-        console.error('⚠️ Failed to send support assignment email:', emailError)
-        // Continue - don't fail task creation if email fails
+        const { createNotification } = await import('@/lib/notification-helper')
+        const assignedByUser = await getUserByEmployeeId(mainTask.assignedBy)
+        await createNotification({
+          userId: supportMemberId,
+          actorId: mainTask.assignedBy || 'system',
+          notificationType: 'task_support_assigned',
+          taskId: task.taskId,
+          title: `You've been assigned as support`,
+          message: `${assignedByUser?.name || mainTask.assignedBy} assigned you to support task: ${mainTask.name || mainTask.description}`,
+          linkUrl: `/tasks/${task.taskId}`
+        })
+      } catch (notifError) {
+        console.error('⚠️ Failed to create support task notifications:', notifError)
       }
     }
 

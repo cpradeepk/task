@@ -128,45 +128,7 @@ export async function PUT(
       }
     }
 
-    // Send email notification if bug is being assigned to someone
-    if (isAssignmentChange) {
-      try {
-        if (emailService.isAvailable()) {
-          // Get assignee details
-          const assignee = await getUserByEmployeeId(updates.assignedTo)
-
-          // Get assignedBy details (if available)
-          let assignedByUser = null
-          let assignedByEmail = undefined
-          if (updates.assignedBy) {
-            assignedByUser = await getUserByEmployeeId(updates.assignedBy)
-            assignedByEmail = assignedByUser?.email
-          }
-
-          if (assignee) {
-            await emailService.sendBugAssignedEmail({
-              assigneeEmail: assignee.email,
-              assigneeName: assignee.name,
-              assignedByEmail: assignedByEmail,
-              assignedByName: assignedByUser?.name || updates.assignedBy || 'System',
-              bugId: bug.bugId,
-              bugTitle: bug.title,
-              bugDescription: bug.description,
-              severity: bug.severity,
-              priority: bug.priority,
-              category: bug.category,
-              platform: bug.platform,
-              environment: bug.environment,
-            })
-
-            console.log(`✅ Bug assignment email sent to ${assignee.email}`)
-          }
-        }
-      } catch (emailError) {
-        console.error('⚠️ Failed to send bug assignment email:', emailError)
-        // Continue - don't fail bug update if email fails
-      }
-    }
+    // Send email notification is now handled automatically in createNotification below
 
     // Fire-and-forget: In-app & Push notification (non-blocking) for updates
     (async () => {

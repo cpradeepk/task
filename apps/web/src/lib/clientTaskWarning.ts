@@ -17,7 +17,9 @@ export class ClientTaskWarningService {
       let tasks: Task[] | null = null
       if (Array.isArray(preloadedTasks)) {
         tasks = preloadedTasks
-      } else if (typeof window !== 'undefined' && (window as any).__DASHBOARD_DATA?.tasks) {
+      } else if (typeof window !== 'undefined' && 
+                 (window as any).__DASHBOARD_DATA?.employeeId === employeeId && 
+                 (window as any).__DASHBOARD_DATA?.tasks) {
         tasks = (window as any).__DASHBOARD_DATA.tasks as Task[]
       }
 

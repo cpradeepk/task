@@ -136,6 +136,7 @@ export default function Dashboard() {
           // Cache data in window for other components
           if (typeof window !== 'undefined') {
             ;(window as any).__DASHBOARD_DATA = {
+              employeeId: currentUser.employeeId,
               tasks: dashboardData.tasks || [],
               bugs: dashboardData.bugs || [],
               users: dashboardData.users || [],
@@ -160,6 +161,7 @@ export default function Dashboard() {
               }
               if (typeof window !== 'undefined') {
                 ;(window as any).__DASHBOARD_DATA = {
+                  employeeId: currentUser.employeeId,
                   tasks: payload.tasks || [],
                   bugs: payload.bugs || [],
                   users: payload.users || [],
@@ -210,6 +212,7 @@ export default function Dashboard() {
 
         if (typeof window !== 'undefined') {
           ;(window as any).__DASHBOARD_DATA = {
+            employeeId: currentUser.employeeId,
             tasks: dashboardData.tasks || [],
             bugs: dashboardData.bugs || [],
             users: dashboardData.users || [],
@@ -233,6 +236,7 @@ export default function Dashboard() {
           }
           if (typeof window !== 'undefined') {
             ;(window as any).__DASHBOARD_DATA = {
+              employeeId: currentUser.employeeId,
               tasks: payload.tasks || [],
               bugs: payload.bugs || [],
               users: payload.users || [],

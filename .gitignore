@@ -51,3 +51,7 @@ task-management-*.json
 
 # Development logs (local only)
 .dev-logs/
+
+# Local email previews
+scripts/test-email-previews/
+

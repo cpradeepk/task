@@ -6,7 +6,8 @@
 
 import { getPool } from '@/lib/db'
 import { sendPushNotification, getNotificationPriority } from './push-notification-service'
-import { shouldNotify } from '@/lib/db/notificationPreferences'
+import { shouldNotify, getNotificationPreferences } from '@/lib/db/notificationPreferences'
+import { emailService } from './email/service'
 
 const getPoolInstance = () => getPool()
 
@@ -45,6 +46,197 @@ function mapNotificationTypeToPrefKey(type: string): string | null {
     case 'wfh_approved': return 'wfhApproved'
     case 'wfh_rejected': return 'wfhRejected'
     default: return null
+  }
+}
+
+/**
+ * Helper to automatically send email notifications linked to in-app alerts
+ */
+async function sendNotificationEmail(
+  params: CreateNotificationParams,
+  notificationType: string,
+  title: string,
+  message?: string,
+  linkUrl?: string,
+  metadata?: any
+) {
+  const { userId, actorId, taskId, bugId } = params
+
+  try {
+    const prefKey = mapNotificationTypeToPrefKey(notificationType)
+    let emailAllowed = false
+    if (prefKey) {
+      emailAllowed = await shouldNotify(userId, prefKey as any, 'email').catch(() => false)
+    } else {
+      const prefs = await getNotificationPreferences(userId).catch(() => null)
+      emailAllowed = prefs ? prefs.emailEnabled : true
+    }
+
+    if (!emailAllowed || !emailService.isAvailable()) {
+      return
+    }
+
+    // Get recipient details
+    const userResult = await getPoolInstance().query(
+      `SELECT email, name FROM users WHERE employee_id = $1 LIMIT 1`,
+      [userId]
+    )
+    if (userResult.rows.length === 0 || !userResult.rows[0].email) {
+      return
+    }
+    const recipient = userResult.rows[0]
+
+    // Get actor details
+    const actorResult = await getPoolInstance().query(
+      `SELECT name FROM users WHERE employee_id = $1 LIMIT 1`,
+      [actorId]
+    )
+    const actorName = actorResult.rows[0]?.name || 'Someone'
+
+    // Specialized email types:
+    if (notificationType === 'task_assigned' && taskId) {
+      const taskResult = await getPoolInstance().query(
+        `SELECT * FROM tasks WHERE task_id = $1 LIMIT 1`,
+        [taskId]
+      )
+      if (taskResult.rows.length > 0) {
+        const task = taskResult.rows[0]
+        const assigneeResult = await getPoolInstance().query(
+          `SELECT name FROM users WHERE employee_id = $1 LIMIT 1`,
+          [task.assigned_to]
+        )
+        const assigneeName = assigneeResult.rows[0]?.name || recipient.name
+
+        await emailService.sendTaskAssignedEmail({
+          assigneeName,
+          assigneeEmail: recipient.email,
+          taskTitle: task.description,
+          taskDescription: task.remarks || 'No remarks provided',
+          priority: task.priority || 'Medium',
+          dueDate: task.end_date ? new Date(task.end_date).toLocaleDateString() : 'Not specified',
+          assignedBy: actorName,
+          taskId: task.task_id
+        })
+        return
+      }
+    }
+
+    if (notificationType === 'task_support_assigned' && taskId) {
+      const taskResult = await getPoolInstance().query(
+        `SELECT * FROM tasks WHERE task_id = $1 LIMIT 1`,
+        [taskId]
+      )
+      if (taskResult.rows.length > 0) {
+        const task = taskResult.rows[0]
+        const match = task.remarks?.match(/Support task for main task: (.+)/)
+        const mainTaskId = match ? match[1] : 'Unknown'
+
+        await emailService.sendSupportAssignedEmail({
+          supportMemberEmail: recipient.email,
+          supportMemberName: recipient.name,
+          mainTaskId: mainTaskId,
+          mainTaskDescription: task.description.replace('[SUPPORT] ', ''),
+          priority: task.priority || 'Medium',
+          dueDate: task.end_date ? new Date(task.end_date).toLocaleDateString() : 'Not specified',
+          assignedBy: actorName,
+          supportTaskId: task.task_id
+        })
+        return
+      }
+    }
+
+    if (notificationType === 'bug_assigned' && bugId) {
+      const bugResult = await getPoolInstance().query(
+        `SELECT * FROM bugs WHERE bug_id = $1 LIMIT 1`,
+        [bugId]
+      )
+      if (bugResult.rows.length > 0) {
+        const bug = bugResult.rows[0]
+        await emailService.sendBugAssignedEmail({
+          assigneeEmail: recipient.email,
+          assigneeName: recipient.name,
+          assignedByName: actorName,
+          bugId: bug.bug_id,
+          bugTitle: bug.title,
+          bugDescription: bug.description,
+          severity: bug.severity || 'Minor',
+          priority: bug.priority || 'Low',
+          category: bug.category || 'Other',
+          platform: bug.platform || 'Web',
+          environment: bug.environment || 'Production'
+        })
+        return
+      }
+    }
+
+    if ((notificationType === 'leave_approved' || notificationType === 'leave_rejected') && metadata?.leaveId) {
+      const leaveResult = await getPoolInstance().query(
+        `SELECT * FROM leave_applications WHERE application_id = $1 LIMIT 1`,
+        [metadata.leaveId]
+      )
+      if (leaveResult.rows.length > 0) {
+        const leave = leaveResult.rows[0]
+        const fromDate = new Date(leave.from_date)
+        const toDate = new Date(leave.to_date)
+        const timeDiff = toDate.getTime() - fromDate.getTime()
+        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1
+
+        await emailService.sendLeaveStatusEmail({
+          userEmail: recipient.email,
+          userName: recipient.name,
+          leaveType: leave.leave_type,
+          startDate: leave.from_date,
+          endDate: leave.to_date,
+          days: daysDiff,
+          status: notificationType === 'leave_approved' ? 'approved' : 'rejected',
+          reason: leave.reason,
+          approvedBy: actorName,
+          comments: leave.approval_remarks
+        })
+        return
+      }
+    }
+
+    if ((notificationType === 'wfh_approved' || notificationType === 'wfh_rejected') && metadata?.wfhId) {
+      const wfhResult = await getPoolInstance().query(
+        `SELECT * FROM wfh_applications WHERE application_id = $1 LIMIT 1`,
+        [metadata.wfhId]
+      )
+      if (wfhResult.rows.length > 0) {
+        const wfh = wfhResult.rows[0]
+        await emailService.sendWFHStatusEmail({
+          userEmail: recipient.email,
+          userName: recipient.name,
+          wfhDate: wfh.from_date,
+          status: notificationType === 'wfh_approved' ? 'approved' : 'rejected',
+          reason: wfh.reason,
+          approvedBy: actorName,
+          comments: wfh.approval_remarks
+        })
+        return
+      }
+    }
+
+    // Default general notification email template
+    let actionText = 'View Details'
+    if (notificationType.startsWith('task_')) actionText = 'View Task'
+    else if (notificationType.startsWith('bug_')) actionText = 'View Bug'
+    else if (notificationType === 'mention' || notificationType === 'comment' || notificationType === 'reaction') actionText = 'View Feed'
+
+    await emailService.sendGeneralNotificationEmail({
+      userEmail: recipient.email,
+      userName: recipient.name,
+      actorName,
+      notificationTitle: title,
+      notificationMessage: message || undefined,
+      actionUrl: linkUrl || '/',
+      actionText,
+      priority: notificationType.startsWith('task_overdue') || notificationType.startsWith('bug_assigned') ? 'high' : 'normal',
+      type: (prefKey || 'systemAnnouncements') as any
+    })
+
+  } catch (error) {
+    console.error('[sendNotificationEmail] Error sending email:', error)
   }
 }
 
@@ -137,6 +329,11 @@ export async function createNotification(params: CreateNotificationParams): Prom
   }).catch(error => {
     // Don't fail the notification creation if push notification fails
     console.error('[createNotification] Failed to send push notification:', error)
+  })
+
+  // Send email notification (don't await - fire and forget)
+  sendNotificationEmail(params, notificationType, title, message, linkUrl, metadata).catch(error => {
+    console.error('[createNotification] Failed to send email notification:', error)
   })
 
   return result.rows[0]?.notification_id || ''

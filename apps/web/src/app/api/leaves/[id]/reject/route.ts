@@ -31,39 +31,24 @@ export async function POST(
     const leave = await rejectLeave(id, approverId, remarks)
 
     if (leave) {
-      // Send email notification for leave rejection
+      // Send in-app, push & email notifications via createNotification
       try {
-        if (emailService.isAvailable()) {
-          // Get user details
-          const user = await getUserByEmployeeId(leave.employeeId)
-          const approver = await getUserByEmployeeId(approverId)
+        const { createNotification } = await import('@/lib/notification-helper')
+        const approver = await getUserByEmployeeId(approverId)
+        const approverName = approver?.name || approverId
 
-          if (user) {
-            // Calculate days between fromDate and toDate
-            const fromDate = new Date(leave.fromDate)
-            const toDate = new Date(leave.toDate)
-            const timeDiff = toDate.getTime() - fromDate.getTime()
-            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1
-
-            await emailService.sendLeaveStatusEmail({
-              userEmail: user.email,
-              userName: user.name,
-              leaveType: leave.leaveType,
-              startDate: leave.fromDate,
-              endDate: leave.toDate,
-              days: daysDiff,
-              status: 'rejected',
-              reason: leave.reason,
-              approvedBy: approver?.name || approverId,
-              comments: remarks,
-            })
-
-            console.log('✅ Leave rejection email sent successfully')
-          }
-        }
-      } catch (emailError) {
-        console.error('⚠️ Failed to send leave rejection email:', emailError)
-        // Don't fail the rejection if email fails
+        await createNotification({
+          userId: leave.employeeId,
+          actorId: approverId,
+          notificationType: 'leave_rejected',
+          title: 'Leave Application Rejected',
+          message: `Your leave request for ${leave.leaveType} has been rejected by ${approverName}.`,
+          linkUrl: '/leaves',
+          metadata: { leaveId: id }
+        })
+        console.log('✅ Leave rejection notification created successfully')
+      } catch (notifError) {
+        console.error('⚠️ Failed to create leave rejection notification:', notifError)
       }
 
       return NextResponse.json({

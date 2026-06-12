@@ -97,12 +97,24 @@ export async function login(employeeId: string, password: string): Promise<boole
   }
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
   if (typeof window === 'undefined') return
   localStorage.removeItem(CURRENT_USER_KEY)
   // Clear filter persistence on logout
   localStorage.removeItem('taskFilters')
   localStorage.removeItem('bugFilters')
+
+  // Clear global window cache
+  if (typeof window !== 'undefined') {
+    delete (window as any).__DASHBOARD_DATA
+  }
+
+  // Clear HTTP cookie by calling API
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' })
+  } catch (error) {
+    console.error('Failed to clear token cookie on server:', error)
+  }
 }
 
 export function getCurrentUser(): User | null {

@@ -1,49 +1,39 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { login } from '@/lib/auth'
 
 export default function SwitchUserPage() {
   const router = useRouter()
 
-  const switchToTopManagement = () => {
-    const topMgmtUser = {
-      employeeId: 'AM-0001',
-      name: 'Vikas Mahesh',
-      email: 'vikasmahesh@eassy.life',
-      phone: '9920025624',
-      department: 'CEO',
-      role: 'top_management',
-      password: 'password123',
-      status: 'active',
-      isTodayTask: false,
-      warningCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+  const switchToTopManagement = async () => {
+    // Clear old window cache before logging in
+    if (typeof window !== 'undefined') {
+      delete (window as any).__DASHBOARD_DATA
     }
-    localStorage.setItem('jsr_current_user', JSON.stringify(topMgmtUser))
-    alert('✅ Switched to Top Management!')
-    router.push('/reports')
+
+    const success = await login('AM-0001', 'password123')
+    if (success) {
+      alert('✅ Switched to Top Management!')
+      router.push('/reports')
+    } else {
+      alert('❌ Failed to login as Top Management (AM-0001). Check credentials/server.')
+    }
   }
 
-  const switchToEmployee = () => {
-    const employeeUser = {
-      employeeId: 'AM-0002',
-      name: 'Shubham Pawar',
-      email: 'shubham@eassylife.in',
-      phone: '9322249398',
-      department: 'Backend - Node js',
-      role: 'employee',
-      password: 'password456',
-      status: 'active',
-      isTodayTask: true,
-      warningCount: 0,
-      managerEmail: 'vikasmahesh@eassy.life',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+  const switchToEmployee = async () => {
+    // Clear old window cache before logging in
+    if (typeof window !== 'undefined') {
+      delete (window as any).__DASHBOARD_DATA
     }
-    localStorage.setItem('jsr_current_user', JSON.stringify(employeeUser))
-    alert('✅ Switched to Employee!')
-    router.push('/dashboard')
+
+    const success = await login('AM-0002', 'password456')
+    if (success) {
+      alert('✅ Switched to Employee!')
+      router.push('/dashboard')
+    } else {
+      alert('❌ Failed to login as Employee (AM-0002). Check credentials/server.')
+    }
   }
 
   return (

@@ -29,30 +29,24 @@ export async function POST(
     const wfh = await approveWFH(id, approverId, remarks)
 
     if (wfh) {
-      // Send email notification for WFH approval
+      // Send in-app, push & email notifications via createNotification
       try {
-        if (emailService.isAvailable()) {
-          // Get user details
-          const user = await getUserByEmployeeId(wfh.employeeId)
-          const approver = await getUserByEmployeeId(approverId)
+        const { createNotification } = await import('@/lib/notification-helper')
+        const approver = await getUserByEmployeeId(approverId)
+        const approverName = approver?.name || approverId
 
-          if (user) {
-            await emailService.sendWFHStatusEmail({
-              userEmail: user.email,
-              userName: user.name,
-              wfhDate: wfh.fromDate,
-              reason: wfh.reason,
-              status: 'approved',
-              approvedBy: approver?.name || approverId,
-              comments: remarks,
-            })
-
-            console.log('✅ WFH approval email sent successfully')
-          }
-        }
-      } catch (emailError) {
-        console.error('⚠️ Failed to send WFH approval email:', emailError)
-        // Don't fail the approval if email fails
+        await createNotification({
+          userId: wfh.employeeId,
+          actorId: approverId,
+          notificationType: 'wfh_approved',
+          title: 'WFH Request Approved',
+          message: `Your Work From Home request for ${wfh.fromDate} has been approved by ${approverName}.`,
+          linkUrl: '/wfh',
+          metadata: { wfhId: id }
+        })
+        console.log('✅ WFH approval notification created successfully')
+      } catch (notifError) {
+        console.error('⚠️ Failed to create WFH approval notification:', notifError)
       }
 
       return NextResponse.json({

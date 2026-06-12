@@ -469,8 +469,8 @@ export const resolvers = {
     },
 
     me: async (_: any, __: any, { user }: any) => {
-      if (!user) return null
-      const result = await getPoolInstance().query('SELECT * FROM users WHERE id = $1', [user.id])
+      if (!user || !user.employeeId) return null
+      const result = await getPoolInstance().query('SELECT * FROM users WHERE employee_id = $1', [user.employeeId])
       return result.rows[0] || null
     },
 
@@ -1188,6 +1188,8 @@ export const resolvers = {
     tabPermissions: (user: any) => user.tab_permissions || user.tabPermissions,
 
     leavesTakenYTD: async (user: any) => {
+      const employeeId = user.employee_id || user.employeeId
+      if (!employeeId) return 0
       const currentYear = new Date().getFullYear()
       const result = await getPoolInstance().query(
         `SELECT COALESCE(SUM(EXTRACT(DAY FROM (to_date - from_date)) + 1), 0) as total_days
@@ -1195,12 +1197,14 @@ export const resolvers = {
          WHERE employee_id = $1
          AND status = 'Approved'
          AND EXTRACT(YEAR FROM from_date) = $2`,
-        [user.employee_id, currentYear]
+        [employeeId, currentYear]
       )
       return parseFloat(result.rows[0]?.total_days || 0)
     },
 
     totalWFHApproved: async (user: any) => {
+      const employeeId = user.employee_id || user.employeeId
+      if (!employeeId) return 0
       const currentYear = new Date().getFullYear()
       const result = await getPoolInstance().query(
         `SELECT COALESCE(SUM(EXTRACT(DAY FROM (to_date - from_date)) + 1), 0) as total_days
@@ -1208,12 +1212,14 @@ export const resolvers = {
          WHERE employee_id = $1
          AND status = 'Approved'
          AND EXTRACT(YEAR FROM from_date) = $2`,
-        [user.employee_id, currentYear]
+        [employeeId, currentYear]
       )
       return parseInt(result.rows[0]?.total_days || 0)
     },
 
     tasks: async (user: any, _: any, { loaders }: any) => {
+      const employeeId = user.employee_id || user.employeeId
+      if (!employeeId) return []
       // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
       const result = await getPoolInstance().query(
         `SELECT * FROM tasks
@@ -1222,15 +1228,17 @@ export const resolvers = {
            SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
            WHERE elem = $1
          )`,
-        [user.employee_id]
+        [employeeId]
       )
       return result.rows
     },
 
     bugs: async (user: any, _: any, { loaders }: any) => {
+      const employeeId = user.employee_id || user.employeeId
+      if (!employeeId) return []
       const result = await getPoolInstance().query(
         'SELECT * FROM bugs WHERE assigned_to = $1 AND deleted_at IS NULL',
-        [user.employee_id]
+        [employeeId]
       )
       return result.rows
     }

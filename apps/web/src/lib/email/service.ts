@@ -11,7 +11,8 @@ import {
   getLeaveStatusHtmlTemplate,
   getSupportAssignmentHtmlTemplate,
   getBugAssignmentHtmlTemplate,
-  getBugCreationHtmlTemplate
+  getBugCreationHtmlTemplate,
+  getGeneralNotificationHtmlTemplate
 } from './htmlTemplates'
 
 // Email service class
@@ -552,6 +553,50 @@ export class EmailService {
     } catch (error) {
       console.error('❌ Failed to send bug creation email:', error)
       return { success: false, message: `Failed to send bug creation email: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
+  }
+
+  /**
+   * Send General Notification Email
+   *
+   * Sends a styled general-purpose professional notification email.
+   *
+   * @param data - General notification details
+   * @returns Promise with email sending result
+   */
+  async sendGeneralNotificationEmail(data: {
+    userEmail: string
+    userName: string
+    actorName: string
+    notificationTitle: string
+    notificationMessage?: string
+    actionUrl: string
+    actionText?: string
+    priority?: EmailPriority
+    type: EmailType
+  }) {
+    try {
+      await this.ensureInitialized()
+      const html = getGeneralNotificationHtmlTemplate({
+        userName: data.userName,
+        actorName: data.actorName,
+        notificationTitle: data.notificationTitle,
+        notificationMessage: data.notificationMessage,
+        actionUrl: data.actionUrl,
+        actionText: data.actionText,
+        baseUrl: EMAIL_CONFIG.templates.baseUrl,
+      })
+
+      return await this.sendEmail({
+        to: data.userEmail,
+        subject: `🔔 Notification: ${data.notificationTitle}`,
+        html,
+        priority: data.priority || 'normal',
+        type: data.type,
+      })
+    } catch (error) {
+      console.error('❌ Failed to send general notification email:', error)
+      return { success: false, message: `Failed to send general notification email: ${error instanceof Error ? error.message : 'Unknown error'}` }
     }
   }
 

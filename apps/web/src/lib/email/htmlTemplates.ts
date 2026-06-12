@@ -14,7 +14,8 @@ const TEMPLATES = {
   LEAVE_REJECTION: 'leave-rejection-email-preview.html',
   SUPPORT_ASSIGNMENT: 'support-assignment-email.html',
   BUG_ASSIGNMENT: 'bug-assignment-email.html',
-  BUG_CREATION: 'bug-creation-email.html'
+  BUG_CREATION: 'bug-creation-email.html',
+  GENERAL_NOTIFICATION: 'general-notification-email.html'
 }
 
 // Read template file from public directory
@@ -41,7 +42,20 @@ function readTemplate(templateName: string): string {
 function replacePlaceholders(template: string, data: Record<string, any>): string {
   let result = template
   
-  // Replace all placeholders with actual data
+  // Replace conditional blocks first: {{#if key}} ... {{/if}}
+  Object.keys(data).forEach(key => {
+    const hasValue = !!data[key]
+    const conditionalRegex = new RegExp(`{{#if ${key}}}([\\s\\S]*?){{\\/if}}`, 'g')
+    if (hasValue) {
+      // Keep block content
+      result = result.replace(conditionalRegex, '$1')
+    } else {
+      // Remove block content
+      result = result.replace(conditionalRegex, '')
+    }
+  })
+
+  // Replace all regular placeholders with actual data
   Object.keys(data).forEach(key => {
     const placeholder = new RegExp(`{{${key}}}`, 'g')
     result = result.replace(placeholder, data[key] || '')
@@ -291,6 +305,36 @@ export function getBugCreationHtmlTemplate(data: {
     type: data.type || 'Not specified',
     baseUrl: data.baseUrl || 'http://localhost:3000',
     currentYear: new Date().getFullYear()
+  }
+
+  return replacePlaceholders(template, templateData)
+}
+
+/**
+ * General Notification Email Template
+ *
+ * Sends a generic styled professional email for mentions, reactions, comments, etc.
+ */
+export function getGeneralNotificationHtmlTemplate(data: {
+  userName: string
+  actorName: string
+  notificationTitle: string
+  notificationMessage?: string
+  actionUrl: string
+  actionText?: string
+  baseUrl?: string
+}) {
+  const template = readTemplate('GENERAL_NOTIFICATION')
+
+  const templateData = {
+    userName: data.userName,
+    actorName: data.actorName,
+    notificationTitle: data.notificationTitle,
+    notificationMessage: data.notificationMessage || '',
+    actionUrl: data.actionUrl,
+    actionText: data.actionText || 'View Details',
+    baseUrl: data.baseUrl || 'http://localhost:3000',
+    currentYear: new Date().getFullYear().toString()
   }
 
   return replacePlaceholders(template, templateData)

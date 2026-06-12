@@ -29,30 +29,24 @@ export async function POST(
     const wfh = await rejectWFH(id, approverId, remarks)
 
     if (wfh) {
-      // Send email notification for WFH rejection
+      // Send in-app, push & email notifications via createNotification
       try {
-        if (emailService.isAvailable()) {
-          // Get user details
-          const user = await getUserByEmployeeId(wfh.employeeId)
-          const approver = await getUserByEmployeeId(approverId)
+        const { createNotification } = await import('@/lib/notification-helper')
+        const approver = await getUserByEmployeeId(approverId)
+        const approverName = approver?.name || approverId
 
-          if (user) {
-            await emailService.sendWFHStatusEmail({
-              userEmail: user.email,
-              userName: user.name,
-              wfhDate: wfh.fromDate,
-              reason: wfh.reason,
-              status: 'rejected',
-              approvedBy: approver?.name || approverId,
-              comments: remarks,
-            })
-
-            console.log('✅ WFH rejection email sent successfully')
-          }
-        }
-      } catch (emailError) {
-        console.error('⚠️ Failed to send WFH rejection email:', emailError)
-        // Don't fail the rejection if email fails
+        await createNotification({
+          userId: wfh.employeeId,
+          actorId: approverId,
+          notificationType: 'wfh_rejected',
+          title: 'WFH Request Rejected',
+          message: `Your Work From Home request for ${wfh.fromDate} has been rejected by ${approverName}.`,
+          linkUrl: '/wfh',
+          metadata: { wfhId: id }
+        })
+        console.log('✅ WFH rejection notification created successfully')
+      } catch (notifError) {
+        console.error('⚠️ Failed to create WFH rejection notification:', notifError)
       }
 
       return NextResponse.json({

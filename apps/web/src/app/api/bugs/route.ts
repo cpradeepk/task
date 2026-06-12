@@ -175,18 +175,11 @@ export async function POST(request: NextRequest) {
         // Get reporter details
         const reporter = await getUserByEmployeeId(bug.reportedBy)
 
-        // Get assignee details (if bug is assigned during creation)
-        let assigneeEmail = undefined
-        if (bug.assignedTo) {
-          const assignee = await getUserByEmployeeId(bug.assignedTo)
-          assigneeEmail = assignee?.email
-        }
-
         if (reporter) {
           await emailService.sendBugCreatedEmail({
             reporterEmail: reporter.email,
             reporterName: reporter.name,
-            assigneeEmail: assigneeEmail,
+            assigneeEmail: undefined, // Assignee receives their own assignment email via createNotification
             bugId: bug.bugId,
             bugTitle: bug.title,
             bugDescription: bug.description,
