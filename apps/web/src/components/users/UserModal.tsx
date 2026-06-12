@@ -419,12 +419,12 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-secondary-900">
+            <h3 className="text-lg font-semibold text-gray-900">
               {user ? 'Edit User' : 'Add New User'}
             </h3>
             <button
               onClick={onClose}
-              className="p-2 text-secondary-400 hover:text-secondary-600 rounded-lg hover:bg-secondary-100"
+              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
             >
               <X className="h-5 w-5" />
             </button>
@@ -441,7 +441,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Employee ID *
                 </label>
                 <div className="relative">
@@ -453,19 +453,19 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                     onChange={handleInputChange}
                     required
                     disabled={true} // Always disabled - auto-generated for new users, non-editable for existing
-                    className="input-field-with-icon disabled:bg-secondary-100 disabled:text-secondary-600"
+                    className="input-field-with-icon disabled:bg-gray-100 disabled:text-gray-600"
                     placeholder="Auto-generated"
                   />
                 </div>
                 {!user && (
-                  <p className="text-xs text-secondary-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-1">
                     Employee ID is automatically generated in format AM-0001, AM-0002, etc.
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Full Name *
                 </label>
                 <input
@@ -483,7 +483,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             {/* Contact Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address *
                 </label>
                 <div className="relative">
@@ -501,7 +501,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number *
                 </label>
                 <div className="relative">
@@ -522,7 +522,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             {/* Department and Role */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Department *
                 </label>
                 <div className="relative">
@@ -548,7 +548,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Role *
                 </label>
                 <div className="relative">
@@ -559,7 +559,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                     onChange={handleInputChange}
                     required
                     disabled={isLoadingRoles}
-                    className="input-field-with-icon disabled:bg-secondary-100 disabled:cursor-not-allowed"
+                    className="input-field-with-icon disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
                     <option value="">
                       {isLoadingRoles ? 'Loading roles...' : 'Select role...'}
@@ -577,7 +577,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             {/* Optional Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Manager Email
                 </label>
                 <div className="relative">
@@ -612,7 +612,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Telegram Token
                 </label>
                 <input
@@ -644,7 +644,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Status
                 </label>
                 <select
@@ -668,15 +668,15 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                   name="isTodayTask"
                   checked={formData.isTodayTask}
                   onChange={handleInputChange}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
-                <label htmlFor="isTodayTask" className="text-sm font-medium text-secondary-700">
+                <label htmlFor="isTodayTask" className="text-sm font-medium text-gray-700">
                   Today Task Required
                 </label>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Warning Count
                 </label>
                 <input
@@ -691,9 +691,9 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             </div>
 
             {/* Tab Permissions */}
-            <div className="border-t border-secondary-200 pt-6">
+            <div className="border-t border-gray-200 pt-6">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-medium text-secondary-900 flex items-center">
+                <h4 className="text-sm font-medium text-gray-900 flex items-center">
                   <CheckSquare className="h-4 w-4 mr-2" />
                   Tab Permissions
                 </h4>
@@ -721,7 +721,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                         flex items-center p-3 rounded-lg border cursor-pointer transition-all
                         ${isChecked
                           ? 'bg-primary-50 border-primary-200 text-primary-900'
-                          : 'bg-white border-secondary-200 text-secondary-600 hover:bg-secondary-50'}
+                          : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}
                       `}
                     >
                       <div className={`
@@ -740,13 +740,13 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                   )
                 })}
               </div>
-              <p className="text-xs text-secondary-500 mt-2">
+              <p className="text-xs text-gray-500 mt-2">
                 Permissions are automatically set based on role. Customize them here to override role defaults.
               </p>
             </div>
 
             {/* Submit Buttons */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-secondary-200">
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
                 onClick={onClose}

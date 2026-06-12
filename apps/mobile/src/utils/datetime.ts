@@ -9,8 +9,22 @@
  * @param date - Date object or ISO string to format
  * @returns Formatted datetime string in IST (e.g., "06 Dec 2025, 4:30 PM")
  */
-export function formatDateTimeIST(date: Date | string): string {
-    const d = date instanceof Date ? date : new Date(date);
+function parseDate(date: Date | string | number): Date {
+    if (date instanceof Date) return date;
+    if (typeof date === 'number') return new Date(date);
+    if (typeof date === 'string' && /^\d+$/.test(date)) {
+        return new Date(parseInt(date, 10));
+    }
+    return new Date(date);
+}
+
+/**
+ * Format a date/time to IST timezone string
+ * @param date - Date object, ISO string, or timestamp to format
+ * @returns Formatted datetime string in IST (e.g., "06 Dec 2025, 4:30 PM")
+ */
+export function formatDateTimeIST(date: Date | string | number): string {
+    const d = parseDate(date);
 
     // Use toLocaleString with Asia/Kolkata timezone
     return d.toLocaleString('en-IN', {
@@ -26,11 +40,11 @@ export function formatDateTimeIST(date: Date | string): string {
 
 /**
  * Format time only to IST timezone string
- * @param date - Date object or ISO string to format
+ * @param date - Date object, ISO string, or timestamp to format
  * @returns Formatted time string in IST (e.g., "4:30 PM")
  */
-export function formatTimeIST(date: Date | string): string {
-    const d = date instanceof Date ? date : new Date(date);
+export function formatTimeIST(date: Date | string | number): string {
+    const d = parseDate(date);
 
     // Use toLocaleTimeString with Asia/Kolkata timezone
     return d.toLocaleTimeString('en-IN', {
@@ -43,11 +57,11 @@ export function formatTimeIST(date: Date | string): string {
 
 /**
  * Format date only to IST timezone string
- * @param date - Date object or ISO string to format
+ * @param date - Date object, ISO string, or timestamp to format
  * @returns Formatted date string in IST (e.g., "06 Dec 2025")
  */
-export function formatDateIST(date: Date | string): string {
-    const d = date instanceof Date ? date : new Date(date);
+export function formatDateIST(date: Date | string | number): string {
+    const d = parseDate(date);
 
     return d.toLocaleDateString('en-IN', {
         timeZone: 'Asia/Kolkata',

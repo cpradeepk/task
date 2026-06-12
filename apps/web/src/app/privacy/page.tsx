@@ -5,24 +5,24 @@ import { ArrowLeft, Mail, MapPin } from 'lucide-react'
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-6 py-10">
         {/* Header */}
         <header className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-sm text-text-secondary hover:text-primary transition mb-6"
+            className="inline-flex items-center text-sm text-gray-500 hover:text-primary transition mb-6"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to sign in
           </Link>
           <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-gray-500">
             Last updated: 9 May 2026 · Effective: 9 May 2026
           </p>
         </header>
 
-        <article className="prose dark:prose-invert max-w-none space-y-6 text-sm leading-relaxed">
+        <article className="prose max-w-none space-y-6 text-sm leading-relaxed">
           <section>
             <p>
               This Privacy Policy explains how <strong>Amtariksha Tech Pvt Ltd</strong>{' '}
@@ -173,7 +173,7 @@ export default function PrivacyPolicyPage() {
               <li>Application secrets and database credentials stored in environment-variable secret stores, not in source code.</li>
               <li>Regular dependency and vulnerability scanning.</li>
             </ul>
-            <p className="mt-3 italic text-text-secondary">
+            <p className="mt-3 italic text-gray-500">
               No system is 100% secure. If you suspect a security incident
               affecting your account, please contact us immediately (see §11).
             </p>
@@ -220,13 +220,13 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-xl font-semibold mt-8 mb-3">11. Contact &amp; Grievance Officer</h2>
             <p>For any privacy questions, requests, or complaints:</p>
-            <div className="mt-3 p-4 rounded-lg bg-bg-secondary border border-border-primary">
+            <div className="mt-3 p-4 rounded-lg bg-gray-50 border border-gray-200">
               <p><strong>Amtariksha Tech Pvt Ltd</strong></p>
-              <p className="flex items-center gap-2 mt-1 text-text-secondary">
+              <p className="flex items-center gap-2 mt-1 text-gray-500">
                 <MapPin className="h-4 w-4" aria-hidden="true" />
                 Bangalore, Karnataka, India
               </p>
-              <p className="flex items-center gap-2 mt-1 text-text-secondary">
+              <p className="flex items-center gap-2 mt-1 text-gray-500">
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 <a className="text-primary hover:underline" href="mailto:contactus@amtariksha.com">contactus@amtariksha.com</a>
               </p>
@@ -243,8 +243,8 @@ export default function PrivacyPolicyPage() {
             </p>
           </section>
 
-          <section className="pt-6 border-t border-border-primary">
-            <p className="text-xs text-text-muted">
+          <section className="pt-6 border-t border-gray-200">
+            <p className="text-xs text-gray-400">
               This policy is governed by the laws of India. Disputes shall be
               subject to the exclusive jurisdiction of the courts in Bangalore,
               Karnataka.
@@ -252,7 +252,7 @@ export default function PrivacyPolicyPage() {
           </section>
         </article>
 
-        <footer className="mt-12 pt-6 border-t border-border-primary text-xs text-text-muted">
+        <footer className="mt-12 pt-6 border-t border-gray-200 text-xs text-gray-400">
           <div className="flex flex-wrap gap-4">
             <Link href="/" className="hover:text-primary">Sign in</Link>
             <Link href="/terms" className="hover:text-primary">Terms &amp; Conditions</Link>

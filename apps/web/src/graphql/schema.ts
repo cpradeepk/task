@@ -385,6 +385,8 @@ export const typeDefs = `#graphql
     postId: String
     commentId: String
     mentionId: String
+    taskId: String
+    bugId: String
     title: String!
     message: String
     linkUrl: String

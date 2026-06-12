@@ -19,6 +19,7 @@ import { getUserToken, getUserData } from '../utils/secureStorage'
 import apiClient from '../services/apiClient'
 import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
 import { useTabBarControl } from '../context/TabBarContext'
+import NotificationBell from '../components/NotificationBell'
 
 export default function DashboardScreen() {
   const navigation = useNavigation()
@@ -92,13 +93,16 @@ export default function DashboardScreen() {
             </Animated.ScrollView>
             <Text style={styles.role}>{user?.role}</Text>
           </View>
-          <IconButton
-            icon="bug"
-            size={24}
-            iconColor={colors.surface}
-            onPress={() => setDebugMenuVisible(true)}
-            style={styles.debugButton}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <NotificationBell />
+            <IconButton
+              icon="bug"
+              size={24}
+              iconColor={colors.surface}
+              onPress={() => setDebugMenuVisible(true)}
+              style={styles.debugButton}
+            />
+          </View>
         </Surface>
 
         {/* Attendance Card */}

@@ -263,7 +263,7 @@ export default function TaskGridView({
           onChange={e => setDraftValue(e.target.value)}
           onBlur={() => saveEdit(task)}
           onKeyDown={e => handleKeyDown(e, task)}
-          className="w-full px-2 py-1 text-xs border-2 border-primary rounded focus:outline-none bg-white dark:bg-gray-800 dark:text-white"
+          className="w-full px-2 py-1 text-xs border-2 border-primary rounded focus:outline-none bg-white"
         >
           <option value="">—</option>
           {options.map(opt => (
@@ -277,7 +277,7 @@ export default function TaskGridView({
         <button
           type="button"
           onClick={() => startEdit(task.taskId, field, '')}
-          className="px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition bg-neutral-50 text-neutral-500 border-dashed border-neutral-300 dark:bg-transparent dark:text-neutral-400 dark:border-neutral-700"
+          className="px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition bg-neutral-50 text-neutral-500 border-dashed border-neutral-300"
           title="Click to edit"
         >
           {placeholder}

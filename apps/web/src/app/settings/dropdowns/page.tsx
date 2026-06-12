@@ -106,7 +106,7 @@ export default function DropdownSettingsPage() {
             <Settings className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold text-gray-900">Dropdown Settings</h1>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-500">
             Manage configurable dropdown options for forms across the application
           </p>
         </div>

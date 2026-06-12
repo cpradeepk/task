@@ -5,6 +5,7 @@ import { getUserByEmployeeId } from '@/lib/db/users'
 import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
 import { verifyToken, getAuthUser } from '@/lib/auth-server'
 import { getUserProjectIds } from '@/lib/db/project-users'
+import { createNotification } from '@/lib/notification-helper'
 
 /**
  * Check whether an authenticated user can access a specific bug.
@@ -92,6 +93,8 @@ export async function PUT(
 
     // Check if assignedTo field is changing (bug is being assigned/reassigned)
     const isAssignmentChange = updates.assignedTo && updates.assignedTo !== currentBug?.assignedTo
+    const isStatusChange = updates.status && updates.status !== currentBug?.status
+    const isSeverityChange = updates.severity && updates.severity !== currentBug?.severity
 
     // Update the bug
     const bug = await updateBug(bugId, updates)
@@ -164,6 +167,75 @@ export async function PUT(
         // Continue - don't fail bug update if email fails
       }
     }
+
+    // Fire-and-forget: In-app & Push notification (non-blocking) for updates
+    (async () => {
+      try {
+        const actor = await getUserByEmployeeId(userId)
+        const actorName = actor?.name || userId || 'Someone'
+
+        // 1. Assignment Change
+        if (isAssignmentChange && bug.assignedTo) {
+          const title = 'New Bug Assigned'
+          const message = `${actorName} assigned you bug: ${bug.title}`
+          await createNotification({
+            userId: bug.assignedTo as string,
+            actorId: userId,
+            notificationType: 'bug_assigned',
+            bugId: bug.bugId,
+            title,
+            message,
+            linkUrl: `/bugs/${bug.bugId}`
+          })
+        }
+
+        // 2. Status Change (Notify assignee and reporter)
+        if (isStatusChange) {
+          const title = 'Bug Status Changed'
+          const message = `${actorName} updated bug ${bug.bugId} status to: ${bug.status}`
+          const recipients = new Set<string>()
+          if (bug.assignedTo) recipients.add(bug.assignedTo)
+          if (bug.reportedBy) recipients.add(bug.reportedBy)
+          recipients.delete(userId) // Don't notify the actor
+
+          for (const recipientId of Array.from(recipients)) {
+            await createNotification({
+              userId: recipientId,
+              actorId: userId,
+              notificationType: 'bug_status_changed',
+              bugId: bug.bugId,
+              title,
+              message,
+              linkUrl: `/bugs/${bug.bugId}`
+            })
+          }
+        }
+
+        // 3. Severity Change (Notify assignee and reporter)
+        if (isSeverityChange) {
+          const title = 'Bug Severity Changed'
+          const message = `${actorName} updated bug ${bug.bugId} severity to: ${bug.severity}`
+          const recipients = new Set<string>()
+          if (bug.assignedTo) recipients.add(bug.assignedTo)
+          if (bug.reportedBy) recipients.add(bug.reportedBy)
+          recipients.delete(userId) // Don't notify the actor
+
+          for (const recipientId of Array.from(recipients)) {
+            await createNotification({
+              userId: recipientId,
+              actorId: userId,
+              notificationType: 'bug_severity_changed',
+              bugId: bug.bugId,
+              title,
+              message,
+              linkUrl: `/bugs/${bug.bugId}`
+            })
+          }
+        }
+      } catch (notifError) {
+        console.error('⚠️ Failed to process bug update notifications:', notifError)
+      }
+    })()
 
     return NextResponse.json({
       success: true,

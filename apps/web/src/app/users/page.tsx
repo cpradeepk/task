@@ -377,11 +377,11 @@ export default function UserManagement() {
       <div className="max-w-6xl mx-auto p-6 space-y-6 animate-smooth-appear">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-black">User Management</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+            <p className="text-gray-500 mt-1">
               Manage system users and their permissions
               {lastRefresh > 0 && (
-                <span className="text-xs text-gray-500 ml-2">
+                <span className="text-xs text-gray-500 ml-2 opacity-80">
                   Last updated: {new Date(lastRefresh).toLocaleTimeString()}
                 </span>
               )}
@@ -413,11 +413,11 @@ export default function UserManagement() {
       <div className="card">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Search Users
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
@@ -429,7 +429,7 @@ export default function UserManagement() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Role
             </label>
             <select
@@ -446,7 +446,7 @@ export default function UserManagement() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Status
             </label>
             <select
@@ -463,7 +463,7 @@ export default function UserManagement() {
           </div>
 
           <div className="flex items-end">
-            <div className="text-sm text-secondary-600 min-w-[120px]">
+            <div className="text-sm text-gray-600 min-w-[120px]">
               {isInitialLoading ? (
                 <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
               ) : (
@@ -508,9 +508,9 @@ export default function UserManagement() {
         </div>
       ) : filteredUsers.length === 0 ? (
         <div className="card text-center py-8">
-          <UsersIcon className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-          <p className="text-secondary-600">No users found</p>
-          <p className="text-sm text-secondary-500 mt-1">
+          <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">No users found</p>
+          <p className="text-sm text-gray-500 mt-1">
             {searchTerm || roleFilter !== 'all' || statusFilter !== 'all'
               ? 'Try adjusting your filters'
               : 'Add your first user to get started'
@@ -531,8 +531,8 @@ export default function UserManagement() {
                       </span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-secondary-900">{user.name}</h3>
-                      <p className="text-sm text-secondary-600">{user.employeeId}</p>
+                      <h3 className="font-semibold text-gray-900">{user.name}</h3>
+                      <p className="text-sm text-gray-600">{user.employeeId}</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -548,7 +548,7 @@ export default function UserManagement() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-secondary-600">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                     <div className="flex items-center space-x-2">
                       <Mail className="h-4 w-4" />
                       <span>{user.email}</span>
@@ -614,8 +614,8 @@ export default function UserManagement() {
                           {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         </span>
                       </div>
-                      <span className="font-medium text-secondary-700">{user.name}</span>
-                      <span className="text-sm text-secondary-500">{user.employeeId}</span>
+                      <span className="font-medium text-gray-700">{user.name}</span>
+                      <span className="text-sm text-gray-500">{user.employeeId}</span>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
                         user.role === 'top_management' ? 'bg-blue-100 text-blue-800' :
@@ -629,7 +629,7 @@ export default function UserManagement() {
                     </div>
                     <button
                       onClick={() => handleEditUser(user)}
-                      className="text-secondary-400 hover:text-secondary-600 p-1"
+                      className="text-gray-400 hover:text-gray-600 p-1"
                       title="Edit user"
                     >
                       <Edit className="h-4 w-4" />

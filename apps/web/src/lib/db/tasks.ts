@@ -30,6 +30,8 @@ interface TaskRow {
   department: string | null
   deleted_at: string | null
   deleted_by: string | null
+  start_time: string | null
+  due_time: string | null
   timer_state: string | null
   timer_start_time: string | null
   timer_paused_time: number | null
@@ -141,6 +143,8 @@ function rowToTask(row: TaskRow): Task {
     department: row.department || undefined,
     deletedAt: row.deleted_at || undefined,
     deletedBy: row.deleted_by || undefined,
+    startTime: row.start_time || null,
+    dueTime: row.due_time || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }
@@ -356,8 +360,9 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         internal_id, task_id, select_type, recursive_type, name, description,
         assigned_to, assigned_by, support, start_date, end_date, priority,
         estimated_hours, actual_hours, daily_hours, status, remarks,
-        difficulties, project_id, subproject_id, parent_task_id, department
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)`,
+        difficulties, project_id, subproject_id, parent_task_id, department,
+        start_time, due_time
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)`,
       [
         task.taskId, // internal_id is same as task_id
         task.taskId,
@@ -380,7 +385,9 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         task.projectId || null,
         task.subprojectId || null,
         task.parentTaskId || null,
-        task.department || null
+        task.department || null,
+        task.startTime || null,
+        task.dueTime || null
       ]
     )
 
@@ -486,6 +493,14 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     if (updates.department !== undefined) {
       fields.push(`department = $${paramIndex++}`)
       values.push(updates.department || null)
+    }
+    if (updates.startTime !== undefined) {
+      fields.push(`start_time = $${paramIndex++}`)
+      values.push(updates.startTime || null)
+    }
+    if (updates.dueTime !== undefined) {
+      fields.push(`due_time = $${paramIndex++}`)
+      values.push(updates.dueTime || null)
     }
 
     if (fields.length === 0) {

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "242622641703",
+    "project_id": "karmayog-task",
+    "storage_bucket": "karmayog-task.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242622641703:android:429a83e33740e8fd430002",
+        "android_client_info": {
+          "package_name": "com.karmayog"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA55COcMBM0q_agb3TgeTK3N6Dg0fuMonY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

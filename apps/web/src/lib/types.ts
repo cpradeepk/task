@@ -106,6 +106,8 @@ export interface Task {
   timerSessions?: string | null // Optional: JSON string of timer sessions
   deletedAt?: string | null // Optional: Soft delete timestamp
   deletedBy?: string | null // Optional: Employee ID who deleted the task
+  startTime?: string | null  // Optional: Task start time (format: HH:mm:ss)
+  dueTime?: string | null    // Optional: Task due time (format: HH:mm:ss)
   createdAt: string         // Timestamp when task was created
   updatedAt: string         // Timestamp when task was last updated
   assignedByUser?: {        // Optional: User object for the assigner (from GraphQL)

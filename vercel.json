@@ -1,10 +1,20 @@
 {
-   "git": {
-    "deploymentEnabled": false
-  },
-  "buildCommand": "cd apps/web && npm run build",
-  "outputDirectory": "apps/web/.next",
-  "framework": "nextjs",
-  "installCommand": "npm install --legacy-peer-deps"
+  "crons": [
+    {
+      "path": "/api/cron/reminders/9am",
+      "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron/reminders/12pm",
+      "schedule": "30 6 * * *"
+    },
+    {
+      "path": "/api/cron/reminders/6pm",
+      "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/reminders/due-checking",
+      "schedule": "*/15 * * * *"
+    }
+  ]
 }
-

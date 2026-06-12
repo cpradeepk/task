@@ -33,6 +33,8 @@ export default function CreateTaskScreen({ navigation }: any) {
   const [department, setDepartment] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [startTime, setStartTime] = useState('')
+  const [dueTime, setDueTime] = useState('')
   const [priority, setPriority] = useState('')
   const [status, setStatus] = useState('Open')
   const [estimatedHours, setEstimatedHours] = useState('')
@@ -172,6 +174,20 @@ export default function CreateTaskScreen({ navigation }: any) {
     return hours + (minutes / 60) + (seconds / 3600)
   }, [])
 
+  const validateTimeFormatOptional = useCallback((time: string): boolean => {
+    if (!time.trim()) return true // It is optional
+    const timeRegex = /^(\d{1,2}):(\d{2}):(\d{2})$/
+    const match = time.match(timeRegex)
+
+    if (!match) return false
+
+    const hours = parseInt(match[1], 10)
+    const minutes = parseInt(match[2], 10)
+    const seconds = parseInt(match[3], 10)
+
+    return hours < 24 && minutes < 60 && seconds < 60
+  }, [])
+
   const handleSubmit = useCallback(async () => {
     // Validation
     if (!name.trim()) {
@@ -186,6 +202,16 @@ export default function CreateTaskScreen({ navigation }: any) {
 
     if (!startDate || !endDate) {
       Alert.alert('Error', 'Please select start and end dates')
+      return
+    }
+
+    if (startTime.trim() && !validateTimeFormatOptional(startTime)) {
+      Alert.alert('Error', 'Please enter Start Time in hh:mm:ss format (e.g., 09:00:00)')
+      return
+    }
+
+    if (dueTime.trim() && !validateTimeFormatOptional(dueTime)) {
+      Alert.alert('Error', 'Please enter Due Time in hh:mm:ss format (e.g., 18:00:00)')
       return
     }
 
@@ -227,15 +253,12 @@ export default function CreateTaskScreen({ navigation }: any) {
         }
         formData.append('department', department)
         formData.append('description', description.trim())
-        // Fix: assignedTo must be JSON string of array for FormData parsing on backend, 
-        // OR just append multiple keys if backend supports it. 
-        // Based on "is_array" error, backend likely expects an array directly in JSON.
-        // For FormData, we usually send JSON as a string field or individual fields.
-        // Let's assume standard FormData handling:
         formData.append('assignedTo', JSON.stringify([assignedTo]))
         formData.append('assignedBy', currentUser?.employeeId || '')
         formData.append('startDate', startDate)
         formData.append('endDate', endDate)
+        formData.append('startTime', startTime.trim() || '')
+        formData.append('dueTime', dueTime.trim() || '')
         formData.append('priority', priority)
         formData.append('estimatedHours', String(estimatedHoursDecimal))
         if (projectId) formData.append('projectId', projectId)
@@ -264,6 +287,8 @@ export default function CreateTaskScreen({ navigation }: any) {
           support: support.length > 0 ? support : undefined, // Add support team
           startDate,
           endDate,
+          startTime: startTime.trim() || undefined,
+          dueTime: dueTime.trim() || undefined,
           priority,
           estimatedHours: estimatedHoursDecimal,
           projectId: projectId || undefined,
@@ -290,7 +315,7 @@ export default function CreateTaskScreen({ navigation }: any) {
     } finally {
       setIsSubmitting(false)
     }
-  }, [description, startDate, endDate, priority, estimatedHours, assignedTo, currentUser, projectId, subprojectId, status, convertTimeToHours, validateTimeFormat, navigation])
+  }, [name, description, startDate, endDate, startTime, dueTime, priority, estimatedHours, assignedTo, currentUser, projectId, subprojectId, status, support, attachedFile, selectType, recursiveType, department, convertTimeToHours, validateTimeFormat, validateTimeFormatOptional, navigation])
 
   const taskStatuses = useMemo(() => settings.task_statuses || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'], [settings])
   const taskPriorities = useMemo(() => settings.task_priorities || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)'], [settings])
@@ -473,6 +498,32 @@ export default function CreateTaskScreen({ navigation }: any) {
             placeholder="YYYY-MM-DD"
             value={endDate}
             onChangeText={setEndDate}
+            style={styles.input}
+            outlineColor={materialColors.border}
+            activeOutlineColor={materialColors.primary}
+            disabled={isOffline}
+          />
+
+          {/* Start Time */}
+          <TextInput
+            mode="outlined"
+            label="Start Time (Optional, hh:mm:ss)"
+            placeholder="09:00:00"
+            value={startTime}
+            onChangeText={setStartTime}
+            style={styles.input}
+            outlineColor={materialColors.border}
+            activeOutlineColor={materialColors.primary}
+            disabled={isOffline}
+          />
+
+          {/* Due Time */}
+          <TextInput
+            mode="outlined"
+            label="Due Time (Optional, hh:mm:ss)"
+            placeholder="18:00:00"
+            value={dueTime}
+            onChangeText={setDueTime}
             style={styles.input}
             outlineColor={materialColors.border}
             activeOutlineColor={materialColors.primary}

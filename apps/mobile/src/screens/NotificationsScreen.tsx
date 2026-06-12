@@ -37,14 +37,22 @@ import { formatDateTimeIST } from '../utils/datetime';
 import { getUserData } from '../utils/secureStorage';
 
 interface Notification {
-  id: string
-  type: string
-  message: string
-  relatedId: string | null
-  relatedType: string | null
+  notificationId: string
+  notificationType: string
+  title: string
+  message: string | null
+  linkUrl: string | null
   isRead: boolean
   createdAt: string
-  createdBy: string
+  postId: string | null
+  commentId: string | null
+  mentionId: string | null
+  taskId: string | null
+  bugId: string | null
+  actor: {
+    employeeId: string
+    name: string
+  } | null
 }
 
 export default function NotificationsScreen() {
@@ -63,11 +71,21 @@ export default function NotificationsScreen() {
   }, [])
 
   // GraphQL queries and mutations
-  const { data, loading, refetch } = useQuery<any, any>(GET_NOTIFICATIONS, {
+  const { data, loading, error, refetch } = useQuery<any, any>(GET_NOTIFICATIONS, {
     variables: { userId },
     skip: !userId,
     fetchPolicy: 'cache-and-network',
   })
+
+  useEffect(() => {
+    console.log('[NotificationsScreen] userId:', userId)
+    if (error) {
+      console.error('[NotificationsScreen] error:', error)
+    }
+    if (data) {
+      console.log('[NotificationsScreen] data:', data)
+    }
+  }, [userId, data, error])
 
   const [markAsRead] = useMutation<any, any>(MARK_NOTIFICATION_READ)
   const [markAllAsRead] = useMutation<any, any>(MARK_ALL_NOTIFICATIONS_READ)
@@ -85,27 +103,17 @@ export default function NotificationsScreen() {
   }, [refetch, userId])
 
   const handleNotificationPress = useCallback(async (notification: Notification) => {
-    // Mark as read
     if (!notification.isRead) {
       try {
         await markAsRead({
-          variables: { notificationId: notification.id },
+          variables: { notificationId: notification.notificationId }
         })
         refetch()
       } catch (error) {
         console.error('Failed to mark as read:', error)
       }
     }
-
-    // Navigate to related content
-    if (notification.relatedType === 'feed_post' && notification.relatedId) {
-      navigation.navigate('FeedPostDetails', { postId: notification.relatedId })
-    } else if (notification.relatedType === 'task' && notification.relatedId) {
-      navigation.navigate('TaskDetails', { taskId: notification.relatedId })
-    } else if (notification.relatedType === 'bug' && notification.relatedId) {
-      navigation.navigate('BugDetails', { bugId: notification.relatedId })
-    }
-  }, [markAsRead, refetch, navigation])
+  }, [markAsRead, refetch])
 
   const handleMarkAllAsRead = useCallback(async () => {
     try {
@@ -133,6 +141,20 @@ export default function NotificationsScreen() {
         return '❌'
       case 'reply':
         return '↩️'
+      case 'task_assigned':
+        return '📋'
+      case 'task_updated':
+        return '🔄'
+      case 'task_completed':
+        return '✅'
+      case 'task_support_assigned':
+        return '🤝'
+      case 'bug_assigned':
+        return '🐛'
+      case 'bug_updated':
+        return '🔧'
+      case 'bug_status_changed':
+        return '⚡'
       default:
         return '🔔'
     }
@@ -147,17 +169,22 @@ export default function NotificationsScreen() {
       onPress={() => handleNotificationPress(item)}
     >
       <View style={styles.notificationIcon}>
-        <Text style={styles.iconText}>{getNotificationIcon(item.type)}</Text>
+        <Text style={styles.iconText}>{getNotificationIcon(item.notificationType)}</Text>
       </View>
       <View style={styles.notificationContent}>
         <Text
           style={[
-            styles.notificationMessage,
-            !item.isRead && styles.notificationMessageUnread,
+            styles.notificationTitle,
+            !item.isRead && styles.notificationTitleUnread,
           ]}
         >
-          {item.message}
+          {item.title}
         </Text>
+        {item.message && (
+          <Text style={styles.notificationMessage}>
+            {item.message}
+          </Text>
+        )}
         <Text style={styles.notificationTime}>
           {formatDateTimeIST(item.createdAt)}
         </Text>
@@ -190,7 +217,7 @@ export default function NotificationsScreen() {
       <FlatList
         data={notifications}
         renderItem={renderNotification}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.notificationId}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
@@ -279,14 +306,19 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   notificationContent: {
     flex: 1,
   },
-  notificationMessage: {
+  notificationTitle: {
     fontSize: responsive.fontSize.md,
     color: colors.text,
-    marginBottom: responsive.spacing.xxs,
-  },
-  notificationMessageUnread: {
     fontWeight: '600',
-    color: colors.text,
+    marginBottom: 2,
+  },
+  notificationTitleUnread: {
+    color: colors.primary,
+  },
+  notificationMessage: {
+    fontSize: responsive.fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: responsive.spacing.xxs,
   },
   notificationTime: {
     fontSize: responsive.fontSize.xs,

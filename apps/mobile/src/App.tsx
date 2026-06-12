@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Component, ErrorInfo, ReactNode, useRef } from 'react'
+import React, { useEffect, useState, useCallback, Component, ErrorInfo, ReactNode, useRef } from 'react'
 import { NavigationContainer, NavigationContainerRef, DefaultTheme as NavigationLightTheme, DarkTheme as NavigationDarkTheme } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ApolloProvider, useQuery } from '@apollo/client/react'
@@ -37,22 +37,25 @@ import ReportsScreen from './screens/ReportsScreen'
 import NotificationBell from './components/NotificationBell'
 import CustomDrawerContent from './components/CustomDrawerContent'
 import { OfflineBanner } from './components/OfflineBanner'
-import { ActivityIndicator, View, LogBox, Text, ScrollView, TouchableOpacity } from 'react-native'
+import { ActivityIndicator, View, LogBox, Text, ScrollView, TouchableOpacity, Image } from 'react-native'
 import { IconButton, Provider as PaperProvider } from 'react-native-paper'
 import { apolloClient, initializeApollo } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData } from './utils/secureStorage'
 import { LOGIN_MUTATION, REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN, GET_FEED_POSTS, GET_FEED_TOPICS } from './config/graphql-queries'
 import { ThemeProvider, useTheme, lightColors, darkColors } from './contexts/ThemeContext'
 import { ToastProvider } from './contexts/ToastContext'
-import { registerForPushNotifications, setupNotificationListeners } from './services/pushNotificationService'
-import * as Notifications from 'expo-notifications'
+import { registerForPushNotifications, setupNotificationListeners, cancelAllNotifications, setBadgeCount } from './services/pushNotificationService'
 import Constants from 'expo-constants'
-import { Platform } from 'react-native'
+import * as Application from 'expo-application'
+import { Platform, Linking } from 'react-native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { materialColors, lightTheme, darkTheme } from './config/materialTheme'
 import { TabBarProvider } from './context/TabBarContext'
 import AnimatedTabBar from './components/AnimatedTabBar'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { firestore } from './config/firebase'
+import { API_BASE_URL } from './config/api'
 
 // Disable dev tools warnings in production builds
 if (!__DEV__) {
@@ -248,10 +251,193 @@ const navDarkTheme = {
   },
 }
 
+// Version comparison helper
+function isVersionLessThan(v1: string, v2: string): boolean {
+  const parts1 = String(v1).split('.').map(Number)
+  const parts2 = String(v2).split('.').map(Number)
+  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+    const p1 = parts1[i] || 0
+    const p2 = parts2[i] || 0
+    if (p1 < p2) return true
+    if (p1 > p2) return false
+  }
+  return false
+}
+
+// Maintenance Screen Component
+function MaintenanceScreen({ onRetry }: { onRetry: () => void }) {
+  const { theme } = useTheme()
+  const currentColors = theme === 'dark' ? darkColors : lightColors
+
+  return (
+    <View style={{ flex: 1, backgroundColor: currentColors.background, justifyContent: 'center', alignItems: 'center', padding: 30 }}>
+      <MaterialCommunityIcons name="alert-octagon" size={80} color="#f43f5e" style={{ marginBottom: 20 }} />
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: currentColors.text, textAlign: 'center', marginBottom: 12 }}>
+        System Maintenance
+      </Text>
+      <Text style={{ fontSize: 14, color: currentColors.textSecondary, textAlign: 'center', marginBottom: 30, lineHeight: 20 }}>
+        The system is currently undergoing scheduled maintenance or the servers are temporarily unavailable. We'll be back online shortly! Thank you for your patience.
+      </Text>
+      <TouchableOpacity 
+        onPress={onRetry}
+        style={{ 
+          backgroundColor: '#f43f5e', 
+          paddingVertical: 12, 
+          paddingHorizontal: 24, 
+          borderRadius: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 3
+        }}
+      >
+        <MaterialCommunityIcons name="refresh" size={20} color="#fff" />
+        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Retry Connection</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+// Update Required Screen Component
+function UpdateRequiredScreen({ storeUrl, minVersion }: { storeUrl: string; minVersion: string }) {
+  const { theme } = useTheme()
+  const currentColors = theme === 'dark' ? darkColors : lightColors
+
+  const handleUpdatePress = () => {
+    if (storeUrl) {
+      Linking.openURL(storeUrl).catch(err => console.error("Couldn't open update URL:", err))
+    }
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: currentColors.background, justifyContent: 'center', alignItems: 'center', padding: 30 }}>
+      <MaterialCommunityIcons name="cloud-upload" size={80} color={currentColors.primary} style={{ marginBottom: 20 }} />
+      <Text style={{ fontSize: 24, fontWeight: 'bold', color: currentColors.text, textAlign: 'center', marginBottom: 12 }}>
+        Update Required
+      </Text>
+      <Text style={{ fontSize: 14, color: currentColors.textSecondary, textAlign: 'center', marginBottom: 30, lineHeight: 20 }}>
+        A new version of Karmayog is available. To continue using the app, please update to version {minVersion} or newer.
+      </Text>
+      <TouchableOpacity 
+        onPress={handleUpdatePress}
+        style={{ 
+          backgroundColor: currentColors.primary, 
+          paddingVertical: 12, 
+          paddingHorizontal: 24, 
+          borderRadius: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 3
+        }}
+      >
+        <MaterialCommunityIcons name="download" size={20} color="#fff" />
+        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Update App</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+// Splash Screen View Component (Displays app splash image while loading configuration)
+function SplashScreenView() {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center' }}>
+      <Image 
+        source={require('../assets/splash.png')} 
+        style={{ width: '100%', height: '100%', resizeMode: 'contain' }} 
+      />
+    </View>
+  )
+}
+
 function AppContent() {
   const { theme } = useTheme()
   const paperTheme = theme === 'dark' ? darkTheme : lightTheme
   const navigationTheme = theme === 'dark' ? navDarkTheme : navLightTheme
+
+  const [appConfig, setAppConfig] = useState<{
+    maintenanceMode: boolean
+    minAndroidVersion: string
+    minIosVersion: string
+    androidUrl: string
+    iosUrl: string
+  }>({
+    maintenanceMode: false,
+    minAndroidVersion: '1.0.0',
+    minIosVersion: '1.0.0',
+    androidUrl: '',
+    iosUrl: ''
+  })
+  
+  const [isApiDown, setIsApiDown] = useState(false)
+  const [isConfigLoaded, setIsConfigLoaded] = useState(false)
+
+  // Listen to remote Firebase configuration
+  useEffect(() => {
+    console.log('🔗 Setting up real-time Firebase configuration listener on mobile')
+    const unsubscribe = onSnapshot(
+      doc(firestore, 'app_config', 'maintenance'),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data()
+          setAppConfig({
+            maintenanceMode: Boolean(data.maintenanceMode),
+            minAndroidVersion: data.minAndroidVersion || '1.0.0',
+            minIosVersion: data.minIosVersion || '1.0.0',
+            androidUrl: data.androidUrl || '',
+            iosUrl: data.iosUrl || ''
+          })
+          console.log('🔥 Remote AppConfig Synced:', data)
+        }
+        setIsConfigLoaded(true)
+      },
+      (error) => {
+        console.error('❌ Error listening to Firestore config:', error)
+        setIsConfigLoaded(true)
+      }
+    )
+
+    return () => unsubscribe()
+  }, [])
+
+  // Check backend server connection health
+  const checkApiHealth = useCallback(async () => {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 6000)
+
+      console.log('🔍 Checking backend API connection health...')
+      const response = await fetch(`${API_BASE_URL}/api/settings/app-management`, {
+        signal: controller.signal
+      })
+      clearTimeout(timeoutId)
+
+      if (response.status >= 500) {
+        setIsApiDown(true)
+        console.warn(`⚠️ API responded with 5xx error status: ${response.status}`)
+      } else {
+        setIsApiDown(false)
+        console.log('✅ API connection is healthy')
+      }
+    } catch (err) {
+      console.warn('⚠️ API Connection health check failed:', err)
+      setIsApiDown(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    checkApiHealth()
+    const interval = setInterval(checkApiHealth, 30000) // Poll every 30s
+    return () => clearInterval(interval)
+  }, [checkApiHealth])
 
   const [state, dispatch] = React.useReducer(
     (prevState: any, action: any) => {
@@ -482,10 +668,10 @@ function AppContent() {
           setPushToken(null)
 
           // Cancel all scheduled notifications
-          await Notifications.cancelAllScheduledNotificationsAsync()
+          await cancelAllNotifications()
 
           // Clear badge count
-          await Notifications.setBadgeCountAsync(0)
+          await setBadgeCount(0)
 
           // Clear all secure data
           await clearSecureData()
@@ -510,12 +696,23 @@ function AppContent() {
     [pushToken]
   )
 
-  if (state.isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    )
+  if (state.isLoading || !isConfigLoaded) {
+    return <SplashScreenView />
+  }
+
+  // Blocker 1: Maintenance Mode (or API is down)
+  if (appConfig.maintenanceMode || isApiDown) {
+    return <MaintenanceScreen onRetry={checkApiHealth} />
+  }
+
+  // Blocker 2: Force Update Check
+  const localVersion = Application.nativeApplicationVersion || Constants.expoConfig?.version || '1.0.0'
+  const minVersion = Platform.OS === 'ios' ? appConfig.minIosVersion : appConfig.minAndroidVersion
+  const storeUrl = Platform.OS === 'ios' ? appConfig.iosUrl : appConfig.androidUrl
+  const needsUpdate = isVersionLessThan(localVersion, minVersion)
+
+  if (needsUpdate) {
+    return <UpdateRequiredScreen storeUrl={storeUrl} minVersion={minVersion} />
   }
 
   return (

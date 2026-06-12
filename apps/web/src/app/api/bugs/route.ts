@@ -7,6 +7,7 @@ import { getUserByEmployeeId } from '@/lib/db/users'
 import { createActivityLog } from '@/lib/db/activityLog'
 import { getAuthUser } from '@/lib/auth-server'
 import { getUserProjectIds } from '@/lib/db/project-users'
+import { createNotification } from '@/lib/notification-helper'
 
 export async function GET(request: NextRequest) {
   try {
@@ -142,6 +143,29 @@ export async function POST(request: NextRequest) {
     } catch (activityError) {
       console.error('⚠️ Failed to log bug creation activity:', activityError)
       // Don't fail bug creation if activity logging fails
+    }
+
+    // Fire-and-forget: In-app & Push notification (non-blocking) for bug assignment
+    if (bug.assignedTo) {
+      (async () => {
+        try {
+          const creator = await getUserByEmployeeId(bug.assignedBy || bug.reportedBy || 'system')
+          const title = 'New Bug Assigned'
+          const message = `${creator?.name || bug.assignedBy || 'Someone'} assigned you bug: ${bug.title}`
+          
+          await createNotification({
+            userId: bug.assignedTo as string,
+            actorId: bug.assignedBy || bug.reportedBy || 'system',
+            notificationType: 'bug_assigned',
+            bugId: bug.bugId,
+            title,
+            message,
+            linkUrl: `/bugs/${bug.bugId}`
+          })
+        } catch (notifError) {
+          console.error('⚠️ Failed to create bug assignment notification:', notifError)
+        }
+      })()
     }
 
     // Send email notification for bug creation

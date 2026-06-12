@@ -604,7 +604,7 @@ function CreateTaskContent() {
 
             {/* Task Type - Button Selection */}
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Task Type *
               </label>
               <div className="flex gap-3 flex-wrap">
@@ -638,7 +638,7 @@ function CreateTaskContent() {
             {/* Recursive Type - Button Selection */}
             {formData.selectType === 'Recursive' && (
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Frequency *
                   {missingFields.includes('recursiveType') && (
                     <span className="text-red-500 text-xs ml-2">Required</span>
@@ -676,7 +676,7 @@ function CreateTaskContent() {
 
             {/* Task Name */}
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Task Name *
                 {missingFields.includes('name') && (
                   <span className="text-red-500 text-xs ml-2">Required</span>
@@ -699,7 +699,7 @@ function CreateTaskContent() {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Task Description *
                 {missingFields.includes('description') && (
                   <span className="text-red-500 text-xs ml-2">Required</span>
@@ -719,7 +719,7 @@ function CreateTaskContent() {
             {/* Project and Subproject Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Project *
                   {missingFields.includes('projectId') && (
                     <span className="text-red-500 text-xs ml-2">Required</span>
@@ -753,7 +753,7 @@ function CreateTaskContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Sub Project <span className="text-gray-400 text-xs">(Optional)</span>
                 </label>
                 <select
@@ -781,7 +781,7 @@ function CreateTaskContent() {
 
             {/* Department Field */}
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Department *
                 {missingFields.includes('department') && (
                   <span className="text-red-500 text-xs ml-2">Required</span>
@@ -811,7 +811,7 @@ function CreateTaskContent() {
             {/* Status and Priority */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Status *
                 </label>
                 <select
@@ -838,7 +838,7 @@ function CreateTaskContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Priority *
                   {missingFields.includes('priority') && (
                     <span className="text-red-500 text-xs ml-2">Required</span>
@@ -872,7 +872,7 @@ function CreateTaskContent() {
             {/* Task Assignment */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-secondary-700">
+                <label className="block text-sm font-medium text-gray-700">
                   Task Assignment
                 </label>
                 <label className="flex items-center space-x-2 cursor-pointer">
@@ -893,7 +893,7 @@ function CreateTaskContent() {
 
               {formData.multiUserAssignment ? (
                 <div>
-                  <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Assign To Multiple Users *
                     {missingFields.includes('assignees') && (
                       <span className="text-red-500 text-xs ml-2">Required - Select at least one user</span>
@@ -945,7 +945,7 @@ function CreateTaskContent() {
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Assign To *
                     {missingFields.includes('assignedTo') && (
                       <span className="text-red-500 text-xs ml-2">Required</span>
@@ -977,7 +977,7 @@ function CreateTaskContent() {
 
             {/* Support Team */}
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Support Team (Optional)
               </label>
               <p className="text-sm text-gray-600 mb-3">
@@ -1031,14 +1031,14 @@ function CreateTaskContent() {
             {/* Dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Start Date *
                   {missingFields.includes('startDate') && (
                     <span className="text-red-500 text-xs ml-2">Required</span>
                   )}
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="date"
                     name="startDate"
@@ -1051,14 +1051,14 @@ function CreateTaskContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   End Date *
                   {missingFields.includes('endDate') && (
                     <span className="text-red-500 text-xs ml-2">Required</span>
                   )}
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="date"
                     name="endDate"
@@ -1073,11 +1073,11 @@ function CreateTaskContent() {
 
             {/* Estimated Hours */}
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Estimated Hours (Optional)
               </label>
               <div className="relative max-w-md">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary-400" />
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   name="estimatedHours"
@@ -1089,14 +1089,14 @@ function CreateTaskContent() {
                   title="Enter time in hh:mm:ss format (e.g., 02:30:00)"
                 />
               </div>
-              <p className="text-xs text-secondary-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 Enter estimated time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
               </p>
             </div>
 
             {/* File Attachments */}
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2 flex items-center space-x-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
                 <Paperclip className="h-4 w-4" />
                 <span>Attachments (Optional)</span>
               </label>
@@ -1111,7 +1111,7 @@ function CreateTaskContent() {
             </div>
 
             {/* Submit Buttons */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-secondary-200">
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
                 onClick={() => router.push('/tasks')}

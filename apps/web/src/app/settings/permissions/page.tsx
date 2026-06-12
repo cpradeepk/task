@@ -266,7 +266,7 @@ export default function PermissionsPage() {
                 <Shield className="h-8 w-8 text-primary" />
                 <h1 className="text-3xl font-bold text-gray-900">Permissions Management</h1>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-500">
                 Manage role-based permissions for features and pages
               </p>
             </div>

@@ -197,7 +197,7 @@ AM-0003,Manager User,manager@eassy.life,+91-9876543212,Technology,top_management
 
   return (
     <div className="card">
-      <h3 className="text-lg font-semibold text-secondary-900 mb-4 flex items-center space-x-2">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
         <Users className="h-5 w-5" />
         <span>User Import</span>
       </h3>
@@ -235,20 +235,20 @@ AM-0003,Manager User,manager@eassy.life,+91-9876543212,Technology,top_management
 
       {/* File Upload */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-secondary-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           Upload CSV File
         </label>
         <input
           type="file"
           accept=".csv"
           onChange={handleFileUpload}
-          className="block w-full text-sm text-secondary-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-black hover:file:bg-primary-600"
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-black hover:file:bg-primary-600"
         />
       </div>
 
       {/* CSV Data Input */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-secondary-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           Or Paste CSV Data
         </label>
         <textarea
@@ -272,20 +272,20 @@ AM-0003,Manager User,manager@eassy.life,+91-9876543212,Technology,top_management
       {/* Import Statistics */}
       {importStats && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-medium text-secondary-900 mb-3">Import Results</h4>
+          <h4 className="font-medium text-gray-900 mb-3">Import Results</h4>
           
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{importStats.total}</div>
-              <div className="text-sm text-secondary-600">Total</div>
+              <div className="text-sm text-gray-600">Total</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{importStats.successful}</div>
-              <div className="text-sm text-secondary-600">Successful</div>
+              <div className="text-sm text-gray-600">Successful</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600">{importStats.failed}</div>
-              <div className="text-sm text-secondary-600">Failed</div>
+              <div className="text-sm text-gray-600">Failed</div>
             </div>
           </div>
 

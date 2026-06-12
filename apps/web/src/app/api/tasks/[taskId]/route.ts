@@ -6,6 +6,7 @@ import { verifyToken, getAuthUser } from '@/lib/auth-server'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
 import { getUserProjectIds } from '@/lib/db/project-users'
+import { createNotification } from '@/lib/notification-helper'
 
 /**
  * Check whether an authenticated user can access a specific task.
@@ -133,12 +134,64 @@ export async function PUT(
       }
     }
 
+    // Fire-and-forget: In-app & Push notifications for status updates (non-blocking)
+    if (updates.status && currentTask && currentTask.status !== updates.status) {
+      (async () => {
+        try {
+          const editor = await getUserByEmployeeId(userId)
+          const editorName = editor?.name || userId
+
+          // Collect all unique user IDs connected to this task
+          const connectedUserIds = new Set<string>()
+          
+          if (Array.isArray(currentTask.assignedTo)) {
+            currentTask.assignedTo.forEach((id: string) => connectedUserIds.add(id))
+          } else if (typeof currentTask.assignedTo === 'string' && currentTask.assignedTo) {
+            connectedUserIds.add(currentTask.assignedTo)
+          }
+
+          if (Array.isArray(currentTask.support)) {
+            currentTask.support.forEach((id: string) => connectedUserIds.add(id))
+          } else if (typeof currentTask.support === 'string' && currentTask.support) {
+            connectedUserIds.add(currentTask.support)
+          }
+
+          if (currentTask.assignedBy) connectedUserIds.add(currentTask.assignedBy)
+
+          // Exclude the user who did the update
+          connectedUserIds.delete(userId)
+
+          if (connectedUserIds.size > 0) {
+            const title = 'Task Status Changed'
+            const message = `${editorName} updated ${taskId} status to ${updates.status}`
+            const notificationType = updates.status === 'Done' ? 'task_completed' : 'task_updated'
+            const recipientsArray = Array.from(connectedUserIds)
+
+            for (const recipientId of recipientsArray) {
+              await createNotification({
+                userId: recipientId,
+                actorId: userId,
+                notificationType,
+                taskId,
+                title,
+                message,
+                linkUrl: `/tasks/${taskId}`
+              })
+            }
+          }
+        } catch (notifError) {
+          console.error('⚠️ Failed to create task status update notifications:', notifError)
+        }
+      })()
+    }
+
     // Handle support task closure notifications
     if (updates.status && currentTask && currentTask.status !== updates.status) {
       try {
         // Check if this is a support task being closed
         const isSupportTask = currentTask.description?.startsWith('[SUPPORT]')
         const isClosedStatus = updates.status === 'Done' || updates.status === 'Cancel' || updates.status === 'Stop'
+
 
         if (isSupportTask && isClosedStatus) {
           // Extract main task ID from remarks

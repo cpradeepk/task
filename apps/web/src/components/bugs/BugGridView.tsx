@@ -235,7 +235,7 @@ export default function BugGridView({
           onChange={e => setDraftValue(e.target.value)}
           onBlur={() => saveEdit(bug)}
           onKeyDown={e => handleKeyDown(e, bug)}
-          className="w-full px-2 py-1 text-xs border-2 border-primary rounded focus:outline-none bg-white dark:bg-gray-800 dark:text-white"
+          className="w-full px-2 py-1 text-xs border-2 border-primary rounded focus:outline-none bg-white"
         >
           <option value="">—</option>
           {options.map(opt => (
@@ -249,7 +249,7 @@ export default function BugGridView({
         <button
           type="button"
           onClick={() => startEdit(bug.bugId, field, '')}
-          className="px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition bg-neutral-50 text-neutral-500 border-dashed border-neutral-300 dark:bg-transparent dark:text-neutral-400 dark:border-neutral-700"
+          className="px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition bg-neutral-50 text-neutral-500 border-dashed border-neutral-300"
           title="Click to edit"
         >
           {placeholder}
@@ -444,7 +444,7 @@ export default function BugGridView({
             bug, 'category', bug.category, CATEGORY_OPTIONS,
             () => ({
               tone: 'info' as const,
-              className: 'bg-info-100 text-info-700 border-info-500/40 dark:bg-info-500/15 dark:text-info-300 dark:border-info-500/40',
+              className: 'bg-info-100 text-info-700 border-info-500/40',
               icon: CircleIcon,
               label: bug.category || '—',
             })

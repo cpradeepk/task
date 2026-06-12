@@ -2,23 +2,35 @@
  * Push Notification Service
  * 
  * Handles push notification registration, permissions, and listeners
- * using Expo Notifications API
+ * using Expo Notifications API. Dynamically required to prevent crashes in Expo Go (SDK 53+).
  */
 
-import * as Notifications from 'expo-notifications'
 import { Platform } from 'react-native'
 import Constants from 'expo-constants'
 
-// Configure how notifications are handled when app is in foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-})
+// Safe dynamic import for expo-notifications to prevent Expo Go SDK 53 crash
+let Notifications: any = null
+try {
+  const isExpoGo = Constants.appOwnership === 'expo'
+  if (!isExpoGo && Platform.OS !== 'web') {
+    Notifications = require('expo-notifications')
+    
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    })
+    console.log('✅ Push notification service initialized successfully')
+  } else {
+    console.log('ℹ️ Running in Expo Go: Bypassing native notifications module to prevent crashes/warnings.')
+  }
+} catch (error) {
+  console.warn('⚠️ Failed to load expo-notifications:', error)
+}
 
 export interface PushNotificationData {
   [key: string]: string | undefined
@@ -39,6 +51,10 @@ export interface PushNotificationData {
  */
 export async function registerForPushNotifications(): Promise<string | null> {
   try {
+    if (!Notifications) {
+      return null
+    }
+
     // Check if running on native platform (push notifications don't work on web)
     if (Platform.OS === 'web') {
       return null
@@ -57,6 +73,13 @@ export async function registerForPushNotifications(): Promise<string | null> {
     // Return null if permission denied
     if (finalStatus !== 'granted') {
       console.warn('Push notification permission denied')
+      return null
+    }
+
+    // Skip remote push token registration in Expo Go to prevent crashes/credential errors
+    const isExpoGo = Constants.appOwnership === 'expo'
+    if (isExpoGo) {
+      console.log('ℹ️ Running in Expo Go: Skipping remote push token registration (Local notifications are active)')
       return null
     }
 
@@ -121,11 +144,15 @@ export async function registerForPushNotifications(): Promise<string | null> {
  * @returns Cleanup function to remove listeners
  */
 export function setupNotificationListeners(
-  onNotificationReceived?: (notification: Notifications.Notification) => void,
-  onNotificationTapped?: (response: Notifications.NotificationResponse) => void
+  onNotificationReceived?: (notification: any) => void,
+  onNotificationTapped?: (response: any) => void
 ): () => void {
+  if (!Notifications) {
+    return () => {}
+  }
+
   // Listener for notifications received while app is in foreground
-  const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
+  const receivedSubscription = Notifications.addNotificationReceivedListener((notification: any) => {
     console.log('Notification received in foreground:', notification)
     if (onNotificationReceived) {
       onNotificationReceived(notification)
@@ -133,7 +160,7 @@ export function setupNotificationListeners(
   })
 
   // Listener for notification tap (user tapped notification)
-  const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+  const responseSubscription = Notifications.addNotificationResponseReceivedListener((response: any) => {
     console.log('Notification tapped:', response)
     if (onNotificationTapped) {
       onNotificationTapped(response)
@@ -158,8 +185,11 @@ export async function scheduleLocalNotification(
   title: string,
   body: string,
   data?: PushNotificationData,
-  trigger?: Notifications.NotificationTriggerInput
+  trigger?: any
 ): Promise<string> {
+  if (!Notifications) {
+    return ''
+  }
   return await Notifications.scheduleNotificationAsync({
     content: {
       title,
@@ -175,6 +205,7 @@ export async function scheduleLocalNotification(
  * Cancel all scheduled notifications
  */
 export async function cancelAllNotifications(): Promise<void> {
+  if (!Notifications) return
   await Notifications.cancelAllScheduledNotificationsAsync()
 }
 
@@ -182,6 +213,7 @@ export async function cancelAllNotifications(): Promise<void> {
  * Get badge count
  */
 export async function getBadgeCount(): Promise<number> {
+  if (!Notifications) return 0
   return await Notifications.getBadgeCountAsync()
 }
 
@@ -189,6 +221,6 @@ export async function getBadgeCount(): Promise<number> {
  * Set badge count
  */
 export async function setBadgeCount(count: number): Promise<void> {
+  if (!Notifications) return
   await Notifications.setBadgeCountAsync(count)
 }
-

@@ -7,6 +7,7 @@ import { createActivityLog } from '@/lib/db/activityLog'
 import { generateSequentialTaskId } from '@/lib/data'
 import { getAuthUser } from '@/lib/auth-server'
 import { getUserProjectIds } from '@/lib/db/project-users'
+import { createNotification } from '@/lib/notification-helper'
 
 export async function GET(request: NextRequest) {
   console.log('🔵 [TASKS-GET] API called')
@@ -140,6 +141,30 @@ export async function POST(request: NextRequest) {
     }).catch(activityError => {
       console.error('⚠️ Failed to log task creation activity:', activityError)
     })
+    // Fire-and-forget: In-app & Push notification (non-blocking)
+    if (task.assignedTo && Array.isArray(task.assignedTo) && task.assignedTo.length > 0) {
+      (async () => {
+        try {
+          const creator = await getUserByEmployeeId(task.assignedBy || 'system')
+          const title = 'New Task Assigned'
+          const message = `${creator?.name || task.assignedBy || 'Someone'} assigned you task: ${task.name || task.description || 'New Task'}`
+          
+          for (const assigneeId of task.assignedTo) {
+            await createNotification({
+              userId: assigneeId,
+              actorId: task.assignedBy || 'system',
+              notificationType: taskData.description?.startsWith('[SUPPORT]') ? 'task_support_assigned' : 'task_assigned',
+              taskId: task.taskId,
+              title,
+              message,
+              linkUrl: `/tasks/${task.taskId}`
+            })
+          }
+        } catch (notifError) {
+          console.error('⚠️ Failed to create task assignment notifications:', notifError)
+        }
+      })()
+    }
 
     // Fire-and-forget: Email notifications (non-blocking)
     if (emailService.isAvailable()) {

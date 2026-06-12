@@ -577,13 +577,13 @@ export default function Approvals() {
         )}
 
         {/* Tabs */}
-        <div className="border-b border-secondary-200">
+        <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab('leave')}
               className={`py-2 px-1 border-b-2 font-medium text-sm tab-button whitespace-nowrap ${activeTab === 'leave'
                 ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               Leave Applications ({pendingLeaves.length})
@@ -592,7 +592,7 @@ export default function Approvals() {
               onClick={() => setActiveTab('wfh')}
               className={`py-2 px-1 border-b-2 font-medium text-sm tab-button whitespace-nowrap ${activeTab === 'wfh'
                 ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               WFH Applications ({pendingWFHs.length})
@@ -601,7 +601,7 @@ export default function Approvals() {
               onClick={() => setActiveTab('attendance-approvals')}
               className={`py-2 px-1 border-b-2 font-medium text-sm tab-button whitespace-nowrap ${activeTab === 'attendance-approvals'
                 ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               Attendance Approvals ({pendingAttendanceRequests.length})
@@ -610,7 +610,7 @@ export default function Approvals() {
               onClick={() => setActiveTab('attendance-calendar')}
               className={`py-2 px-1 border-b-2 font-medium text-sm tab-button whitespace-nowrap ${activeTab === 'attendance-calendar'
                 ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               Attendance Calendar
@@ -624,12 +624,12 @@ export default function Approvals() {
             {isLoadingLeaves ? (
               <div className="card text-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-secondary-600">Loading leave applications...</p>
+                <p className="text-gray-600">Loading leave applications...</p>
               </div>
             ) : pendingLeaves.length === 0 ? (
               <div className="card text-center py-8">
-                <Clock className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-                <p className="text-secondary-600">No pending leave applications</p>
+                <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No pending leave applications</p>
               </div>
             ) : (
               pendingLeaves.map((application) => (
@@ -637,14 +637,14 @@ export default function Approvals() {
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold text-secondary-900">{application.employeeName}</h3>
-                        <span className="text-sm text-secondary-600">({application.employeeId})</span>
+                        <h3 className="font-semibold text-gray-900">{application.employeeName}</h3>
+                        <span className="text-sm text-gray-600">({application.employeeId})</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
                           {application.status}
                         </span>
                       </div>
 
-                      <div className="space-y-2 text-sm text-secondary-600">
+                      <div className="space-y-2 text-sm text-gray-600">
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-4 w-4" />
                           <span>
@@ -666,8 +666,8 @@ export default function Approvals() {
                         )}
                       </div>
 
-                      <div className="mt-3 p-3 bg-secondary-50 rounded-lg">
-                        <p className="text-sm text-secondary-700">
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-700">
                           <strong>Reason:</strong> {application.reason}
                         </p>
                       </div>
@@ -702,12 +702,12 @@ export default function Approvals() {
             {isLoadingWFH ? (
               <div className="card text-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-secondary-600">Loading WFH applications...</p>
+                <p className="text-gray-600">Loading WFH applications...</p>
               </div>
             ) : pendingWFHs.length === 0 ? (
               <div className="card text-center py-8">
-                <Clock className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-                <p className="text-secondary-600">No pending WFH applications</p>
+                <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No pending WFH applications</p>
               </div>
             ) : (
               pendingWFHs.map((application) => (
@@ -715,14 +715,14 @@ export default function Approvals() {
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold text-secondary-900">{application.employeeName}</h3>
-                        <span className="text-sm text-secondary-600">({application.employeeId})</span>
+                        <h3 className="font-semibold text-gray-900">{application.employeeName}</h3>
+                        <span className="text-sm text-gray-600">({application.employeeId})</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
                           {application.status}
                         </span>
                       </div>
 
-                      <div className="space-y-2 text-sm text-secondary-600">
+                      <div className="space-y-2 text-sm text-gray-600">
                         <div className="flex items-center space-x-2">
                           <Clock className="h-4 w-4" />
                           <span><strong>Type:</strong> {application.wfhType}</span>
@@ -751,8 +751,8 @@ export default function Approvals() {
                         )}
                       </div>
 
-                      <div className="mt-3 p-3 bg-secondary-50 rounded-lg">
-                        <p className="text-sm text-secondary-700">
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-700">
                           <strong>Reason:</strong> {application.reason}
                         </p>
                       </div>
@@ -787,12 +787,12 @@ export default function Approvals() {
             {isLoadingAttendance ? (
               <div className="card text-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-secondary-600">Loading attendance requests...</p>
+                <p className="text-gray-600">Loading attendance requests...</p>
               </div>
             ) : pendingAttendanceRequests.length === 0 ? (
               <div className="card text-center py-8">
-                <Clock className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-                <p className="text-secondary-600">No pending attendance edit requests</p>
+                <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No pending attendance edit requests</p>
               </div>
             ) : (
               pendingAttendanceRequests.map((request) => (
@@ -800,8 +800,8 @@ export default function Approvals() {
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold text-secondary-900">{request.user.name}</h3>
-                        <span className="text-sm text-secondary-600">({request.user.employeeId})</span>
+                        <h3 className="font-semibold text-gray-900">{request.user.name}</h3>
+                        <span className="text-sm text-gray-600">({request.user.employeeId})</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.requestType === 'SIGN_IN_EDIT' ? 'bg-blue-100 text-blue-800' :
                           request.requestType === 'SIGN_OUT_EDIT' ? 'bg-purple-100 text-purple-800' :
                             'bg-orange-100 text-orange-800'
@@ -812,7 +812,7 @@ export default function Approvals() {
                         </span>
                       </div>
 
-                      <div className="space-y-2 text-sm text-secondary-600">
+                      <div className="space-y-2 text-sm text-gray-600">
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-4 w-4" />
                           <span><strong>Date:</strong> {formatDate(request.attendanceDate)}</span>
@@ -834,8 +834,8 @@ export default function Approvals() {
                       </div>
 
                       {request.reason && (
-                        <div className="mt-3 p-3 bg-secondary-50 rounded-lg">
-                          <p className="text-sm text-secondary-700">
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm text-gray-700">
                             <strong>Reason:</strong> {request.reason}
                           </p>
                         </div>

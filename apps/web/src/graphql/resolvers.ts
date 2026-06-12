@@ -195,22 +195,27 @@ const createFeedPostTopicsLoader = () => new DataLoader(async (postIds: readonly
   return postIds.map(id => topicMap.get(id) || [])
 })
 
-export const createContext = () => ({
-  loaders: {
-    user: createUserLoader(),
-    task: createTaskLoader(),
-    bug: createBugLoader(),
-    projectLoader: createProjectLoader(),
-    subtasks: createSubtaskLoader(),
-    bugSubtasks: createBugSubtaskLoader(),
-    feedPost: createFeedPostLoader(),
-    feedTopic: createFeedTopicLoader(),
-    feedComments: createFeedCommentsLoader(),
-    feedReactions: createFeedReactionsLoader(),
-    feedPostTopics: createFeedPostTopicsLoader(),
-    notificationLoader: createNotificationLoader()
+export const createContext = () => {
+  const userLoaderInstance = createUserLoader()
+  return {
+    loaders: {
+      user: userLoaderInstance,
+      userLoader: userLoaderInstance,
+      task: createTaskLoader(),
+      bug: createBugLoader(),
+      projectLoader: createProjectLoader(),
+      subtasks: createSubtaskLoader(),
+      bugSubtasks: createBugSubtaskLoader(),
+      feedPost: createFeedPostLoader(),
+      feedTopic: createFeedTopicLoader(),
+      feedComments: createFeedCommentsLoader(),
+      feedReactions: createFeedReactionsLoader(),
+      feedPostTopics: createFeedPostTopicsLoader(),
+      notificationLoader: createNotificationLoader()
+    }
   }
-})
+}
+
 
 export const resolvers = {
   Query: {
@@ -2960,21 +2965,7 @@ export const resolvers = {
     ...notificationMutations,
 
     // Push Token Mutations
-    unregisterPushToken: async (
-      _: any,
-      { userId, pushToken }: { userId: string; pushToken: string }
-    ) => {
-      try {
-        await getPoolInstance().query(
-          'DELETE FROM push_tokens WHERE user_id = $1 AND token = $2',
-          [userId, pushToken]
-        )
-        return true
-      } catch (error) {
-        console.error('Error unregistering push token:', error)
-        return false
-      }
-    },
+    ...pushTokenMutations,
 
     // Attendance Mutations
     signIn: async (_: any, __: any, context: any) => {

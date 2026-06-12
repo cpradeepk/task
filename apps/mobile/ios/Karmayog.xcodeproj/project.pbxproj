@@ -14,6 +14,7 @@
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		C6259B555CF1BB53A7BA071B /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2391A5D76A766E7C0D49D04 /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		FC610D442FD9CCB400829702 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FC610D432FD9CCB400829702 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		F11748442D0722820044C1D9 /* Karmayog-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Karmayog-Bridging-Header.h"; path = "Karmayog/Karmayog-Bridging-Header.h"; sourceTree = "<group>"; };
 		F2E93B6D6261E34E2F95110E /* libPods-Karmayog.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Karmayog.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FBA3BD891A4311E6D14EE2FE /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Karmayog/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		FC610D432FD9CCB400829702 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +49,7 @@
 		13B07FAE1A68108700A75B9A /* Karmayog */ = {
 			isa = PBXGroup;
 			children = (
+				FC610D432FD9CCB400829702 /* GoogleService-Info.plist */,
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
 				F11748442D0722820044C1D9 /* Karmayog-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
@@ -194,6 +197,7 @@
 			files = (
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				FC610D442FD9CCB400829702 /* GoogleService-Info.plist in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				6D74308CC26B504F58373F63 /* PrivacyInfo.xcprivacy in Resources */,
 			);

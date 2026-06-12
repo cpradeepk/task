@@ -566,6 +566,12 @@ export const GET_NOTIFICATIONS = gql`
   query GetNotifications($userId: String!, $isRead: Boolean, $limit: Int, $offset: Int) {
     feedNotifications(userId: $userId, isRead: $isRead, limit: $limit, offset: $offset) {
       notificationId
+      notificationType
+      postId
+      commentId
+      mentionId
+      taskId
+      bugId
       title
       message
       linkUrl

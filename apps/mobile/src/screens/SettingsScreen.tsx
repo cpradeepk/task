@@ -23,6 +23,7 @@ import { SearchablePicker } from '../components/SearchablePicker'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as DocumentPicker from 'expo-document-picker'
 import { useNavigation } from '@react-navigation/native'
+import Constants from 'expo-constants'
 
 import { AuthContext } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
@@ -668,7 +669,7 @@ export default function SettingsScreen() {
               Logout
             </Button>
 
-            <Text style={styles.versionText}>Version 1.0.0</Text>
+            <Text style={styles.versionText}>Version {Constants.expoConfig?.version || '1.1.0'}</Text>
           </>
         )}
       </ScrollView>

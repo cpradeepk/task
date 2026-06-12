@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
 import { QUERIES } from '@/lib/graphql-queries'
 
@@ -45,23 +46,27 @@ export default function Settings() {
     wfhApplications: 0
   })
   const router = useRouter()
-  const currentUser = getCurrentUser()
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    if (!currentUser) {
+    setIsClient(true)
+    const user = getCurrentUser()
+    if (!user) {
       router.push('/')
       return
     }
 
     // Only Admin and Top Management can access Settings
-    if (currentUser.role !== 'admin' && currentUser.role !== 'top_management') {
+    if (user.role !== 'admin' && user.role !== 'top_management') {
       router.push('/dashboard')
       return
     }
 
+    setCurrentUser(user)
     // Load stats only once when component mounts
     loadStats()
-  }, [currentUser, router])
+  }, [router])
 
   const loadStats = async () => {
     // Prevent excessive API calls - minimum 30 seconds between loads
@@ -258,7 +263,7 @@ export default function Settings() {
 
   // Clear data functionality removed - Google Sheets is the single source of truth
 
-  if (!currentUser) return null
+  if (!isClient || !currentUser) return null
 
   return (
     <div>
@@ -266,8 +271,8 @@ export default function Settings() {
       <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">System Settings</h1>
-          <p className="text-secondary-600 mt-1">Manage system configuration and data</p>
+          <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
+          <p className="text-gray-500 mt-1">Manage system configuration and data</p>
         </div>
       </div>
 
@@ -290,7 +295,7 @@ export default function Settings() {
       {/* Data Statistics */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-secondary-900 flex items-center space-x-2">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
             <Database className="h-5 w-5" />
             <span>Data Overview</span>
           </h3>
@@ -307,19 +312,19 @@ export default function Settings() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-primary-50 rounded-lg">
             <div className="text-2xl font-bold text-primary-600">{stats.users}</div>
-            <div className="text-sm text-secondary-600">Users</div>
+            <div className="text-sm text-gray-600">Users</div>
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{stats.tasks}</div>
-            <div className="text-sm text-secondary-600">Tasks</div>
+            <div className="text-sm text-gray-600">Tasks</div>
           </div>
           <div className="text-center p-4 bg-yellow-50 rounded-lg">
             <div className="text-2xl font-bold text-yellow-600">{stats.leaveApplications}</div>
-            <div className="text-sm text-secondary-600">Leave Applications</div>
+            <div className="text-sm text-gray-600">Leave Applications</div>
           </div>
           <div className="text-center p-4 bg-blue-50 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">{stats.wfhApplications}</div>
-            <div className="text-sm text-secondary-600">WFH Applications</div>
+            <div className="text-sm text-gray-600">WFH Applications</div>
           </div>
         </div>
       </div>
@@ -327,34 +332,47 @@ export default function Settings() {
       {/* Quick Access Links */}
       {(currentUser.role === 'admin' || currentUser.employeeId === 'AM-0001') && (
         <div className="card">
-          <h3 className="text-lg font-semibold text-secondary-900 mb-4 flex items-center space-x-2">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
             <SettingsIcon className="h-5 w-5" />
             <span>Quick Access</span>
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link
               href="/settings/dropdowns"
-              className="p-4 border border-secondary-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <h4 className="font-medium text-secondary-900 mb-1">Dropdown Settings</h4>
-              <p className="text-sm text-secondary-600">
+              <h4 className="font-medium text-gray-900 mb-1">Dropdown Settings</h4>
+              <p className="text-sm text-gray-600">
                 Manage dropdown options for tasks, bugs, and other features
               </p>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/settings/permissions"
-              className="p-4 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors"
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center space-x-2 mb-1">
                 <Shield className="h-5 w-5 text-primary-600" />
-                <h4 className="font-medium text-secondary-900">Permissions Management</h4>
+                <h4 className="font-medium text-gray-900">Permissions Management</h4>
               </div>
-              <p className="text-sm text-secondary-600">
+              <p className="text-sm text-gray-600">
                 Configure role-based and user-specific permissions
               </p>
-            </a>
+            </Link>
+
+            <Link
+              href="/settings/app-management"
+              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center space-x-2 mb-1">
+                <SettingsIcon className="h-5 w-5 text-primary-600" />
+                <h4 className="font-medium text-gray-900">App Management</h4>
+              </div>
+              <p className="text-sm text-gray-600">
+                Manage mobile app versions, store links, and maintenance mode
+              </p>
+            </Link>
           </div>
         </div>
       )}
@@ -367,17 +385,17 @@ export default function Settings() {
 
       {/* Data Management */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-secondary-900 mb-4 flex items-center space-x-2">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
           <FileText className="h-5 w-5" />
           <span>Data Management</span>
         </h3>
         
         <div className="space-y-4">
           {/* Backup */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-secondary-200 rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-200 rounded-lg">
             <div>
-              <h4 className="font-medium text-secondary-900">Backup Data</h4>
-              <p className="text-sm text-secondary-600 mt-1">
+              <h4 className="font-medium text-gray-900">Backup Data</h4>
+              <p className="text-sm text-gray-600 mt-1">
                 Download a complete backup of all system data
               </p>
             </div>
@@ -409,7 +427,7 @@ export default function Settings() {
 
       {/* Database Status */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-secondary-900 mb-4 flex items-center space-x-2">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
           <Shield className="h-5 w-5" />
           <span>Database Status</span>
         </h3>
@@ -435,24 +453,24 @@ export default function Settings() {
 
       {/* System Information */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-secondary-900 mb-4">System Information</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">System Information</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="font-medium text-secondary-700">Version:</span>
-            <span className="ml-2 text-secondary-600">1.0.0</span>
+            <span className="font-medium text-gray-700">Version:</span>
+            <span className="ml-2 text-gray-600">1.0.0</span>
           </div>
           <div>
-            <span className="font-medium text-secondary-700">Storage:</span>
-            <span className="ml-2 text-secondary-600">MySQL Database</span>
+            <span className="font-medium text-gray-700">Storage:</span>
+            <span className="ml-2 text-gray-600">MySQL Database</span>
           </div>
           <div>
-            <span className="font-medium text-secondary-700">Last Backup:</span>
-            <span className="ml-2 text-secondary-600">Real-time (Automated)</span>
+            <span className="font-medium text-gray-700">Last Backup:</span>
+            <span className="ml-2 text-gray-600">Real-time (Automated)</span>
           </div>
           <div>
-            <span className="font-medium text-secondary-700">Data Format:</span>
-            <span className="ml-2 text-secondary-600">Relational Database</span>
+            <span className="font-medium text-gray-700">Data Format:</span>
+            <span className="ml-2 text-gray-600">Relational Database</span>
           </div>
         </div>
       </div>

@@ -222,28 +222,7 @@
   --color-border-light: #F1F5F9;
 }
 
-.dark {
-  --foreground-rgb: 243, 244, 246;
-  --background-rgb: 18, 18, 18;
-  --primary-rgb: 167, 139, 250;
-
-  /* Brighter purple in dark mode for better contrast on dark surfaces */
-  --color-brand: #A78BFA;
-  --color-brand-dark: #8B5CF6;
-  --color-brand-light: #C4B5FD;
-  --color-brand-50: #2E1065;
-  --color-brand-100: #3B1376;
-
-  /* Dark gunmetal palette (not pure black — easier on eyes per design brief) */
-  --color-bg: #121212;
-  --color-bg-secondary: #1E1E1E;
-  --color-text: #F3F4F6;
-  --color-text-secondary: #CBD5E1;
-  --color-text-muted: #94A3B8;
-  --color-surface: #2A2A2A;
-  --color-border: #2A2A2A;
-  --color-border-light: #1E1E1E;
-}
+/* Dark mode removed — app uses permanent light theme */
 
 html {
   scroll-behavior: smooth;
@@ -251,8 +230,8 @@ html {
 }
 
 body {
-  color: var(--color-text);
-  background: var(--color-bg);
+  color: #111827;
+  background: #ffffff;
   font-family: "Signika", sans-serif;
   overflow-x: hidden;
   width: 100%;
@@ -263,15 +242,8 @@ body {
   * {
     @apply border-gray-200;
   }
-  .dark * {
-    border-color: var(--color-border);
-  }
   body {
     @apply bg-white text-black;
-  }
-  .dark body {
-    background-color: var(--color-bg);
-    color: var(--color-text);
   }
 }
 
