@@ -18,7 +18,7 @@ import { logger, logApiRequest, logApiResponse, logApiError } from '../utils/deb
 
 // API URL auto-toggled based on build type (local dev vs production release)
 const API_URL = __DEV__
-  ? 'http://192.168.0.107:3001/api/graphql'
+  ? 'https://task.amtariksha.com/api/graphql' //'http://192.168.0.107:3001/api/graphql'
   : 'https://task.amtariksha.com/api/graphql'
 
 /**

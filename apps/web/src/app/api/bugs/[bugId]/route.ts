@@ -84,9 +84,8 @@ export async function PUT(
     }
 
     // Get current user for activity logging
-    const token = request.cookies.get('token')?.value
-    const user = token ? verifyToken(token) : null
-    const userId = user?.employeeId || updates.assignedBy || 'system'
+    const authUser = await getAuthUser(request)
+    const userId = authUser?.employeeId || updates.assignedBy || 'system'
 
     // Get the current bug state before updating
     const currentBug = await getBugById(bugId)
@@ -158,7 +157,10 @@ export async function PUT(
           const recipients = new Set<string>()
           if (bug.assignedTo) recipients.add(bug.assignedTo)
           if (bug.reportedBy) recipients.add(bug.reportedBy)
-          recipients.delete(userId) // Don't notify the actor
+          const isSelfBug = bug.assignedTo === userId
+          if (!isSelfBug) {
+            recipients.delete(userId)
+          }
 
           for (const recipientId of Array.from(recipients)) {
             await createNotification({
@@ -180,7 +182,10 @@ export async function PUT(
           const recipients = new Set<string>()
           if (bug.assignedTo) recipients.add(bug.assignedTo)
           if (bug.reportedBy) recipients.add(bug.reportedBy)
-          recipients.delete(userId) // Don't notify the actor
+          const isSelfBug = bug.assignedTo === userId
+          if (!isSelfBug) {
+            recipients.delete(userId)
+          }
 
           for (const recipientId of Array.from(recipients)) {
             await createNotification({
