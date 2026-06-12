@@ -9,7 +9,11 @@ import {
   createActivityLog,
   CreateActivityLogInput
 } from '@/lib/db/activityLog'
-import { verifyToken } from '@/lib/auth-server'
+import { verifyToken, getAuthUser } from '@/lib/auth-server'
+import { getTaskById } from '@/lib/db/tasks'
+import { getBugById } from '@/lib/db/bugs'
+import { getUserByEmployeeId } from '@/lib/db/users'
+import { createNotification } from '@/lib/notification-helper'
 
 /**
  * GET /api/activity-log
@@ -27,18 +31,10 @@ import { verifyToken } from '@/lib/auth-server'
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-    const token = request.cookies.get('token')?.value
-    if (!token) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const user = verifyToken(token)
+    const user = await getAuthUser(request)
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Invalid token' },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       )
     }
@@ -154,24 +150,13 @@ export async function POST(request: NextRequest) {
 
   try {
     // Verify authentication
-    const token = request.cookies.get('token')?.value
-    console.log('🔵 [ACTIVITY-LOG] Token present:', !!token)
-
-    if (!token) {
-      console.log('❌ [ACTIVITY-LOG] No token found')
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const user = verifyToken(token)
+    const user = await getAuthUser(request)
     console.log('🔵 [ACTIVITY-LOG] User verified:', user ? user.employeeId : 'null')
 
     if (!user) {
-      console.log('❌ [ACTIVITY-LOG] Invalid token')
+      console.log('❌ [ACTIVITY-LOG] Invalid token / Unauthorized')
       return NextResponse.json(
-        { success: false, error: 'Invalid token' },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       )
     }
@@ -237,6 +222,89 @@ export async function POST(request: NextRequest) {
     console.log('🔵 [ACTIVITY-LOG] Creating activity log entry...')
     const activity = await createActivityLog(activityInput)
     console.log('✅ [ACTIVITY-LOG] Activity log created successfully:', activity.id)
+
+    // Fire-and-forget comment notifications (non-blocking)
+    if (activity.isComment) {
+      (async () => {
+        try {
+          const { entityType, entityId, userId, description } = activity
+          const commenter = await getUserByEmployeeId(userId)
+          const commenterName = commenter?.name || userId
+
+          if (entityType === 'task') {
+            const task = await getTaskById(entityId)
+            if (task) {
+              const connectedUserIds = new Set<string>()
+              
+              if (Array.isArray(task.assignedTo)) {
+                task.assignedTo.forEach((id: string) => connectedUserIds.add(id))
+              } else if (typeof task.assignedTo === 'string' && task.assignedTo) {
+                connectedUserIds.add(task.assignedTo)
+              }
+
+              if (Array.isArray(task.support)) {
+                task.support.forEach((id: string) => connectedUserIds.add(id))
+              } else if (typeof task.support === 'string' && task.support) {
+                connectedUserIds.add(task.support)
+              }
+
+              if (task.assignedBy) connectedUserIds.add(task.assignedBy)
+
+              // Exclude the commenter
+              connectedUserIds.delete(userId)
+
+              if (connectedUserIds.size > 0) {
+                const title = `New Task Comment`
+                const message = `${commenterName} commented: ${description}`
+                const recipientsArray = Array.from(connectedUserIds)
+
+                for (const recipientId of recipientsArray) {
+                  await createNotification({
+                    userId: recipientId,
+                    actorId: userId,
+                    notificationType: 'task_commented',
+                    taskId: entityId,
+                    title,
+                    message,
+                    linkUrl: `/tasks/${entityId}`
+                  })
+                }
+              }
+            }
+          } else if (entityType === 'bug') {
+            const bug = await getBugById(entityId)
+            if (bug) {
+              const connectedUserIds = new Set<string>()
+              if (bug.assignedTo) connectedUserIds.add(bug.assignedTo)
+              if (bug.reportedBy) connectedUserIds.add(bug.reportedBy)
+
+              // Exclude the commenter
+              connectedUserIds.delete(userId)
+
+              if (connectedUserIds.size > 0) {
+                const title = `New Bug Comment`
+                const message = `${commenterName} commented: ${description}`
+                const recipientsArray = Array.from(connectedUserIds)
+
+                for (const recipientId of recipientsArray) {
+                  await createNotification({
+                    userId: recipientId,
+                    actorId: userId,
+                    notificationType: 'bug_commented',
+                    bugId: entityId,
+                    title,
+                    message,
+                    linkUrl: `/bugs/${entityId}`
+                  })
+                }
+              }
+            }
+          }
+        } catch (notifError) {
+          console.error('⚠️ Failed to process comment notification:', notifError)
+        }
+      })()
+    }
 
     return NextResponse.json({
       success: true,

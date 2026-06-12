@@ -76,9 +76,8 @@ export async function PUT(
     const updates = await request.json()
 
     // Get current user for activity logging
-    const token = request.cookies.get('token')?.value
-    const user = token ? verifyToken(token) : null
-    const userId = user?.employeeId || 'system'
+    const authUser = await getAuthUser(request)
+    const userId = authUser?.employeeId || 'system'
 
     // Basic validation for positive numbers
     if (updates.estimatedHours && updates.estimatedHours < 0) {
@@ -158,8 +157,13 @@ export async function PUT(
 
           if (currentTask.assignedBy) connectedUserIds.add(currentTask.assignedBy)
 
-          // Exclude the user who did the update
-          connectedUserIds.delete(userId)
+          // Exclude the user who did the update, unless it is a self-assigned task
+          const isSelfTask = Array.isArray(currentTask.assignedTo)
+            ? currentTask.assignedTo.includes(userId)
+            : currentTask.assignedTo === userId
+          if (!isSelfTask) {
+            connectedUserIds.delete(userId)
+          }
 
           if (connectedUserIds.size > 0) {
             const title = 'Task Status Changed'

@@ -45,6 +45,8 @@ function mapNotificationTypeToPrefKey(type: string): string | null {
     case 'leave_rejected': return 'leaveRejected'
     case 'wfh_approved': return 'wfhApproved'
     case 'wfh_rejected': return 'wfhRejected'
+    case 'task_commented': return 'taskCommented'
+    case 'bug_commented': return 'bugCommented'
     default: return null
   }
 }
@@ -259,8 +261,8 @@ export async function createNotification(params: CreateNotificationParams): Prom
     metadata
   } = params
 
-  // Don't create notification if user is notifying themselves
-  if (userId === actorId) {
+  // Don't create notification if user is notifying themselves, except for tasks and bugs
+  if (userId === actorId && !taskId && !bugId) {
     return ''
   }
 
