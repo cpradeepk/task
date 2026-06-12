@@ -24,6 +24,7 @@ import {
 import Navbar from '@/components/layout/Navbar'
 import IDCard from '@/components/profile/IDCard'
 import IdCardPhotoUpload from '@/components/profile/IdCardPhotoUpload'
+import { useSecurity } from '@/contexts/SecurityContext'
 
 // Helper function to execute GraphQL queries
 async function executeGraphQLQuery(query: string, variables: any) {
@@ -41,6 +42,85 @@ async function executeGraphQLQuery(query: string, variables: any) {
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+
+  // Security integration from context
+  const security = useSecurity()
+  const biometricEnabled = security?.biometricEnabled || false
+  const registerWebBiometrics = security?.registerWebBiometrics || (async () => false)
+  const setBiometricEnabled = security?.setBiometricEnabled || (() => {})
+
+  const [currentPin, setCurrentPin] = useState('')
+  const [newPin, setNewPin] = useState('')
+  const [confirmNewPin, setConfirmNewPin] = useState('')
+  const [securityError, setSecurityError] = useState('')
+  const [securitySuccess, setSecuritySuccess] = useState('')
+  const [bioSupported, setBioSupported] = useState(false)
+  const [isPinEditing, setIsPinEditing] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setBioSupported(!!window.PublicKeyCredential)
+    }
+  }, [])
+
+  const handleToggleBiometricWeb = async () => {
+    setSecurityError('')
+    setSecuritySuccess('')
+    if (biometricEnabled) {
+      localStorage.removeItem('jsr_biometric_enabled')
+      localStorage.removeItem('jsr_biometric_credential_id')
+      setBiometricEnabled(false)
+      setSecuritySuccess('Biometric login disabled.')
+    } else {
+      const success = await registerWebBiometrics()
+      if (success) {
+        setSecuritySuccess('Biometric login enabled successfully!')
+      } else {
+        setSecurityError('Failed to setup biometric login.')
+      }
+    }
+  }
+
+  const handleChangePinWeb = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSecurityError('')
+    setSecuritySuccess('')
+
+    if (currentPin.length !== 4 || newPin.length !== 4 || confirmNewPin.length !== 4) {
+      setSecurityError('All PIN inputs must be exactly 4 digits.')
+      return
+    }
+
+    if (newPin !== confirmNewPin) {
+      setSecurityError('New PINs do not match.')
+      return
+    }
+
+    const hashPin = async (rawPin: string): Promise<string> => {
+      const encoder = new TextEncoder()
+      const data = encoder.encode(rawPin + 'jsr-salt-secure')
+      const hashBuffer = await window.crypto.subtle.digest('SHA-256', data)
+      const hashArray = Array.from(new Uint8Array(hashBuffer))
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    }
+
+    const inputHash = await hashPin(currentPin)
+    const storedHash = localStorage.getItem('jsr_user_pin')
+
+    if (storedHash !== inputHash) {
+      setSecurityError('Incorrect current PIN.')
+      return
+    }
+
+    const newHash = await hashPin(newPin)
+    localStorage.setItem('jsr_user_pin', newHash)
+    setSecuritySuccess('Security PIN changed successfully!')
+    
+    setCurrentPin('')
+    setNewPin('')
+    setConfirmNewPin('')
+    setIsPinEditing(false)
+  }
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -421,6 +501,111 @@ export default function Profile() {
               currentPhotoUrl={user.idCardPhoto}
               onUploadSuccess={handleIdCardPhotoUploadSuccess}
             />
+          </div>
+        </div>
+
+        {/* Security Settings Section */}
+        <div className="mb-6 border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-semibold text-black mb-3">Security & Device Settings</h3>
+          <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 space-y-4">
+            
+            {/* Biometric Toggle Row */}
+            {bioSupported && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-black">Biometric Login (Touch ID / Face ID)</h4>
+                  <p className="text-sm text-gray-500">Enable Touch ID/Face ID to quickly unlock the application.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleBiometricWeb}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    biometricEnabled ? 'bg-indigo-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      biometricEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
+
+            {/* Error & Success indicators specific to security */}
+            {securityError && (
+              <p className="text-sm text-rose-500">{securityError}</p>
+            )}
+            {securitySuccess && (
+              <p className="text-sm text-green-600">{securitySuccess}</p>
+            )}
+
+            {/* PIN Settings Row */}
+            <div className="border-t border-gray-200 pt-4 flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h4 className="font-semibold text-black">App Security PIN</h4>
+                  <p className="text-sm text-gray-500">Configure your 4-digit authentication lock PIN.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsPinEditing(!isPinEditing)
+                    setSecurityError('')
+                    setSecuritySuccess('')
+                  }}
+                  className="btn-secondary"
+                >
+                  {isPinEditing ? 'Cancel' : 'Change PIN'}
+                </button>
+              </div>
+
+              {isPinEditing && (
+                <form onSubmit={handleChangePinWeb} className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white p-4 rounded-lg border border-gray-200 mt-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Current PIN</label>
+                    <input
+                      type="password"
+                      maxLength={4}
+                      value={currentPin}
+                      onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ''))}
+                      className="input-field text-center font-mono tracking-widest text-lg"
+                      placeholder="••••"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">New PIN</label>
+                    <input
+                      type="password"
+                      maxLength={4}
+                      value={newPin}
+                      onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
+                      className="input-field text-center font-mono tracking-widest text-lg"
+                      placeholder="••••"
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Confirm New PIN</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="password"
+                        maxLength={4}
+                        value={confirmNewPin}
+                        onChange={(e) => setConfirmNewPin(e.target.value.replace(/\D/g, ''))}
+                        className="input-field text-center font-mono tracking-widest text-lg flex-1"
+                        placeholder="••••"
+                        required
+                      />
+                      <button type="submit" className="btn-primary">
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
         </div>
 

@@ -16,9 +16,10 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Modal
+  Modal,
+  Vibration
 } from 'react-native'
-import { Text, Button, ActivityIndicator, Divider, Surface, Switch, IconButton, TextInput as PaperInput } from 'react-native-paper'
+import { Text, Button, ActivityIndicator, Divider, Surface, Switch, IconButton, TextInput as PaperInput, Portal, Dialog } from 'react-native-paper'
 import { SearchablePicker } from '../components/SearchablePicker'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as DocumentPicker from 'expo-document-picker'
@@ -28,7 +29,7 @@ import Constants from 'expo-constants'
 import { AuthContext } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
-import { getUserData, saveUserData as setUserData } from '../utils/secureStorage'
+import { getUserData, saveUserData as setUserData, getSecure, saveSecure, SECURE_KEYS } from '../utils/secureStorage'
 import apiClient from '../services/apiClient'
 import { getAllSettings, GroupedSettings } from '../services/settingsService'
 import {
@@ -100,6 +101,14 @@ export default function SettingsScreen() {
   // ID Card Modal
   const [isIdCardVisible, setIdCardVisible] = useState(false)
   const [uploading, setUploading] = useState(false)
+
+  // Change PIN Flow States
+  const [changePinVisible, setChangePinVisible] = useState(false)
+  const [changePinStep, setChangePinStep] = useState<'verify' | 'new' | 'confirm'>('verify')
+  const [currentPinInput, setCurrentPinInput] = useState('')
+  const [newPinInput, setNewPinInput] = useState('')
+  const [confirmPinInput, setConfirmPinInput] = useState('')
+  const [changePinError, setChangePinError] = useState('')
 
   const loadProfileData = useCallback(async () => {
     try {
@@ -347,6 +356,44 @@ export default function SettingsScreen() {
     } else {
       await disableBiometric()
       setBiometricEnabled(false)
+    }
+  }
+
+  const handleOpenChangePin = () => {
+    setChangePinStep('verify')
+    setCurrentPinInput('')
+    setNewPinInput('')
+    setConfirmPinInput('')
+    setChangePinError('')
+    setChangePinVisible(true)
+  }
+
+  const handleProcessChangePin = async () => {
+    setChangePinError('')
+    if (changePinStep === 'verify') {
+      const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
+      if (storedPin === currentPinInput) {
+        setChangePinStep('new')
+      } else {
+        setChangePinError('Incorrect current PIN')
+        Vibration.vibrate(100)
+      }
+    } else if (changePinStep === 'new') {
+      if (newPinInput.length !== 4 || !/^\d{4}$/.test(newPinInput)) {
+        setChangePinError('PIN must be 4 digits')
+        return
+      }
+      setChangePinStep('confirm')
+    } else if (changePinStep === 'confirm') {
+      if (newPinInput === confirmPinInput) {
+        await saveSecure(SECURE_KEYS.USER_PIN, newPinInput)
+        Alert.alert('Success', 'Security PIN changed successfully')
+        setChangePinVisible(false)
+      } else {
+        setChangePinError('PINs do not match')
+        setConfirmPinInput('')
+        Vibration.vibrate(100)
+      }
     }
   }
 
@@ -648,6 +695,15 @@ export default function SettingsScreen() {
                 <Switch value={isDark} onValueChange={toggleTheme} color={colors.primary} />
               </View>
 
+              <TouchableOpacity
+                style={styles.settingRow}
+                onPress={handleOpenChangePin}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.settingLabel}>Security PIN</Text>
+                <Button mode="text" labelStyle={{ color: colors.primary }}>Change PIN</Button>
+              </TouchableOpacity>
+
               {biometricSupported && biometricEnrolled && (
                 <View style={styles.settingRow}>
                   <Text style={styles.settingLabel}>{biometricType} Login</Text>
@@ -728,6 +784,80 @@ export default function SettingsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Change PIN Dialog */}
+      <Portal>
+        <Dialog visible={changePinVisible} onDismiss={() => setChangePinVisible(false)}>
+          <Dialog.Title>
+            {changePinStep === 'verify' && 'Verify Current PIN'}
+            {changePinStep === 'new' && 'Enter New PIN'}
+            {changePinStep === 'confirm' && 'Confirm New PIN'}
+          </Dialog.Title>
+          <Dialog.Content>
+            {changePinStep === 'verify' && (
+              <View>
+                <Text style={{ marginBottom: 12 }}>Please enter your current 4-digit PIN to proceed.</Text>
+                <PaperInput
+                  mode="outlined"
+                  label="Current PIN"
+                  value={currentPinInput}
+                  onChangeText={setCurrentPinInput}
+                  secureTextEntry
+                  keyboardType="numeric"
+                  maxLength={4}
+                  autoFocus
+                />
+              </View>
+            )}
+            {changePinStep === 'new' && (
+              <View>
+                <Text style={{ marginBottom: 12 }}>Please enter your new 4-digit security PIN.</Text>
+                <PaperInput
+                  mode="outlined"
+                  label="New PIN"
+                  value={newPinInput}
+                  onChangeText={setNewPinInput}
+                  secureTextEntry
+                  keyboardType="numeric"
+                  maxLength={4}
+                  autoFocus
+                />
+              </View>
+            )}
+            {changePinStep === 'confirm' && (
+              <View>
+                <Text style={{ marginBottom: 12 }}>Please confirm your new 4-digit security PIN.</Text>
+                <PaperInput
+                  mode="outlined"
+                  label="Confirm PIN"
+                  value={confirmPinInput}
+                  onChangeText={setConfirmPinInput}
+                  secureTextEntry
+                  keyboardType="numeric"
+                  maxLength={4}
+                  autoFocus
+                />
+              </View>
+            )}
+            {changePinError ? (
+              <Text style={{ color: colors.error, marginTop: 8 }}>{changePinError}</Text>
+            ) : null}
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setChangePinVisible(false)}>Cancel</Button>
+            <Button
+              onPress={handleProcessChangePin}
+              disabled={
+                (changePinStep === 'verify' && currentPinInput.length < 4) ||
+                (changePinStep === 'new' && newPinInput.length < 4) ||
+                (changePinStep === 'confirm' && confirmPinInput.length < 4)
+              }
+            >
+              {changePinStep === 'confirm' ? 'Save' : 'Next'}
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
     </View>
   )
