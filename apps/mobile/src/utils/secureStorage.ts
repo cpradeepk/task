@@ -17,6 +17,7 @@ export const SECURE_KEYS = {
   USER_TOKEN: 'userToken',
   USER_DATA: 'userData',
   BIOMETRIC_ENABLED: 'biometricEnabled',
+  USER_PIN: 'userPin',
 } as const
 
 // Keys for regular storage (non-sensitive)
@@ -127,6 +128,8 @@ export async function clearSecureData(): Promise<void> {
     await Promise.all([
       deleteSecure(SECURE_KEYS.USER_TOKEN),
       deleteSecure(SECURE_KEYS.USER_DATA),
+      deleteSecure(SECURE_KEYS.USER_PIN),
+      deleteSecure(SECURE_KEYS.BIOMETRIC_ENABLED),
     ])
   } catch (error) {
     console.error('Failed to clear secure data:', error)

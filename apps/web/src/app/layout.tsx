@@ -6,6 +6,7 @@ import PageTransition from '@/components/layout/PageTransition'
 import ChunkErrorBoundary from '@/components/error/ChunkErrorBoundary'
 import TimerProvider from '@/components/TimerProvider'
 import ApolloWrapper from '@/components/providers/ApolloWrapper'
+import { SecurityProvider } from '@/contexts/SecurityContext'
 
 export const metadata: Metadata = {
   title: 'Karmayog — Task Management',
@@ -49,9 +50,11 @@ export default function RootLayout({
             <SettingsProvider>
               <TimerProvider>
                 <ApolloWrapper>
-                  <PageTransition>
-                    {children}
-                  </PageTransition>
+                  <SecurityProvider>
+                    <PageTransition>
+                      {children}
+                    </PageTransition>
+                  </SecurityProvider>
                 </ApolloWrapper>
               </TimerProvider>
             </SettingsProvider>

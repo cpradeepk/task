@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ApolloProvider, useQuery } from '@apollo/client/react'
 import { AuthContext } from './contexts/AuthContext'
 import LoginScreen from './screens/LoginScreen'
+import PinSetupScreen from './screens/PinSetupScreen'
+import PinLockScreen from './screens/PinLockScreen'
 import DashboardScreen from './screens/DashboardScreen'
 import BugListScreen from './screens/BugListScreen'
 import BugDetailsScreen from './screens/BugDetailsScreen'
@@ -40,14 +42,14 @@ import { OfflineBanner } from './components/OfflineBanner'
 import { ActivityIndicator, View, LogBox, Text, ScrollView, TouchableOpacity, Image } from 'react-native'
 import { IconButton, Provider as PaperProvider } from 'react-native-paper'
 import { apolloClient, initializeApollo } from './config/apollo'
-import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData } from './utils/secureStorage'
+import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData, getSecure, SECURE_KEYS } from './utils/secureStorage'
 import { LOGIN_MUTATION, REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN, GET_FEED_POSTS, GET_FEED_TOPICS } from './config/graphql-queries'
 import { ThemeProvider, useTheme, lightColors, darkColors } from './contexts/ThemeContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { registerForPushNotifications, setupNotificationListeners, cancelAllNotifications, setBadgeCount } from './services/pushNotificationService'
 import Constants from 'expo-constants'
 import * as Application from 'expo-application'
-import { Platform, Linking } from 'react-native'
+import { Platform, Linking, AppState, AppStateStatus } from 'react-native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { materialColors, lightTheme, darkTheme } from './config/materialTheme'
@@ -472,6 +474,34 @@ function AppContent() {
   const [menuVisible, setMenuVisible] = React.useState(false)
   const [pushToken, setPushToken] = React.useState<string | null>(null)
   const navigationRef = useRef<NavigationContainerRef<any>>(null)
+  
+  // Security lock states
+  const [isPinSetupNeeded, setIsPinSetupNeeded] = useState(false)
+  const [isAppLocked, setIsAppLocked] = useState(false)
+
+  // AppState listener for auto-locking when app resumes from background
+  const appStateRef = useRef(AppState.currentState)
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App resumed from background: checking lock...')
+        const token = await getUserToken()
+        if (token) {
+          const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
+          if (storedPin) {
+            setIsAppLocked(true)
+          }
+        }
+      }
+      appStateRef.current = nextAppState
+    }
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange)
+    return () => subscription.remove()
+  }, [])
 
   // Helper function to handle notification navigation
   const handleNotificationNavigation = (data: any) => {
@@ -532,6 +562,17 @@ function AppContent() {
 
         // Use SecureStore instead of AsyncStorage for token
         userToken = await getUserToken()
+
+        if (userToken) {
+          const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
+          if (storedPin) {
+            setIsAppLocked(true)
+            setIsPinSetupNeeded(false)
+          } else {
+            setIsPinSetupNeeded(true)
+            setIsAppLocked(false)
+          }
+        }
       } catch (e) {
         console.error('Failed to restore token', e)
       }
@@ -630,6 +671,16 @@ function AppContent() {
             await saveUserToken(token)
             await saveUserData(user)
 
+            // Check if PIN setup is required
+            const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
+            if (storedPin) {
+              setIsAppLocked(false)
+              setIsPinSetupNeeded(false)
+            } else {
+              setIsPinSetupNeeded(true)
+              setIsAppLocked(false)
+            }
+
             dispatch({ type: 'SIGN_IN', payload: token })
             return { success: true, user }
           }
@@ -682,10 +733,15 @@ function AppContent() {
           // Close the drawer if open
           setMenuVisible(false)
 
+          setIsPinSetupNeeded(false)
+          setIsAppLocked(false)
+
           dispatch({ type: 'SIGN_OUT' })
         } catch (error) {
           console.error('Logout error:', error)
           // Still dispatch sign out even if cleanup fails
+          setIsPinSetupNeeded(false)
+          setIsAppLocked(false)
           dispatch({ type: 'SIGN_OUT' })
         }
       },
@@ -739,6 +795,26 @@ function AppContent() {
                       animation: 'none',
                     }}
                   />
+                ) : isPinSetupNeeded ? (
+                  <Stack.Screen
+                    name="PinSetup"
+                    options={{
+                      headerShown: false,
+                      animation: 'fade',
+                    }}
+                  >
+                    {props => <PinSetupScreen {...props} onComplete={() => setIsPinSetupNeeded(false)} />}
+                  </Stack.Screen>
+                ) : isAppLocked ? (
+                  <Stack.Screen
+                    name="PinLock"
+                    options={{
+                      headerShown: false,
+                      animation: 'fade',
+                    }}
+                  >
+                    {props => <PinLockScreen {...props} onUnlock={() => setIsAppLocked(false)} />}
+                  </Stack.Screen>
                 ) : (
                   <>
                     <Stack.Screen name="Main" options={{ headerShown: false }}>
