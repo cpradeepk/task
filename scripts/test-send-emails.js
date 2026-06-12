@@ -1,15 +1,36 @@
 #!/usr/bin/env node
 
 /**
- * Script to send all email types as a test to kbshah98@gmail.com
- * It also saves the rendered templates locally to scripts/test-email-previews/ for manual verification.
+ * ============================================================================
+ * Karmayog Email Notification Test Suite
+ * ============================================================================
+ * 
+ * DESCRIPTION:
+ * This script tests the transactional email notifications by compiling and 
+ * sending all 11 core email types used across the Karmayog system.
+ * 
+ * PREREQUISITES:
+ * 1. Requires valid SMTP credentials defined in 'apps/web/.env.local'.
+ * 2. Specifically utilizes SMTP_USER and SMTP_PASSWORD (a Gmail App Password).
+ * 
+ * OUTPUTS:
+ * 1. Transmits live emails via SMTP to the target address (kbshah98@gmail.com).
+ * 2. Automatically outputs rendered HTML files into the local folder:
+ *    'scripts/test-email-previews/' for browser preview and styling audits.
+ * 
+ * RUNNING THE SCRIPT:
+ * From the project root, run:
+ * $ node scripts/test-send-emails.js
  */
 
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
 
-// 1. Manual .env.local parsing
+// ============================================================================
+// 1. ENVIRONMENT CONFIGURATION LOADING
+// ============================================================================
+// Manually parse apps/web/.env.local to load SMTP settings without next.js context
 const envPath = path.join(__dirname, '..', 'apps', 'web', '.env.local');
 if (fs.existsSync(envPath)) {
     const envContent = fs.readFileSync(envPath, 'utf8');
@@ -17,6 +38,7 @@ if (fs.existsSync(envPath)) {
         const match = line.match(/^([^=]+)=(.*)$/);
         if (match) {
             const key = match[1].trim();
+            // Clean quotes from env value strings
             const value = match[2].trim().replace(/^["']|["']$/g, '');
             if (!process.env[key]) {
                 process.env[key] = value;
@@ -25,26 +47,31 @@ if (fs.existsSync(envPath)) {
     });
 }
 
-// 2. Setup SMTP Config
+// ============================================================================
+// 2. SMTP TRANSPORTER SETUP
+// ============================================================================
+// Set up SMTP settings using the parsed environment configuration (defaults to Gmail)
 const smtpConfig = {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '465'),
-    secure: true,
+    secure: true, // true for port 465 (SSL)
     auth: {
         user: process.env.SMTP_USER || '',
         pass: process.env.SMTP_PASSWORD || '',
     },
     requireTLS: true,
     tls: {
-        rejectUnauthorized: false
+        rejectUnauthorized: false // Accept self-signed local certificates if needed
     }
 };
 
+// Default sender profile metadata
 const fromConfig = {
     name: process.env.EMAIL_FROM_NAME || 'Karmayog',
     email: process.env.EMAIL_FROM_EMAIL || 'amtariksha@gmail.com',
 };
 
+// Mapping names to actual template file names located in the web app's public folder
 const TEMPLATES = {
     USER_CREDENTIALS: 'email-preview.html',
     TASK_CREATION: 'task-creation-email-preview.html',
@@ -56,27 +83,42 @@ const TEMPLATES = {
     GENERAL_NOTIFICATION: 'general-notification-email.html'
 };
 
+/**
+ * Reads an HTML template file from the apps/web/public directory.
+ * @param {string} templateName - The key name of the template from TEMPLATES map
+ * @returns {string} - Raw HTML content
+ */
 function readTemplate(templateName) {
     const filename = TEMPLATES[templateName];
     const templatePath = path.join(__dirname, '..', 'apps', 'web', 'public', filename);
     return fs.readFileSync(templatePath, 'utf8');
 }
 
+/**
+ * Replaces placeholders in the HTML template.
+ * Resolves both conditional logic blocks and raw text/value replacements.
+ * 
+ * @param {string} template - The raw HTML template string
+ * @param {Record<string, any>} data - Object mapping keynames to values
+ * @returns {string} - Rendered HTML template ready for email client delivery
+ */
 function replacePlaceholders(template, data) {
     let result = template;
     
-    // Replace conditional blocks first: {{#if key}} ... {{/if}}
+    // Process HTML conditional blocks: {{#if key}} content {{/if}}
     Object.keys(data).forEach(key => {
         const hasValue = !!data[key];
         const conditionalRegex = new RegExp(`{{#if ${key}}}([\\s\\S]*?){{\\/if}}`, 'g');
         if (hasValue) {
+            // Keep block content
             result = result.replace(conditionalRegex, '$1');
         } else {
+            // Drop block content
             result = result.replace(conditionalRegex, '');
         }
     });
 
-    // Replace all regular placeholders
+    // Replace standard variables: {{variable}}
     Object.keys(data).forEach(key => {
         const placeholder = new RegExp(`{{${key}}}`, 'g');
         result = result.replace(placeholder, data[key] !== undefined ? data[key] : '');
@@ -85,10 +127,14 @@ function replacePlaceholders(template, data) {
     return result;
 }
 
-// Prepare HTML emails
+// Array container for all 11 test emails to trigger sequentially
 const emailList = [];
 
-// 1. User Credentials
+// ============================================================================
+// 3. COMPILING TEST EMAILS
+// ============================================================================
+
+// Email 1/11: User Welcome & Access Credentials Template
 const credentialsHtml = replacePlaceholders(readTemplate('USER_CREDENTIALS'), {
     userName: "Ketan Shah",
     userEmail: "kbshah98@gmail.com",
@@ -106,7 +152,7 @@ emailList.push({
     html: credentialsHtml
 });
 
-// 2. Task Created (Creator notification)
+// Email 2/11: Task Created Confirmation Email (Sent to Creator/Owner)
 const taskCreatedHtml = replacePlaceholders(readTemplate('TASK_CREATION'), {
     userName: "Ketan Shah",
     taskTitle: "Design Database Schema for Notifications",
@@ -126,7 +172,7 @@ emailList.push({
     html: taskCreatedHtml
 });
 
-// 3. Task Assigned (Assignee notification)
+// Email 3/11: Task Assigned Notification (Sent to Assignee)
 const taskAssignedHtml = replacePlaceholders(readTemplate('TASK_CREATION'), {
     userName: "Ketan Shah",
     taskTitle: "Integrate SMTP Email Services",
@@ -146,7 +192,7 @@ emailList.push({
     html: taskAssignedHtml
 });
 
-// 4. Leave Approved
+// Email 4/11: Leave Request Approved Notification
 const leaveApprovedHtml = replacePlaceholders(readTemplate('LEAVE_APPROVAL'), {
     userName: "Ketan Shah",
     leaveType: "Annual Leave",
@@ -166,7 +212,7 @@ emailList.push({
     html: leaveApprovedHtml
 });
 
-// 5. Leave Rejected
+// Email 5/11: Leave Request Rejected Notification
 const leaveRejectedHtml = replacePlaceholders(readTemplate('LEAVE_REJECTION'), {
     userName: "Ketan Shah",
     leaveType: "Sick Leave",
@@ -186,7 +232,7 @@ emailList.push({
     html: leaveRejectedHtml
 });
 
-// 6. WFH Approved
+// Email 6/11: Work From Home Request Approved Notification
 const wfhApprovedHtml = replacePlaceholders(readTemplate('LEAVE_APPROVAL'), {
     userName: "Ketan Shah",
     leaveType: "Work From Home",
@@ -206,7 +252,7 @@ emailList.push({
     html: wfhApprovedHtml
 });
 
-// 7. WFH Rejected
+// Email 7/11: Work From Home Request Rejected Notification
 const wfhRejectedHtml = replacePlaceholders(readTemplate('LEAVE_REJECTION'), {
     userName: "Ketan Shah",
     leaveType: "Work From Home",
@@ -226,7 +272,7 @@ emailList.push({
     html: wfhRejectedHtml
 });
 
-// 8. Support Task Assigned
+// Email 8/11: Support Member Assignment Notification
 const supportAssignedHtml = replacePlaceholders(readTemplate('SUPPORT_ASSIGNMENT'), {
     supportMemberName: "Ketan Shah",
     mainTaskId: "TSK-201",
@@ -245,7 +291,7 @@ emailList.push({
     html: supportAssignedHtml
 });
 
-// 9. Bug Assigned
+// Email 9/11: Bug Assigned Notification
 const bugAssignedHtml = replacePlaceholders(readTemplate('BUG_ASSIGNMENT'), {
     assigneeName: "Ketan Shah",
     assignedByName: "Amit Shah",
@@ -271,7 +317,7 @@ emailList.push({
     html: bugAssignedHtml
 });
 
-// 10. Bug Created Confirmation
+// Email 10/11: Bug Creation Confirmation Notification
 const bugCreatedHtml = replacePlaceholders(readTemplate('BUG_CREATION'), {
     reporterName: "Ketan Shah",
     bugId: "BUG-402",
@@ -297,7 +343,7 @@ emailList.push({
     html: bugCreatedHtml
 });
 
-// 11. General Notification
+// Email 11/11: General Feed Alert Notification (Comments, Mentions, Reactions)
 const generalNotificationHtml = replacePlaceholders(readTemplate('GENERAL_NOTIFICATION'), {
     userName: "Ketan Shah",
     actorName: "Amit Shah",
@@ -314,8 +360,11 @@ emailList.push({
     html: generalNotificationHtml
 });
 
+// ============================================================================
+// 4. EXECUTION FLOW
+// ============================================================================
 async function main() {
-    // 1. Create preview directory and write files
+    // Stage 1: Render and write HTML files locally so they can be viewed without SMTP
     const previewDir = path.join(__dirname, 'test-email-previews');
     if (!fs.existsSync(previewDir)) {
         fs.mkdirSync(previewDir, { recursive: true });
@@ -328,13 +377,14 @@ async function main() {
         console.log(`   💾 Saved ${email.id}.html`);
     });
     
+    // Stage 2: Connect to SMTP and sequentially transmit test notifications
     console.log("\n🚀 Starting SMTP transmission tests to: kbshah98@gmail.com");
     console.log(`   SMTP Server: ${smtpConfig.host}:${smtpConfig.port}`);
     console.log(`   SMTP User:   ${smtpConfig.auth.user}`);
     
     const transporter = nodemailer.createTransport(smtpConfig);
     
-    // Verify transporter
+    // Confirm connection credentials before starting email delivery loop
     try {
         await transporter.verify();
         console.log("   ✅ SMTP connection verified successfully");
@@ -346,6 +396,7 @@ async function main() {
     
     const recipient = "kbshah98@gmail.com";
     
+    // Deliver all test emails sequentially
     for (let i = 0; i < emailList.length; i++) {
         const email = emailList[i];
         const mailOptions = {
@@ -364,7 +415,7 @@ async function main() {
             console.error(`   ❌ Failed to send ${email.subject}:`, err.message);
         }
         
-        // Wait 1 second between sends to avoid rate limit or spam flags
+        // Wait 1 second between sends to avoid rate limits or Gmail spam classifications
         if (i < emailList.length - 1) {
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
