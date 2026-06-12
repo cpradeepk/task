@@ -122,17 +122,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
     return tokenData.data
   } catch (error: any) {
-    const errStr = error ? (error.message || String(error)) : ''
-    if (
-      errStr.includes('FirebaseApp') ||
-      errStr.includes('Default FirebaseApp') ||
-      errStr.includes('fcm-credentials') ||
-      errStr.includes('credentials')
-    ) {
-      console.warn('Push notifications: Firebase is not initialized (expected in local dev builds).')
-    } else {
-      console.error('Error registering for push notifications:', error)
-    }
+    console.error('❌ Detailed Push Notification Registration Error:', error);
     return null
   }
 }
