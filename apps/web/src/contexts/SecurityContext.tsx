@@ -361,42 +361,23 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
                 <div className="h-5 mb-6" />
               )}
 
-              {/* Numerical keypad grid */}
-              <div className="grid grid-cols-3 gap-4 max-w-[280px] mx-auto">
-                {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(n => (
-                  <button
-                    key={n}
-                    onClick={() => handleSetupNumberPress(n)}
-                    className="h-16 w-16 text-xl font-medium rounded-full bg-slate-800/60 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600 transition flex items-center justify-center focus:outline-none"
-                  >
-                    {n}
-                  </button>
-                ))}
+              {/* Instruction message & reset button instead of keypad */}
+              <div className="text-center text-slate-400 text-sm mt-4">
+                Type the 4 digits using your keyboard.
+              </div>
+              <div className="flex justify-center mt-6">
                 <button
+                  type="button"
                   onClick={() => {
                     setSetupPin('')
                     setConfirmPin('')
                     setSetupStep('create')
                     setSetupError('')
                   }}
-                  className="h-16 w-16 text-sm text-slate-400 hover:text-white rounded-full flex items-center justify-center focus:outline-none"
+                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white rounded-lg border border-slate-800 hover:bg-slate-800 transition flex items-center gap-1.5 focus:outline-none"
                 >
-                  <RefreshCw className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => handleSetupNumberPress('0')}
-                  className="h-16 w-16 text-xl font-medium rounded-full bg-slate-800/60 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600 transition flex items-center justify-center focus:outline-none"
-                >
-                  0
-                </button>
-                <button
-                  onClick={() => {
-                    if (setupStep === 'create') setSetupPin(p => p.slice(0, -1))
-                    else setConfirmPin(p => p.slice(0, -1))
-                  }}
-                  className="h-16 w-16 text-sm text-slate-400 hover:text-white rounded-full flex items-center justify-center focus:outline-none"
-                >
-                  Clear
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  <span>Start Over</span>
                 </button>
               </div>
             </>
@@ -472,41 +453,23 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
             <div className="h-5 mb-6" />
           )}
 
-          {/* Numerical keypad grid */}
-          <div className="grid grid-cols-3 gap-4 max-w-[280px] mx-auto">
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(n => (
-              <button
-                key={n}
-                onClick={() => handleUnlockNumberPress(n)}
-                className="h-16 w-16 text-xl font-medium rounded-full bg-slate-800/60 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600 transition flex items-center justify-center focus:outline-none"
-              >
-                {n}
-              </button>
-            ))}
-            {biometricEnabled ? (
-              <button
-                onClick={authenticateWebBiometrics}
-                className="h-16 w-16 text-indigo-400 hover:text-indigo-300 rounded-full border border-indigo-500/20 hover:border-indigo-500/40 bg-indigo-500/5 hover:bg-indigo-500/10 transition flex items-center justify-center focus:outline-none"
-                title="Use Biometric Login"
-              >
-                <Shield className="h-6 w-6" />
-              </button>
-            ) : (
-              <div className="h-16 w-16" />
-            )}
-            <button
-              onClick={() => handleUnlockNumberPress('0')}
-              className="h-16 w-16 text-xl font-medium rounded-full bg-slate-800/60 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600 transition flex items-center justify-center focus:outline-none"
-            >
-              0
-            </button>
-            <button
-              onClick={() => setUnlockPin(p => p.slice(0, -1))}
-              className="h-16 w-16 text-sm text-slate-400 hover:text-white rounded-full flex items-center justify-center focus:outline-none"
-            >
-              Clear
-            </button>
+          {/* Instruction message & biometrics action link instead of keypad */}
+          <div className="text-center text-slate-400 text-sm mt-4">
+            Type your PIN on your keyboard to unlock.
           </div>
+          
+          {biometricEnabled && (
+            <div className="flex justify-center mt-6">
+              <button
+                type="button"
+                onClick={authenticateWebBiometrics}
+                className="px-4 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 font-semibold rounded-xl border border-indigo-500/20 transition flex items-center justify-center gap-2 focus:outline-none"
+              >
+                <Shield className="h-5 w-5" />
+                <span>Unlock with Biometrics</span>
+              </button>
+            </div>
+          )}
 
           <div className="text-center mt-8 pt-6 border-t border-slate-800">
             <button
