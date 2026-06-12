@@ -10,10 +10,10 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:web": "turbo run dev --filter=@jsr/web",
-    "dev:mobile": "turbo run dev --filter=@jsr/mobile",
+    "dev:mobile": "cd apps/mobile && npm run dev",
     "build": "turbo run build",
     "build:web": "turbo run build --filter=@jsr/web",
-    "build:mobile": "turbo run build --filter=@jsr/mobile",
+    "build:mobile": "cd apps/mobile && npm run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "type-check": "turbo run type-check"
