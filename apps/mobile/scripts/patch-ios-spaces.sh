@@ -18,13 +18,28 @@ echo "🔧 Patching iOS project files for paths with spaces..."
 #      shellScript = "bash -l -c '\"$PODS_TARGET_SRCROOT\"/../scripts/get-app-config-ios.sh'";
 PODS_PBXPROJ="$IOS_DIR/Pods/Pods.xcodeproj/project.pbxproj"
 if [ -f "$PODS_PBXPROJ" ]; then
-  # Use perl for reliable matching of the exact unpatched pattern
-  if grep -q 'bash -l -c \\"$PODS_TARGET_SRCROOT/../scripts/get-app-config-ios.sh\\"' "$PODS_PBXPROJ"; then
-    perl -i -pe 's|bash -l -c \\"\\$PODS_TARGET_SRCROOT/\.\./scripts/get-app-config-ios\.sh\\"|bash -l -c '\''\\"\$PODS_TARGET_SRCROOT\\"/../scripts/get-app-config-ios.sh'\''|g' "$PODS_PBXPROJ"
-    echo "  ✓ Fixed EXConstants script phase in Pods.xcodeproj"
-  else
-    echo "  ✓ EXConstants script phase already patched or not found"
-  fi
+  export PODS_PBXPROJ
+  python3 << 'EOF'
+import os
+file_path = os.environ['PODS_PBXPROJ']
+with open(file_path, "r") as f:
+    content = f.read()
+
+target = 'shellScript = "bash -l -c \\"$PODS_TARGET_SRCROOT/../scripts/get-app-config-ios.sh\\"";'
+replacement = 'shellScript = "bash -l -c \'\\"$PODS_TARGET_SRCROOT\\"/../scripts/get-app-config-ios.sh\'";'
+
+if target in content:
+    content = content.replace(target, replacement)
+    with open(file_path, "w") as f:
+        f.write(content)
+    print("  ✓ Fixed EXConstants script phase in Pods.xcodeproj")
+else:
+    # Check if already patched
+    if "shellScript = \"bash -l -c '\\\"$PODS_TARGET_SRCROOT\\\"/../scripts/get-app-config-ios.sh'\";" in content:
+        print("  ✓ EXConstants script phase already patched")
+    else:
+        print("  ✓ EXConstants script phase not found")
+EOF
 fi
 
 # 2. Fix unquoted $PROJECT_DIR in get-app-config-ios.sh (if present)
