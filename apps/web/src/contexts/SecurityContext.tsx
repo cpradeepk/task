@@ -1,8 +1,8 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { getCurrentUser } from '@/lib/auth'
-import { Shield, Lock, Eye, EyeOff, RefreshCw } from 'lucide-react'
+import { Shield, Lock, RefreshCw, LogOut, KeyRound } from 'lucide-react'
 
 interface SecurityContextType {
   isUnlocked: boolean
@@ -42,6 +42,41 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   // PIN Input for Unlock
   const [unlockPin, setUnlockPin] = useState('')
   const [unlockError, setUnlockError] = useState('')
+
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Auto-focus input when screen or step shifts
+  useEffect(() => {
+    if (isClient && currentUser && (!isPinSet || !isUnlocked)) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus()
+      }, 150)
+      return () => clearTimeout(timer)
+    }
+  }, [isClient, currentUser, isPinSet, isUnlocked, setupStep, showEnableBiometricOffer])
+
+  const focusInput = () => {
+    inputRef.current?.focus()
+  }
+
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (target.closest('button') || target.closest('input')) {
+      return
+    }
+    focusInput()
+  }
+
+  const handleForceLogout = async () => {
+    localStorage.removeItem('jsr_current_user')
+    localStorage.removeItem('jsr_user_pin')
+    localStorage.removeItem('jsr_biometric_enabled')
+    localStorage.removeItem('jsr_biometric_credential_id')
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch {}
+    window.location.href = '/'
+  }
 
   useEffect(() => {
     setIsClient(true)
@@ -113,11 +148,18 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
   }
 
+  // Helper: Check if biometrics (WebAuthn) is supported and context is secure
+  const isBiometricsSupportedOnWeb = (): boolean => {
+    return typeof window !== 'undefined' && 
+           !!window.PublicKeyCredential && 
+           window.isSecureContext
+  }
+
   // WebAuthn Biometrics: Register Credential
   const registerWebBiometrics = async (): Promise<boolean> => {
     try {
-      if (!window.PublicKeyCredential) {
-        alert('Biometric authentication is not supported by this browser.')
+      if (!isBiometricsSupportedOnWeb()) {
+        alert('Biometric authentication is not supported or not available in this insecure origin.')
         return false
       }
 
@@ -158,8 +200,12 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         return true
       }
       return false
-    } catch (error) {
-      console.error('WebAuthn Registration Error:', error)
+    } catch (error: any) {
+      if (error?.name === 'NotAllowedError') {
+        console.warn('WebAuthn Registration cancelled or blocked:', error.message)
+      } else {
+        console.error('WebAuthn Registration Error:', error)
+      }
       return false
     }
   }
@@ -167,7 +213,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   // WebAuthn Biometrics: Authenticate Credential
   const authenticateWebBiometrics = async (): Promise<boolean> => {
     try {
-      if (!window.PublicKeyCredential) return false
+      if (!isBiometricsSupportedOnWeb()) return false
       const credentialId = localStorage.getItem('jsr_biometric_credential_id')
       if (!credentialId) return false
 
@@ -197,15 +243,19 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         return true
       }
       return false
-    } catch (error) {
-      console.error('WebAuthn Authentication Error:', error)
+    } catch (error: any) {
+      if (error?.name === 'NotAllowedError') {
+        console.warn('WebAuthn Authentication cancelled or blocked:', error.message)
+      } else {
+        console.error('WebAuthn Authentication Error:', error)
+      }
       return false
     }
   }
 
   // Handle auto biometric popup on lock screen mount
   useEffect(() => {
-    if (currentUser && isPinSet && !isUnlocked && biometricEnabled) {
+    if (currentUser && isPinSet && !isUnlocked && biometricEnabled && isBiometricsSupportedOnWeb()) {
       // Small timeout to allow prompt to overlay nicely after mounting
       const timer = setTimeout(() => {
         authenticateWebBiometrics()
@@ -214,30 +264,32 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentUser, isPinSet, isUnlocked, biometricEnabled])
 
-  // --- Handlers for PIN Setup ---
-  const handleSetupNumberPress = (num: string) => {
+  const handleSetupReset = () => {
+    setSetupPin('')
+    setConfirmPin('')
+    setSetupStep('create')
+    setSetupError('')
+    setTimeout(() => inputRef.current?.focus(), 100)
+  }
+
+  // --- Handlers for PIN Setup (via hidden input) ---
+  const handleSetupInputChange = (val: string) => {
     setSetupError('')
     if (setupStep === 'create') {
-      if (setupPin.length < 4) {
-        const next = setupPin + num
-        setSetupPin(next)
-        if (next.length === 4) {
-          setTimeout(() => setSetupStep('confirm'), 200)
-        }
+      setSetupPin(val)
+      if (val.length === 4) {
+        setTimeout(() => setSetupStep('confirm'), 200)
       }
     } else {
-      if (confirmPin.length < 4) {
-        const next = confirmPin + num
-        setConfirmPin(next)
-        if (next.length === 4) {
-          if (setupPin === next) {
-            savePinAndOfferBiometrics(setupPin)
-          } else {
-            setTimeout(() => {
-              setSetupError('PINs do not match. Try again.')
-              setConfirmPin('')
-            }, 200)
-          }
+      setConfirmPin(val)
+      if (val.length === 4) {
+        if (setupPin === val) {
+          savePinAndOfferBiometrics(val)
+        } else {
+          setTimeout(() => {
+            setSetupError('PINs do not match. Try again.')
+            setConfirmPin('')
+          }, 200)
         }
       }
     }
@@ -248,8 +300,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('jsr_user_pin', hash)
     setIsPinSet(true)
     
-    // Check if biometric is supported on browser before offering
-    if (window.PublicKeyCredential) {
+    if (isBiometricsSupportedOnWeb()) {
       setShowEnableBiometricOffer(true)
     } else {
       setIsUnlocked(true)
@@ -264,90 +315,85 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     setIsUnlocked(true)
   }
 
-  // --- Handlers for PIN Unlock ---
-  const handleUnlockNumberPress = async (num: string) => {
+  // --- Handlers for PIN Unlock (via hidden input) ---
+  const handleUnlockInputChange = async (val: string) => {
     setUnlockError('')
-    if (unlockPin.length < 4) {
-      const next = unlockPin + num
-      setUnlockPin(next)
-      if (next.length === 4) {
-        const storedHash = localStorage.getItem('jsr_user_pin')
-        const inputHash = await hashPin(next)
-        if (storedHash === inputHash) {
-          setIsUnlocked(true)
+    setUnlockPin(val)
+    if (val.length === 4) {
+      const storedHash = localStorage.getItem('jsr_user_pin')
+      const inputHash = await hashPin(val)
+      if (storedHash === inputHash) {
+        setIsUnlocked(true)
+        setUnlockPin('')
+      } else {
+        setTimeout(() => {
+          setUnlockError('Incorrect security PIN.')
           setUnlockPin('')
-        } else {
-          setTimeout(() => {
-            setUnlockError('Incorrect security PIN.')
-            setUnlockPin('')
-          }, 200)
-        }
+        }, 200)
       }
     }
   }
-
-  // Physical Keyboard Listener on Lock Screens
-  useEffect(() => {
-    if (!isClient || !currentUser) return
-    
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key >= '0' && e.key <= '9') {
-        if (!isPinSet) {
-          if (!showEnableBiometricOffer) handleSetupNumberPress(e.key)
-        } else if (!isUnlocked) {
-          handleUnlockNumberPress(e.key)
-        }
-      } else if (e.key === 'Backspace') {
-        if (!isPinSet) {
-          if (setupStep === 'create') setSetupPin(p => p.slice(0, -1))
-          else setConfirmPin(p => p.slice(0, -1))
-        } else if (!isUnlocked) {
-          setUnlockPin(p => p.slice(0, -1))
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isClient, currentUser, isPinSet, isUnlocked, setupStep, setupPin, confirmPin, unlockPin, showEnableBiometricOffer])
 
   if (!isClient) return null
 
   // Intercept Flow 1: PIN Setup Screen
   if (currentUser && !isPinSet) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6 relative overflow-hidden">
+      <div 
+        onClick={handleBackgroundClick}
+        className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden select-none"
+      >
         {/* Background Gradients */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.15),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(236,72,153,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.15),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(99,102,241,0.15),transparent_60%)]" />
         
-        <div className="relative z-10 w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-8 backdrop-blur-xl">
+        {/* Hidden Input */}
+        <input
+          ref={inputRef}
+          type="text"
+          pattern="[0-9]*"
+          inputMode="numeric"
+          maxLength={4}
+          value={setupStep === 'create' ? setupPin : confirmPin}
+          onChange={(e) => {
+            const val = e.target.value.replace(/\D/g, '').slice(0, 4)
+            handleSetupInputChange(val)
+          }}
+          className="absolute w-0 h-0 opacity-0 pointer-events-none"
+          autoComplete="off"
+          data-lpignore="true"
+        />
+
+        <div className="relative z-10 w-full max-w-md bg-slate-900/80 border border-slate-800 rounded-2xl shadow-2xl p-8 backdrop-blur-xl transition-all duration-300">
           {!showEnableBiometricOffer ? (
             <>
               <div className="flex flex-col items-center justify-center mb-6 text-center">
-                <div className="p-3 bg-indigo-500/10 rounded-full mb-4">
-                  <Shield className="h-10 w-10 text-indigo-400" />
+                <div className="p-3.5 bg-indigo-500/10 rounded-2xl mb-4 border border-indigo-500/20">
+                  <Shield className="h-8 w-8 text-indigo-400" />
                 </div>
-                <h1 className="text-2xl font-bold tracking-tight">
+                <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                   {setupStep === 'create' ? 'Create Security PIN' : 'Confirm Security PIN'}
                 </h1>
-                <p className="text-slate-400 text-sm mt-1">
+                <p className="text-slate-400 text-sm mt-2 max-w-xs leading-relaxed">
                   {setupStep === 'create' 
                     ? 'Enter a 4-digit PIN to secure your account access.' 
                     : 'Verify your PIN to complete setup.'}
                 </p>
+                <div className="mt-2 px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700/30 text-xs text-indigo-300 font-mono">
+                  Session: {currentUser?.name || currentUser?.employeeId}
+                </div>
               </div>
 
               {/* Dots Indicators */}
-              <div className="flex justify-center space-x-6 my-8">
+              <div className="flex justify-center space-x-6 my-8 cursor-pointer" onClick={focusInput}>
                 {[0, 1, 2, 3].map(i => {
                   const active = (setupStep === 'create' ? setupPin : confirmPin).length > i
                   return (
                     <div
                       key={i}
-                      className={`h-4 w-4 rounded-full border-2 transition-all duration-150 ${
-                        setupError ? 'border-rose-500 bg-rose-500' :
-                        active ? 'border-indigo-500 bg-indigo-500 scale-110' : 'border-slate-700 bg-transparent'
+                      className={`h-5 w-5 rounded-full border-2 transition-all duration-200 ${
+                        setupError ? 'border-rose-500 bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' :
+                        active ? 'border-indigo-500 bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.6)] scale-110' : 'border-slate-700 bg-transparent'
                       }`}
                     />
                   )
@@ -356,50 +402,55 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
 
               {/* Error Message */}
               {setupError ? (
-                <p className="text-center text-sm text-rose-400 mb-6">{setupError}</p>
+                <p className="text-center text-sm font-medium text-rose-400 mb-6 animate-bounce">{setupError}</p>
               ) : (
-                <div className="h-5 mb-6" />
+                <div className="h-5 mb-6 text-center text-xs text-slate-500">
+                  Type your 4 digits. Touch any dot to focus keyboard.
+                </div>
               )}
 
-              {/* Instruction message & reset button instead of keypad */}
-              <div className="text-center text-slate-400 text-sm mt-4">
-                Type the 4 digits using your keyboard.
-              </div>
-              <div className="flex justify-center mt-6">
+              {/* Reset / Start Over and Logout Buttons */}
+              <div className="flex flex-col gap-3 mt-6">
+                {setupStep === 'confirm' && (
+                  <button
+                    type="button"
+                    onClick={handleSetupReset}
+                    className="w-full py-2.5 text-sm font-semibold text-slate-300 hover:text-white rounded-xl border border-slate-800 hover:bg-slate-800 transition flex items-center justify-center gap-2 focus:outline-none"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    <span>Start Over</span>
+                  </button>
+                )}
+                
                 <button
                   type="button"
-                  onClick={() => {
-                    setSetupPin('')
-                    setConfirmPin('')
-                    setSetupStep('create')
-                    setSetupError('')
-                  }}
-                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white rounded-lg border border-slate-800 hover:bg-slate-800 transition flex items-center gap-1.5 focus:outline-none"
+                  onClick={handleForceLogout}
+                  className="w-full py-2.5 text-sm font-semibold text-rose-400 hover:text-rose-300 rounded-xl border border-rose-500/20 hover:border-rose-500/40 bg-rose-500/5 hover:bg-rose-500/10 transition flex items-center justify-center gap-2 focus:outline-none"
                 >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  <span>Start Over</span>
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign out / Switch account</span>
                 </button>
               </div>
             </>
           ) : (
             <div className="text-center py-4">
-              <div className="p-3 bg-indigo-500/10 rounded-full w-fit mx-auto mb-4">
-                <Lock className="h-10 w-10 text-indigo-400" />
+              <div className="p-3.5 bg-indigo-500/10 rounded-2xl w-fit mx-auto mb-4 border border-indigo-500/20">
+                <Lock className="h-8 w-8 text-indigo-400" />
               </div>
-              <h1 className="text-xl font-bold">Enable Biometrics?</h1>
-              <p className="text-slate-400 text-sm mt-2 mb-6">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Enable Biometrics?</h1>
+              <p className="text-slate-400 text-sm mt-2 mb-8 max-w-xs mx-auto leading-relaxed">
                 Would you like to enable Touch ID / Face ID biometrics for fast unlocking?
               </p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => handleOfferResponse(true)}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-xl font-semibold transition"
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-semibold transition shadow-lg shadow-indigo-600/30"
                 >
                   Yes, Enable Biometrics
                 </button>
                 <button
                   onClick={() => handleOfferResponse(false)}
-                  className="w-full py-3 bg-slate-800 hover:bg-slate-750 active:bg-slate-800 rounded-xl text-slate-355 font-medium transition"
+                  className="w-full py-3 bg-slate-800 hover:bg-slate-750 active:bg-slate-800 text-slate-300 font-medium rounded-xl border border-slate-750 transition"
                 >
                   Skip for Now
                 </button>
@@ -414,32 +465,55 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   // Intercept Flow 2: PIN Lock Screen
   if (currentUser && isPinSet && !isUnlocked) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6 relative overflow-hidden">
+      <div 
+        onClick={handleBackgroundClick}
+        className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden select-none"
+      >
         {/* Background Gradients */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.15),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(236,72,153,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.15),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(99,102,241,0.15),transparent_60%)]" />
 
-        <div className="relative z-10 w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-8 backdrop-blur-xl">
+        {/* Hidden Input */}
+        <input
+          ref={inputRef}
+          type="text"
+          pattern="[0-9]*"
+          inputMode="numeric"
+          maxLength={4}
+          value={unlockPin}
+          onChange={(e) => {
+            const val = e.target.value.replace(/\D/g, '').slice(0, 4)
+            handleUnlockInputChange(val)
+          }}
+          className="absolute w-0 h-0 opacity-0 pointer-events-none"
+          autoComplete="off"
+          data-lpignore="true"
+        />
+
+        <div className="relative z-10 w-full max-w-md bg-slate-900/80 border border-slate-800 rounded-2xl shadow-2xl p-8 backdrop-blur-xl transition-all duration-300">
           <div className="flex flex-col items-center justify-center mb-6 text-center">
-            <div className="p-3 bg-indigo-500/10 rounded-full mb-4">
-              <Lock className="h-10 w-10 text-indigo-400" />
+            <div className="p-3.5 bg-indigo-500/10 rounded-2xl mb-4 border border-indigo-500/20">
+              <Lock className="h-8 w-8 text-indigo-400" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">Karmayog Locked</h1>
-            <p className="text-slate-400 text-sm mt-1">
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Karmayog Locked</h1>
+            <p className="text-slate-400 text-sm mt-2 max-w-xs leading-relaxed">
               Enter your 4-digit security PIN or use biometrics to unlock.
             </p>
-          </div>
+            <div className="mt-2 px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700/30 text-xs text-indigo-300 font-mono">
+              Session: {currentUser?.name || currentUser?.employeeId}
+                </div>
+              </div>
 
           {/* Dots Indicators */}
-          <div className="flex justify-center space-x-6 my-8">
+          <div className="flex justify-center space-x-6 my-8 cursor-pointer" onClick={focusInput}>
             {[0, 1, 2, 3].map(i => {
               const active = unlockPin.length > i
               return (
                 <div
                   key={i}
-                  className={`h-4 w-4 rounded-full border-2 transition-all duration-150 ${
-                    unlockError ? 'border-rose-500 bg-rose-500' :
-                    active ? 'border-indigo-500 bg-indigo-500 scale-110' : 'border-slate-700 bg-transparent'
+                  className={`h-5 w-5 rounded-full border-2 transition-all duration-200 ${
+                    unlockError ? 'border-rose-500 bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' :
+                    active ? 'border-indigo-500 bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.6)] scale-110' : 'border-slate-700 bg-transparent'
                   }`}
                 />
               )
@@ -448,45 +522,33 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
 
           {/* Error Message */}
           {unlockError ? (
-            <p className="text-center text-sm text-rose-400 mb-6">{unlockError}</p>
+            <p className="text-center text-sm font-medium text-rose-400 mb-6 animate-bounce">{unlockError}</p>
           ) : (
-            <div className="h-5 mb-6" />
-          )}
-
-          {/* Instruction message & biometrics action link instead of keypad */}
-          <div className="text-center text-slate-400 text-sm mt-4">
-            Type your PIN on your keyboard to unlock.
-          </div>
-          
-          {biometricEnabled && (
-            <div className="flex justify-center mt-6">
-              <button
-                type="button"
-                onClick={authenticateWebBiometrics}
-                className="px-4 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 font-semibold rounded-xl border border-indigo-500/20 transition flex items-center justify-center gap-2 focus:outline-none"
-              >
-                <Shield className="h-5 w-5" />
-                <span>Unlock with Biometrics</span>
-              </button>
+            <div className="h-5 mb-6 text-center text-xs text-slate-500">
+              Type your PIN to unlock. Touch any dot to focus keyboard.
             </div>
           )}
 
-          <div className="text-center mt-8 pt-6 border-t border-slate-800">
+          {/* Biometrics and Logout Actions */}
+          <div className="flex flex-col gap-3 mt-6">
+            {biometricEnabled && (
+              <button
+                type="button"
+                onClick={authenticateWebBiometrics}
+                className="w-full py-3 bg-indigo-650 hover:bg-indigo-600 active:bg-indigo-700 text-white font-semibold rounded-xl border border-indigo-500/20 transition flex items-center justify-center gap-2 focus:outline-none shadow-lg shadow-indigo-650/30"
+              >
+                <KeyRound className="h-5 w-5" />
+                <span>Unlock with Biometrics</span>
+              </button>
+            )}
+            
             <button
-              onClick={async () => {
-                // Perform sign out and clear states
-                localStorage.removeItem('jsr_current_user')
-                localStorage.removeItem('jsr_user_pin')
-                localStorage.removeItem('jsr_biometric_enabled')
-                localStorage.removeItem('jsr_biometric_credential_id')
-                try {
-                  await fetch('/api/auth/logout', { method: 'POST' })
-                } catch {}
-                window.location.href = '/'
-              }}
-              className="text-sm text-slate-500 hover:text-rose-400 transition"
+              type="button"
+              onClick={handleForceLogout}
+              className="w-full py-2.5 text-sm font-semibold text-rose-400 hover:text-rose-300 rounded-xl border border-rose-500/20 hover:border-rose-500/40 bg-rose-500/5 hover:bg-rose-500/10 transition flex items-center justify-center gap-2 focus:outline-none"
             >
-              Sign out from account
+              <LogOut className="h-4 w-4" />
+              <span>Sign out / Switch account</span>
             </button>
           </div>
         </div>

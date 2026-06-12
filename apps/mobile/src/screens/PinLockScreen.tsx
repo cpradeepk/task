@@ -5,8 +5,11 @@ import {
   TouchableOpacity,
   Vibration,
   Animated,
+  TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native'
-import { Text, Surface } from 'react-native-paper'
+import { Text, Button } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useTheme } from '../contexts/ThemeContext'
 import { getSecure, SECURE_KEYS } from '../utils/secureStorage'
@@ -30,8 +33,16 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
   const [biometricAvailable, setBiometricAvailable] = useState(false)
   const [biometricType, setBiometricType] = useState('Biometric')
   
-  // Animation values
+  const inputRef = useRef<TextInput>(null)
   const shakeAnim = useRef(new Animated.Value(0)).current
+
+  // Auto-focus keyboard on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      inputRef.current?.focus()
+    }, 150)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     async function checkAndTriggerBiometrics() {
@@ -65,30 +76,24 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
     ]).start()
   }
 
-  const handleKeyPress = async (num: string) => {
+  const handlePinChange = async (text: string) => {
     setError('')
-    if (pin.length < 4) {
-      const nextPin = pin + num
-      setPin(nextPin)
-      
-      if (nextPin.length === 4) {
-        const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
-        if (storedPin === nextPin) {
-          onUnlock()
-        } else {
-          setTimeout(() => {
-            triggerShake()
-            setError('Incorrect PIN. Please try again.')
-            setPin('')
-          }, 200)
-        }
+    const cleanText = text.replace(/\D/g, '')
+    setPin(cleanText)
+    
+    if (cleanText.length === 4) {
+      const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
+      if (storedPin === cleanText) {
+        onUnlock()
+      } else {
+        setTimeout(() => {
+          triggerShake()
+          setError('Incorrect PIN. Please try again.')
+          setPin('')
+          inputRef.current?.focus()
+        }, 200)
       }
     }
-  }
-
-  const handleBackspace = () => {
-    setError('')
-    setPin(pin.slice(0, -1))
   }
 
   const handleBiometricAuth = async () => {
@@ -125,104 +130,71 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Top Brand Accent */}
-      <View style={[styles.gradientBar, { backgroundColor: colors.primary }]} />
+    <TouchableWithoutFeedback onPress={() => inputRef.current?.focus()}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        {/* Top Brand Accent */}
+        <View style={[styles.gradientBar, { backgroundColor: colors.primary }]} />
 
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <MaterialCommunityIcons name="shield-lock-outline" size={64} color={colors.primary} />
-          <Text style={[styles.title, { color: colors.text }]}>App Locked</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Enter your 4-digit security PIN or use biometrics to unlock.
-          </Text>
+        {/* Hidden Input field focused by ref */}
+        <TextInput
+          ref={inputRef}
+          value={pin}
+          onChangeText={handlePinChange}
+          keyboardType="numeric"
+          maxLength={4}
+          secureTextEntry
+          style={styles.hiddenInput}
+          autoComplete="off"
+          importantForAutofill="no"
+        />
+
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <MaterialCommunityIcons name="shield-lock-outline" size={64} color={colors.primary} />
+            <Text style={[styles.title, { color: colors.text }]}>App Locked</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Enter your 4-digit security PIN or use biometrics to unlock.
+            </Text>
+          </View>
+
+          {/* PIN Indicators */}
+          <TouchableOpacity 
+            activeOpacity={1} 
+            onPress={() => inputRef.current?.focus()}
+            style={styles.interactiveArea}
+          >
+            <Animated.View
+              style={[
+                styles.dotContainer,
+                { transform: [{ translateX: shakeAnim }] },
+              ]}
+            >
+              {[0, 1, 2, 3].map(renderDot)}
+            </Animated.View>
+          </TouchableOpacity>
+
+          {/* Error Display */}
+          {error ? (
+            <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
+          ) : (
+            <View style={styles.errorPlaceholder} />
+          )}
+
+          {/* Biometrics Fallback / Option */}
+          {biometricAvailable && (
+            <Button
+              mode="text"
+              onPress={handleBiometricAuth}
+              textColor={colors.primary}
+              icon={getBiometricIcon()}
+              style={styles.biometricButton}
+            >
+              Unlock with {biometricType}
+            </Button>
+          )}
         </View>
-
-        {/* PIN Indicators */}
-        <Animated.View
-          style={[
-            styles.dotContainer,
-            { transform: [{ translateX: shakeAnim }] },
-          ]}
-        >
-          {[0, 1, 2, 3].map(renderDot)}
-        </Animated.View>
-
-        {/* Error Display */}
-        {error ? (
-          <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
-        ) : (
-          <View style={styles.errorPlaceholder} />
-        )}
-
-        {/* Custom Numeric Keypad */}
-        <Surface style={[styles.keypadContainer, { backgroundColor: colors.card }]} elevation={2}>
-          <View style={styles.keypadRow}>
-            {['1', '2', '3'].map((num) => (
-              <TouchableOpacity
-                key={num}
-                style={styles.keypadButton}
-                onPress={() => handleKeyPress(num)}
-                activeOpacity={0.6}
-              >
-                <Text style={[styles.keypadButtonText, { color: colors.text }]}>{num}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.keypadRow}>
-            {['4', '5', '6'].map((num) => (
-              <TouchableOpacity
-                key={num}
-                style={styles.keypadButton}
-                onPress={() => handleKeyPress(num)}
-                activeOpacity={0.6}
-              >
-                <Text style={[styles.keypadButtonText, { color: colors.text }]}>{num}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.keypadRow}>
-            {['7', '8', '9'].map((num) => (
-              <TouchableOpacity
-                key={num}
-                style={styles.keypadButton}
-                onPress={() => handleKeyPress(num)}
-                activeOpacity={0.6}
-              >
-                <Text style={[styles.keypadButtonText, { color: colors.text }]}>{num}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.keypadRow}>
-            {biometricAvailable ? (
-              <TouchableOpacity
-                style={styles.keypadButton}
-                onPress={handleBiometricAuth}
-                activeOpacity={0.6}
-              >
-                <MaterialCommunityIcons name={getBiometricIcon()} size={28} color={colors.primary} />
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.keypadButton} />
-            )}
-            <TouchableOpacity
-              style={styles.keypadButton}
-              onPress={() => handleKeyPress('0')}
-              activeOpacity={0.6}
-            >
-              <Text style={[styles.keypadButtonText, { color: colors.text }]}>0</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.keypadButton}
-              onPress={handleBackspace}
-              activeOpacity={0.6}
-            >
-              <MaterialCommunityIcons name="backspace-outline" size={26} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-        </Surface>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   )
 }
 
@@ -233,6 +205,13 @@ const styles = StyleSheet.create({
   gradientBar: {
     height: 4,
     width: '100%',
+  },
+  hiddenInput: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+    zIndex: -1,
   },
   content: {
     flex: 1,
@@ -255,18 +234,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: materialSpacing.lg,
   },
+  interactiveArea: {
+    paddingVertical: materialSpacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   dotContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     height: 40,
-    marginBottom: materialSpacing.md,
-    gap: materialSpacing.md,
+    gap: materialSpacing.lg,
   },
   dot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
   },
   errorText: {
@@ -279,31 +262,8 @@ const styles = StyleSheet.create({
     height: 20,
     marginBottom: materialSpacing.md,
   },
-  keypadContainer: {
-    borderRadius: 24,
-    padding: materialSpacing.md,
-    width: '100%',
+  biometricButton: {
+    marginTop: materialSpacing.md,
     alignSelf: 'center',
-    maxWidth: 340,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-  },
-  keypadRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: materialSpacing.sm,
-  },
-  keypadButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  keypadButtonText: {
-    fontSize: 28,
-    fontWeight: 'normal',
   },
 })
