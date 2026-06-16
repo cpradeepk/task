@@ -22,7 +22,7 @@ import { getAllUsers, getCurrentUser, User } from '../services/userService'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
-import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 interface CreateBugRouteParams {
@@ -324,7 +324,7 @@ export default function CreateBugScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={materialColors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading form...</Text>
       </View>
     )
@@ -398,8 +398,9 @@ export default function CreateBugScreen() {
             onChangeText={setTitle}
             placeholder="Enter feature name"
             style={styles.input}
-            outlineColor={materialColors.outline}
-            activeOutlineColor={materialColors.primary}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -413,8 +414,9 @@ export default function CreateBugScreen() {
             multiline
             numberOfLines={2}
             style={styles.input}
-            outlineColor={materialColors.outline}
-            activeOutlineColor={materialColors.primary}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -432,6 +434,9 @@ export default function CreateBugScreen() {
                 multiline
                 numberOfLines={4}
                 style={styles.input}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
+                textColor={colors.text}
                 disabled={isOffline}
               />
 
@@ -444,6 +449,9 @@ export default function CreateBugScreen() {
                 multiline
                 numberOfLines={3}
                 style={styles.input}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
+                textColor={colors.text}
                 disabled={isOffline}
               />
             </>
@@ -458,6 +466,9 @@ export default function CreateBugScreen() {
                 multiline
                 numberOfLines={3}
                 style={styles.input}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
+                textColor={colors.text}
                 disabled={isOffline}
               />
 
@@ -470,6 +481,9 @@ export default function CreateBugScreen() {
                 multiline
                 numberOfLines={2}
                 style={styles.input}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
+                textColor={colors.text}
                 disabled={isOffline}
               />
 
@@ -482,6 +496,9 @@ export default function CreateBugScreen() {
                 multiline
                 numberOfLines={2}
                 style={styles.input}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
+                textColor={colors.text}
                 disabled={isOffline}
               />
             </>
@@ -496,6 +513,9 @@ export default function CreateBugScreen() {
             multiline
             numberOfLines={2}
             style={styles.input}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -508,6 +528,9 @@ export default function CreateBugScreen() {
             multiline
             numberOfLines={2}
             style={styles.input}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -524,10 +547,10 @@ export default function CreateBugScreen() {
               </Button>
               {attachedFile && (
                 <View style={{ flex: 1 }}>
-                  <Text numberOfLines={1} style={{ color: materialColors.text }}>
+                  <Text numberOfLines={1} style={{ color: colors.text }}>
                     {attachedFile.name}
                   </Text>
-                  <Text style={{ fontSize: 10, color: materialColors.textSecondary }}>
+                  <Text style={{ fontSize: 10, color: colors.textSecondary }}>
                     {(attachedFile.size / 1024).toFixed(1)} KB
                   </Text>
                 </View>
@@ -637,41 +660,41 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     gap: materialSpacing.md,
   },
   convertBanner: {
-    backgroundColor: materialColors.primaryLight,
+    backgroundColor: colors.primaryLight,
     borderLeftWidth: 4,
-    borderLeftColor: materialColors.primary,
+    borderLeftColor: colors.primary,
     padding: materialSpacing.sm,
     borderRadius: 6,
     marginBottom: materialSpacing.md,
   },
   convertBannerText: {
     ...materialTypography.bodySmall,
-    color: materialColors.text,
+    color: colors.text,
   },
   field: {
     marginBottom: materialSpacing.md,
   },
   label: {
     ...materialTypography.labelLarge,
-    color: materialColors.text,
+    color: colors.text,
     marginBottom: materialSpacing.xs,
   },
   required: {
-    color: materialColors.error,
+    color: colors.error,
   },
   input: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: materialColors.outline,
+    borderColor: colors.border,
     borderRadius: 4,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
   picker: {
     height: 50,
-    color: materialColors.text,
+    color: colors.text,
   },
   submitButton: {
     marginTop: materialSpacing.md,
@@ -679,7 +702,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   sectionHeader: {
     ...materialTypography.titleMedium,
-    color: materialColors.primary,
+    color: colors.primary,
     marginTop: materialSpacing.sm,
     marginBottom: materialSpacing.xs,
   },

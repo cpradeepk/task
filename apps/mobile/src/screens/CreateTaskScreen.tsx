@@ -18,7 +18,7 @@ import { getUserData } from '../utils/secureStorage'
 import { get } from '../services/apiClient'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
-import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 
 export default function CreateTaskScreen({ navigation }: any) {
@@ -389,6 +389,7 @@ export default function CreateTaskScreen({ navigation }: any) {
             style={styles.input}
             outlineColor={colors.border}
             activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -404,6 +405,7 @@ export default function CreateTaskScreen({ navigation }: any) {
             style={styles.input}
             outlineColor={colors.border}
             activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -486,8 +488,9 @@ export default function CreateTaskScreen({ navigation }: any) {
             value={startDate}
             onChangeText={setStartDate}
             style={styles.input}
-            outlineColor={materialColors.border}
-            activeOutlineColor={materialColors.primary}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -499,8 +502,9 @@ export default function CreateTaskScreen({ navigation }: any) {
             value={endDate}
             onChangeText={setEndDate}
             style={styles.input}
-            outlineColor={materialColors.border}
-            activeOutlineColor={materialColors.primary}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -512,8 +516,9 @@ export default function CreateTaskScreen({ navigation }: any) {
             value={startTime}
             onChangeText={setStartTime}
             style={styles.input}
-            outlineColor={materialColors.border}
-            activeOutlineColor={materialColors.primary}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -525,8 +530,9 @@ export default function CreateTaskScreen({ navigation }: any) {
             value={dueTime}
             onChangeText={setDueTime}
             style={styles.input}
-            outlineColor={materialColors.border}
-            activeOutlineColor={materialColors.primary}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
 
@@ -538,8 +544,9 @@ export default function CreateTaskScreen({ navigation }: any) {
             value={estimatedHours}
             onChangeText={setEstimatedHours}
             style={styles.input}
-            outlineColor={materialColors.border}
-            activeOutlineColor={materialColors.primary}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
             disabled={isOffline}
           />
           <Text style={styles.helpText}>
