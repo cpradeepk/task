@@ -19,7 +19,12 @@ import {
   StyleSheet,
   RefreshControl,
   ScrollView,
+  Alert,
 } from 'react-native'
+import Swipeable from 'react-native-gesture-handler/Swipeable'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import QuickActionsModal from '../components/QuickActionsModal'
+import { updateBug } from '../services/bugService'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Surface, Portal, Modal, Divider, Button as PaperButton, IconButton } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -69,6 +74,63 @@ export default function BugListScreen() {
   const [isFilterModalVisible, setFilterModalVisible] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [expandedSection, setExpandedSection] = useState<string>('')
+  const [swipeLeftAction, setSwipeLeftAction] = useState('In Progress')
+  const [swipeRightAction, setSwipeRightAction] = useState('Complete')
+  const [selectedBug, setSelectedBug] = useState<any>(null)
+  const [quickActionsVisible, setQuickActionsVisible] = useState(false)
+
+  const loadSwipePreferences = async () => {
+    try {
+      const left = await AsyncStorage.getItem('jsr_swipe_left_action')
+      const right = await AsyncStorage.getItem('jsr_swipe_right_action')
+      if (left) setSwipeLeftAction(left)
+      if (right) setSwipeRightAction(right)
+    } catch (err) {
+      console.warn('Failed to load swipe preferences', err)
+    }
+  }
+
+  useEffect(() => {
+    loadSwipePreferences()
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadSwipePreferences()
+    })
+    return unsubscribe
+  }, [navigation])
+
+  const handleSwipeAction = async (item: any, action: string) => {
+    if (action === 'None') return
+    try {
+      const newStatus = action === 'In Progress' ? 'In Progress' : 'Resolved'
+      if (item.status === newStatus) return
+      
+      const res = await updateBug(item.bugId, { status: newStatus })
+      if (res.success) {
+        Alert.alert('Success', `Bug updated to ${newStatus}`)
+        fetchBugs()
+      } else {
+        Alert.alert('Error', res.error || 'Failed to update bug')
+      }
+    } catch (error) {
+      console.error('Failed to update bug status via swipe:', error)
+    }
+  }
+
+  const renderLeftActions = () => {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.primary, justifyContent: 'center', paddingLeft: 20, marginVertical: 4, borderRadius: 12 }}>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{swipeRightAction}</Text>
+      </View>
+    )
+  }
+
+  const renderRightActions = () => {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'flex-end', paddingRight: 20, marginVertical: 4, borderRadius: 12 }}>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{swipeLeftAction}</Text>
+      </View>
+    )
+  }
 
   const { handleScroll } = useTabBarControl()
   const scrollHandler = useAnimatedScrollHandler({
@@ -113,20 +175,35 @@ export default function BugListScreen() {
   const settings = (settingsData as any)?.settings || []
 
   // Derive options from settings or defaults
+  const parseSettingValue = (val: any) => {
+    if (!val) return []
+    if (Array.isArray(val)) return val
+    if (typeof val === 'string') {
+      try {
+        const parsed = JSON.parse(val)
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+
   const statusSetting = settings.find((s: any) => s.key === 'bug_statuses')
-  const statusOptions = statusSetting && Array.isArray(statusSetting.value) ? statusSetting.value : []
-  const finalStatusOptions = statusOptions.length > 0 ? ['All', ...statusOptions] : ['All', 'New', 'In Progress', 'Resolved', 'Closed', 'ReOpened']
+  const parsedStatus = statusSetting ? parseSettingValue(statusSetting.value) : []
+  const statusOptions = parsedStatus.length > 0 ? parsedStatus : ['New', 'In Progress', 'Resolved', 'Closed', 'ReOpened']
 
   const severitySetting = settings.find((s: any) => s.key === 'bug_severities')
-  const severityOptions = severitySetting && Array.isArray(severitySetting.value) ? severitySetting.value : []
-  const finalSeverityOptions = severityOptions.length > 0 ? ['All', ...severityOptions] : ['All', 'Critical', 'Major', 'Minor']
+  const parsedSeverity = severitySetting ? parseSettingValue(severitySetting.value) : []
+  const severityOptions = parsedSeverity.length > 0 ? parsedSeverity : ['Critical', 'Major', 'Minor']
 
   const categorySetting = settings.find((s: any) => s.key === 'bug_categories')
-  const categoryOptions = categorySetting && Array.isArray(categorySetting.value) ? categorySetting.value : []
-  const finalCategoryOptions = categoryOptions.length > 0 ? ['All', ...categoryOptions] : ['All', 'UI', 'Functionality', 'Performance', 'Security', 'Other']
+  const parsedCategory = categorySetting ? parseSettingValue(categorySetting.value) : []
+  const categoryOptions = parsedCategory.length > 0 ? parsedCategory : ['UI', 'Functionality', 'Performance', 'Security', 'Other']
 
   const typeSetting = settings.find((s: any) => s.key === 'bug_types')
-  const typeOptionsRaw = typeSetting && Array.isArray(typeSetting.value) ? typeSetting.value : ['bug', 'feature', 'testcase', 'other']
+  const parsedType = typeSetting ? parseSettingValue(typeSetting.value) : []
+  const typeOptionsRaw = parsedType.length > 0 ? parsedType : ['bug', 'feature', 'testcase', 'other']
   const typeOptions = ['All', ...typeOptionsRaw]
 
   // Use REST API instead of GraphQL to avoid schema mismatch issues
@@ -294,14 +371,22 @@ export default function BugListScreen() {
 
     const displayId = getBugDisplayId(item.bugId, item.type)
 
-    return (
-      <Card style={styles.card} elevation={1} onPress={() => (navigation as any).navigate('BugDetails', { bugId: item.bugId })}>
+    const cardContent = (
+      <Card 
+        style={styles.card} 
+        elevation={1} 
+        onPress={() => (navigation as any).navigate('BugDetails', { bugId: item.bugId })}
+        onLongPress={() => {
+          setSelectedBug(item)
+          setQuickActionsVisible(true)
+        }}
+      >
         <Card.Content>
           <View style={styles.headerRow}>
             <Text style={styles.bugId}>{displayId}</Text>
             <Chip
-              style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) }]}
-              textStyle={[styles.statusText, { color: getStatusTextColor(item.status) }]}
+              style={[styles.statusChip, { backgroundColor: getStatusColor(item.status, colors) }]}
+              textStyle={[styles.statusText, { color: getStatusTextColor(item.status, colors) }]}
               compact
             >
               {item.status}
@@ -322,6 +407,22 @@ export default function BugListScreen() {
           </View>
         </Card.Content>
       </Card>
+    )
+
+    return (
+      <Swipeable
+        renderLeftActions={swipeRightAction !== 'None' ? renderLeftActions : undefined}
+        renderRightActions={swipeLeftAction !== 'None' ? renderRightActions : undefined}
+        onSwipeableWillOpen={(direction) => {
+          if (direction === 'left') {
+            handleSwipeAction(item, swipeRightAction)
+          } else if (direction === 'right') {
+            handleSwipeAction(item, swipeLeftAction)
+          }
+        }}
+      >
+        {cardContent}
+      </Swipeable>
     )
   }
 
@@ -599,6 +700,19 @@ export default function BugListScreen() {
         color="#FFFFFF"
         size="medium"
         disabled={isOffline}
+      />
+      <QuickActionsModal
+        visible={quickActionsVisible}
+        onDismiss={() => {
+          setQuickActionsVisible(false)
+          setSelectedBug(null)
+        }}
+        type="bug"
+        item={selectedBug}
+        users={users}
+        onSuccess={() => {
+          fetchBugs()
+        }}
       />
     </SafeAreaView>
   )

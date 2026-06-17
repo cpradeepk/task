@@ -51,7 +51,8 @@ export async function GET(request: NextRequest) {
     // Build hierarchy
     let hierarchy = buildHierarchy(allProjects)
 
-    // Filter by user assignment for non-admin/non-top_management users
+    // Filter by user assignment for non-admin/non-top_management users (Commented out to expose all projects)
+    /*
     const authUser = await getAuthUser(request)
     if (authUser && authUser.role !== 'admin' && authUser.role !== 'top_management') {
       const userProjectIds = await getUserProjectIds(authUser.employeeId)
@@ -71,6 +72,7 @@ export async function GET(request: NextRequest) {
         )
       }))
     }
+    */
 
     return NextResponse.json(hierarchy, { status: 200 })
   } catch (error) {

@@ -12,6 +12,8 @@ import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/clien
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
 import * as SecureStore from 'expo-secure-store'
+import { deleteSecure, SECURE_KEYS } from '../utils/secureStorage'
+import { triggerUnauthorized } from '../utils/authEvents'
 import { CachePersistor } from 'apollo3-cache-persist'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { logger, logApiRequest, logApiResponse, logApiError } from '../utils/debugLogger'
@@ -77,9 +79,10 @@ const errorLink = onError((errorResponse) => {
 
       if (statusCode === 401) {
         // Unauthorized - token expired or invalid
-        console.log('Token expired or invalid - redirecting to login')
+        console.log('Token expired or invalid - clearing token and signing out')
         logger.warn('Auth', 'Token expired or invalid', { statusCode })
-        // You can dispatch a logout action here if using Redux/Context
+        deleteSecure(SECURE_KEYS.USER_TOKEN).catch(() => {})
+        triggerUnauthorized()
       }
     }
   }

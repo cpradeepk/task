@@ -60,80 +60,117 @@ export function getBugTypeDisplayName(bugType?: string | null): string {
 /**
  * Get severity color
  */
-export function getSeverityColor(severity: string): string {
+export function getSeverityColor(severity: string, colors: any): string {
   switch (severity) {
     case 'Critical':
-      return '#EF4444'
+      return colors.errorLight
     case 'Major':
-      return '#F97316'
+      return colors.warningLight
     case 'Minor':
-      return '#EAB308'
+      return colors.infoLight
     default:
-      return '#6B7280'
+      return colors.surfaceVariant
   }
 }
 
 /**
  * Get status color
  */
-export function getStatusColor(status: string): string {
+export function getStatusColor(status: string, colors: any): string {
   switch (status) {
     case 'New':
-      return '#3B82F6'
+    case 'Open':
+      return colors.infoLight
     case 'In Progress':
-      return '#EAB308'
+      return colors.primaryLight
     case 'Resolved':
-      return '#10B981'
+    case 'Completed':
+    case 'Done':
+      return colors.successLight
     case 'Closed':
-      return '#6B7280'
+    case 'Cancel':
+    case 'Cancelled':
+      return colors.surfaceVariant
     case 'Reopened':
-      return '#EF4444'
+    case 'ReOpened':
+    case 'Delayed':
+    case 'Stop':
+      return colors.errorLight
+    case 'Hold':
+    case 'On Hold':
+      return colors.warningLight
     default:
-      return '#6B7280'
+      return colors.surfaceVariant
   }
 }
 
 /**
  * Get status text color
  */
-export function getStatusTextColor(status: string): string {
+export function getStatusTextColor(status: string, colors: any): string {
   switch (status) {
+    case 'New':
+    case 'Open':
+      return colors.info
     case 'In Progress':
-      return '#000000'
+      return colors.primary
+    case 'Resolved':
+    case 'Completed':
+    case 'Done':
+      return colors.success
+    case 'Closed':
+    case 'Cancel':
+    case 'Cancelled':
+      return colors.textSecondary
+    case 'Reopened':
+    case 'ReOpened':
+    case 'Delayed':
+    case 'Stop':
+      return colors.error
+    case 'Hold':
+    case 'On Hold':
+      return colors.warning
     default:
-      return '#FFFFFF'
+      return colors.textSecondary
   }
 }
 
 /**
  * Get priority color
  */
-export function getPriorityColor(priority: string): string {
-  switch (priority) {
-    case 'High':
-      return '#EF4444'
-    case 'Medium':
-      return '#F97316'
-    case 'Low':
-      return '#10B981'
-    default:
-      return '#6B7280'
-  }
+export function getPriorityColor(priority: string, colors: any): string {
+  const p = priority ? priority.toUpperCase() : ''
+  if (p.includes('U&I') || p.includes('HIGH') || p.includes('URGENT')) return colors.errorLight
+  if (p.includes('NU&I') || p.includes('MEDIUM') || p.includes('IMPORTANT')) return colors.warningLight
+  if (p.includes('U&NI') || p.includes('LOW')) return colors.infoLight
+  return colors.surfaceVariant
 }
 
 /**
  * Get priority text color
  */
-export function getPriorityTextColor(priority: string): string {
-  return '#FFFFFF'
+export function getPriorityTextColor(priority: string, colors: any): string {
+  const p = priority ? priority.toUpperCase() : ''
+  if (p.includes('U&I') || p.includes('HIGH') || p.includes('URGENT')) return colors.error
+  if (p.includes('NU&I') || p.includes('MEDIUM') || p.includes('IMPORTANT')) return colors.warning
+  if (p.includes('U&NI') || p.includes('LOW')) return colors.info
+  return colors.textSecondary
 }
 
 /**
  * Get severity text color
  */
-export function getSeverityTextColor(severity: string): string {
-  if (severity === 'Minor') return '#000000'
-  return '#FFFFFF'
+export function getSeverityTextColor(severity: string, colors: any): string {
+  switch (severity) {
+    case 'Critical':
+      return colors.error
+    case 'Major':
+      return colors.warning
+    case 'Minor':
+      return colors.info
+    default:
+      return colors.textSecondary
+  }
 }
 
 /**

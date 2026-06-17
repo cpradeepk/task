@@ -46,6 +46,10 @@ export const typeDefs = `#graphql
     timerState: String
     deletedAt: String
     deletedBy: String
+    meetingLink: String
+    meetingReminder: Boolean
+    startTime: String
+    dueTime: String
     createdAt: String!
     updatedAt: String!
     assignedToUser: User
@@ -394,8 +398,8 @@ export const typeDefs = `#graphql
     isRead: Boolean!
     readAt: String
     createdAt: String!
-    user: User!
-    actor: User!
+    user: User
+    actor: User
     post: FeedPost
     comment: FeedComment
     mention: FeedMention
@@ -506,7 +510,7 @@ export const typeDefs = `#graphql
 
     # Attendance
     attendance(date: String!): Attendance
-    monthlyAttendance(month: Int!, year: Int!): [Attendance!]!
+    monthlyAttendance(month: Int!, year: Int!, userId: String): [Attendance!]!
     homeDashboardData(date: String!): HomeDashboardData!
   }
 
@@ -599,6 +603,10 @@ export const typeDefs = `#graphql
     selectType: String!
     recursiveType: String
     projectId: String
+    meetingLink: String
+    meetingReminder: Boolean
+    startTime: String
+    dueTime: String
   }
 
   input UpdateTaskInput {
@@ -613,6 +621,10 @@ export const typeDefs = `#graphql
     status: String
     remarks: String
     difficulties: String
+    meetingLink: String
+    meetingReminder: Boolean
+    startTime: String
+    dueTime: String
   }
 
   input CreateBugInput {

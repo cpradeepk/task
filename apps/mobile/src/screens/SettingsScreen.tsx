@@ -19,7 +19,8 @@ import {
   Modal,
   Vibration
 } from 'react-native'
-import { Text, Button, ActivityIndicator, Divider, Surface, Switch, IconButton, TextInput as PaperInput, Portal, Dialog } from 'react-native-paper'
+import { Text, Button, ActivityIndicator, Divider, Surface, Switch, IconButton, TextInput as PaperInput, Portal, Dialog, SegmentedButtons } from 'react-native-paper'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SearchablePicker } from '../components/SearchablePicker'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as DocumentPicker from 'expo-document-picker'
@@ -101,6 +102,39 @@ export default function SettingsScreen() {
   // ID Card Modal
   const [isIdCardVisible, setIdCardVisible] = useState(false)
   const [uploading, setUploading] = useState(false)
+
+  // Swipe Preferences States
+  const [swipeLeftAction, setSwipeLeftAction] = useState('In Progress')
+  const [swipeRightAction, setSwipeRightAction] = useState('Complete')
+
+  useEffect(() => {
+    // Load swipe preferences
+    const loadSwipePreferences = async () => {
+      try {
+        const left = await AsyncStorage.getItem('jsr_swipe_left_action')
+        const right = await AsyncStorage.getItem('jsr_swipe_right_action')
+        if (left) setSwipeLeftAction(left)
+        if (right) setSwipeRightAction(right)
+      } catch (err) {
+        console.warn('Failed to load swipe preferences', err)
+      }
+    }
+    loadSwipePreferences()
+  }, [])
+
+  const handleSaveSwipePreferences = async (side: 'left' | 'right', action: string) => {
+    try {
+      if (side === 'left') {
+        setSwipeLeftAction(action)
+        await AsyncStorage.setItem('jsr_swipe_left_action', action)
+      } else {
+        setSwipeRightAction(action)
+        await AsyncStorage.setItem('jsr_swipe_right_action', action)
+      }
+    } catch (err) {
+      console.warn('Failed to save swipe preferences', err)
+    }
+  }
 
   // Change PIN Flow States
   const [changePinVisible, setChangePinVisible] = useState(false)
@@ -473,7 +507,7 @@ export default function SettingsScreen() {
                   mode="outlined"
                   value={user?.employeeId}
                   disabled={true}
-                  style={[styles.input, { backgroundColor: '#f0f0f0' }]}
+                  style={[styles.input, { backgroundColor: colors.surfaceVariant }]}
                   editable={false}
                 />
                 <Text style={styles.helperText}>Employee ID cannot be changed</Text>
@@ -714,6 +748,34 @@ export default function SettingsScreen() {
                   />
                 </View>
               )}
+
+              <Divider style={{ marginVertical: 12 }} />
+              <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: 8 }]}>Swipe Actions Configuration</Text>
+              
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 6 }}>Swipe Left Action (swiping from right to left)</Text>
+                <SegmentedButtons
+                  value={swipeLeftAction}
+                  onValueChange={(val) => handleSaveSwipePreferences('left', val)}
+                  buttons={[
+                    { value: 'In Progress', label: 'In Progress' },
+                    { value: 'Complete', label: 'Complete' },
+                    { value: 'None', label: 'None' }
+                  ]}
+                  style={{ marginBottom: 12 }}
+                />
+
+                <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 6 }}>Swipe Right Action (swiping from left to right)</Text>
+                <SegmentedButtons
+                  value={swipeRightAction}
+                  onValueChange={(val) => handleSaveSwipePreferences('right', val)}
+                  buttons={[
+                    { value: 'In Progress', label: 'In Progress' },
+                    { value: 'Complete', label: 'Complete' },
+                    { value: 'None', label: 'None' }
+                  ]}
+                />
+              </View>
             </View>
 
             <Button
@@ -1041,7 +1103,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   },
   modalContent: {
     width: '90%',
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     elevation: 5,
@@ -1055,7 +1117,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000',
+    color: colors.text,
   },
   idCardVisual: {
     flexDirection: 'row',
@@ -1158,7 +1220,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     color: colors.text,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
   },
   helperText: {
     fontSize: 12,
@@ -1167,14 +1229,15 @@ const getStyles = (colors: any) => StyleSheet.create({
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#79747E', // Standard Material outline color
+    borderColor: colors.border,
     borderRadius: 4,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     height: 50,
     justifyContent: 'center',
   },
   picker: {
     height: 50,
+    color: colors.text,
   },
   formActions: {
     flexDirection: 'row',

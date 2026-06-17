@@ -5,7 +5,8 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { buildApiUrl } from '../config/api'
-import { getUserToken } from '../utils/secureStorage'
+import { getUserToken, deleteSecure, SECURE_KEYS } from '../utils/secureStorage'
+import { triggerUnauthorized } from '../utils/authEvents'
 
 export interface ApiResponse<T = any> {
   success: boolean
@@ -48,10 +49,10 @@ export const apiRequest = async <T = any>(
 
     // Handle 401 Unauthorized
     if (response.status === 401) {
-      console.warn('Unauthorized access, clearing token...')
+      console.warn('Unauthorized access, clearing secure token...')
+      await deleteSecure(SECURE_KEYS.USER_TOKEN)
       await AsyncStorage.removeItem('userToken')
-      // You might want to trigger a global event or use a navigation service here
-      // to redirect to login, but clearing the token is the first step.
+      triggerUnauthorized()
       return {
         success: false,
         error: 'Unauthorized',

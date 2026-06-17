@@ -20,6 +20,7 @@ import {
   BugComment,
 } from '../services/bugService'
 import { getCurrentUser, User } from '../services/userService'
+import { getStatusColor, getStatusTextColor, getSeverityColor, getSeverityTextColor } from '../utils/bugHelpers'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import BugSubtasks from '../components/BugSubtasks'
 import { useTheme } from '../contexts/ThemeContext'
@@ -192,36 +193,6 @@ export default function BugDetailsScreen() {
     }
   }, [bug, bugId])
 
-  const getSeverityColor = useCallback((severity: string) => {
-    switch (severity) {
-      case 'Critical':
-        return colors.error
-      case 'Major':
-        return '#F97316'
-      case 'Minor':
-        return colors.warning
-      default:
-        return colors.textSecondary
-    }
-  }, [colors])
-
-  const getStatusColor = useCallback((status: string) => {
-    switch (status) {
-      case 'New':
-        return colors.primary
-      case 'In Progress':
-        return colors.warning
-      case 'Resolved':
-        return colors.success
-      case 'Closed':
-        return colors.textSecondary
-      case 'Reopened':
-        return colors.error
-      default:
-        return colors.textSecondary
-    }
-  }, [colors])
-
   const formatTime = useCallback((milliseconds?: number | string): string => {
     if (!milliseconds) return '00:00:00'
     const ms = typeof milliseconds === 'string' ? Number(milliseconds) : milliseconds
@@ -265,16 +236,16 @@ export default function BugDetailsScreen() {
                 <Chip
                   mode="flat"
                   compact
-                  style={[styles.statusChip, { backgroundColor: getStatusColor(bug.status) }]}
-                  textStyle={styles.chipText}
+                  style={[styles.statusChip, { backgroundColor: getStatusColor(bug.status, colors) }]}
+                  textStyle={[styles.chipText, { color: getStatusTextColor(bug.status, colors) }]}
                 >
                   {bug.status}
                 </Chip>
                 <Chip
                   mode="flat"
                   compact
-                  style={[styles.severityChip, { backgroundColor: getSeverityColor(bug.severity) }]}
-                  textStyle={styles.chipText}
+                  style={[styles.severityChip, { backgroundColor: getSeverityColor(bug.severity, colors) }]}
+                  textStyle={[styles.chipText, { color: getSeverityTextColor(bug.severity, colors) }]}
                 >
                   {bug.severity}
                 </Chip>

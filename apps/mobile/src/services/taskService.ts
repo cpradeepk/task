@@ -30,6 +30,10 @@ export interface Task {
   remarks?: string
   difficulties?: string
   timerTotalTime?: number
+  meetingLink?: string | null
+  meetingReminder?: boolean
+  startTime?: string | null
+  dueTime?: string | null
   createdAt: string
   updatedAt: string
 }

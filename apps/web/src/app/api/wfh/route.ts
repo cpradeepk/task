@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllWFH, createWFH } from '@/lib/db/wfh'
-import { withTimeout } from '@/lib/db/config'
+import { withTimeout, query } from '@/lib/db/config'
 
 export async function GET() {
   try {
@@ -53,17 +53,54 @@ export async function POST(request: NextRequest) {
       body.status = 'Pending'
     }
 
+    // Fetch employee's manager
+    const managerRes = await withTimeout(
+      query<any[]>(
+        `SELECT manager_id FROM users WHERE employee_id = $1 LIMIT 1`,
+        [body.employeeId]
+      ),
+      5000,
+      'Failed to fetch manager details - database timeout'
+    )
+    const managerId = managerRes[0]?.manager_id
+
+    if (managerId) {
+      body.managerId = managerId
+    }
+
     console.log('Creating WFH application:', {
       id: body.id,
       employeeId: body.employeeId,
       wfhType: body.wfhType,
       fromDate: body.fromDate,
-      toDate: body.toDate
+      toDate: body.toDate,
+      managerId
     })
 
     const wfh = await createWFH(body)
 
     console.log('WFH application created successfully:', wfh.id)
+
+    // Notify manager of pending WFH request
+    if (managerId) {
+      try {
+        const { createNotification } = await import('@/lib/notification-helper')
+        const title = 'WFH Request Pending Approval 🏠'
+        const message = `${body.employeeName} has submitted a WFH request (${body.wfhType}) from ${body.fromDate} to ${body.toDate} for your approval.`
+        await createNotification({
+          userId: managerId,
+          actorId: body.employeeId,
+          notificationType: 'wfh_pending_approval',
+          title,
+          message,
+          linkUrl: '/approvals',
+          metadata: { wfhId: wfh.id }
+        })
+        console.log(`Sent WFH pending approval notification to manager ${managerId}`)
+      } catch (notifErr) {
+        console.error('Failed to send WFH pending approval notification:', notifErr)
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -287,6 +287,11 @@ export default function FeedPost({ post, onReact, onComment }: FeedPostProps) {
         </div>
       )}
 
+      {/* Post Title */}
+      {post.contentType !== 'link' && post.linkTitle && (
+        <h3 className="text-lg font-bold text-gray-900 mb-2">{post.linkTitle}</h3>
+      )}
+
       {/* Post Content */}
       <div className="mb-4">{renderContent()}</div>
 

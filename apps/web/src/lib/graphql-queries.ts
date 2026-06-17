@@ -165,6 +165,10 @@ export const QUERIES = {
         difficulties
         relatedTasks
         projectId
+        meetingLink
+        meetingReminder
+        startTime
+        dueTime
         createdAt
         updatedAt
         assignedToUser {
@@ -233,6 +237,10 @@ export const QUERIES = {
         projectId
         subprojectId
         department
+        meetingLink
+        meetingReminder
+        startTime
+        dueTime
         createdAt
         updatedAt
         assignedToUser {
@@ -718,8 +726,8 @@ export const QUERIES = {
   `,
 
   GET_MONTHLY_ATTENDANCE: `
-    query GetMonthlyAttendance($year: Int!, $month: Int!) {
-      monthlyAttendance(year: $year, month: $month) {
+    query GetMonthlyAttendance($year: Int!, $month: Int!, $userId: String) {
+      monthlyAttendance(year: $year, month: $month, userId: $userId) {
         id
         employeeId
         signInTime

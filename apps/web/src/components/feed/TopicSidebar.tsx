@@ -136,11 +136,11 @@ export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSi
                   {getTopicIcon(topic)}
                   <span className="text-sm">{topic.topicName}</span>
                 </div>
-                {topic.postCount && topic.postCount > 0 && (
+                {typeof topic.postCount === 'number' && topic.postCount > 0 ? (
                   <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
                     {topic.postCount}
                   </span>
-                )}
+                ) : null}
               </button>
             ))}
         </div>
@@ -168,11 +168,11 @@ export default function TopicSidebar({ selectedTopicId, onSelectTopic }: TopicSi
                       {getTopicIcon(topic)}
                       <span className="text-sm">{topic.topicName}</span>
                     </div>
-                    {topic.postCount && topic.postCount > 0 && (
+                    {typeof topic.postCount === 'number' && topic.postCount > 0 ? (
                       <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
                         {topic.postCount}
                       </span>
-                    )}
+                    ) : null}
                   </button>
                 ))}
             </div>

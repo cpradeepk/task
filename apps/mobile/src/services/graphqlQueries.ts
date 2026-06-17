@@ -89,6 +89,10 @@ export const QUERIES = {
         remarks
         difficulties
         timerTotalTime
+        meetingLink
+        meetingReminder
+        startTime
+        dueTime
         createdAt
         updatedAt
       }
@@ -120,6 +124,10 @@ export const QUERIES = {
         remarks
         difficulties
         timerTotalTime
+        meetingLink
+        meetingReminder
+        startTime
+        dueTime
         createdAt
         updatedAt
         subtasks {

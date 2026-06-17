@@ -18,7 +18,12 @@ import {
   StyleSheet,
   RefreshControl,
   ScrollView,
+  Alert,
 } from 'react-native'
+import Swipeable from 'react-native-gesture-handler/Swipeable'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import QuickActionsModal from '../components/QuickActionsModal'
+import { updateTask } from '../services/taskService'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Button as PaperButton, IconButton, Modal, Portal, Divider } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -30,6 +35,7 @@ import { ListSkeleton } from '../components/SkeletonLoaders'
 import { Task, Project } from '../types'
 import { formatDateIST } from '../utils/datetime'
 import { getUserData, save, get, STORAGE_KEYS } from '../utils/secureStorage'
+import { getStatusColor, getStatusTextColor, getPriorityColor, getPriorityTextColor } from '../utils/bugHelpers'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
@@ -60,6 +66,63 @@ export default function TaskListScreen({ navigation }: any) {
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [swipeLeftAction, setSwipeLeftAction] = useState('In Progress')
+  const [swipeRightAction, setSwipeRightAction] = useState('Complete')
+  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [quickActionsVisible, setQuickActionsVisible] = useState(false)
+
+  const loadSwipePreferences = async () => {
+    try {
+      const left = await AsyncStorage.getItem('jsr_swipe_left_action')
+      const right = await AsyncStorage.getItem('jsr_swipe_right_action')
+      if (left) setSwipeLeftAction(left)
+      if (right) setSwipeRightAction(right)
+    } catch (err) {
+      console.warn('Failed to load swipe preferences', err)
+    }
+  }
+
+  useEffect(() => {
+    loadSwipePreferences()
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadSwipePreferences()
+    })
+    return unsubscribe
+  }, [navigation])
+
+  const handleSwipeAction = async (item: any, action: string) => {
+    if (action === 'None') return
+    try {
+      const newStatus = action === 'In Progress' ? 'In Progress' : 'Done'
+      if (item.status === newStatus) return
+      
+      const res = await updateTask(item.taskId, { status: newStatus })
+      if (res.success) {
+        Alert.alert('Success', `Task updated to ${newStatus}`)
+        fetchTasks()
+      } else {
+        Alert.alert('Error', res.error || 'Failed to update task')
+      }
+    } catch (error) {
+      console.error('Failed to update task status via swipe:', error)
+    }
+  }
+
+  const renderLeftActions = () => {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.primary, justifyContent: 'center', paddingLeft: 20, marginVertical: 4, borderRadius: 12 }}>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{swipeRightAction}</Text>
+      </View>
+    )
+  }
+
+  const renderRightActions = () => {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'flex-end', paddingRight: 20, marginVertical: 4, borderRadius: 12 }}>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{swipeLeftAction}</Text>
+      </View>
+    )
+  }
   const [priorityFilter, setPriorityFilter] = useState<string[]>([])
   const [projectId, setProjectId] = useState<string>('')
   const [subprojectId, setSubprojectId] = useState<string>('')
@@ -112,13 +175,27 @@ export default function TaskListScreen({ navigation }: any) {
   const settings = (settingsData as any)?.settings || []
 
   // Derive options from settings or defaults
+  const parseSettingValue = (val: any) => {
+    if (!val) return []
+    if (Array.isArray(val)) return val
+    if (typeof val === 'string') {
+      try {
+        const parsed = JSON.parse(val)
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+
   const statusSetting = settings.find((s: any) => s.key === 'task_statuses')
-  const statusOptions = statusSetting && Array.isArray(statusSetting.value) ? statusSetting.value : []
-  const finalStatusOptions = statusOptions.length > 0 ? ['All', ...statusOptions] : ['All', 'Yet to Start', 'In Progress', 'Delayed', 'Done', 'Cancel', 'Hold', 'ReOpened', 'Stop']
+  const parsedStatus = statusSetting ? parseSettingValue(statusSetting.value) : []
+  const statusOptions = parsedStatus.length > 0 ? parsedStatus : ['Yet to Start', 'In Progress', 'Delayed', 'Done', 'Cancel', 'Hold', 'ReOpened', 'Stop']
 
   const prioritySetting = settings.find((s: any) => s.key === 'task_priorities')
-  const priorityOptions = prioritySetting && Array.isArray(prioritySetting.value) ? prioritySetting.value : []
-  const finalPriorityOptions = priorityOptions.length > 0 ? ['All', ...priorityOptions] : ['All', 'High', 'Medium', 'Low', 'U&I', 'NU&I', 'U&NI', 'NU&NI']
+  const parsedPriority = prioritySetting ? parseSettingValue(prioritySetting.value) : []
+  const priorityOptions = parsedPriority.length > 0 ? parsedPriority : ['High', 'Medium', 'Low', 'U&I', 'NU&I', 'U&NI', 'NU&NI']
 
   // REST API Implementation
   const [tasks, setTasks] = useState<Task[]>([])
@@ -291,38 +368,6 @@ export default function TaskListScreen({ navigation }: any) {
     navigation.navigate('TaskDetails', { taskId: task.taskId })
   }, [navigation])
 
-  const getStatusColor = useCallback((status: string) => {
-    switch (status) {
-      case 'Yet to Start': return colors.textSecondary
-      case 'In Progress': return colors.primary
-      case 'Done': return colors.success
-      case 'Delayed': return colors.error
-      case 'Hold': return colors.warning
-      case 'Cancel': return colors.textTertiary
-      case 'ReOpened': return '#8B5CF6'
-      case 'Stop': return '#DC2626'
-      default: return colors.textSecondary
-    }
-  }, [colors])
-
-  const getStatusTextColor = useCallback((status: string) => {
-    switch (status) {
-      case 'In Progress':
-      case 'Hold':
-        return '#000000'
-      default:
-        return '#FFFFFF'
-    }
-  }, [])
-
-  const getPriorityColor = useCallback((priority: string) => {
-    if (priority === 'U&I') return colors.error
-    if (priority === 'NU&I') return colors.warning
-    if (priority === 'U&NI') return colors.primary
-    if (priority === 'NU&NI') return colors.textSecondary
-    return colors.textSecondary
-  }, [colors])
-
   const getAssigneeNames = useCallback((assignedTo: string | string[]): string => {
     if (!assignedTo) return 'Unassigned'
 
@@ -368,12 +413,20 @@ export default function TaskListScreen({ navigation }: any) {
       ? item.assignedToUsers.map((u: any) => u.name).join(', ')
       : getAssigneeNames(item.assignedTo)
 
-    return (
-      <Card style={styles.taskCard} elevation={1} onPress={() => handleTaskPress(item)}>
+    const cardContent = (
+      <Card 
+        style={styles.taskCard} 
+        elevation={1} 
+        onPress={() => handleTaskPress(item)}
+        onLongPress={() => {
+          setSelectedTask(item)
+          setQuickActionsVisible(true)
+        }}
+      >
         <Card.Content>
           <View style={styles.taskHeader}>
             <Text style={styles.taskId}>{item.taskId}</Text>
-            <Chip style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) }]} textStyle={[styles.statusText, { color: getStatusTextColor(item.status) }]} compact>
+            <Chip style={[styles.statusChip, { backgroundColor: getStatusColor(item.status, colors) }]} textStyle={[styles.statusText, { color: getStatusTextColor(item.status, colors) }]} compact>
               {item.status}
             </Chip>
           </View>
@@ -381,7 +434,7 @@ export default function TaskListScreen({ navigation }: any) {
           {projectDisplay ? <Text style={styles.projectName} numberOfLines={1}>📁 {projectDisplay}</Text> : null}
           <Text style={styles.taskDescription} numberOfLines={2}>{item.description}</Text>
           <View style={styles.taskMeta}>
-            <Chip style={[styles.priorityChip, { backgroundColor: getPriorityColor(item.priority) }]} textStyle={styles.priorityText} compact>
+            <Chip style={[styles.priorityChip, { backgroundColor: getPriorityColor(item.priority, colors) }]} textStyle={[styles.priorityText, { color: getPriorityTextColor(item.priority, colors) }]} compact>
               {item.priority}
             </Chip>
             <Text style={styles.taskDate}>Due: {formatDateIST(item.endDate)}</Text>
@@ -389,6 +442,22 @@ export default function TaskListScreen({ navigation }: any) {
           <Text style={styles.assignedTo}>👤 {assigneeNames}</Text>
         </Card.Content>
       </Card>
+    )
+
+    return (
+      <Swipeable
+        renderLeftActions={swipeRightAction !== 'None' ? renderLeftActions : undefined}
+        renderRightActions={swipeLeftAction !== 'None' ? renderRightActions : undefined}
+        onSwipeableWillOpen={(direction) => {
+          if (direction === 'left') {
+            handleSwipeAction(item, swipeRightAction)
+          } else if (direction === 'right') {
+            handleSwipeAction(item, swipeLeftAction)
+          }
+        }}
+      >
+        {cardContent}
+      </Swipeable>
     )
   }
 
@@ -624,6 +693,19 @@ export default function TaskListScreen({ navigation }: any) {
           </ScrollView>
         </Modal>
       </Portal>
+      <QuickActionsModal
+        visible={quickActionsVisible}
+        onDismiss={() => {
+          setQuickActionsVisible(false)
+          setSelectedTask(null)
+        }}
+        type="task"
+        item={selectedTask}
+        users={users}
+        onSuccess={() => {
+          fetchTasks()
+        }}
+      />
     </SafeAreaView>
   )
 }

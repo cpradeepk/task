@@ -507,14 +507,14 @@ export default function LoginForm() {
                 id="employeeId"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
-                className="peer w-full px-3 pt-5 pb-2 placeholder-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none"
+                className="peer w-full px-3 pt-5 pb-2 placeholder:text-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none"
                 placeholder="Employee ID or Email"
                 autoComplete="username"
                 aria-invalid={!!error && !employeeId}
               />
               <label
                 htmlFor="employeeId"
-                className="absolute left-3 text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
+                className="absolute left-3 -top-2 text-sm text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
               >
                 Employee ID or Email
               </label>
@@ -527,14 +527,14 @@ export default function LoginForm() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="peer w-full pr-12 px-3 pt-5 pb-2 placeholder-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none"
+                className="peer w-full pr-12 px-3 pt-5 pb-2 placeholder:text-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none"
                 placeholder="Password"
                 autoComplete="current-password"
                 aria-invalid={!!error && !password}
               />
               <label
                 htmlFor="password"
-                className="absolute left-3 text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
+                className="absolute left-3 -top-2 text-sm text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
               >
                 Password
               </label>
@@ -574,6 +574,12 @@ export default function LoginForm() {
           </form>
         </div>
       </motion.div>
+      <style jsx>{`
+        input::placeholder {
+          color: transparent !important;
+          opacity: 0 !important;
+        }
+      `}</style>
     </div>
   )
 }

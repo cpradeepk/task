@@ -61,6 +61,10 @@ export const GET_TASKS = gql`
       parentTaskId
       department
       timerState
+      meetingLink
+      meetingReminder
+      startTime
+      dueTime
       createdAt
       updatedAt
       assignedToUsers {
@@ -105,6 +109,10 @@ export const GET_TASK = gql`
       parentTaskId
       department
       timerState
+      meetingLink
+      meetingReminder
+      startTime
+      dueTime
       createdAt
       updatedAt
       subtasks {
@@ -869,8 +877,8 @@ export const GET_ATTENDANCE = gql`
 `
 
 export const GET_MONTHLY_ATTENDANCE = gql`
-  query GetMonthlyAttendance($year: Int!, $month: Int!) {
-    monthlyAttendance(year: $year, month: $month) {
+  query GetMonthlyAttendance($year: Int!, $month: Int!, $userId: String) {
+    monthlyAttendance(year: $year, month: $month, userId: $userId) {
       id
       employeeId
       signInTime
@@ -992,6 +1000,21 @@ export const CREATE_FEED_TOPIC = gql`
       description
       icon
       displayOrder
+    }
+  }
+`
+
+export const INIT_PERSONAL_TOPICS = gql`
+  mutation InitPersonalTopics {
+    initPersonalTopics {
+      personalNotes {
+        id
+        topicName
+      }
+      savedPosts {
+        id
+        topicName
+      }
     }
   }
 `

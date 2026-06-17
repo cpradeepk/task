@@ -45,6 +45,8 @@ function mapNotificationTypeToPrefKey(type: string): string | null {
     case 'leave_rejected': return 'leaveRejected'
     case 'wfh_approved': return 'wfhApproved'
     case 'wfh_rejected': return 'wfhRejected'
+    case 'leave_pending_approval': return 'leavePendingApproval'
+    case 'wfh_pending_approval': return 'wfhPendingApproval'
     case 'task_commented': return 'taskCommented'
     case 'bug_commented': return 'bugCommented'
     default: return null

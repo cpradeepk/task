@@ -121,3 +121,16 @@ Successfully implemented 100% feature parity between the web app and the mobile 
   - [UsersScreen.tsx](file:///Volumes/EassyLife%20Projects/Task/task_app/apps/mobile/src/screens/UsersScreen.tsx) (`role` and `status` handlers)
 - **Zero Errors**: Compilation completes with 100% clean output.
 
+## Task/Bug Creation Dark Mode Text Input Visibility Fixes
+
+### 1. Create Bug Screen
+- **[CreateBugScreen.tsx](file:///Volumes/EassyLife%20Projects/Task/task_app/apps/mobile/src/screens/CreateBugScreen.tsx)**:
+  - Replaced all static `materialColors` references with dynamic `colors` from `useTheme()`.
+  - Fixed `input` styling to use dynamic `colors.surface` background instead of static white `materialColors.surface`.
+  - Added explicit `textColor={colors.text}`, `outlineColor={colors.border}`, and `activeOutlineColor={colors.primary}` props to all text input fields to ensure correct text rendering and focus border styles under light and dark modes.
+  - Linked files list, status fields, section headers, loading indicators, and banners to the dynamic theme context.
+
+### 2. Create Task Screen
+- **[CreateTaskScreen.tsx](file:///Volumes/EassyLife%20Projects/Task/task_app/apps/mobile/src/screens/CreateTaskScreen.tsx)**:
+  - Replaced static `materialColors.border` and `materialColors.primary` props with dynamic `colors.border` and `colors.primary`.
+  - Added explicit `textColor={colors.text}` to all `TextInput` elements to enforce dark mode compatibility.

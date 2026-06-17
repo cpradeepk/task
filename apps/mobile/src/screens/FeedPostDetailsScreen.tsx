@@ -165,6 +165,9 @@ export default function FeedPostDetailsScreen({ route }: any) {
             />
           </View>
 
+          {post.contentType !== 'link' && post.linkTitle && (
+            <Text style={styles.postTitle}>{post.linkTitle}</Text>
+          )}
           <Text style={styles.postContent}>{post.content}</Text>
 
           {/* Reactions */}
@@ -279,6 +282,12 @@ const getStyles = (colors: any) => StyleSheet.create({
   postDate: {
     fontSize: 12,
     color: colors.textSecondary,
+  },
+  postTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
   },
   postContent: {
     fontSize: 16,

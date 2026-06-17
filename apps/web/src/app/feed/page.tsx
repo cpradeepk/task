@@ -56,6 +56,7 @@ export default function FeedPage() {
   const [contentTypeFilter, setContentTypeFilter] = useState<string>('')
   const [hasMore, setHasMore] = useState(true)
   const [offset, setOffset] = useState(0)
+  const [sidebarKey, setSidebarKey] = useState(0)
   const router = useRouter()
   const searchParams = useSearchParams()
   const hasInitializedTopics = useRef(false)
@@ -184,7 +185,10 @@ export default function FeedPage() {
             router.replace(`/feed?${params.toString()}`)
           }
         }}
-        onPostCreated={fetchPosts}
+        onPostCreated={() => {
+          fetchPosts(true)
+          setSidebarKey(prev => prev + 1)
+        }}
       />
       <div className="min-h-screen bg-gray-50">
         {/* Main Container */}
@@ -211,6 +215,7 @@ export default function FeedPage() {
             {/* Left Sidebar - Topics */}
             <div className="lg:col-span-3">
               <TopicSidebar
+                key={sidebarKey}
                 selectedTopicId={selectedTopicId}
                 onSelectTopic={setSelectedTopicId}
               />

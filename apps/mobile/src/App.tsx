@@ -42,7 +42,7 @@ import { OfflineBanner } from './components/OfflineBanner'
 import { ActivityIndicator, View, LogBox, Text, ScrollView, TouchableOpacity, Image } from 'react-native'
 import { IconButton, Provider as PaperProvider } from 'react-native-paper'
 import { apolloClient, initializeApollo } from './config/apollo'
-import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData, getSecure, SECURE_KEYS } from './utils/secureStorage'
+import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData, getSecure, SECURE_KEYS, save, get, remove } from './utils/secureStorage'
 import { LOGIN_MUTATION, REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN, GET_FEED_POSTS, GET_FEED_TOPICS } from './config/graphql-queries'
 import { ThemeProvider, useTheme, lightColors, darkColors } from './contexts/ThemeContext'
 import { ToastProvider } from './contexts/ToastContext'
@@ -57,6 +57,7 @@ import { TabBarProvider } from './context/TabBarContext'
 import AnimatedTabBar from './components/AnimatedTabBar'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { firestore } from './config/firebase'
+import { setOnUnauthorized } from './utils/authEvents'
 import { API_BASE_URL } from './config/api'
 
 // Disable dev tools warnings in production builds
@@ -480,11 +481,17 @@ function AppContent() {
   const [isAppLocked, setIsAppLocked] = useState(false)
 
   // AppState listener for auto-locking when app resumes from background
+  const wasBackgroundedRef = useRef(false)
   const appStateRef = useRef(AppState.currentState)
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background') {
+        wasBackgroundedRef.current = true
+        await save('jsr_last_active_time', Date.now().toString())
+      }
+
       if (
-        appStateRef.current.match(/inactive|background/) &&
+        wasBackgroundedRef.current &&
         nextAppState === 'active'
       ) {
         console.log('App resumed from background: checking lock...')
@@ -492,15 +499,33 @@ function AppContent() {
         if (token) {
           const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
           if (storedPin) {
-            setIsAppLocked(true)
+            const lastActiveStr = await get('jsr_last_active_time')
+            const lastActiveTime = lastActiveStr ? parseInt(lastActiveStr, 10) : 0
+            const elapsed = Date.now() - lastActiveTime
+            if (elapsed >= 5 * 60 * 1000) {
+              setIsAppLocked(true)
+            } else {
+              console.log(`Bypassing lock screen: returned after ${Math.round(elapsed / 1000)}s (< 300s).`)
+              await save('jsr_last_active_time', Date.now().toString())
+            }
           }
         }
+        wasBackgroundedRef.current = false
       }
       appStateRef.current = nextAppState
     }
 
     const subscription = AppState.addEventListener('change', handleAppStateChange)
     return () => subscription.remove()
+  }, [])
+
+  // Register global 401 unauthorized handler to trigger signOut
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      console.log('Global 401 detected — signing out...')
+      authContext.signOut()
+    })
+    return () => setOnUnauthorized(() => {})
   }, [])
 
   // Helper function to handle notification navigation
@@ -566,7 +591,15 @@ function AppContent() {
         if (userToken) {
           const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
           if (storedPin) {
-            setIsAppLocked(true)
+            const lastActiveStr = await get('jsr_last_active_time')
+            const lastActiveTime = lastActiveStr ? parseInt(lastActiveStr, 10) : 0
+            if (Date.now() - lastActiveTime >= 5 * 60 * 1000) {
+              setIsAppLocked(true)
+            } else {
+              setIsAppLocked(false)
+              await save('jsr_last_active_time', Date.now().toString())
+              console.log('Bypassing lock screen on cold boot: returned within 5 minutes.')
+            }
             setIsPinSetupNeeded(false)
           } else {
             setIsPinSetupNeeded(true)
@@ -726,6 +759,7 @@ function AppContent() {
 
           // Clear all secure data
           await clearSecureData()
+          await remove('jsr_last_active_time')
 
           // Clear Apollo Client cache
           await apolloClient.clearStore()
@@ -777,7 +811,7 @@ function AppContent() {
         <ToastProvider>
           <AuthContext.Provider value={authContext}>
           <TabBarProvider>
-            <NavigationContainer ref={navigationRef} theme={navigationTheme}>
+            <NavigationContainer ref={navigationRef} theme={navigationTheme} onStateChange={() => { save('jsr_last_active_time', Date.now().toString()) }}>
               <OfflineBanner />
               <Stack.Navigator
                 screenOptions={{
@@ -813,7 +847,7 @@ function AppContent() {
                       animation: 'fade',
                     }}
                   >
-                    {props => <PinLockScreen {...props} onUnlock={() => setIsAppLocked(false)} />}
+                    {props => <PinLockScreen {...props} onUnlock={async () => { await save('jsr_last_active_time', Date.now().toString()); setIsAppLocked(false) }} />}
                   </Stack.Screen>
                 ) : (
                   <>

@@ -222,7 +222,21 @@
   --color-border-light: #F1F5F9;
 }
 
-/* Dark mode removed — app uses permanent light theme */
+.dark {
+  --foreground-rgb: 243, 244, 246;
+  --background-rgb: 18, 18, 18;
+
+  --color-bg: #121212;
+  --color-bg-secondary: #1E1E1E;
+  --color-text: #F3F4F6;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #94A3B8;
+  --color-surface: #1E1E1E;
+  --color-border: #2D2D2D;
+  --color-border-light: #1E1E1E;
+  --color-brand-50: #1E1B4B;
+  --color-brand-100: #312E81;
+}
 
 html {
   scroll-behavior: smooth;
@@ -230,8 +244,8 @@ html {
 }
 
 body {
-  color: #111827;
-  background: #ffffff;
+  color: var(--color-text);
+  background: var(--color-bg);
   font-family: "Signika", sans-serif;
   overflow-x: hidden;
   width: 100%;
@@ -240,12 +254,235 @@ body {
 
 @layer base {
   * {
-    @apply border-gray-200;
+    @apply border-border-primary;
   }
   body {
-    @apply bg-white text-black;
+    @apply bg-bg-primary text-text-primary;
   }
 }
+
+/* Dark Mode CSS Overrides */
+.dark body {
+  background-color: var(--color-bg) !important;
+  color: var(--color-text) !important;
+}
+
+.dark .bg-white {
+  background-color: var(--color-surface) !important;
+}
+
+.dark .bg-white\/95 {
+  background-color: rgba(30, 30, 30, 0.95) !important;
+}
+
+.dark .bg-white\/90 {
+  background-color: rgba(30, 30, 30, 0.9) !important;
+}
+
+.dark .bg-white\/80 {
+  background-color: rgba(30, 30, 30, 0.8) !important;
+}
+
+.dark .bg-white\/50 {
+  background-color: rgba(30, 30, 30, 0.5) !important;
+}
+
+.dark .hover\:bg-white\/50:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Page wrapper container overrides (to give depth and keep wrapper dark #121212) */
+.dark .bg-gray-50,
+.dark .bg-slate-50,
+.dark .min-h-screen.bg-gray-50,
+.dark .min-h-screen.bg-slate-50 {
+  background-color: var(--color-bg) !important;
+}
+
+.dark .bg-gray-100,
+.dark .bg-slate-100 {
+  background-color: var(--color-bg-secondary) !important;
+}
+
+/* Universal Translucent Badge and Icon Background Overrides for Dark Mode */
+.dark .bg-gray-100 {
+  background-color: rgba(156, 163, 175, 0.15) !important;
+  color: #9ca3af !important;
+  border-color: rgba(156, 163, 175, 0.3) !important;
+}
+.dark .bg-gray-200 {
+  background-color: rgba(156, 163, 175, 0.25) !important;
+  color: #f3f4f6 !important;
+}
+.dark .bg-slate-200 {
+  background-color: rgba(156, 163, 175, 0.25) !important;
+  color: #f3f4f6 !important;
+}
+.dark .bg-primary-100,
+.dark .bg-primary-200 {
+  background-color: rgba(139, 92, 246, 0.15) !important;
+  color: #a78bfa !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+}
+.dark .bg-red-100,
+.dark .bg-danger-100,
+.dark .bg-red-50,
+.dark .bg-danger-50 {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+.dark .bg-green-100,
+.dark .bg-success-100,
+.dark .bg-green-50,
+.dark .bg-success-50 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+.dark .bg-yellow-100,
+.dark .bg-warning-100,
+.dark .bg-yellow-50,
+.dark .bg-warning-50 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+.dark .bg-blue-100,
+.dark .bg-info-100,
+.dark .bg-blue-50,
+.dark .bg-info-50 {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+.dark .bg-purple-100,
+.dark .bg-purple-50 {
+  background-color: rgba(139, 92, 246, 0.15) !important;
+  color: #a78bfa !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+}
+.dark .bg-orange-100,
+.dark .bg-orange-50 {
+  background-color: rgba(249, 115, 22, 0.15) !important;
+  color: #fb923c !important;
+  border-color: rgba(249, 115, 22, 0.3) !important;
+}
+
+/* Universal Dark Mode Semantic Text Color Overrides */
+.dark .text-blue-600, .dark .text-info-600 { color: #60a5fa !important; }
+.dark .text-green-600, .dark .text-success-600 { color: #4ade80 !important; }
+.dark .text-purple-600, .dark .text-primary-600 { color: #a78bfa !important; }
+.dark .text-orange-600 { color: #fb923c !important; }
+.dark .text-red-600, .dark .text-danger-600 { color: #f87171 !important; }
+.dark .text-yellow-600, .dark .text-warning-600 { color: #fbbf24 !important; }
+
+.dark .text-gray-900,
+.dark .text-slate-900,
+.dark .text-black {
+  color: var(--color-text) !important;
+}
+
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: var(--color-text-secondary) !important;
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: var(--color-text-muted) !important;
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .border-slate-100,
+.dark .border-slate-200 {
+  border-color: var(--color-border) !important;
+}
+
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover,
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover {
+  background-color: #2D2D2D !important;
+}
+
+.dark .glass-effect {
+  background-color: rgba(30, 30, 30, 0.9) !important;
+  border-color: var(--color-border) !important;
+}
+
+.dark .modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Form inputs & interactive controls */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #252525 !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #555555 !important;
+}
+
+.dark .btn-secondary {
+  background-color: #1e1e1e !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+}
+
+.dark .btn-secondary:hover {
+  background-color: #2a2a2a !important;
+}
+
+.dark .divider {
+  background-color: var(--color-border) !important;
+}
+
+/* TipTap Editor support */
+.dark .ProseMirror code {
+  background-color: #2a2a2a !important;
+  color: #f3f4f6 !important;
+}
+
+.dark .ProseMirror pre {
+  background-color: #1a1a1a !important;
+}
+
+.dark .ProseMirror blockquote {
+  border-left-color: #4b5563 !important;
+  color: #9ca3af !important;
+}
+
+/* Global Dark Mode Typography (Prose) Overrides */
+.dark .prose {
+  color: var(--color-text-secondary) !important;
+}
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose strong,
+.dark .prose b {
+  color: var(--color-text) !important;
+}
+.dark .prose li {
+  color: var(--color-text-secondary) !important;
+}
+.dark .prose a {
+  color: #60a5fa !important;
+}
+
 
 @layer components {
   .btn-primary {
@@ -715,4 +952,28 @@ body {
   margin-left: 0;
   font-style: italic;
   color: #6b7280;
+}
+
+/* Premium Card hover transitions */
+.card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+.dark .card-hover:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+/* Dynamic Focus ring animations for inputs */
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  border-color: #8B5CF6 !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
+}
+
+.dark input:focus, .dark select:focus, .dark textarea:focus {
+  border-color: #A78BFA !important;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2) !important;
 }

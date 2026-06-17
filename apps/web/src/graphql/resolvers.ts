@@ -438,7 +438,8 @@ export const resolvers = {
       const result = await getPoolInstance().query('SELECT * FROM projects WHERE deleted_at IS NULL ORDER BY project_name ASC')
       let projects = result.rows || []
 
-      // Filter by user assignment for non-admin/non-top_management users
+      // Filter by user assignment for non-admin/non-top_management users (Commented out to expose all projects)
+      /*
       if (user.role !== 'admin' && user.role !== 'top_management') {
         const assignedResult = await getPoolInstance().query(
           'SELECT project_id FROM project_users WHERE employee_id = $1',
@@ -450,6 +451,7 @@ export const resolvers = {
           (p.parent_project_id && assignedSet.has(p.parent_project_id))
         )
       }
+      */
 
       return projects
     },
@@ -1364,6 +1366,10 @@ export const resolvers = {
       if (typeof task.updated_at === 'number') return new Date(task.updated_at).toISOString()
       return task.updated_at
     },
+    meetingLink: (task: any) => task.meeting_link,
+    meetingReminder: (task: any) => task.meeting_reminder,
+    startTime: (task: any) => task.start_time,
+    dueTime: (task: any) => task.due_time,
 
     assignedToUser: async (task: any, _: any, { loaders }: any) => {
       // ✅ FIXED: assignedTo is now an array, return first user for backward compatibility
@@ -2112,10 +2118,12 @@ export const resolvers = {
       // ✅ FIXED: Use snake_case column names for PostgreSQL
       await getPoolInstance().query(
         `INSERT INTO tasks (task_id, description, assigned_to, assigned_by, support, start_date, end_date,
-         priority, estimated_hours, select_type, recursive_type, project_id, status, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'Pending', NOW(), NOW())`,
+         priority, estimated_hours, select_type, recursive_type, project_id, status, created_at, updated_at,
+         meeting_link, meeting_reminder, start_time, due_time)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'Pending', NOW(), NOW(), $13, $14, $15, $16)`,
         [taskId, input.description, JSON.stringify([input.assignedTo]), input.assignedBy, support, input.startDate,
-          input.endDate, input.priority, input.estimatedHours, input.selectType, input.recursiveType, input.projectId]
+          input.endDate, input.priority, input.estimatedHours, input.selectType, input.recursiveType, input.projectId,
+          input.meetingLink, input.meetingReminder || false, input.startTime || null, input.dueTime || null]
       )
 
       const result = await getPoolInstance().query(
@@ -2142,7 +2150,11 @@ export const resolvers = {
         actualHours: 'actual_hours',
         status: 'status',
         remarks: 'remarks',
-        difficulties: 'difficulties'
+        difficulties: 'difficulties',
+        meetingLink: 'meeting_link',
+        meetingReminder: 'meeting_reminder',
+        startTime: 'start_time',
+        dueTime: 'due_time'
       }
 
       Object.keys(input).forEach(key => {
@@ -2682,7 +2694,7 @@ export const resolvers = {
           'INSERT INTO feed_post_topics (post_id, topic_id) VALUES ($1, $2)',
           [postId, savedTopicId]
         )
-        return { action: 'added', message: 'Post saved successfully' }
+        return { action: 'saved', message: 'Post saved successfully' }
       }
     },
 

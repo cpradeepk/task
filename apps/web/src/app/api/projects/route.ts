@@ -47,7 +47,8 @@ export async function GET(request: NextRequest) {
       projects = await getActiveProjects()
     }
 
-    // Filter by user assignment for non-admin/non-top_management users
+    // Filter by user assignment for non-admin/non-top_management users (Commented out to expose all projects)
+    /*
     const authUser = await getAuthUser(request)
     if (authUser && authUser.role !== 'admin' && authUser.role !== 'top_management') {
       const userProjectIds = await getUserProjectIds(authUser.employeeId)
@@ -58,6 +59,7 @@ export async function GET(request: NextRequest) {
         (p.parentProjectId && assignedSet.has(p.parentProjectId))
       )
     }
+    */
 
     return NextResponse.json(projects, { status: 200 })
   } catch (error) {
