@@ -137,6 +137,10 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
         projectId: task.projectId || '',
         subprojectId: task.subprojectId || '',
         department: task.department || '',
+        meetingLink: task.meetingLink || '',
+        meetingReminder: task.meetingReminder || false,
+        startTime: task.startTime || '',
+        dueTime: task.dueTime || '',
       }
 
       console.log('🔍 [TaskEditModal] Form data initialized:', initialFormData)
@@ -206,6 +210,8 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
       const updates = {
         ...formData,
         assignedTo: assignedToArray, // Ensure it's always an array
+        startTime: formData.startTime ? (formData.startTime.length === 5 ? `${formData.startTime}:00` : formData.startTime) : null,
+        dueTime: formData.dueTime ? (formData.dueTime.length === 5 ? `${formData.dueTime}:00` : formData.dueTime) : null,
         updatedAt: new Date().toISOString()
       }
 
@@ -534,6 +540,34 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
             </div>
           </div>
 
+          {/* Start Time and Due Time */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <Clock className="h-4 w-4 inline mr-2" />
+                Start Time (Optional)
+              </label>
+              <input
+                type="time"
+                value={formData.startTime || ''}
+                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <Clock className="h-4 w-4 inline mr-2" />
+                Due Time (Optional)
+              </label>
+              <input
+                type="time"
+                value={formData.dueTime || ''}
+                onChange={(e) => setFormData({ ...formData, dueTime: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+          </div>
+
           {/* Priority and Status */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -586,6 +620,33 @@ export default function TaskEditModal({ task, isOpen, onClose, onUpdate }: TaskE
                   })
                 )}
               </select>
+            </div>
+          </div>
+
+          {/* Google Meet Link & Reminder */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Google Meet Link (Optional)
+              </label>
+              <input
+                type="text"
+                value={formData.meetingLink || ''}
+                onChange={(e) => setFormData({ ...formData, meetingLink: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              />
+            </div>
+            <div className="flex items-end pb-2">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.meetingReminder || false}
+                  onChange={(e) => setFormData({ ...formData, meetingReminder: e.target.checked })}
+                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
+                />
+                <span className="text-sm text-gray-700 font-medium">Enable 10-Minute Meeting Reminder</span>
+              </label>
             </div>
           </div>
 

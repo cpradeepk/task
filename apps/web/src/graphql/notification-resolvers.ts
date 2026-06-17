@@ -147,6 +147,19 @@ export const FeedNotificationFieldResolvers = {
   // Related entities via DataLoader
   user: async (notification: any, _: any, { loaders }: any) => {
     if (!notification.user_id) return null
+    if (notification.user_id === 'system') {
+      return {
+        employeeId: 'system',
+        name: 'System',
+        email: 'system@karmayog.com',
+        role: 'system',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        tasks: [],
+        bugs: []
+      }
+    }
     try {
       return await loaders.userLoader.load(notification.user_id)
     } catch (error) {
@@ -157,6 +170,19 @@ export const FeedNotificationFieldResolvers = {
 
   actor: async (notification: any, _: any, { loaders }: any) => {
     if (!notification.actor_id) return null
+    if (notification.actor_id === 'system') {
+      return {
+        employeeId: 'system',
+        name: 'System',
+        email: 'system@karmayog.com',
+        role: 'system',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        tasks: [],
+        bugs: []
+      }
+    }
     try {
       return await loaders.userLoader.load(notification.actor_id)
     } catch (error) {

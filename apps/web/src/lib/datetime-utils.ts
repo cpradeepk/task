@@ -93,12 +93,27 @@ export function parseDateTime(dateStr: string | Date | null | undefined): Date {
 }
 
 /**
+ * Safely parse a date from various formats (Date object, ISO string, or numeric timestamp string)
+ * @param date - Date object, ISO string, or numeric timestamp string
+ * @returns Parsed Date object
+ */
+function parseDate(date: Date | string | number): Date {
+    if (date instanceof Date) return date;
+    if (typeof date === 'number') return new Date(date);
+    // If string is all digits, treat as a Unix timestamp in milliseconds
+    if (typeof date === 'string' && /^\d+$/.test(date)) {
+        return new Date(parseInt(date, 10));
+    }
+    return new Date(date);
+}
+
+/**
  * Convert a date to IST (Indian Standard Time, GMT+5:30)
  * @param date - Date object or string to convert
  * @returns Date object adjusted to IST
  */
 export function toIST(date: Date | string): Date {
-    const d = date instanceof Date ? date : new Date(date);
+    const d = parseDate(date);
     // IST is UTC+5:30
     const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
     const utcTime = d.getTime();
@@ -111,7 +126,8 @@ export function toIST(date: Date | string): Date {
  * @returns Formatted datetime string in IST (e.g., "06 Dec 2025, 4:30 PM")
  */
 export function formatDateTimeIST(date: Date | string): string {
-    const d = date instanceof Date ? date : new Date(date);
+    const d = parseDate(date);
+    if (isNaN(d.getTime())) return '';
 
     // Use toLocaleString with Asia/Kolkata timezone
     return d.toLocaleString('en-IN', {
@@ -131,7 +147,8 @@ export function formatDateTimeIST(date: Date | string): string {
  * @returns Formatted time string in IST (e.g., "4:30 PM")
  */
 export function formatTimeIST(date: Date | string): string {
-    const d = date instanceof Date ? date : new Date(date);
+    const d = parseDate(date);
+    if (isNaN(d.getTime())) return '';
 
     // Use toLocaleTimeString with Asia/Kolkata timezone
     return d.toLocaleTimeString('en-IN', {

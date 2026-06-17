@@ -21,6 +21,7 @@ import {
   BugSubTask,
 } from '../services/bugService'
 import { getCurrentUser } from '../services/userService'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface BugSubtasksProps {
   bugId: string
@@ -33,6 +34,8 @@ export default function BugSubtasks({ bugId, editable = false }: BugSubtasksProp
   const [isLoading, setIsLoading] = useState(true)
   const [newSubtaskDescription, setNewSubtaskDescription] = useState('')
   const [isAdding, setIsAdding] = useState(false)
+  const { colors } = useTheme()
+  const styles = getStyles(colors)
 
   useEffect(() => {
     loadSubtasks()
@@ -141,18 +144,18 @@ export default function BugSubtasks({ bugId, editable = false }: BugSubtasksProp
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed':
-        return '#10B981'
+        return colors.success
       case 'In Progress':
-        return '#EAB308'
+        return colors.warning
       default:
-        return '#6B7280'
+        return colors.textSecondary
     }
   }
 
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="small" color="#3B82F6" />
+        <ActivityIndicator size="small" color={colors.primary} />
       </View>
     )
   }
@@ -224,6 +227,7 @@ export default function BugSubtasks({ bugId, editable = false }: BugSubtasksProp
           <TextInput
             style={styles.input}
             placeholder="Add a subtask..."
+            placeholderTextColor={colors.textTertiary}
             value={newSubtaskDescription}
             onChangeText={setNewSubtaskDescription}
           />
@@ -245,10 +249,10 @@ export default function BugSubtasks({ bugId, editable = false }: BugSubtasksProp
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.card,
   },
   centered: {
     padding: 20,
@@ -263,15 +267,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: colors.text,
   },
   stats: {
     fontSize: 13,
-    color: '#6B7280',
+    color: colors.textSecondary,
   },
   emptyText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: colors.textTertiary,
     textAlign: 'center',
     paddingVertical: 16,
   },
@@ -280,7 +284,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.border,
   },
   checkbox: {
     marginRight: 12,
@@ -290,14 +294,14 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
+    backgroundColor: colors.success,
+    borderColor: colors.success,
   },
   checkmark: {
     color: '#FFFFFF',
@@ -309,12 +313,12 @@ const styles = StyleSheet.create({
   },
   subtaskDescription: {
     fontSize: 14,
-    color: '#374151',
+    color: colors.text,
     marginBottom: 4,
   },
   subtaskDescriptionCompleted: {
     textDecorationLine: 'line-through',
-    color: '#9CA3AF',
+    color: colors.textTertiary,
   },
   statusBadge: {
     alignSelf: 'flex-start',
@@ -336,7 +340,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontSize: 24,
-    color: '#EF4444',
+    color: colors.error,
     fontWeight: '300',
   },
   addContainer: {
@@ -347,22 +351,24 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 14,
+    color: colors.text,
+    backgroundColor: colors.background,
   },
   addButton: {
     width: 40,
     height: 40,
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   addButtonDisabled: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: colors.surfaceVariant,
   },
   addButtonText: {
     fontSize: 24,
@@ -370,4 +376,3 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
 })
-

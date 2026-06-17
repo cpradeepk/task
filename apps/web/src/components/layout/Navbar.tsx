@@ -33,7 +33,9 @@ import {
   Trash2,
   BarChart3,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  Moon
 } from 'lucide-react'
 
 export default function Navbar() {
@@ -45,6 +47,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [hasOverflow, setHasOverflow] = useState(false)
+  const [isDark, setIsDark] = useState(false)
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -63,7 +66,20 @@ export default function Navbar() {
   useEffect(() => {
     setIsClient(true)
     setCurrentUser(getCurrentUser())
+    setIsDark(document.documentElement.classList.contains('dark'))
   }, [])
+
+  const toggleTheme = () => {
+    const newTheme = !isDark
+    setIsDark(newTheme)
+    if (newTheme) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('themeMode', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('themeMode', 'light')
+    }
+  }
 
   // Navigation Structure with permission keys
   const allNavigationItems = [
@@ -253,6 +269,15 @@ export default function Navbar() {
             {/* Notification Bell */}
             <NotificationBell />
 
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors duration-150"
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+
             <button
               onClick={handleLogout}
               className="flex items-center space-x-1 text-black hover:text-gray-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
@@ -290,8 +315,8 @@ export default function Navbar() {
                     {item.children ? (
                       <button
                         className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${isActive
-                          ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
-                          : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
+                          ? 'bg-primary text-white shadow-md border border-primary-600 scale-105'
+                          : 'text-text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-neutral-800'
                           }`}
                       >
                         <Icon className="h-4 w-4" />
@@ -303,8 +328,8 @@ export default function Navbar() {
                       <Link
                         href={item.href!}
                         className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${isActive
-                          ? 'bg-primary text-black shadow-lg border border-primary border-opacity-30 scale-105'
-                          : 'text-gray-600 hover:text-black hover:bg-gray-50 hover:shadow-md'
+                          ? 'bg-primary text-white shadow-md border border-primary-600 scale-105'
+                          : 'text-text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-neutral-800'
                           }`}
                         onMouseEnter={() => setActiveCategory(null)} // Clear sub-menu when hovering a leaf item
                       >
@@ -320,7 +345,7 @@ export default function Navbar() {
 
             {/* Level 2: Sub-menu (Horizontal Accordion) */}
             <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out bg-gray-50 rounded-b-lg ${activeSubItems.length > 0 ? 'max-h-16 opacity-100 border-t border-gray-200' : 'max-h-0 opacity-0'
+              className={`overflow-hidden transition-all duration-300 ease-in-out bg-bg-secondary rounded-b-lg ${activeSubItems.length > 0 ? 'max-h-16 opacity-100 border-t border-border-primary' : 'max-h-0 opacity-0'
                 }`}
             >
               <div className="relative group px-8">
@@ -328,7 +353,7 @@ export default function Navbar() {
                 {hasOverflow && (
                   <button
                     onClick={() => scroll('left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white rounded-full shadow-md text-gray-500 hover:text-primary hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white dark:bg-neutral-800 rounded-full shadow-md text-text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
@@ -347,8 +372,8 @@ export default function Navbar() {
                         key={child.href}
                         href={child.href}
                         className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${isChildActive
-                          ? 'text-primary-600 bg-white shadow-sm'
-                          : 'text-gray-600 hover:text-black hover:bg-white/50'
+                          ? 'text-primary bg-white dark:bg-neutral-800 shadow-sm border border-neutral-200 dark:border-neutral-700'
+                          : 'text-text-secondary hover:text-primary dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800/50'
                           }`}
                       >
                         <ChildIcon className="h-3.5 w-3.5" />
@@ -362,7 +387,7 @@ export default function Navbar() {
                 {hasOverflow && (
                   <button
                     onClick={() => scroll('right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white rounded-full shadow-md text-gray-500 hover:text-primary hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1 bg-white dark:bg-neutral-800 rounded-full shadow-md text-text-secondary hover:text-primary dark:hover:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -439,6 +464,17 @@ export default function Navbar() {
                   </Link>
                 )
               })}
+
+              {/* Mobile theme toggle */}
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                </div>
+              </button>
             </div>
           </div>
         )}

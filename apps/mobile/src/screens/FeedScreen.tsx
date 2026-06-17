@@ -8,11 +8,11 @@ import {
     StyleSheet,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useQuery } from '@apollo/client/react'
+import { useQuery, useMutation } from '@apollo/client/react'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useTheme } from '../contexts/ThemeContext'
 
-import { GET_FEED_POSTS, GET_FEED_TOPICS } from '../config/graphql-queries'
+import { GET_FEED_POSTS, GET_FEED_TOPICS, INIT_PERSONAL_TOPICS } from '../config/graphql-queries'
 import { materialColors } from '../config/materialTheme'
 import { useTabBarControl } from '../context/TabBarContext'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
@@ -27,6 +27,19 @@ export default function FeedScreen({ navigation }: any) {
     })
     const insets = useSafeAreaInsets()
     const fabBottom = 60 + Math.max(insets.bottom, 10) + 16
+
+    const [initPersonalTopics] = useMutation(INIT_PERSONAL_TOPICS)
+
+    // Initialize personal topics on mount so Personal Notes show up
+    React.useEffect(() => {
+        initPersonalTopics()
+            .then(() => {
+                console.log('[FeedScreen] Personal topics initialized successfully')
+            })
+            .catch(err => {
+                console.error('[FeedScreen] Failed to initialize personal topics:', err)
+            })
+    }, [])
 
     const { data: topicsData, loading: topicsLoading } = useQuery(GET_FEED_TOPICS, {
         variables: { includePersonal: true },
@@ -190,6 +203,13 @@ export default function FeedScreen({ navigation }: any) {
                                 </View>
                             )}
 
+                            {/* Post Title */}
+                            {post.contentType !== 'link' && post.linkTitle && (
+                                <Text style={styles.postTitle} numberOfLines={1}>
+                                    {post.linkTitle}
+                                </Text>
+                            )}
+
                             {/* Post Content */}
                             <Text style={styles.postContent} numberOfLines={3}>
                                 {post.content}
@@ -269,6 +289,7 @@ const getStyles = (colors: any) => StyleSheet.create({
         borderRadius: 12,
     },
     postTopicText: { fontSize: 12, color: colors.primary, fontWeight: '500' },
+    postTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 4 },
     postContent: { fontSize: 15, color: colors.textSecondary, lineHeight: 22 },
     postStats: { flexDirection: 'row', marginTop: 12, gap: 16 },
     statText: { fontSize: 13, color: colors.textSecondary },

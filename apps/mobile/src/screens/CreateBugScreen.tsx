@@ -12,7 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
+import { TextInput, Button, Surface, Text, ActivityIndicator, SegmentedButtons } from 'react-native-paper'
 import { SearchablePicker } from '../components/SearchablePicker'
 import * as DocumentPicker from 'expo-document-picker'
 import { createBug } from '../services/bugService'
@@ -65,6 +65,10 @@ export default function CreateBugScreen() {
   const [device, setDevice] = useState('')
   const [deviceId, setDeviceId] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
+  const [priority, setPriority] = useState('Low') // Default matches web
+  const [feature, setFeature] = useState('') // Related feature name (synced with web)
+  const [tags, setTags] = useState('') // Comma-separated tags (synced with web)
+  const [relatedBugs, setRelatedBugs] = useState('') // Related bug/task IDs (synced with web)
 
   // Detailed Fields
   const [stepsToReproduce, setStepsToReproduce] = useState('')
@@ -206,31 +210,17 @@ export default function CreateBugScreen() {
     }
 
     try {
-      setIsSubmitting(true)
-
-      // Construct detailed description
+      setIsSubmitting(true)      // Construct detailed description
       let fullDescription = description.trim()
-
-      // For features, include behaviour field
-      if (bugType === 'feature' && behaviour.trim()) {
-        fullDescription += `\n\n## Behaviour\n${behaviour.trim()}`
-      }
-
-      if (stepsToReproduce.trim()) {
-        const label = bugType === 'feature' ? 'Feature Description' : 'Steps to Reproduce'
-        fullDescription += `\n\n## ${label}\n${stepsToReproduce.trim()}`
-      }
-      if (expectedBehavior.trim()) {
-        fullDescription += `\n\n## Expected Behavior\n${expectedBehavior.trim()}`
-      }
-      if (actualBehavior.trim()) {
-        fullDescription += `\n\n## Actual Behavior\n${actualBehavior.trim()}`
-      }
-      if (serverLogs.trim()) {
-        fullDescription += `\n\n## Server Logs\n\`\`\`\n${serverLogs.trim()}\n\`\`\``
-      }
-      if (frontendLogs.trim()) {
-        fullDescription += `\n\n## Frontend Logs\n\`\`\`\n${frontendLogs.trim()}\n\`\`\``
+ 
+      if (bugType === 'feature') {
+        if (stepsToReproduce.trim()) {
+          fullDescription += `\n\n## Feature Description\n${stepsToReproduce.trim()}`
+        }
+      } else {
+        if (stepsToReproduce.trim()) {
+          fullDescription += `\n\n## Steps to Reproduce\n${stepsToReproduce.trim()}`
+        }
       }
 
       let payload: any
@@ -251,6 +241,20 @@ export default function CreateBugScreen() {
         formData.append('assignedTo', assignedTo || currentUser?.employeeId || '')
         formData.append('reportedBy', currentUser?.employeeId || '')
         formData.append('status', 'New')
+        formData.append('priority', priority)
+        if (feature.trim()) formData.append('feature', feature.trim())
+        if (tags.trim()) formData.append('tags', tags.trim())
+        if (relatedBugs.trim()) formData.append('relatedBugs', relatedBugs.trim())
+
+        // Send separate fields
+        const expectedVal = bugType === 'feature' ? behaviour.trim() : expectedBehavior.trim()
+        if (expectedVal) formData.append('expectedBehavior', expectedVal)
+
+        if (bugType !== 'feature') {
+          if (actualBehavior.trim()) formData.append('actualBehavior', actualBehavior.trim())
+          if (serverLogs.trim()) formData.append('serverLogs', serverLogs.trim())
+          if (frontendLogs.trim()) formData.append('frontendLogs', frontendLogs.trim())
+        }
 
         formData.append('attachments', {
           uri: attachedFile.uri,
@@ -267,14 +271,22 @@ export default function CreateBugScreen() {
           subprojectId,
           type: bugType,
           severity,
+          priority,
           category,
           platform,
           environment: environment || undefined,
-          browser: browser || undefined,
-          device: device || undefined,
+          browserInfo: browser || undefined,
+          deviceInfo: device || undefined,
+          feature: feature.trim() || undefined,
+          tags: tags.trim() || undefined,
+          relatedBugs: relatedBugs.trim() || undefined,
           assignedTo: assignedTo || currentUser?.employeeId,
           reportedBy: currentUser?.employeeId || '',
           status: 'New',
+          expectedBehavior: bugType === 'feature' ? (behaviour.trim() || undefined) : (expectedBehavior.trim() || undefined),
+          actualBehavior: bugType === 'feature' ? undefined : (actualBehavior.trim() || undefined),
+          serverLogs: bugType === 'feature' ? undefined : (serverLogs.trim() || undefined),
+          frontendLogs: bugType === 'feature' ? undefined : (frontendLogs.trim() || undefined),
         }
       }
 
@@ -296,7 +308,7 @@ export default function CreateBugScreen() {
     } finally {
       setIsSubmitting(false)
     }
-  }, [title, description, projectId, subprojectId, bugType, severity, category, platform, environment, browser, device, assignedTo, currentUser, navigation, attachedFile, stepsToReproduce, expectedBehavior, actualBehavior, serverLogs, frontendLogs])
+  }, [title, description, projectId, subprojectId, bugType, severity, priority, category, platform, environment, browser, device, feature, tags, relatedBugs, assignedTo, currentUser, navigation, attachedFile, stepsToReproduce, expectedBehavior, actualBehavior, serverLogs, frontendLogs, behaviour])
 
   // Helper to safely format picker items and avoid undefined properties causing native Picker crashes
   const getPickerItems = (items: any) => {
@@ -377,17 +389,17 @@ export default function CreateBugScreen() {
           />
 
           {/* Bug Type */}
-          <SearchablePicker
-            label="Bug Type"
-            selectedValue={bugType}
+          <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8, fontWeight: '500' }}>Bug Type</Text>
+          <SegmentedButtons
+            value={bugType}
             onValueChange={setBugType}
-            items={[
-              { label: 'Bug', value: 'bug' },
-              { label: 'Feature', value: 'feature' },
-              { label: 'Test Case', value: 'testcase' },
-              { label: 'Others', value: 'other' },
+            buttons={[
+              { value: 'bug', label: 'Bug' },
+              { value: 'feature', label: 'Feature' },
+              { value: 'testcase', label: 'Test Case' },
+              { value: 'other', label: 'Other' },
             ]}
-            required
+            style={{ marginBottom: 16 }}
           />
 
           {/* Feature (Title) */}
@@ -501,38 +513,38 @@ export default function CreateBugScreen() {
                 textColor={colors.text}
                 disabled={isOffline}
               />
+
+              <TextInput
+                mode="outlined"
+                label="Server Logs"
+                value={serverLogs}
+                onChangeText={setServerLogs}
+                placeholder="Paste server logs here..."
+                multiline
+                numberOfLines={2}
+                style={styles.input}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
+                textColor={colors.text}
+                disabled={isOffline}
+              />
+
+              <TextInput
+                mode="outlined"
+                label="Frontend Logs"
+                value={frontendLogs}
+                onChangeText={setFrontendLogs}
+                placeholder="Paste console/network logs here..."
+                multiline
+                numberOfLines={2}
+                style={styles.input}
+                outlineColor={colors.border}
+                activeOutlineColor={colors.primary}
+                textColor={colors.text}
+                disabled={isOffline}
+              />
             </>
           )}
-
-          <TextInput
-            mode="outlined"
-            label="Server Logs"
-            value={serverLogs}
-            onChangeText={setServerLogs}
-            placeholder="Paste server logs here..."
-            multiline
-            numberOfLines={2}
-            style={styles.input}
-            outlineColor={colors.border}
-            activeOutlineColor={colors.primary}
-            textColor={colors.text}
-            disabled={isOffline}
-          />
-
-          <TextInput
-            mode="outlined"
-            label="Frontend Logs"
-            value={frontendLogs}
-            onChangeText={setFrontendLogs}
-            placeholder="Paste console/network logs here..."
-            multiline
-            numberOfLines={2}
-            style={styles.input}
-            outlineColor={colors.border}
-            activeOutlineColor={colors.primary}
-            textColor={colors.text}
-            disabled={isOffline}
-          />
 
           <View style={styles.field}>
             <Text style={styles.label}>Attachment</Text>
@@ -571,35 +583,23 @@ export default function CreateBugScreen() {
             disabled={isOffline}
           />
 
-          {/* Criticality (Severity) */}
+          {/* Criticality (from API settings, synced with web) */}
           <SearchablePicker
             label="Criticality"
             placeholder="Select Criticality"
             selectedValue={severity}
             onValueChange={setSeverity}
-            items={[
-              { label: 'Blocker', value: 'Blocker' },
-              { label: 'Critical', value: 'Critical' },
-              { label: 'Major', value: 'Major' },
-              { label: 'Minor', value: 'Minor' },
-              { label: 'Cosmetic', value: 'Cosmetic' },
-            ]}
+            items={getPickerItems(settings['severity'] || settings['Bug Severity'] || ['Critical', 'Major', 'Minor'])}
             required
           />
 
-          {/* Category */}
+          {/* Category (from API settings, synced with web) */}
           <SearchablePicker
             label="Category"
             placeholder="Select Category"
             selectedValue={category}
             onValueChange={setCategory}
-            items={[
-              { label: 'Frontend-Customer', value: 'Frontend-Customer' },
-              { label: 'Frontend-Web', value: 'Frontend-Web' },
-              { label: 'Frontend-Admin', value: 'Frontend-Admin' },
-              { label: 'Backend', value: 'Backend' },
-              { label: 'Frontend-Delivery', value: 'Frontend-Delivery' },
-            ]}
+            items={getPickerItems(settings['category'] || settings['Bug Category'] || ['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])}
             required
           />
 
@@ -620,6 +620,62 @@ export default function CreateBugScreen() {
             selectedValue={environment}
             onValueChange={setEnvironment}
             items={getPickerItems(settings['Bug Environment'] || settings['environment'] || [{ id: 'e1', value: 'Development' }, { id: 'e2', value: 'QA' }, { id: 'e3', value: 'Staging' }, { id: 'e4', value: 'Production' }])}
+          />
+
+          {/* Browser Info (synced with web) */}
+          <TextInput
+            mode="outlined"
+            label="Browser (Optional)"
+            value={browser}
+            onChangeText={setBrowser}
+            placeholder="e.g., Chrome 120, Safari 17"
+            style={styles.input}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
+            disabled={isOffline}
+          />
+
+          {/* Device Info (synced with web) */}
+          <TextInput
+            mode="outlined"
+            label="Device (Optional)"
+            value={device}
+            onChangeText={setDevice}
+            placeholder="e.g., iPhone 12, Windows 10"
+            style={styles.input}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
+            disabled={isOffline}
+          />
+
+          {/* Related Items (synced with web) */}
+          <TextInput
+            mode="outlined"
+            label="Related Items (Optional)"
+            value={relatedBugs}
+            onChangeText={setRelatedBugs}
+            placeholder="e.g., JSR-0001, BUG-0001 (comma-separated)"
+            style={styles.input}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
+            disabled={isOffline}
+          />
+
+          {/* Tags (synced with web) */}
+          <TextInput
+            mode="outlined"
+            label="Tags (Optional)"
+            value={tags}
+            onChangeText={setTags}
+            placeholder="urgent, login, payment, mobile"
+            style={styles.input}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
+            disabled={isOffline}
           />
 
           {/* Submit Button */}

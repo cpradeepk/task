@@ -159,12 +159,83 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`✅ Due-checking cron completed. Sent ${startWarningsSent} start warnings and ${overdueAlertsSent} overdue alerts.`)
+    // =========================================================================
+    // PART 3: 10-MINUTE GOOGLE MEET REMINDERS
+    // =========================================================================
+    // Query tasks starting today with meeting_reminder = true and meeting_link IS NOT NULL
+    let meetingRemindersSent = 0
+    const meetingTasks = await query<any[]>(
+      `SELECT task_id, name, description, assigned_to, start_date, start_time, meeting_link
+       FROM tasks
+       WHERE deleted_at IS NULL
+         AND status IN ('Yet to Start', 'In Progress', 'Delayed', 'ReOpened')
+         AND start_date = $1
+         AND start_time IS NOT NULL
+         AND meeting_reminder = true
+         AND meeting_link IS NOT NULL
+         AND meeting_link <> ''`,
+      [currentDateStr]
+    )
+
+    for (const task of meetingTasks) {
+      try {
+        const assignedTo = Array.isArray(task.assigned_to) 
+          ? task.assigned_to 
+          : JSON.parse(task.assigned_to || '[]')
+
+        if (assignedTo.length === 0) continue
+
+        // Parse start_time (format: HH:mm:ss or HH:mm)
+        const [hours, minutes] = task.start_time.split(':').map(Number)
+        
+        // Construct task start datetime in IST
+        const startDateTime = new Date(nowIST)
+        startDateTime.setHours(hours, minutes, 0, 0)
+
+        // Calculate difference in milliseconds
+        const diffMs = startDateTime.getTime() - nowIST.getTime()
+        const diffMins = diffMs / (1000 * 60)
+
+        // If meeting is starting in the next 10 minutes (0 to 11 minutes from now)
+        if (diffMins >= 0 && diffMins <= 11) {
+          // Check if notification already sent
+          const existingNotif = await query<any[]>(
+            `SELECT 1 FROM feed_notifications 
+             WHERE task_id = $1 AND notification_type = 'task_due_soon' AND title LIKE 'Google Meet Starting Soon!%'`,
+            [task.task_id]
+          )
+
+          if (existingNotif.length === 0) {
+            // Send alert to all assignees
+            const title = 'Google Meet Starting Soon! 📞'
+            const message = `Your task meeting "${task.name || task.description || 'Task'}" starts in 10 minutes. Click to join Meet.`
+
+            for (const assigneeId of assignedTo) {
+              await createNotification({
+                userId: assigneeId,
+                actorId: 'system',
+                notificationType: 'task_due_soon',
+                taskId: task.task_id,
+                title,
+                message,
+                linkUrl: task.meeting_link
+              })
+            }
+            meetingRemindersSent++
+          }
+        }
+      } catch (err) {
+        console.error(`❌ Error processing meeting reminder for task ${task.task_id}:`, err)
+      }
+    }
+
+    console.log(`✅ Due-checking cron completed. Sent ${startWarningsSent} start warnings, ${overdueAlertsSent} overdue alerts, and ${meetingRemindersSent} meet reminders.`)
 
     return NextResponse.json({
       success: true,
       startWarningsSent,
-      overdueAlertsSent
+      overdueAlertsSent,
+      meetingRemindersSent
     })
   } catch (error) {
     console.error('❌ Due-checking cron failed:', error)

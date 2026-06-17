@@ -78,7 +78,10 @@ export default function NotificationBell() {
           // Conditions for showing banner:
           // 1. It must be unread (item.isRead === false)
           // 2. Either it's a new poll item (not isFirstLoad) OR it was created in the last 5 minutes (recent)
-          const isRecent = now - parseInt(item.createdAt, 10) < 300000
+          const itemTime = isNaN(Number(item.createdAt))
+            ? new Date(item.createdAt).getTime()
+            : parseInt(item.createdAt, 10)
+          const isRecent = now - itemTime < 300000
           const shouldShowBanner = !item.isRead && (!isFirstLoad || isRecent)
 
           if (shouldShowBanner) {

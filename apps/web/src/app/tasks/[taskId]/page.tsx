@@ -68,6 +68,27 @@ function formatDate(dateString: string | null | undefined): string {
   }
 }
 
+// Helper function to format HH:mm:ss/HH:mm to hh:mm AM/PM format
+function formatTime(timeString: string | null | undefined): string {
+  if (!timeString) return ''
+
+  try {
+    const [hoursStr, minutesStr] = timeString.split(':')
+    const hours = parseInt(hoursStr, 10)
+    const minutes = parseInt(minutesStr, 10)
+    
+    if (isNaN(hours) || isNaN(minutes)) return ''
+
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+    const displayHours = hours % 12 || 12
+    const displayMinutes = String(minutes).padStart(2, '0')
+
+    return `${displayHours}:${displayMinutes} ${ampm}`
+  } catch (error) {
+    return ''
+  }
+}
+
 // Component to handle async user name fetching
 function UserName({ employeeId }: { employeeId: string }) {
   const [name, setName] = useState<string>(employeeId)
@@ -783,16 +804,46 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                 </div>
               )}
 
+              {/* Google Meet Link */}
+              {task.meetingLink && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 my-4 flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                      <ExternalLink className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-blue-950">Google Meet</h4>
+                      <p className="text-xs text-blue-700">Join the meeting for this task</p>
+                    </div>
+                  </div>
+                  <a
+                    href={task.meetingLink.startsWith('http') ? task.meetingLink : `https://${task.meetingLink}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow transition-colors flex items-center space-x-1.5"
+                  >
+                    <span>Join Meet</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              )}
+
               <div className="space-y-4">
                 {/* Dates */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-sm font-medium text-gray-600">Start Date:</span>
-                    <span className="ml-2 text-sm text-gray-900">{formatDate(task.startDate)}</span>
+                    <span className="ml-2 text-sm text-gray-900">
+                      {formatDate(task.startDate)}
+                      {task.startTime && ` (${formatTime(task.startTime)})`}
+                    </span>
                   </div>
                   <div>
                     <span className="text-sm font-medium text-gray-600">End Date:</span>
-                    <span className="ml-2 text-sm text-gray-900">{formatDate(task.endDate)}</span>
+                    <span className="ml-2 text-sm text-gray-900">
+                      {formatDate(task.endDate)}
+                      {task.dueTime && ` (${formatTime(task.dueTime)})`}
+                    </span>
                   </div>
                 </div>
 
@@ -1049,7 +1100,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
                               <div className="text-xs text-blue-700 space-y-0.5">
                                 <p><strong>Current:</strong> {formatHoursToTime(task.actualHours || 0)}</p>
-                                {task.estimatedHours && (
+                                {task.estimatedHours > 0 && (
                                   <p><strong>Estimated:</strong> {formatHoursToTime(task.estimatedHours)}</p>
                                 )}
                                 {useTimerHours && task.timerTotalTime && task.timerTotalTime > 0 ? (
@@ -1166,7 +1217,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                   )}
                 </div>
 
-                {task.estimatedHours && (
+                {task.estimatedHours > 0 && (
                   <div>
                     <span className="text-sm font-medium text-gray-600">Progress:</span>
                     <div className="ml-2 mt-1">

@@ -28,6 +28,15 @@ interface AttendanceResponse {
     attendance: AttendanceData
 }
 
+const parseTimeSafe = (timeStr: string | null | undefined): Date | null => {
+    if (!timeStr) return null
+    if (/^\d+$/.test(timeStr)) {
+        return new Date(parseInt(timeStr, 10))
+    }
+    const d = new Date(timeStr)
+    return isNaN(d.getTime()) ? null : d
+}
+
 export default function DailyAttendanceCard() {
     const [currentTime, setCurrentTime] = useState(new Date())
     const [workDuration, setWorkDuration] = useState<string>('00:00:00')
@@ -62,17 +71,19 @@ export default function DailyAttendanceCard() {
     useEffect(() => {
         if (attendance?.signInTime && !attendance.signOutTime) {
             const interval = setInterval(() => {
-                const start = new Date(parseInt(attendance.signInTime))
-                const now = new Date()
-                const diff = now.getTime() - start.getTime()
+                const start = parseTimeSafe(attendance.signInTime)
+                if (start) {
+                    const now = new Date()
+                    const diff = now.getTime() - start.getTime()
 
-                const hours = Math.floor(diff / (1000 * 60 * 60))
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+                    const hours = Math.floor(diff / (1000 * 60 * 60))
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
 
-                setWorkDuration(
-                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-                )
+                    setWorkDuration(
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+                    )
+                }
             }, 1000)
             return () => clearInterval(interval)
         } else if (attendance?.workHours) {
@@ -171,13 +182,14 @@ export default function DailyAttendanceCard() {
         showGlobalLoading()
         const originalTime = editType === 'SIGN_IN_EDIT' ? attendance?.signInTime :
             editType === 'SIGN_OUT_EDIT' ? attendance?.signOutTime : null
+        const originalTimeDate = parseTimeSafe(originalTime)
 
         requestAttendanceEdit({
             variables: {
                 input: {
                     attendanceDate: editDate,
                     requestType: editType,
-                    originalTime: originalTime ? new Date(parseInt(originalTime)).toISOString() : null,
+                    originalTime: originalTimeDate ? originalTimeDate.toISOString() : null,
                     newTime: new Date(`${editDate}T${editTime}`).toISOString(),
                     reason: editReason
                 }
@@ -188,7 +200,8 @@ export default function DailyAttendanceCard() {
     // Check if undo is available (within 2 hours of sign-out)
     const canUndoSignOut = () => {
         if (!attendance?.signOutTime) return false
-        const signOutTime = new Date(parseInt(attendance.signOutTime))
+        const signOutTime = parseTimeSafe(attendance.signOutTime)
+        if (!signOutTime) return false
         const now = new Date()
         const hoursSinceSignOut = (now.getTime() - signOutTime.getTime()) / (1000 * 60 * 60)
         return hoursSinceSignOut <= 2 // TODO: Get from settings
@@ -311,9 +324,15 @@ export default function DailyAttendanceCard() {
                     {attendance?.signInTime && (
                         <div className="mt-3 space-y-1">
                             <div className="flex justify-between text-xs text-gray-500 px-1">
-                                <span>In: {format(new Date(parseInt(attendance.signInTime)), 'hh:mm a')}</span>
+                                <span>In: {(() => {
+                                    const d = parseTimeSafe(attendance.signInTime);
+                                    return d ? format(d, 'hh:mm a') : '--:--';
+                                })()}</span>
                                 {attendance.signOutTime && (
-                                    <span>Out: {format(new Date(parseInt(attendance.signOutTime)), 'hh:mm a')}</span>
+                                    <span>Out: {(() => {
+                                        const d = parseTimeSafe(attendance.signOutTime);
+                                        return d ? format(d, 'hh:mm a') : '--:--';
+                                    })()}</span>
                                 )}
                             </div>
                             {(attendance.signInLocation || attendance.signOutLocation) && (
@@ -399,10 +418,16 @@ export default function DailyAttendanceCard() {
                                 <div className="bg-gray-50 rounded-lg p-3 text-sm">
                                     <p className="text-gray-600 mb-1">Current Times:</p>
                                     {attendance.signInTime && (
-                                        <p className="text-gray-900">Sign In: {format(new Date(parseInt(attendance.signInTime)), 'hh:mm a')}</p>
+                                        <p className="text-gray-900">Sign In: {(() => {
+                                            const d = parseTimeSafe(attendance.signInTime);
+                                            return d ? format(d, 'hh:mm a') : '--:--';
+                                        })()}</p>
                                     )}
                                     {attendance.signOutTime && (
-                                        <p className="text-gray-900">Sign Out: {format(new Date(parseInt(attendance.signOutTime)), 'hh:mm a')}</p>
+                                        <p className="text-gray-900">Sign Out: {(() => {
+                                            const d = parseTimeSafe(attendance.signOutTime);
+                                            return d ? format(d, 'hh:mm a') : '--:--';
+                                        })()}</p>
                                     )}
                                 </div>
                             )}

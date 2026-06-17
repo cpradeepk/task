@@ -37,6 +37,8 @@ interface TaskRow {
   timer_paused_time: number | null
   timer_total_time: number | null
   timer_sessions: string | null
+  meeting_link: string | null
+  meeting_reminder: boolean
   created_at: string
   updated_at: string
 }
@@ -145,6 +147,8 @@ function rowToTask(row: TaskRow): Task {
     deletedBy: row.deleted_by || undefined,
     startTime: row.start_time || null,
     dueTime: row.due_time || null,
+    meetingLink: row.meeting_link || null,
+    meetingReminder: row.meeting_reminder || false,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }
@@ -361,8 +365,8 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         assigned_to, assigned_by, support, start_date, end_date, priority,
         estimated_hours, actual_hours, daily_hours, status, remarks,
         difficulties, project_id, subproject_id, parent_task_id, department,
-        start_time, due_time
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)`,
+        start_time, due_time, meeting_link, meeting_reminder
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)`,
       [
         task.taskId, // internal_id is same as task_id
         task.taskId,
@@ -387,7 +391,9 @@ export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedA
         task.parentTaskId || null,
         task.department || null,
         task.startTime || null,
-        task.dueTime || null
+        task.dueTime || null,
+        task.meetingLink || null,
+        task.meetingReminder || false
       ]
     )
 
@@ -501,6 +507,14 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
     if (updates.dueTime !== undefined) {
       fields.push(`due_time = $${paramIndex++}`)
       values.push(updates.dueTime || null)
+    }
+    if (updates.meetingLink !== undefined) {
+      fields.push(`meeting_link = $${paramIndex++}`)
+      values.push(updates.meetingLink || null)
+    }
+    if (updates.meetingReminder !== undefined) {
+      fields.push(`meeting_reminder = $${paramIndex++}`)
+      values.push(updates.meetingReminder || false)
     }
 
     if (fields.length === 0) {

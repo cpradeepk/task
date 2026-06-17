@@ -315,6 +315,7 @@ function CreateBugPageContent() {
     if (!formData.description || !formData.description.trim()) missing.push('description')
     if (!formData.projectId) missing.push('projectId')
     if (!formData.subprojectId) missing.push('subprojectId')
+    if (!formData.type) missing.push('type')
 
     // If there are missing fields, show error and highlight them
     if (missing.length > 0) {
@@ -482,27 +483,44 @@ function CreateBugPageContent() {
               <div className="grid grid-cols-1 gap-6">
                 {/* Bug Type - MANDATORY FIELD */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Bug Type <span className="text-red-500">*</span>
+                    {missingFields.includes('type') && (
+                      <span className="text-red-500 text-xs ml-2">Required</span>
+                    )}
                   </label>
-                  <select
-                    name="type"
-                    value={formData.type || ''}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                    disabled={isLoadingSettings}
-                    required
-                  >
-                    <option value="">Select type...</option>
-                    {bugTypeOptions.map(type => {
-                      const icon = getIcon('bug_types', type)
-                      return (
-                        <option key={type} value={type}>
-                          {icon && `${icon} `}{type.charAt(0).toUpperCase() + type.slice(1)}
-                        </option>
-                      )
-                    })}
-                  </select>
+                  <div className="flex gap-3 flex-wrap">
+                    {isLoadingSettings ? (
+                      <span className="text-gray-500 text-sm">Loading types...</span>
+                    ) : (
+                      bugTypeOptions.map(type => {
+                        const icon = getIcon('bug_types', type)
+                        const isSelected = formData.type === type
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, type: type as BugFormData['type'] }))
+                              if (missingFields.includes('type')) {
+                                setMissingFields(prev => prev.filter(field => field !== 'type'))
+                              }
+                            }}
+                            className={`px-5 py-3 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-2 ${
+                              isSelected
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                : missingFields.includes('type')
+                                  ? 'bg-white text-gray-700 border-red-500 hover:border-red-600 hover:bg-red-50'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                            }`}
+                          >
+                            <span>{icon || '🪲'}</span>
+                            <span>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                          </button>
+                        )
+                      })
+                    )}
+                  </div>
                 </div>
 
                 {/* Project and Subproject */}
@@ -594,114 +612,138 @@ function CreateBugPageContent() {
                 {/* Criticality, Category, Platform - 3 columns (removed Priority) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Criticality <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      name="severity"
-                      value={formData.severity}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                      required
-                      disabled={isLoadingSettings}
-                    >
+                    <div className="flex gap-2 flex-wrap">
                       {isLoadingSettings ? (
-                        <option>Loading...</option>
+                        <span className="text-gray-500 text-sm">Loading...</span>
                       ) : (
                         severityOptions.map(option => {
                           const icon = getIcon('severities', option)
+                          const isSelected = formData.severity === option
                           return (
-                            <option key={option} value={option}>
-                              {icon && `${icon} `}{option}
-                            </option>
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, severity: option as any }))
+                              }}
+                              className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-1.5 ${
+                                isSelected
+                                  ? 'bg-rose-600 text-white border-rose-600 shadow-md'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:border-rose-400 hover:bg-rose-50'
+                              }`}
+                            >
+                              {icon && <span>{icon}</span>}
+                              <span>{option}</span>
+                            </button>
                           )
                         })
                       )}
-                    </select>
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Category <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                      required
-                      disabled={isLoadingSettings}
-                    >
+                    <div className="flex gap-2 flex-wrap">
                       {isLoadingSettings ? (
-                        <option>Loading...</option>
+                        <span className="text-gray-500 text-sm">Loading...</span>
                       ) : (
                         categoryOptions.map(option => {
                           const icon = getIcon('categories', option)
+                          const isSelected = formData.category === option
                           return (
-                            <option key={option} value={option}>
-                              {icon && `${icon} `}{option}
-                            </option>
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, category: option as any }))
+                              }}
+                              className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-1.5 ${
+                                isSelected
+                                  ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:border-amber-400 hover:bg-amber-50'
+                              }`}
+                            >
+                              {icon && <span>{icon}</span>}
+                              <span>{option}</span>
+                            </button>
                           )
                         })
                       )}
-                    </select>
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Platform <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      name="platform"
-                      value={formData.platform}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                      required
-                      disabled={isLoadingSettings}
-                    >
+                    <div className="flex gap-2 flex-wrap">
                       {isLoadingSettings ? (
-                        <option>Loading...</option>
+                        <span className="text-gray-500 text-sm">Loading...</span>
                       ) : (
                         platformOptions.map(option => {
                           const icon = getIcon('platforms', option)
+                          const isSelected = formData.platform === option
                           return (
-                            <option key={option} value={option}>
-                              {icon && `${icon} `}{option}
-                            </option>
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, platform: option as any }))
+                              }}
+                              className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-1.5 ${
+                                isSelected
+                                  ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                              }`}
+                            >
+                              {icon && <span>{icon}</span>}
+                              <span>{option}</span>
+                            </button>
                           )
                         })
                       )}
-                    </select>
+                    </div>
                   </div>
                 </div>
 
                 {/* Technical Details - Environment, Browser, Device (MOVED HERE) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Environment <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      name="environment"
-                      value={formData.environment}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-                      required
-                      disabled={isLoadingSettings}
-                    >
+                    <div className="flex gap-2 flex-wrap">
                       {isLoadingSettings ? (
-                        <option>Loading...</option>
+                        <span className="text-gray-500 text-sm">Loading...</span>
                       ) : (
                         environmentOptions.map(option => {
                           const icon = getIcon('environments', option)
+                          const isSelected = formData.environment === option
                           return (
-                            <option key={option} value={option}>
-                              {icon && `${icon} `}{option}
-                            </option>
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, environment: option as any }))
+                              }}
+                              className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-1.5 ${
+                                isSelected
+                                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-400 hover:bg-indigo-50'
+                              }`}
+                            >
+                              {icon && <span>{icon}</span>}
+                              <span>{option}</span>
+                            </button>
                           )
                         })
                       )}
-                    </select>
+                    </div>
                   </div>
 
                   <div>

@@ -27,6 +27,7 @@ import { RootStackParamList } from '../navigation/types';
 import { useQuery, useMutation } from '@apollo/client/react'
 import {
   GET_NOTIFICATIONS,
+  GET_UNREAD_COUNT,
   MARK_NOTIFICATION_READ,
   MARK_ALL_NOTIFICATIONS_READ,
 } from '../config/graphql-queries'
@@ -87,8 +88,18 @@ export default function NotificationsScreen() {
     }
   }, [userId, data, error])
 
-  const [markAsRead] = useMutation<any, any>(MARK_NOTIFICATION_READ)
-  const [markAllAsRead] = useMutation<any, any>(MARK_ALL_NOTIFICATIONS_READ)
+  const [markAsRead] = useMutation<any, any>(MARK_NOTIFICATION_READ, {
+    refetchQueries: [
+      { query: GET_UNREAD_COUNT, variables: { userId } },
+      { query: GET_NOTIFICATIONS, variables: { userId } }
+    ]
+  })
+  const [markAllAsRead] = useMutation<any, any>(MARK_ALL_NOTIFICATIONS_READ, {
+    refetchQueries: [
+      { query: GET_UNREAD_COUNT, variables: { userId } },
+      { query: GET_NOTIFICATIONS, variables: { userId } }
+    ]
+  })
 
   const notifications = (data as any)?.feedNotifications || []
 

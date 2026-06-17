@@ -39,7 +39,11 @@ function CreateTaskContent() {
     multiUserAssignment: false, // Enable multi-user assignment
     assignees: [] as string[], // Array of employee IDs for multi-user assignment
     attachments: '', // File attachments
-    parentTaskId: undefined as string | undefined // Parent task ID for subtasks
+    parentTaskId: undefined as string | undefined, // Parent task ID for subtasks
+    meetingLink: '',
+    meetingReminder: false,
+    startTime: '',
+    dueTime: ''
   })
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -493,7 +497,11 @@ function CreateTaskContent() {
         subprojectId: formData.subprojectId,
         department: formData.department,
         status: formData.status || 'Open',
-        attachments: attachmentUrls.length > 0 ? attachmentUrls.join(',') : undefined
+        attachments: attachmentUrls.length > 0 ? attachmentUrls.join(',') : undefined,
+        meetingLink: formData.meetingLink.trim() || null,
+        meetingReminder: formData.meetingReminder,
+        startTime: formData.startTime ? `${formData.startTime}:00` : null,
+        dueTime: formData.dueTime ? `${formData.dueTime}:00` : null
       }
 
       mainTaskData = taskData
@@ -560,7 +568,11 @@ function CreateTaskContent() {
       multiUserAssignment: false,
       assignees: [],
       attachments: '',
-      parentTaskId: undefined
+      parentTaskId: undefined,
+      meetingLink: '',
+      meetingReminder: false,
+      startTime: '',
+      dueTime: ''
     })
     setUploadedFiles([])
     setError('')
@@ -787,85 +799,112 @@ function CreateTaskContent() {
                   <span className="text-red-500 text-xs ml-2">Required</span>
                 )}
               </label>
-              <select
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                required
-                disabled={isLoadingSettings}
-                className={getFieldClass('department')}
-              >
-                <option value="">Select Department...</option>
+              <div className="flex gap-2 flex-wrap">
                 {isLoadingSettings ? (
-                  <option>Loading...</option>
+                  <span className="text-gray-500 text-sm">Loading departments...</span>
                 ) : (
-                  departmentOptions.map(option => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))
+                  departmentOptions.map(option => {
+                    const isSelected = formData.department === option
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, department: option }))
+                          if (missingFields.includes('department')) {
+                            setMissingFields(prev => prev.filter(field => field !== 'department'))
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm ${
+                          isSelected
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+                            : missingFields.includes('department')
+                              ? 'bg-white text-gray-700 border-red-500 hover:border-red-600 hover:bg-red-50'
+                              : 'bg-white text-gray-700 border-gray-300 hover:border-amber-400 hover:bg-amber-50'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    )
+                  })
                 )}
-              </select>
+              </div>
             </div>
 
             {/* Status and Priority */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Status *
                 </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isLoadingSettings}
-                  className="input-field"
-                >
+                <div className="flex gap-2 flex-wrap">
                   {isLoadingSettings ? (
-                    <option>Loading...</option>
+                    <span className="text-gray-500 text-sm">Loading statuses...</span>
                   ) : (
                     taskStatusOptions.map(option => {
                       const icon = getIcon('task_statuses', option)
+                      const isSelected = formData.status === option
                       return (
-                        <option key={option} value={option}>
-                          {icon && `${icon} `}{option}
-                        </option>
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, status: option }))
+                          }}
+                          className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-1.5 ${
+                            isSelected
+                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                              : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-400 hover:bg-indigo-50'
+                          }`}
+                        >
+                          {icon && <span>{icon}</span>}
+                          <span>{option}</span>
+                        </button>
                       )
                     })
                   )}
-                </select>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Priority *
                   {missingFields.includes('priority') && (
                     <span className="text-red-500 text-xs ml-2">Required</span>
                   )}
                 </label>
-                <select
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isLoadingSettings}
-                  className={getFieldClass('priority')}
-                >
-                  <option value="">Choose priority...</option>
+                <div className="flex gap-2 flex-wrap">
                   {isLoadingSettings ? (
-                    <option>Loading...</option>
+                    <span className="text-gray-500 text-sm">Loading priorities...</span>
                   ) : (
                     taskPriorityOptions.map(option => {
                       const icon = getIcon('task_priorities', option)
+                      const isSelected = formData.priority === option
                       return (
-                        <option key={option} value={option}>
-                          {icon && `${icon} `}{option}
-                        </option>
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, priority: option }))
+                            if (missingFields.includes('priority')) {
+                              setMissingFields(prev => prev.filter(field => field !== 'priority'))
+                            }
+                          }}
+                          className={`px-3 py-2 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-1.5 ${
+                            isSelected
+                              ? 'bg-rose-600 text-white border-rose-600 shadow-md'
+                              : missingFields.includes('priority')
+                                ? 'bg-white text-gray-700 border-red-500 hover:border-red-600 hover:bg-red-50'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-rose-400 hover:bg-rose-50'
+                          }`}
+                        >
+                          {icon && <span>{icon}</span>}
+                          <span>{option}</span>
+                        </button>
                       )
                     })
                   )}
-                </select>
+                </div>
               </div>
             </div>
 
@@ -1071,6 +1110,41 @@ function CreateTaskContent() {
               </div>
             </div>
 
+            {/* Times */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Time (Optional)
+                </label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="time"
+                    name="startTime"
+                    value={formData.startTime}
+                    onChange={handleInputChange}
+                    className="input-field pl-10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Due Time (Optional)
+                </label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="time"
+                    name="dueTime"
+                    value={formData.dueTime}
+                    onChange={handleInputChange}
+                    className="input-field pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Estimated Hours */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1092,6 +1166,37 @@ function CreateTaskContent() {
               <p className="text-xs text-gray-500 mt-1">
                 Enter estimated time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
               </p>
+            </div>
+
+            {/* Google Meet Link & Reminder */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Google Meet Link (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="meetingLink"
+                  value={formData.meetingLink}
+                  onChange={handleInputChange}
+                  className="input-field"
+                  placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                />
+              </div>
+              <div className="flex items-end pb-3">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.meetingReminder}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      meetingReminder: e.target.checked
+                    }))}
+                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4"
+                  />
+                  <span className="text-sm text-gray-700 font-medium">Enable 10-Minute Meeting Reminder</span>
+                </label>
+              </div>
             </div>
 
             {/* File Attachments */}

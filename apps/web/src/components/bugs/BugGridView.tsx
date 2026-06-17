@@ -249,7 +249,7 @@ export default function BugGridView({
         <button
           type="button"
           onClick={() => startEdit(bug.bugId, field, '')}
-          className="px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition bg-neutral-50 text-neutral-500 border-dashed border-neutral-300"
+          className="px-2 py-1 text-xs font-medium rounded border w-full text-left hover:ring-2 hover:ring-primary/40 transition bg-neutral-50 dark:bg-neutral-800/40 text-neutral-500 dark:text-neutral-400 border-dashed border-neutral-300 dark:border-neutral-700"
           title="Click to edit"
         >
           {placeholder}

@@ -4,13 +4,15 @@ import {
   ScrollView,
   Alert,
   StyleSheet,
+  Linking,
 } from 'react-native'
-import { Card, Text, Button, ActivityIndicator, TextInput as PaperTextInput, Chip, IconButton, List, Divider } from 'react-native-paper'
+import { Card, Text, Button, ActivityIndicator, TextInput as PaperTextInput, Chip, IconButton, List, Divider, Switch } from 'react-native-paper'
 import { SearchablePicker } from '../components/SearchablePicker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getTaskById, updateTask, deleteTask, Task } from '../services/taskService'
 import { get } from '../services/apiClient'
 import { useTheme } from '../contexts/ThemeContext'
+import { getStatusColor, getStatusTextColor, getPriorityColor, getPriorityTextColor } from '../utils/bugHelpers'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
@@ -18,6 +20,27 @@ import { formatDateTimeIST, formatDateIST } from '../utils/datetime'
 import UnifiedTimeline from '../components/UnifiedTimeline'
 import TaskChecklistManager from '../components/TaskChecklistManager'
 import RelatedItemsManager from '../components/RelatedItemsManager'
+
+// Helper function to format HH:mm:ss/HH:mm to hh:mm AM/PM format
+function formatTime(timeString: string | null | undefined): string {
+  if (!timeString) return ''
+
+  try {
+    const [hoursStr, minutesStr] = timeString.split(':')
+    const hours = parseInt(hoursStr, 10)
+    const minutes = parseInt(minutesStr, 10)
+    
+    if (isNaN(hours) || isNaN(minutes)) return ''
+
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+    const displayHours = hours % 12 || 12
+    const displayMinutes = String(minutes).padStart(2, '0')
+
+    return `${displayHours}:${displayMinutes} ${ampm}`
+  } catch (error) {
+    return ''
+  }
+}
 
 export default function TaskDetailsScreen({ route, navigation }: any) {
   const { taskId } = route.params
@@ -49,6 +72,8 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
   const [editedPriority, setEditedPriority] = useState('')
   const [editedDescription, setEditedDescription] = useState('')
   const [editedRemarks, setEditedRemarks] = useState('')
+  const [editedMeetingLink, setEditedMeetingLink] = useState('')
+  const [editedMeetingReminder, setEditedMeetingReminder] = useState(false)
 
   const [settings, setSettings] = useState<any>({})
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -94,6 +119,8 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
         setEditedPriority(response.data.priority)
         setEditedDescription(response.data.description)
         setEditedRemarks(response.data.remarks || '')
+        setEditedMeetingLink(response.data.meetingLink || '')
+        setEditedMeetingReminder(response.data.meetingReminder || false)
       } else {
         const err = (response.error || '').toLowerCase()
         if (err.includes('forbidden') || err.includes('no access') || err.includes('403')) {
@@ -150,6 +177,8 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
         priority: editedPriority,
         description: editedDescription,
         remarks: editedRemarks,
+        meetingLink: editedMeetingLink.trim() || null,
+        meetingReminder: editedMeetingReminder,
       }
 
       const response = await updateTask(taskId, updates)
@@ -167,7 +196,7 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
     } finally {
       setIsSaving(false)
     }
-  }, [task, editedStatus, editedPriority, editedDescription, editedRemarks, taskId, loadTaskDetails])
+  }, [task, editedStatus, editedPriority, editedDescription, editedRemarks, editedMeetingLink, editedMeetingReminder, taskId, loadTaskDetails])
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -196,32 +225,6 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
       ]
     )
   }, [taskId, navigation])
-
-  const getStatusColor = useCallback((status: string) => {
-    switch (status) {
-      case 'Open':
-        return colors.primary
-      case 'In Progress':
-        return colors.warning
-      case 'Completed':
-        return colors.success
-      case 'Delayed':
-        return colors.error
-      case 'On Hold':
-        return colors.textSecondary
-      case 'Cancelled':
-        return colors.textTertiary
-      default:
-        return colors.textSecondary
-    }
-  }, [colors])
-
-  const getPriorityColor = useCallback((priority: string) => {
-    if (priority.includes('IU&I')) return colors.error
-    if (priority.includes('IU&NI')) return colors.warning
-    if (priority.includes('NU&I')) return colors.primary
-    return colors.textSecondary
-  }, [colors])
 
   const taskStatuses = useMemo(() =>
     settings.task_statuses || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'],
@@ -286,14 +289,14 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
             {/* Status and Priority Chips */}
             <View style={styles.badges}>
               <Chip
-                style={[styles.statusChip, { backgroundColor: getStatusColor(task.status) }]}
-                textStyle={styles.chipText}
+                style={[styles.statusChip, { backgroundColor: getStatusColor(task.status, colors) }]}
+                textStyle={[styles.chipText, { color: getStatusTextColor(task.status, colors) }]}
               >
                 {task.status}
               </Chip>
               <Chip
-                style={[styles.priorityChip, { backgroundColor: getPriorityColor(task.priority) }]}
-                textStyle={styles.chipText}
+                style={[styles.priorityChip, { backgroundColor: getPriorityColor(task.priority, colors) }]}
+                textStyle={[styles.chipText, { color: getPriorityTextColor(task.priority, colors) }]}
               >
                 {task.priority}
               </Chip>
@@ -328,6 +331,31 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
           </List.Accordion>
         </Card>
 
+        {/* Google Meet Link (View Mode) */}
+        {!isEditing && task.meetingLink && (
+          <Card style={[styles.sectionCard, { backgroundColor: '#f0f9ff', borderColor: '#bae6fd', borderWidth: 1 }]} elevation={1}>
+            <Card.Content style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 }}>
+              <View style={{ flex: 1, marginRight: 10 }}>
+                <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#0369a1' }}>Google Meet</Text>
+                <Text style={{ fontSize: 12, color: '#0284c7', marginTop: 2 }}>Join the task meeting room</Text>
+              </View>
+              <Button
+                mode="contained"
+                onPress={() => {
+                  const url = task.meetingLink?.startsWith('http') ? task.meetingLink : `https://${task.meetingLink}`
+                  Linking.openURL(url).catch(err => console.error("Couldn't open Google Meet link:", err))
+                }}
+                icon="video"
+                buttonColor="#0284c7"
+                textColor="#ffffff"
+                style={{ borderRadius: 8 }}
+              >
+                Join
+              </Button>
+            </Card.Content>
+          </Card>
+        )}
+
         {/* Status (Edit Mode) */}
         {isEditing && (
           <Card style={styles.sectionCard} elevation={1}>
@@ -358,6 +386,31 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
           </Card>
         )}
 
+        {/* Google Meet Link & Reminder (Edit Mode) */}
+        {isEditing && (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content style={{ gap: 12 }}>
+              <PaperTextInput
+                label="Google Meet Link"
+                value={editedMeetingLink}
+                onChangeText={setEditedMeetingLink}
+                mode="outlined"
+                disabled={isOffline}
+                style={styles.textInput}
+                placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              />
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4 }}>
+                <Text style={{ fontSize: 16, color: colors.text }}>10-Minute Meeting Reminder</Text>
+                <Switch
+                  value={editedMeetingReminder}
+                  onValueChange={setEditedMeetingReminder}
+                  color={colors.primary}
+                />
+              </View>
+            </Card.Content>
+          </Card>
+        )}
+
         {/* Timeline Section */}
         <Card style={styles.sectionCard} elevation={1}>
           <List.Accordion
@@ -372,12 +425,14 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
                 <Text style={styles.infoLabel}>Start:</Text>
                 <Text style={styles.dateText}>
                   {formatDateIST(task.startDate)}
+                  {task.startTime ? ` (${formatTime(task.startTime)})` : ''}
                 </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>End:</Text>
                 <Text style={styles.dateText}>
                   {formatDateIST(task.endDate)}
+                  {task.dueTime ? ` (${formatTime(task.dueTime)})` : ''}
                 </Text>
               </View>
             </Card.Content>

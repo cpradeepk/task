@@ -3,8 +3,9 @@ import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Image, Alert } f
 import { Avatar, Text, Divider, List, Button, IconButton } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { getUserData } from '../utils/secureStorage'
-import { materialColors, materialTypography, materialSpacing } from '../config/materialTheme'
+import { materialTypography, materialSpacing } from '../config/materialTheme'
 import { AuthContext } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface NavigationItem {
   screen: string
@@ -23,6 +24,8 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [expandedAdmin, setExpandedAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const { colors } = useTheme()
+  const styles = getStyles(colors)
 
   useEffect(() => {
     if (visible) {
@@ -46,13 +49,11 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
 
   const renderSection = (items: NavigationItem[], title?: string) => (
     <View>
-      {/* {title && <List.Subheader>{title}</List.Subheader>} */}
-      {/* User didn't explicitly ask for headers, but visual grouping via dividers is good. */}
       {items.map((item) => (
         <List.Item
           key={item.screen}
           title={item.label}
-          left={(props) => <List.Icon {...props} icon={item.icon} color={materialColors.primary} />}
+          left={(props) => <List.Icon {...props} icon={item.icon} color={colors.primary} />}
           onPress={() => handleNavigation(item)}
           style={styles.navItem}
           titleStyle={styles.navItemTitle}
@@ -95,7 +96,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
     { screen: 'Projects', label: 'Projects', icon: 'folder-outline' },
     { screen: 'Users', label: 'User Management', icon: 'account-group' },
     { screen: 'FeedTopics', label: 'Feed Topics', icon: 'message-text-outline' },
-    { screen: 'AttendanceApprovals', label: 'Approvals', icon: 'check-decagram' }, // Corrected screen name
+    { screen: 'AttendanceApprovals', label: 'Approvals', icon: 'check-decagram' },
     { screen: 'Settings', label: 'Settings', icon: 'cog-outline' },
     { screen: 'DeletedItems', label: 'Deleted Items', icon: 'delete-outline' },
     { screen: 'Reports', label: 'Reports', icon: 'chart-bar' },
@@ -106,7 +107,6 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
   ]
 
   const handleNavigation = (item: NavigationItem) => {
-    // Handle special cases or missing screens
     const missingScreens: string[] = [];
 
     if (missingScreens.includes(item.screen)) {
@@ -165,7 +165,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
                 size={24}
                 onPress={onClose}
                 style={styles.closeButton}
-                iconColor={materialColors.surface}
+                iconColor="#FFFFFF"
               />
             </View>
 
@@ -175,7 +175,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
                 size={60}
                 label={currentUser ? getInitials(currentUser.name) : '?'}
                 style={styles.avatar}
-                color={materialColors.surface}
+                color="#FFFFFF"
               />
               <Text style={styles.userName}>{currentUser?.name || 'Loading...'}</Text>
               <Text style={styles.userRole}>{currentUser?.role || ''}</Text>
@@ -191,14 +191,14 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
               <Divider style={styles.divider} />
               <List.Accordion
                 title="Feed"
-                left={props => <List.Icon {...props} icon="rss" color={materialColors.primary} />}
-                style={[styles.navItem, { backgroundColor: materialColors.surface }]}
+                left={props => <List.Icon {...props} icon="rss" color={colors.primary} />}
+                style={[styles.navItem, { backgroundColor: colors.card }]}
                 titleStyle={styles.navItemTitle}>
                 {feedItems.map(item => (
                   <List.Item
                     key={item.label}
                     title={item.label}
-                    left={props => <List.Icon {...props} icon={item.icon} color={materialColors.textSecondary} />}
+                    left={props => <List.Icon {...props} icon={item.icon} color={colors.textSecondary} />}
                     onPress={() => handleNavigation(item)}
                     style={styles.adminNavItem}
                     titleStyle={styles.adminNavItemTitle}
@@ -209,14 +209,14 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
               <Divider style={styles.divider} />
               <List.Accordion
                 title="Work"
-                left={props => <List.Icon {...props} icon="briefcase" color={materialColors.primary} />}
-                style={[styles.navItem, { backgroundColor: materialColors.surface }]}
+                left={props => <List.Icon {...props} icon="briefcase" color={colors.primary} />}
+                style={[styles.navItem, { backgroundColor: colors.card }]}
                 titleStyle={styles.navItemTitle}>
                 {workItems.map(item => (
                   <List.Item
                     key={item.label}
                     title={item.label}
-                    left={props => <List.Icon {...props} icon={item.icon} color={materialColors.textSecondary} />}
+                    left={props => <List.Icon {...props} icon={item.icon} color={colors.textSecondary} />}
                     onPress={() => handleNavigation(item)}
                     style={styles.adminNavItem}
                     titleStyle={styles.adminNavItemTitle}
@@ -227,14 +227,14 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
               <Divider style={styles.divider} />
               <List.Accordion
                 title="Attendance"
-                left={props => <List.Icon {...props} icon="calendar" color={materialColors.primary} />}
-                style={[styles.navItem, { backgroundColor: materialColors.surface }]}
+                left={props => <List.Icon {...props} icon="calendar" color={colors.primary} />}
+                style={[styles.navItem, { backgroundColor: colors.card }]}
                 titleStyle={styles.navItemTitle}>
                 {attendanceItems.map(item => (
                   <List.Item
                     key={item.label}
                     title={item.label}
-                    left={props => <List.Icon {...props} icon={item.icon} color={materialColors.textSecondary} />}
+                    left={props => <List.Icon {...props} icon={item.icon} color={colors.textSecondary} />}
                     onPress={() => handleNavigation(item)}
                     style={styles.adminNavItem}
                     titleStyle={styles.adminNavItemTitle}
@@ -248,17 +248,17 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
                   <Divider style={styles.divider} />
                   <List.Accordion
                     title="Admin"
-                    left={(props) => <List.Icon {...props} icon="shield-account" color={materialColors.primary} />}
+                    left={(props) => <List.Icon {...props} icon="shield-account" color={colors.primary} />}
                     expanded={expandedAdmin}
                     onPress={() => setExpandedAdmin(!expandedAdmin)}
-                    style={styles.navItem}
+                    style={[styles.navItem, { backgroundColor: colors.card }]}
                     titleStyle={styles.navItemTitle}
                   >
                     {adminItems.map((item) => (
                       <List.Item
-                        key={item.label} // Use label as key to be unique since Reports might duplicate keys
+                        key={item.label}
                         title={item.label}
-                        left={(props) => <List.Icon {...props} icon={item.icon} color={materialColors.textSecondary} />}
+                        left={(props) => <List.Icon {...props} icon={item.icon} color={colors.textSecondary} />}
                         onPress={() => handleNavigation(item)}
                         style={styles.adminNavItem}
                         titleStyle={styles.adminNavItemTitle}
@@ -280,8 +280,8 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
                 mode="contained"
                 onPress={handleLogout}
                 icon="logout"
-                buttonColor={materialColors.error}
-                textColor={materialColors.surface}
+                buttonColor={colors.error}
+                textColor="#FFFFFF"
                 style={styles.logoutButton}
               >
                 Logout
@@ -295,7 +295,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     width: 300,
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.card,
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.25,
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    backgroundColor: materialColors.primary,
+    backgroundColor: colors.primary,
     padding: materialSpacing.lg,
     paddingTop: materialSpacing.xxl,
     alignItems: 'center',
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   },
   appTitle: {
     ...materialTypography.titleMedium,
-    color: '#000000',
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   closeButton: {
@@ -341,32 +341,32 @@ const styles = StyleSheet.create({
   profileSection: {
     padding: materialSpacing.lg,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surfaceVariant,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   avatar: {
-    backgroundColor: materialColors.primary,
+    backgroundColor: colors.primary,
     marginBottom: materialSpacing.md,
   },
   userName: {
     ...materialTypography.titleLarge,
-    color: '#000000',
+    color: colors.text,
     fontWeight: '600',
   },
   userRole: {
     ...materialTypography.bodyMedium,
-    color: '#666666',
+    color: colors.textSecondary,
     marginTop: materialSpacing.xs,
     textTransform: 'capitalize',
   },
   userEmployeeId: {
     ...materialTypography.bodySmall,
-    color: '#999999',
+    color: colors.textTertiary,
     marginTop: materialSpacing.xs,
   },
   divider: {
-    backgroundColor: materialColors.outline,
+    backgroundColor: colors.border,
     marginVertical: materialSpacing.sm,
   },
   navigationSection: {
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   },
   navItemTitle: {
     ...materialTypography.bodyLarge,
-    color: materialColors.text,
+    color: colors.text,
   },
   adminNavItem: {
     paddingLeft: materialSpacing.xl,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   },
   adminNavItemTitle: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
   },
   logoutSection: {
     padding: materialSpacing.md,

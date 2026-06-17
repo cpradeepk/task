@@ -4,8 +4,9 @@ import { Text, Divider, Avatar, IconButton } from 'react-native-paper'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { getCurrentUser, User } from '../services/userService'
-import { materialColors, materialSpacing, materialTypography } from '../config/materialTheme'
+import { materialSpacing, materialTypography } from '../config/materialTheme'
 import { AuthContext } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface NavigationMenuProps {
   visible: boolean
@@ -16,6 +17,8 @@ export default function NavigationMenu({ visible, onClose }: NavigationMenuProps
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const navigation = useNavigation<any>()
   const { signOut } = React.useContext(AuthContext)
+  const { colors } = useTheme()
+  const styles = getStyles(colors)
 
   useEffect(() => {
     if (visible) {
@@ -61,12 +64,6 @@ export default function NavigationMenu({ visible, onClose }: NavigationMenuProps
       { screen: 'LeaveList', label: 'Leaves', icon: 'calendar-clock' },
       { screen: 'WFHList', label: 'WFH', icon: 'home-account' },
     ]
-
-    // Combine based on role (simplifying to show all relevant for now, filtering can be added if needed)
-    // User asked "Make it reflect the current new implementation... home, work...".
-    // I will return a flat list but ordered logically, or we could add headers.
-    // NavigationMenu implementation (lines 100+) renders them linearly.
-    // I shall just order them: Home -> Work -> Approvals.
 
     let items = [...homeSection]
 
@@ -132,7 +129,7 @@ export default function NavigationMenu({ visible, onClose }: NavigationMenuProps
                 size={60}
                 label={currentUser.name.substring(0, 2).toUpperCase()}
                 style={styles.avatar}
-                color={materialColors.surface}
+                color="#FFFFFF"
               />
               <Text style={styles.userName}>{currentUser.name}</Text>
               <Text style={styles.userRole}>{getRoleDisplayName(currentUser.role)}</Text>
@@ -153,7 +150,7 @@ export default function NavigationMenu({ visible, onClose }: NavigationMenuProps
                 <MaterialCommunityIcons
                   name={item.icon as any}
                   size={24}
-                  color={materialColors.primary}
+                  color={colors.primary}
                 />
                 <Text style={styles.menuItemText}>{item.label}</Text>
               </TouchableOpacity>
@@ -164,7 +161,7 @@ export default function NavigationMenu({ visible, onClose }: NavigationMenuProps
 
           {/* Logout Button */}
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <MaterialCommunityIcons name="logout" size={24} color={materialColors.error} />
+            <MaterialCommunityIcons name="logout" size={24} color={colors.error} />
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
         </View>
@@ -173,7 +170,7 @@ export default function NavigationMenu({ visible, onClose }: NavigationMenuProps
   )
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -183,7 +180,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuContainer: {
-    backgroundColor: materialColors.surface,
+    backgroundColor: colors.card,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
@@ -198,7 +195,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: materialSpacing.lg,
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   logo: {
     width: 140,
@@ -206,7 +203,7 @@ const styles = StyleSheet.create({
   },
   appTitle: {
     ...materialTypography.titleMedium,
-    color: materialColors.text,
+    color: colors.text,
     flex: 1,
     marginLeft: materialSpacing.sm,
   },
@@ -216,28 +213,28 @@ const styles = StyleSheet.create({
   profileSection: {
     padding: materialSpacing.lg,
     alignItems: 'center',
-    backgroundColor: materialColors.background,
+    backgroundColor: colors.background,
   },
   avatar: {
-    backgroundColor: materialColors.primary,
+    backgroundColor: colors.primary,
   },
   userName: {
     ...materialTypography.titleLarge,
-    color: materialColors.text,
+    color: colors.text,
     marginTop: materialSpacing.sm,
   },
   userRole: {
     ...materialTypography.bodyMedium,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.xs,
   },
   userId: {
     ...materialTypography.bodySmall,
-    color: materialColors.textSecondary,
+    color: colors.textSecondary,
     marginTop: materialSpacing.xs,
   },
   divider: {
-    backgroundColor: materialColors.outline,
+    backgroundColor: colors.border,
   },
   menuItems: {
     maxHeight: 300,
@@ -251,7 +248,7 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     ...materialTypography.bodyLarge,
-    color: materialColors.text,
+    color: colors.text,
     marginLeft: materialSpacing.md,
   },
   logoutButton: {
@@ -259,14 +256,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: materialSpacing.md,
-    backgroundColor: materialColors.errorContainer,
+    backgroundColor: colors.errorLight,
     marginHorizontal: materialSpacing.lg,
     marginVertical: materialSpacing.lg,
     borderRadius: 8,
   },
   logoutText: {
     ...materialTypography.labelLarge,
-    color: materialColors.error,
+    color: colors.error,
     marginLeft: materialSpacing.sm,
     fontWeight: '600',
   },

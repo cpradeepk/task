@@ -7,7 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { TextInput, Button, Surface, Text, ActivityIndicator } from 'react-native-paper'
+import { TextInput, Button, Surface, Text, ActivityIndicator, SegmentedButtons, Switch } from 'react-native-paper'
 import { SearchablePicker } from '../components/SearchablePicker'
 import { MultiSelectPicker } from '../components/MultiSelectPicker'
 import * as DocumentPicker from 'expo-document-picker'
@@ -42,7 +42,11 @@ export default function CreateTaskScreen({ navigation }: any) {
   const [subprojectId, setSubprojectId] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
   const [support, setSupport] = useState<string[]>([]) // Support team members
+  const [multiUserAssignment, setMultiUserAssignment] = useState(false) // Multi-user toggle (synced with web)
+  const [assignees, setAssignees] = useState<string[]>([]) // Multi-user assignees
   const [attachedFile, setAttachedFile] = useState<any>(null)
+  const [meetingLink, setMeetingLink] = useState('')
+  const [meetingReminder, setMeetingReminder] = useState(false)
 
   const STATIC_PROJECTS = [
     { projectId: 'dsn', projectName: 'dsn' },
@@ -220,25 +224,38 @@ export default function CreateTaskScreen({ navigation }: any) {
       return
     }
 
-    if (!estimatedHours.trim()) {
-      Alert.alert('Error', 'Please enter estimated hours')
-      return
-    }
-
-    if (!validateTimeFormat(estimatedHours)) {
+    // Estimated hours is optional (synced with web)
+    if (estimatedHours.trim() && !validateTimeFormat(estimatedHours)) {
       Alert.alert('Error', 'Please enter estimated hours in hh:mm:ss format (e.g., 02:30:00)')
       return
     }
 
-    if (!assignedTo) {
-      Alert.alert('Error', 'Please select assignee')
-      return
+    // Validate assignee(s) based on assignment mode
+    if (multiUserAssignment) {
+      if (assignees.length === 0) {
+        Alert.alert('Error', 'Please select at least one assignee')
+        return
+      }
+    } else {
+      if (!assignedTo) {
+        Alert.alert('Error', 'Please select assignee')
+        return
+      }
     }
 
     try {
       setIsSubmitting(true)
 
-      const estimatedHoursDecimal = convertTimeToHours(estimatedHours)
+      // Convert estimated hours (optional, default 0)
+      let estimatedHoursDecimal = 0
+      if (estimatedHours.trim()) {
+        estimatedHoursDecimal = convertTimeToHours(estimatedHours)
+      }
+
+      // Determine assignees based on multi-user mode
+      const assignedToUsers: string[] = multiUserAssignment && assignees.length > 0
+        ? assignees
+        : [assignedTo]
 
       // Prepare payload
       let payload: any
@@ -253,8 +270,9 @@ export default function CreateTaskScreen({ navigation }: any) {
         }
         formData.append('department', department)
         formData.append('description', description.trim())
-        formData.append('assignedTo', JSON.stringify([assignedTo]))
+        formData.append('assignedTo', JSON.stringify(assignedToUsers))
         formData.append('assignedBy', currentUser?.employeeId || '')
+        if (support.length > 0) formData.append('support', JSON.stringify(support))
         formData.append('startDate', startDate)
         formData.append('endDate', endDate)
         formData.append('startTime', startTime.trim() || '')
@@ -264,6 +282,8 @@ export default function CreateTaskScreen({ navigation }: any) {
         if (projectId) formData.append('projectId', projectId)
         if (subprojectId) formData.append('subprojectId', subprojectId)
         formData.append('status', status)
+        formData.append('meetingLink', meetingLink.trim() || '')
+        formData.append('meetingReminder', String(meetingReminder))
 
         // Append file
         formData.append('attachments', {
@@ -282,9 +302,9 @@ export default function CreateTaskScreen({ navigation }: any) {
           recursiveType: selectType === 'Recursive' ? recursiveType as any : undefined,
           department: department.trim(),
           description: description.trim(),
-          assignedTo: [assignedTo], // Fix: Send as Array
+          assignedTo: assignedToUsers,
           assignedBy: currentUser?.employeeId || '',
-          support: support.length > 0 ? support : undefined, // Add support team
+          support: support.length > 0 ? support : undefined,
           startDate,
           endDate,
           startTime: startTime.trim() || undefined,
@@ -294,6 +314,8 @@ export default function CreateTaskScreen({ navigation }: any) {
           projectId: projectId || undefined,
           subprojectId: subprojectId || undefined,
           status: status || 'Open',
+          meetingLink: meetingLink.trim() || undefined,
+          meetingReminder: meetingReminder,
         }
       }
 
@@ -315,11 +337,12 @@ export default function CreateTaskScreen({ navigation }: any) {
     } finally {
       setIsSubmitting(false)
     }
-  }, [name, description, startDate, endDate, startTime, dueTime, priority, estimatedHours, assignedTo, currentUser, projectId, subprojectId, status, support, attachedFile, selectType, recursiveType, department, convertTimeToHours, validateTimeFormat, validateTimeFormatOptional, navigation])
+  }, [name, description, startDate, endDate, startTime, dueTime, priority, estimatedHours, assignedTo, assignees, multiUserAssignment, currentUser, projectId, subprojectId, status, support, attachedFile, selectType, recursiveType, department, convertTimeToHours, validateTimeFormat, validateTimeFormatOptional, navigation, meetingLink, meetingReminder])
 
   const taskStatuses = useMemo(() => settings.task_statuses || ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed'], [settings])
   const taskPriorities = useMemo(() => settings.task_priorities || ['U&I (Urgent & Important)', 'NU&I (Not Urgent & Important)', 'NI&U (Not Important & Urgent)', 'NU&NI (Not Urgent & Not Important)'], [settings])
-  const departments = ['Management', 'Marketing', 'Sales', 'Operations', 'Accounts', 'HR', 'Research']
+  // Departments from API settings, matching web behavior (fallback to hardcoded defaults)
+  const departmentOptions = useMemo(() => settings.departments || ['Management', 'Marketing', 'Sales', 'Operations', 'Accounts', 'HR', 'Research'], [settings])
   const recursionFrequencies = ['Daily', 'Weekly', 'Monthly', 'Annually']
 
   const handleFilePick = async () => {
@@ -350,14 +373,15 @@ export default function CreateTaskScreen({ navigation }: any) {
       >
         <Surface style={styles.form} elevation={0}>
           {/* Task Type */}
-          <SearchablePicker
-            label="Task Type"
-            selectedValue={selectType}
+          <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8, fontWeight: '500' }}>Task Type</Text>
+          <SegmentedButtons
+            value={selectType}
             onValueChange={setSelectType}
-            items={[
-              { label: 'Normal Task', value: 'Normal' },
-              { label: 'Recurring Task', value: 'Recursive' },
+            buttons={[
+              { value: 'Normal', label: 'Normal Task' },
+              { value: 'Recursive', label: 'Recurring Task' },
             ]}
+            style={{ marginBottom: 16 }}
           />
 
           {/* Recursion Type (only if Recursive) */}
@@ -370,13 +394,13 @@ export default function CreateTaskScreen({ navigation }: any) {
             />
           )}
 
-          {/* Department */}
+          {/* Department (from API settings, synced with web) */}
           <SearchablePicker
             label="Department"
             placeholder="Select Department"
             selectedValue={department}
             onValueChange={setDepartment}
-            items={departments.map((dept) => ({ label: dept, value: dept }))}
+            items={getPickerItems(departmentOptions)}
           />
 
           {/* Task Name */}
@@ -457,15 +481,48 @@ export default function CreateTaskScreen({ navigation }: any) {
             required
           />
 
-          {/* Assigned To */}
-          <SearchablePicker
-            label="Assigned To"
-            placeholder="Select User"
-            selectedValue={assignedTo}
-            onValueChange={setAssignedTo}
-            items={getPickerItems(users)}
-            required
-          />
+          {/* Task Assignment (synced with web multi-user toggle) */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingHorizontal: 4 }}>
+            <Text style={{ fontSize: 14, color: colors.textSecondary, fontWeight: '500' }}>Task Assignment</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ fontSize: 13, color: colors.textSecondary }}>Assign to multiple</Text>
+              <Switch
+                value={multiUserAssignment}
+                onValueChange={(val) => {
+                  setMultiUserAssignment(val)
+                  if (val) {
+                    setAssignees([])
+                  } else {
+                    setAssignedTo(currentUser?.employeeId || '')
+                  }
+                }}
+                color={colors.primary}
+              />
+            </View>
+          </View>
+
+          {multiUserAssignment ? (
+            <MultiSelectPicker
+              label="Assign To Multiple Users *"
+              placeholder="Select assignees"
+              selectedValues={assignees}
+              onValuesChange={setAssignees}
+              items={users.map(u => ({
+                label: `${u.name} (${u.employeeId})`,
+                value: u.employeeId,
+              }))}
+              disabled={isOffline}
+            />
+          ) : (
+            <SearchablePicker
+              label="Assigned To"
+              placeholder="Select User"
+              selectedValue={assignedTo}
+              onValueChange={setAssignedTo}
+              items={getPickerItems(users)}
+              required
+            />
+          )}
 
           {/* Support Team */}
           <MultiSelectPicker
@@ -536,10 +593,10 @@ export default function CreateTaskScreen({ navigation }: any) {
             disabled={isOffline}
           />
 
-          {/* Estimated Hours */}
+          {/* Estimated Hours (Optional, synced with web) */}
           <TextInput
             mode="outlined"
-            label="Estimated Hours (hh:mm:ss) *"
+            label="Estimated Hours (hh:mm:ss, Optional)"
             placeholder="02:30:00"
             value={estimatedHours}
             onChangeText={setEstimatedHours}
@@ -552,6 +609,30 @@ export default function CreateTaskScreen({ navigation }: any) {
           <Text style={styles.helpText}>
             Enter time in hh:mm:ss format (e.g., 02:30:00 for 2.5 hours)
           </Text>
+
+          {/* Google Meet Link */}
+          <TextInput
+            mode="outlined"
+            label="Google Meet Link (Optional)"
+            placeholder="https://meet.google.com/xxx-xxxx-xxx"
+            value={meetingLink}
+            onChangeText={setMeetingLink}
+            style={styles.input}
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            textColor={colors.text}
+            disabled={isOffline}
+          />
+
+          {/* Meeting Reminder */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 12, paddingHorizontal: 4 }}>
+            <Text style={{ fontSize: 16, color: colors.text }}>10-Minute Meeting Reminder</Text>
+            <Switch
+              value={meetingReminder}
+              onValueChange={setMeetingReminder}
+              color={colors.primary}
+            />
+          </View>
 
           {/* File Attachment */}
           <View style={styles.field}>

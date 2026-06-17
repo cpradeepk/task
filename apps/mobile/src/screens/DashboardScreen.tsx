@@ -98,7 +98,7 @@ export default function DashboardScreen() {
             <IconButton
               icon="bug"
               size={24}
-              iconColor={colors.surface}
+              iconColor="#FFFFFF"
               onPress={() => setDebugMenuVisible(true)}
               style={styles.debugButton}
             />
@@ -252,7 +252,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   greeting: {
     ...materialTypography.headlineMedium,
-    color: colors.surface,
+    color: '#FFFFFF',
   },
   role: {
     ...materialTypography.bodyMedium,
