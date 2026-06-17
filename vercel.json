@@ -11,10 +11,6 @@
     {
       "path": "/api/cron/reminders/6pm",
       "schedule": "30 12 * * *"
-    },
-    {
-      "path": "/api/cron/reminders/due-checking",
-      "schedule": "*/10 * * * *"
     }
   ]
 }
