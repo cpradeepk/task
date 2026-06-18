@@ -21,6 +21,7 @@ export interface Bug {
   platform: string
   type: string
   projectId?: string
+  subprojectId?: string
   assignedTo?: string
   reportedBy: string
   createdAt: string
@@ -69,6 +70,7 @@ export interface Task {
   updatedAt: string
   dueDate?: string
   projectId?: string
+  subprojectId?: string
   parentTaskId?: string | null
   subtasks?: Array<{
     subtaskId: string
@@ -186,5 +188,19 @@ export interface Notification {
   createdAt: string
   relatedId?: string
   relatedType?: string
+}
+
+export interface TaskFilters {
+  searchQuery?: string
+  statusFilter?: string[]
+  priorityFilter?: string[]
+  assigneeFilter?: string[]
+}
+
+export interface BugFilters {
+  searchQuery?: string
+  statusFilter?: string[]
+  typeFilter?: string[]
+  projectId?: string
 }
 

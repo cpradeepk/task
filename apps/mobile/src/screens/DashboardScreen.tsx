@@ -19,7 +19,7 @@ import { getUserToken, getUserData } from '../utils/secureStorage'
 import apiClient from '../services/apiClient'
 import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
 import { useTabBarControl } from '../context/TabBarContext'
-import NotificationBell from '../components/NotificationBell'
+import AppHeader from '../components/AppHeader'
 
 export default function DashboardScreen() {
   const navigation = useNavigation()
@@ -42,12 +42,16 @@ export default function DashboardScreen() {
   const loadData = useCallback(async () => {
     try {
       const userData = await getUserData()
+      let tasksData = []
       if (userData) {
         setUser(userData)
+        const response = await apiClient.get(`/api/tasks/user/${userData.employeeId}`)
+        tasksData = response.data || []
+      } else {
+        const response = await apiClient.get('/api/tasks')
+        tasksData = response.data || []
       }
-      // Fetch tasks using API client
-      const data = await apiClient.get('/api/tasks')
-      setTasks(data.data || [])
+      setTasks(tasksData)
     } catch (error) {
       console.error('Failed to load data:', error)
       Alert.alert('Error', 'Failed to load data')
@@ -72,6 +76,18 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AppHeader
+        title="Karmayog"
+        rightAction={
+          <IconButton
+            icon="bug"
+            size={22}
+            iconColor={colors.text}
+            onPress={() => setDebugMenuVisible(true)}
+            style={{ margin: 0 }}
+          />
+        }
+      />
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
@@ -85,25 +101,14 @@ export default function DashboardScreen() {
           />
         }
       >
-        {/* Header */}
-        <Surface style={styles.header} elevation={2}>
-          <View style={styles.headerTextContainer}>
-            <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.greetingScroll}>
-              <Text style={styles.greeting}>Welcome, {user?.name}!</Text>
-            </Animated.ScrollView>
-            <Text style={styles.role}>{user?.role}</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <NotificationBell />
-            <IconButton
-              icon="bug"
-              size={24}
-              iconColor="#FFFFFF"
-              onPress={() => setDebugMenuVisible(true)}
-              style={styles.debugButton}
-            />
-          </View>
-        </Surface>
+        {/* Greeting Section */}
+        <View style={styles.welcomeSection}>
+          <Text style={[styles.welcomeSub, { color: colors.textSecondary }]}>Hello,</Text>
+          <Text style={[styles.welcomeTitle, { color: colors.text }]}>{user?.name} 👋</Text>
+          {user?.role ? (
+            <Text style={[styles.welcomeRole, { color: colors.primary }]}>{user.role}</Text>
+          ) : null}
+        </View>
 
         {/* Attendance Card */}
         <View style={styles.section}>
@@ -230,34 +235,23 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     color: colors.textSecondary,
     marginTop: materialSpacing.md,
   },
-  header: {
-    backgroundColor: colors.primary,
-    padding: materialSpacing.lg,
-    paddingTop: materialSpacing.xxl * 2,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  welcomeSection: {
+    paddingHorizontal: materialSpacing.lg,
+    paddingVertical: materialSpacing.md,
   },
-  headerTextContainer: {
-    flex: 1,
-    marginRight: materialSpacing.md,
-    maxWidth: '80%',
+  welcomeSub: {
+    fontSize: 16,
+    fontWeight: '400',
   },
-  greetingScroll: {
-    flexGrow: 0,
-    maxWidth: '100%',
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    lineHeight: 28,
   },
-  debugButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  greeting: {
-    ...materialTypography.headlineMedium,
-    color: '#FFFFFF',
-  },
-  role: {
-    ...materialTypography.bodyMedium,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginTop: materialSpacing.xs,
+  welcomeRole: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 4,
   },
   statsContainer: {
     flexDirection: 'row',

@@ -218,7 +218,7 @@ export default function TeamTasksScreen() {
           ) : null}
 
           {item.difficulties ? (
-            <View style={[styles.logBox, { backgroundColor: '#FEE2E2' }]}>
+            <View style={[styles.logBox, { backgroundColor: colors.errorLight }]}>
               <Text style={[styles.logLabel, { color: colors.error }]}>Difficulties:</Text>
               <Text style={styles.logText}>{item.difficulties}</Text>
             </View>

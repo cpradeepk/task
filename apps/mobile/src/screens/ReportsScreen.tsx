@@ -401,7 +401,7 @@ export default function ReportsScreen() {
                         </View>
                         <View style={styles.statBox}>
                           <Text style={styles.statLabel}>Warnings</Text>
-                          <Chip compact style={{ backgroundColor: r.warningCount > 0 ? '#FCE8E6' : '#E6F4EA' }} textStyle={{ fontSize: 10, color: r.warningCount > 0 ? '#C5221F' : '#137333' }}>
+                          <Chip compact style={{ backgroundColor: r.warningCount > 0 ? colors.errorLight : colors.successLight }} textStyle={{ fontSize: 10, color: r.warningCount > 0 ? colors.error : colors.success }}>
                             {r.warningCount}
                           </Chip>
                         </View>
@@ -443,7 +443,7 @@ export default function ReportsScreen() {
             {/* Empty States */}
             {!loading && dailyReports.length === 0 && monthlyReports.length === 0 && teamReports.length === 0 && (
               <View style={styles.emptyContainer}>
-                <MaterialCommunityIcons name="google-analytics" size={64} color="#ccc" />
+                <MaterialCommunityIcons name="google-analytics" size={64} color={colors.textTertiary} />
                 <Text style={styles.emptyText}>Tap Generate to generate report metrics</Text>
               </View>
             )}
@@ -551,7 +551,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   statLabel: {
     fontSize: 9,
-    color: '#999',
+    color: colors.textSecondary,
     marginBottom: 2,
   },
   statVal: {
@@ -579,12 +579,12 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   emptyText: {
     ...materialTypography.bodyLarge,
-    color: '#999',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   metaLabel: {
     fontSize: 11,
-    color: '#999',
+    color: colors.textSecondary,
   },
   teamTaskRow: {
     flexDirection: 'row',
@@ -592,7 +592,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 4,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.border,
     gap: 8,
   },
   taskDesc: {
@@ -602,7 +602,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   taskId: {
     fontSize: 9,
-    color: '#999',
+    color: colors.textSecondary,
   },
   taskHrs: {
     fontSize: 11,

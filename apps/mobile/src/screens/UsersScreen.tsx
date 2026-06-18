@@ -334,7 +334,7 @@ export default function UsersScreen() {
             {filteredUsers.map(user => (
               <Card key={user.employeeId} style={[styles.userCard, user.status !== 'active' && styles.inactiveCard]} onPress={() => openUserDialog(user)}>
                 <Card.Content style={styles.cardContent}>
-                  <Avatar.Text size={40} label={getInitials(user.name)} style={[styles.avatar, { backgroundColor: user.status === 'active' ? colors.primary : '#ccc' }]} />
+                  <Avatar.Text size={40} label={getInitials(user.name)} style={[styles.avatar, { backgroundColor: user.status === 'active' ? colors.primary : colors.textTertiary }]} />
                   <View style={styles.userInfo}>
                     <View style={styles.nameRow}>
                       <Text style={styles.userName}>{user.name}</Text>
@@ -343,7 +343,7 @@ export default function UsersScreen() {
                     <Text style={styles.userId}>{user.employeeId} • {user.department}</Text>
                     <Text style={styles.userEmail}>{user.email}</Text>
                   </View>
-                  <IconButton icon="chevron-right" size={20} iconColor="#aaa" />
+                  <IconButton icon="chevron-right" size={20} iconColor={colors.textTertiary} />
                 </Card.Content>
               </Card>
             ))}
@@ -592,12 +592,12 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     height: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E8EAF6',
+    backgroundColor: colors.primaryLight,
   },
   roleChipText: {
     fontSize: 9,
     lineHeight: 10,
-    color: '#3F51B5',
+    color: colors.primary,
   },
   fab: {
     position: 'absolute',
@@ -624,7 +624,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: colors.border,
     borderRadius: 8,
     marginBottom: 12,
     overflow: 'hidden',

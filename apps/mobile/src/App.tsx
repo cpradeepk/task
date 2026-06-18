@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, Component, ErrorInfo, ReactNode, useRef } from 'react'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { NavigationContainer, NavigationContainerRef, DefaultTheme as NavigationLightTheme, DarkTheme as NavigationDarkTheme } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { ApolloProvider, useQuery } from '@apollo/client/react'
@@ -39,12 +40,12 @@ import ReportsScreen from './screens/ReportsScreen'
 import NotificationBell from './components/NotificationBell'
 import CustomDrawerContent from './components/CustomDrawerContent'
 import { OfflineBanner } from './components/OfflineBanner'
-import { ActivityIndicator, View, LogBox, Text, ScrollView, TouchableOpacity, Image } from 'react-native'
+import { ActivityIndicator, View, LogBox, Text, ScrollView, TouchableOpacity, Image, StatusBar } from 'react-native'
 import { IconButton, Provider as PaperProvider } from 'react-native-paper'
 import { apolloClient, initializeApollo } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData, getSecure, SECURE_KEYS, save, get, remove } from './utils/secureStorage'
 import { LOGIN_MUTATION, REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN, GET_FEED_POSTS, GET_FEED_TOPICS } from './config/graphql-queries'
-import { ThemeProvider, useTheme, lightColors, darkColors } from './contexts/ThemeContext'
+import { ThemeProvider, useTheme, lightColors, darkColors, DrawerProvider, useDrawer } from './contexts/ThemeContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { registerForPushNotifications, setupNotificationListeners, cancelAllNotifications, setBadgeCount } from './services/pushNotificationService'
 import Constants from 'expo-constants'
@@ -472,7 +473,7 @@ function AppContent() {
     }
   )
 
-  const [menuVisible, setMenuVisible] = React.useState(false)
+  const { isDrawerOpen, openDrawer, closeDrawer } = useDrawer()
   const [pushToken, setPushToken] = React.useState<string | null>(null)
   const navigationRef = useRef<NavigationContainerRef<any>>(null)
   
@@ -765,7 +766,7 @@ function AppContent() {
           await apolloClient.clearStore()
 
           // Close the drawer if open
-          setMenuVisible(false)
+          closeDrawer()
 
           setIsPinSetupNeeded(false)
           setIsAppLocked(false)
@@ -812,6 +813,10 @@ function AppContent() {
           <AuthContext.Provider value={authContext}>
           <TabBarProvider>
             <NavigationContainer ref={navigationRef} theme={navigationTheme} onStateChange={() => { save('jsr_last_active_time', Date.now().toString()) }}>
+              <StatusBar
+                barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
+                backgroundColor={theme === 'dark' ? '#121212' : '#F8FAFC'}
+              />
               <OfflineBanner />
               <Stack.Navigator
                 screenOptions={{
@@ -851,8 +856,8 @@ function AppContent() {
                   </Stack.Screen>
                 ) : (
                   <>
-                    <Stack.Screen name="Main" options={{ headerShown: false }}>
-                      {() => <BottomTabNavigator toggleDrawer={() => setMenuVisible(true)} />}
+                     <Stack.Screen name="Main" options={{ headerShown: false }}>
+                      {() => <BottomTabNavigator toggleDrawer={openDrawer} />}
                     </Stack.Screen>
 
                     {/* Task Screens */}
@@ -1070,8 +1075,8 @@ function AppContent() {
                 )}
               </Stack.Navigator>
               <CustomDrawerContent
-                visible={menuVisible}
-                onClose={() => setMenuVisible(false)}
+                visible={isDrawerOpen}
+                onClose={closeDrawer}
               />
             </NavigationContainer>
           </TabBarProvider>
@@ -1084,10 +1089,14 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary>
+        <ThemeProvider>
+          <DrawerProvider>
+            <AppContent />
+          </DrawerProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   )
 }

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       `SELECT task_id, name, description, assigned_to, start_date, start_time
        FROM tasks
        WHERE deleted_at IS NULL
-         AND status IN ('Yet to Start', 'In Progress', 'Delayed', 'ReOpened')
+         AND status IN ('Open', 'Yet to Start', 'In Progress', 'Delayed', 'ReOpened')
          AND start_date = $1
          AND start_time IS NOT NULL`,
       [currentDateStr]
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       `SELECT task_id, name, description, assigned_to, end_date, due_time
        FROM tasks
        WHERE deleted_at IS NULL
-         AND status IN ('Yet to Start', 'In Progress', 'Delayed', 'ReOpened', 'Hold')
+         AND status IN ('Open', 'Yet to Start', 'In Progress', 'Delayed', 'ReOpened', 'Hold')
          AND end_date >= $1
          AND end_date <= $2`,
       [twoDaysAgoStr, currentDateStr]
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
       `SELECT task_id, name, description, assigned_to, start_date, start_time, meeting_link
        FROM tasks
        WHERE deleted_at IS NULL
-         AND status IN ('Yet to Start', 'In Progress', 'Delayed', 'ReOpened')
+         AND status IN ('Open', 'Yet to Start', 'In Progress', 'Delayed', 'ReOpened')
          AND start_date = $1
          AND start_time IS NOT NULL
          AND meeting_reminder = true

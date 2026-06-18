@@ -13,6 +13,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useTheme } from '../contexts/ThemeContext'
 
 import { GET_FEED_POSTS, GET_FEED_TOPICS, INIT_PERSONAL_TOPICS } from '../config/graphql-queries'
+import AppHeader from '../components/AppHeader'
 import { materialColors } from '../config/materialTheme'
 import { useTabBarControl } from '../context/TabBarContext'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
@@ -81,6 +82,7 @@ export default function FeedScreen({ navigation }: any) {
 
     return (
         <SafeAreaView style={styles.container}>
+            <AppHeader title="Feed" />
             {/* Topics Filter - Horizontal Scroll */}
             {!topicsLoading && topics.length > 0 && (
                 <View style={styles.topicsContainer}>

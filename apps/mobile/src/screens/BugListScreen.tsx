@@ -12,7 +12,7 @@
  * - Pull-to-refresh
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   View,
   FlatList,
@@ -20,6 +20,7 @@ import {
   RefreshControl,
   ScrollView,
   Alert,
+  Vibration,
 } from 'react-native'
 import Swipeable from 'react-native-gesture-handler/Swipeable'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -31,12 +32,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useQuery } from '@apollo/client/react'
 import { GET_BUGS, GET_PROJECTS, GET_USERS, GET_SETTINGS } from '../config/graphql-queries'
-import { Project, Bug } from '../types'
+import { Project, Bug, BugFilters } from '../types'
 import { getBugDisplayId, getSeverityColor, getStatusColor, getStatusTextColor } from '../utils/bugHelpers'
 import { formatDateIST } from '../utils/datetime'
 import { save, get, getUserData, STORAGE_KEYS } from '../utils/secureStorage'
 import { FilterHeader, FilterSection, FilterSearch, FilterToggle } from '../components/FilterComponents'
 import { ListSkeleton } from '../components/SkeletonLoaders'
+import AppHeader from '../components/AppHeader'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
@@ -45,11 +47,27 @@ import { useTabBarControl } from '../context/TabBarContext'
 import apiClient from '../services/apiClient'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 
-interface BugFilters {
-  searchQuery: string
-  statusFilter: string[]
-  typeFilter: string[]
-  projectId?: string
+function getBugSwipeDetails(item: Bug, action: string) {
+  if (action === 'None' || !item) return null
+  const currentStatus = item.status
+  if (action === 'In Progress') {
+    if (currentStatus === 'New') {
+      return { label: 'In Progress', newStatus: 'In Progress' }
+    } else if (currentStatus === 'In Progress') {
+      return { label: 'Resolve', newStatus: 'Resolved' }
+    } else if (['Resolved', 'Closed'].includes(currentStatus)) {
+      return { label: 'Reopen', newStatus: 'In Progress' }
+    } else {
+      return { label: 'In Progress', newStatus: 'In Progress' }
+    }
+  } else if (action === 'Complete') {
+    if (['Resolved', 'Closed'].includes(currentStatus)) {
+      return { label: 'Reopen', newStatus: 'In Progress' }
+    } else {
+      return { label: 'Resolve', newStatus: 'Resolved' }
+    }
+  }
+  return null
 }
 
 export default function BugListScreen() {
@@ -59,6 +77,7 @@ export default function BugListScreen() {
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
   const { isOffline } = useNetworkStatus()
   const insets = useSafeAreaInsets()
+  const swipeableRefs = useRef<Map<string, any>>(new Map())
   const fabBottom = 60 + Math.max(insets.bottom, 10) + 16
   const filterFabBottom = fabBottom + 64
 
@@ -79,55 +98,97 @@ export default function BugListScreen() {
   const [selectedBug, setSelectedBug] = useState<any>(null)
   const [quickActionsVisible, setQuickActionsVisible] = useState(false)
 
-  const loadSwipePreferences = async () => {
+  const loadSwipePreferences = useCallback(async (employeeId?: string) => {
+    const userId = employeeId || currentUser?.employeeId
+    if (!userId) return
     try {
-      const left = await AsyncStorage.getItem('jsr_swipe_left_action')
-      const right = await AsyncStorage.getItem('jsr_swipe_right_action')
-      if (left) setSwipeLeftAction(left)
-      if (right) setSwipeRightAction(right)
+      const leftKey = `jsr_swipe_left_${userId}`
+      const rightKey = `jsr_swipe_right_${userId}`
+      const left = await AsyncStorage.getItem(leftKey)
+      const right = await AsyncStorage.getItem(rightKey)
+      setSwipeLeftAction(left || 'In Progress')
+      setSwipeRightAction(right || 'Complete')
     } catch (err) {
       console.warn('Failed to load swipe preferences', err)
     }
-  }
+  }, [currentUser])
 
   useEffect(() => {
-    loadSwipePreferences()
+    if (currentUser?.employeeId) {
+      loadSwipePreferences(currentUser.employeeId)
+    }
+  }, [currentUser, loadSwipePreferences])
+
+  useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      loadSwipePreferences()
+      if (currentUser?.employeeId) {
+        loadSwipePreferences(currentUser.employeeId)
+      }
     })
     return unsubscribe
-  }, [navigation])
+  }, [navigation, currentUser, loadSwipePreferences])
 
   const handleSwipeAction = async (item: any, action: string) => {
-    if (action === 'None') return
+    const details = getBugSwipeDetails(item, action)
+    if (!details) return
+
+    // Close the swipeable row immediately so the card slides back
+    const swipeableRef = swipeableRefs.current.get(item.bugId)
+    if (swipeableRef) {
+      swipeableRef.close()
+    }
+
+    const { newStatus } = details
+    if (item.status === newStatus) return
+
+    // Optimistic UI update
+    const previousBugs = [...bugs]
+    const previousFiltered = [...filteredBugs]
+
+    const updateStatus = (list: Bug[]) =>
+      list.map(b => (b.bugId === item.bugId ? { ...b, status: newStatus } : b))
+
+    setBugs(updateStatus(bugs))
+    setFilteredBugs(updateStatus(filteredBugs))
+
+    // Display instant feedback toast
+    Alert.alert('Success', `Bug updated to ${newStatus}`)
+
     try {
-      const newStatus = action === 'In Progress' ? 'In Progress' : 'Resolved'
-      if (item.status === newStatus) return
-      
       const res = await updateBug(item.bugId, { status: newStatus })
-      if (res.success) {
-        Alert.alert('Success', `Bug updated to ${newStatus}`)
-        fetchBugs()
-      } else {
+      if (!res.success) {
+        // Revert on failure
+        setBugs(previousBugs)
+        setFilteredBugs(previousFiltered)
         Alert.alert('Error', res.error || 'Failed to update bug')
+      } else {
+        fetchBugs()
       }
     } catch (error) {
       console.error('Failed to update bug status via swipe:', error)
+      // Revert on failure
+      setBugs(previousBugs)
+      setFilteredBugs(previousFiltered)
+      Alert.alert('Error', 'Failed to update bug')
     }
   }
 
-  const renderLeftActions = () => {
+  const renderLeftActions = (item: Bug) => {
+    const details = getBugSwipeDetails(item, swipeRightAction)
+    if (!details) return null
     return (
       <View style={{ flex: 1, backgroundColor: colors.primary, justifyContent: 'center', paddingLeft: 20, marginVertical: 4, borderRadius: 12 }}>
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{swipeRightAction}</Text>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{details.label}</Text>
       </View>
     )
   }
 
-  const renderRightActions = () => {
+  const renderRightActions = (item: Bug) => {
+    const details = getBugSwipeDetails(item, swipeLeftAction)
+    if (!details) return null
     return (
       <View style={{ flex: 1, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'flex-end', paddingRight: 20, marginVertical: 4, borderRadius: 12 }}>
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{swipeLeftAction}</Text>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{details.label}</Text>
       </View>
     )
   }
@@ -210,24 +271,14 @@ export default function BugListScreen() {
   const [bugs, setBugs] = useState<Bug[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<any>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const fetchBugs = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
-      // Build query parameters
-      const params = new URLSearchParams()
-      if (searchQuery) params.append('search', searchQuery)
-      if (statusFilter.length > 0) statusFilter.forEach(s => params.append('status', s))
-      if (severityFilter.length > 0) severityFilter.forEach(s => params.append('severity', s))
-      if (categoryFilter.length > 0) categoryFilter.forEach(c => params.append('category', c))
-      if (typeFilter.length > 0) typeFilter.forEach(t => params.append('type', t))
-      if (projectId) params.append('projectId', projectId)
-      if (subprojectId) params.append('subprojectId', subprojectId)
-      if (assigneeFilter.length > 0) assigneeFilter.forEach(a => params.append('assignedTo', a))
-
-      const result = await apiClient.get(`/api/bugs?${params.toString()}`)
+      const result = await apiClient.get('/api/bugs?limit=1000')
       if (result.success && result.data) {
         setBugs(Array.isArray(result.data) ? result.data : [])
       } else {
@@ -240,15 +291,19 @@ export default function BugListScreen() {
     } finally {
       setLoading(false)
     }
-  }, [searchQuery, statusFilter, severityFilter, categoryFilter, typeFilter, projectId, subprojectId, assigneeFilter])
+  }, [])
 
   useEffect(() => {
-    fetchBugs()
-  }, [fetchBugs])
+    if (isInitialized) {
+      fetchBugs()
+    }
+  }, [fetchBugs, isInitialized])
 
   const refetch = useCallback(() => {
-    fetchBugs()
-  }, [fetchBugs])
+    if (isInitialized) {
+      fetchBugs()
+    }
+  }, [fetchBugs, isInitialized])
 
   const loadSavedFilters = useCallback(async () => {
     try {
@@ -259,8 +314,10 @@ export default function BugListScreen() {
         setTypeFilter(savedFilters.typeFilter || [])
         setProjectId(savedFilters.projectId || '')
       }
+      return savedFilters
     } catch (error) {
       console.error('Failed to load saved filters:', error)
+      return null
     }
   }, [])
 
@@ -278,32 +335,42 @@ export default function BugListScreen() {
     }
   }, [searchQuery, statusFilter, typeFilter, projectId])
 
-  // Load saved filters on mount
+  // Initialization
   useEffect(() => {
-    loadSavedFilters()
-  }, [loadSavedFilters])
-
-  // Load Current User for "My Bugs"
-  useEffect(() => {
-    const loadUser = async () => {
+    const init = async () => {
       try {
         const userData = await getUserData()
         setCurrentUser(userData)
       } catch (e) {
         console.error("Failed to load user", e)
       }
+      await loadSavedFilters()
+      setIsInitialized(true)
     }
-    loadUser()
+    init()
   }, [])
 
-  // Apply filters whenever bugs or filters change
+  // Apply filters whenever bugs, filters, or currentUser change
   useEffect(() => {
     filterBugs()
-  }, [bugs, searchQuery])
+  }, [bugs, searchQuery, statusFilter, severityFilter, categoryFilter, typeFilter, projectId, subprojectId, currentUser])
 
   const filterBugs = useCallback(() => {
     let filtered = bugs
 
+    // 1. Enforce user relation: only show bugs related to logged-in user (assignedTo or reportedBy)
+    if (currentUser?.employeeId) {
+      filtered = filtered.filter(
+        (bug: Bug) =>
+          bug.assignedTo === currentUser.employeeId ||
+          bug.reportedBy === currentUser.employeeId
+      )
+    } else {
+      setFilteredBugs([])
+      return
+    }
+
+    // 2. Search Filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
@@ -314,8 +381,48 @@ export default function BugListScreen() {
       )
     }
 
+    // 3. Project Filter
+    if (projectId) {
+      filtered = filtered.filter(bug => bug.projectId === projectId)
+    }
+
+    // 4. Subproject Filter
+    if (subprojectId) {
+      filtered = filtered.filter(bug => bug.subprojectId === subprojectId)
+    }
+
+    // 5. Status Filter
+    if (statusFilter.length > 0) {
+      filtered = filtered.filter(bug => statusFilter.includes(bug.status))
+    }
+
+    // 6. Severity Filter
+    if (severityFilter.length > 0) {
+      filtered = filtered.filter(bug => severityFilter.includes(bug.severity))
+    }
+
+    // 7. Category Filter
+    if (categoryFilter.length > 0) {
+      filtered = filtered.filter(bug => categoryFilter.includes(bug.category))
+    }
+
+    // 8. Type Filter
+    if (typeFilter.length > 0) {
+      filtered = filtered.filter(bug => typeFilter.includes(bug.type))
+    }
+
+    // 9. Stable sorting: Resolved/Closed items at bottom, active at top. Stably sorted by bugId DESC.
+    filtered = [...filtered].sort((a, b) => {
+      const aDone = ['Resolved', 'Closed'].includes(a.status) ? 1 : 0
+      const bDone = ['Resolved', 'Closed'].includes(b.status) ? 1 : 0
+      if (aDone !== bDone) {
+        return aDone - bDone
+      }
+      return b.bugId.localeCompare(a.bugId)
+    })
+
     setFilteredBugs(filtered)
-  }, [bugs, searchQuery])
+  }, [bugs, searchQuery, statusFilter, severityFilter, categoryFilter, typeFilter, projectId, subprojectId, currentUser])
 
   const clearFilters = () => {
     setSearchQuery('')
@@ -325,31 +432,22 @@ export default function BugListScreen() {
     setCategoryFilter([])
     setProjectId('')
     setSubprojectId('')
-    setAssigneeFilter([])
   }
 
   const handleRefresh = useCallback(async () => {
     try {
-      await refetch()
+      await fetchBugs()
     } catch (error) {
       console.error('Failed to refresh bugs:', error)
     }
-  }, [refetch])
-
-  // Load saved filters on mount
-  useEffect(() => {
-    loadSavedFilters()
-  }, [loadSavedFilters])
-
-  // Filter bugs when filters or data change
-  useEffect(() => {
-    filterBugs()
-  }, [filterBugs])
+  }, [fetchBugs])
 
   // Save filters when they change
   useEffect(() => {
-    saveFilters()
-  }, [saveFilters])
+    if (isInitialized) {
+      saveFilters()
+    }
+  }, [saveFilters, isInitialized])
 
   const renderBug = ({ item }: { item: Bug }) => {
     // Derive project hierarchy from the projects list
@@ -377,6 +475,7 @@ export default function BugListScreen() {
         elevation={1} 
         onPress={() => (navigation as any).navigate('BugDetails', { bugId: item.bugId })}
         onLongPress={() => {
+          Vibration.vibrate(50)
           setSelectedBug(item)
           setQuickActionsVisible(true)
         }}
@@ -411,8 +510,15 @@ export default function BugListScreen() {
 
     return (
       <Swipeable
-        renderLeftActions={swipeRightAction !== 'None' ? renderLeftActions : undefined}
-        renderRightActions={swipeLeftAction !== 'None' ? renderRightActions : undefined}
+        ref={ref => {
+          if (ref) {
+            swipeableRefs.current.set(item.bugId, ref)
+          } else {
+            swipeableRefs.current.delete(item.bugId)
+          }
+        }}
+        renderLeftActions={swipeRightAction !== 'None' ? () => renderLeftActions(item) : undefined}
+        renderRightActions={swipeLeftAction !== 'None' ? () => renderRightActions(item) : undefined}
         onSwipeableWillOpen={(direction) => {
           if (direction === 'left') {
             handleSwipeAction(item, swipeRightAction)
@@ -441,6 +547,18 @@ export default function BugListScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AppHeader
+        title="Bugs"
+        rightAction={
+          <IconButton
+            icon="filter-variant"
+            size={22}
+            iconColor={colors.text}
+            onPress={() => setFilterModalVisible(true)}
+            style={{ margin: 0 }}
+          />
+        }
+      />
       <Animated.FlatList
         data={filteredBugs}
         renderItem={renderBug}
@@ -467,13 +585,7 @@ export default function BugListScreen() {
         }
       />
 
-      <FAB
-        icon="filter-variant"
-        style={[styles.filterFab, { bottom: filterFabBottom }]}
-        onPress={() => setFilterModalVisible(true)}
-        color="#FFFFFF"
-        size="small"
-      />
+
 
       {/* FILTER MODAL */}
       <Portal>
@@ -554,7 +666,7 @@ export default function BugListScreen() {
 
             <Divider style={styles.divider} />
 
-            {/* 3. My Bugs Toggle */}
+            {/* 3. My Bugs Toggle - Hidden since bugs are strictly filtered to the logged-in user
             <FilterToggle
               label="👤 My Bugs"
               value={(assigneeFilter.includes('me') || (currentUser?.employeeId && assigneeFilter.includes(currentUser.employeeId)))}
@@ -569,6 +681,7 @@ export default function BugListScreen() {
                 }
               }}
             />
+            */}
 
             <Divider style={styles.divider} />
 
@@ -871,8 +984,14 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: 16,
+    right: 20,
     backgroundColor: colors.primary,
+    borderRadius: 16,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
   },
   filterFab: {
     position: 'absolute',

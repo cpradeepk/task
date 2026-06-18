@@ -43,6 +43,8 @@ export interface Bug {
   developmentPrompt?: string | null
   parentDevId?: string | null
   feature?: string | null
+  startDate?: string
+  endDate?: string
 }
 
 export interface BugComment {

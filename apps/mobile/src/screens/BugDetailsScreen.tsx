@@ -32,6 +32,7 @@ import UnifiedTimeline from '../components/UnifiedTimeline'
 import BugChecklistManager from '../components/BugChecklistManager'
 import RelatedItemsManager from '../components/RelatedItemsManager'
 import BugFlow from '../components/BugFlow'
+import QuickActionsModal from '../components/QuickActionsModal'
 
 export default function BugDetailsScreen() {
   const route = useRoute()
@@ -49,6 +50,7 @@ export default function BugDetailsScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [newComment, setNewComment] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  const [quickActionsVisible, setQuickActionsVisible] = useState(false)
 
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false)
@@ -101,22 +103,31 @@ export default function BugDetailsScreen() {
     loadData()
   }, [loadData])
 
-  // Add edit button to header
+  // Add edit and quick action buttons to header
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         !isEditing ? (
-          <IconButton
-            icon="pencil"
-            size={24}
-            iconColor={colors.primary}
-            onPress={() => setIsEditing(true)}
-            disabled={isOffline}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <IconButton
+              icon="flash"
+              size={24}
+              iconColor={colors.primary}
+              onPress={() => setQuickActionsVisible(true)}
+              disabled={isOffline}
+            />
+            <IconButton
+              icon="pencil"
+              size={24}
+              iconColor={colors.primary}
+              onPress={() => setIsEditing(true)}
+              disabled={isOffline}
+            />
+          </View>
         ) : null
       ),
     })
-  }, [navigation, isEditing, isOffline])
+  }, [navigation, isEditing, isOffline, colors.primary])
 
   const handleSave = useCallback(async () => {
     if (!bug) return
@@ -647,6 +658,13 @@ export default function BugDetailsScreen() {
           </Button>
         )}
       </Surface>
+      <QuickActionsModal
+        visible={quickActionsVisible}
+        onDismiss={() => setQuickActionsVisible(false)}
+        type="bug"
+        item={bug}
+        onSuccess={loadData}
+      />
     </View>
   )
 }
