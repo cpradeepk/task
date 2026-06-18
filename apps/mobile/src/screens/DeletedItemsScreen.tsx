@@ -256,7 +256,7 @@ export default function DeletedItemsScreen() {
           </View>
         ) : filteredItems.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons name="trash-can-outline" size={64} color="#ccc" />
+            <MaterialCommunityIcons name="trash-can-outline" size={64} color={colors.textTertiary} />
             <Text style={styles.emptyText}>No deleted items found</Text>
           </View>
         ) : (
@@ -358,7 +358,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   emptyText: {
     ...materialTypography.bodyLarge,
-    color: '#999',
+    color: colors.textSecondary,
     marginTop: 12,
   },
   listContainer: {
@@ -380,7 +380,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   typeChip: {
     height: 20,
-    backgroundColor: '#eee',
+    backgroundColor: colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -396,7 +396,7 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   metaText: {
     fontSize: 11,
-    color: '#999',
+    color: colors.textSecondary,
   },
   divider: {
     marginVertical: materialSpacing.sm,

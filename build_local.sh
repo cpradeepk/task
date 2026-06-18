@@ -55,6 +55,10 @@ case "$COMMAND" in
     echo "⚙️ Running Expo prebuild..."
     npx expo prebuild --platform android --no-install
     
+    # Apply space-in-path patches (required because project path has spaces)
+    echo "🔧 Applying Android space-in-path patches..."
+    python3 scripts/patch-android-spaces.py
+    
     # 2. Regenerate branding assets and patch build.gradle dynamically
     echo "🎨 Regenerating branding assets..."
     python3 "/Users/eassylife/.gemini/antigravity-ide/brain/1e9e45f8-f2b8-41f9-a0ca-db43d5d84536/scratch/update_all_assets.py"
@@ -89,6 +93,10 @@ case "$COMMAND" in
     # 1. Run prebuild to sync versions and generate native android directory
     echo "⚙️ Running Expo prebuild..."
     npx expo prebuild --platform android --no-install
+    
+    # Apply space-in-path patches (required because project path has spaces)
+    echo "🔧 Applying Android space-in-path patches..."
+    python3 scripts/patch-android-spaces.py
     
     # 2. Regenerate branding assets and patch build.gradle dynamically
     echo "🎨 Regenerating branding assets..."
@@ -202,6 +210,10 @@ case "$COMMAND" in
     echo "⚙️ Running Expo prebuild..."
     npx expo prebuild --platform android --no-install
     
+    # Apply space-in-path patches (required because project path has spaces)
+    echo "🔧 Applying Android space-in-path patches..."
+    python3 scripts/patch-android-spaces.py
+    
     # 2. Regenerate branding assets and patch build.gradle dynamically
     echo "🎨 Regenerating branding assets..."
     python3 "/Users/eassylife/.gemini/antigravity-ide/brain/1e9e45f8-f2b8-41f9-a0ca-db43d5d84536/scratch/update_all_assets.py"
@@ -277,10 +289,17 @@ case "$COMMAND" in
   clean)
     echo "🧹 Cleaning builds..."
     if [ -d "apps/mobile/android" ]; then
+      echo "🔧 Applying Android space-in-path patches..."
+      python3 apps/mobile/scripts/patch-android-spaces.py
       echo "Cleaning Android Gradle cache..."
       pushd apps/mobile/android > /dev/null
-      ./gradlew clean
+      ./gradlew clean || echo "⚠️ gradlew clean failed, performing manual folder cleanup..."
       popd > /dev/null
+      echo "🧹 Cleaning Android build directories manually..."
+      rm -rf apps/mobile/android/.gradle
+      rm -rf apps/mobile/android/build
+      rm -rf apps/mobile/android/app/build
+      rm -rf apps/mobile/android/app/.cxx
     fi
     if [ -d "apps/mobile/ios" ]; then
       echo "Cleaning iOS build folder..."

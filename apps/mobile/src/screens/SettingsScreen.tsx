@@ -107,30 +107,17 @@ export default function SettingsScreen() {
   const [swipeLeftAction, setSwipeLeftAction] = useState('In Progress')
   const [swipeRightAction, setSwipeRightAction] = useState('Complete')
 
-  useEffect(() => {
-    // Load swipe preferences
-    const loadSwipePreferences = async () => {
-      try {
-        const left = await AsyncStorage.getItem('jsr_swipe_left_action')
-        const right = await AsyncStorage.getItem('jsr_swipe_right_action')
-        if (left) setSwipeLeftAction(left)
-        if (right) setSwipeRightAction(right)
-      } catch (err) {
-        console.warn('Failed to load swipe preferences', err)
-      }
-    }
-    loadSwipePreferences()
-  }, [])
-
   const handleSaveSwipePreferences = async (side: 'left' | 'right', action: string) => {
+    const userId = user?.employeeId
+    if (!userId) return
+    const key = side === 'left' ? `jsr_swipe_left_${userId}` : `jsr_swipe_right_${userId}`
     try {
       if (side === 'left') {
         setSwipeLeftAction(action)
-        await AsyncStorage.setItem('jsr_swipe_left_action', action)
       } else {
         setSwipeRightAction(action)
-        await AsyncStorage.setItem('jsr_swipe_right_action', action)
       }
+      await AsyncStorage.setItem(key, action)
     } catch (err) {
       console.warn('Failed to save swipe preferences', err)
     }
@@ -163,6 +150,18 @@ export default function SettingsScreen() {
         managerEmail: userData.managerEmail || '',
         telegramToken: userData.telegramToken || ''
       })
+
+      // Load user-specific swipe preferences
+      try {
+        const leftKey = `jsr_swipe_left_${userData.employeeId}`
+        const rightKey = `jsr_swipe_right_${userData.employeeId}`
+        const left = await AsyncStorage.getItem(leftKey)
+        const right = await AsyncStorage.getItem(rightKey)
+        setSwipeLeftAction(left || 'In Progress')
+        setSwipeRightAction(right || 'Complete')
+      } catch (err) {
+        console.warn('Failed to load swipe preferences', err)
+      }
 
       // 2. Fetch Stats (Mirroring Web App Logic)
       try {
@@ -1122,10 +1121,10 @@ const getStyles = (colors: any) => StyleSheet.create({
   idCardVisual: {
     flexDirection: 'row',
     height: 200,
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1150,7 +1149,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   companyName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#111827',
+    color: colors.text,
   },
   idCardMain: {
     flexDirection: 'row',
@@ -1161,7 +1160,7 @@ const getStyles = (colors: any) => StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 8,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.surfaceVariant,
   },
   idCardPhotoPlaceholder: {
     width: 80,
@@ -1183,28 +1182,28 @@ const getStyles = (colors: any) => StyleSheet.create({
   idCardName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
+    color: colors.text,
     marginBottom: 4,
   },
   idCardRole: {
     fontSize: 12,
-    color: '#6b7280',
+    color: colors.textSecondary,
   },
   idCardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
+    borderTopColor: colors.border,
     paddingTop: 8,
   },
   idCardLabel: {
     fontSize: 10,
-    color: '#6b7280',
+    color: colors.textSecondary,
   },
   idCardValue: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#000',
+    color: colors.text,
   },
   // Form Styles
   formContainer: {

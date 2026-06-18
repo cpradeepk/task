@@ -5,7 +5,7 @@
  */
 
 import { useContext } from 'react'
-import { ThemeContext, ThemeProvider, lightColors, darkColors } from './Providers'
+import { ThemeContext, ThemeProvider, lightColors, darkColors, DrawerProvider, useDrawer } from './Providers'
 
 export const useTheme = () => {
   const context = useContext(ThemeContext)
@@ -16,5 +16,6 @@ export const useTheme = () => {
 }
 
 // Re-export for backward compatibility
-export { ThemeProvider, lightColors, darkColors }
+export { ThemeProvider, lightColors, darkColors, DrawerProvider, useDrawer }
+
 

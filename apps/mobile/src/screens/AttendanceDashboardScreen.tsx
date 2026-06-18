@@ -171,18 +171,18 @@ export default function AttendanceDashboardScreen() {
                         <View style={styles.statsGrid}>
                             <View style={styles.row}>
                                 <View style={styles.col}>
-                                    <StatCard title="Online" value={dashboardData.usersOnline} icon="account-check" color="#10B981" bgColor="#D1FAE5" />
+                                    <StatCard title="Online" value={dashboardData.usersOnline} icon="account-check" color={colors.success} bgColor={colors.successLight} />
                                 </View>
                                 <View style={styles.col}>
-                                    <StatCard title="Present" value={dashboardData.usersPresent} icon="account-clock" color="#3B82F6" bgColor="#DBEAFE" />
+                                    <StatCard title="Present" value={dashboardData.usersPresent} icon="account-clock" color={colors.info} bgColor={colors.infoLight} />
                                 </View>
                             </View>
                             <View style={styles.row}>
                                 <View style={styles.col}>
-                                    <StatCard title="Absent" value={dashboardData.usersAbsent} icon="account-remove" color="#6B7280" bgColor="#F3F4F6" />
+                                    <StatCard title="Absent" value={dashboardData.usersAbsent} icon="account-remove" color={colors.textSecondary} bgColor={colors.surfaceVariant} />
                                 </View>
                                 <View style={styles.col}>
-                                    <StatCard title="Leave" value={dashboardData.usersOnLeave} icon="airplane" color="#F59E0B" bgColor="#FEF3C7" />
+                                    <StatCard title="Leave" value={dashboardData.usersOnLeave} icon="airplane" color={colors.warning} bgColor={colors.warningLight} />
                                 </View>
                             </View>
                         </View>
@@ -197,7 +197,7 @@ export default function AttendanceDashboardScreen() {
                                                 <Avatar.Text
                                                     size={40}
                                                     label={record.userName.substring(0, 2).toUpperCase()}
-                                                    style={{ backgroundColor: record.status === 'ONLINE' ? '#10B981' : '#6B7280' }}
+                                                    style={{ backgroundColor: record.status === 'ONLINE' ? colors.success : colors.textSecondary }}
                                                 />
                                                 <View style={styles.listItemContent}>
                                                     <Text style={styles.listItemTitle}>{record.userName}</Text>

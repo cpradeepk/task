@@ -127,8 +127,42 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
+// Drawer Context & Provider
+export interface DrawerContextType {
+  isDrawerOpen: boolean
+  openDrawer: () => void
+  closeDrawer: () => void
+}
+
+export const DrawerContext = React.createContext<DrawerContextType>({
+  isDrawerOpen: false,
+  openDrawer: () => {},
+  closeDrawer: () => {},
+})
+
+export const DrawerProvider = ({ children }: { children: ReactNode }) => {
+  const [isOpen, setIsOpen] = React.useState(false)
+  const openDrawer = React.useCallback(() => setIsOpen(true), [])
+  const closeDrawer = React.useCallback(() => setIsOpen(false), [])
+
+  return (
+    <DrawerContext.Provider value={{ isDrawerOpen: isOpen, openDrawer, closeDrawer }}>
+      {children}
+    </DrawerContext.Provider>
+  )
+}
+
+export const useDrawer = () => {
+  const context = React.useContext(DrawerContext)
+  if (!context) {
+    throw new Error('useDrawer must be used within a DrawerProvider')
+  }
+  return context
+}
+
 // Export colors for direct use
 export { lightColors, darkColors }
 
 // Default export for easier importing
 export default ThemeProvider
+

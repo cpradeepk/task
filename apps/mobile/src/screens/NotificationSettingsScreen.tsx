@@ -439,7 +439,7 @@ const getStyles = (colors: any) => StyleSheet.create({
         borderColor: colors.textSecondary,
     },
     unsavedChangesBanner: {
-        backgroundColor: '#fff3e0', // Light orange
+        backgroundColor: colors.warningLight,
         padding: materialSpacing.sm,
         marginBottom: materialSpacing.md,
         borderRadius: 8,
@@ -447,11 +447,11 @@ const getStyles = (colors: any) => StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: '#ffb74d',
+        borderColor: colors.warning,
     },
     unsavedText: {
         ...materialTypography.bodyMedium,
-        color: '#e65100',
+        color: colors.warning,
         fontWeight: 'bold',
         marginLeft: 8,
     },

@@ -262,7 +262,7 @@ export default function YourWorkScreen() {
           ) : null}
 
           {item.difficulties ? (
-            <View style={[styles.logBox, { backgroundColor: '#FEE2E2' }]}>
+            <View style={[styles.logBox, { backgroundColor: colors.errorLight }]}>
               <Text style={[styles.logTitle, { color: colors.error }]}>Difficulties:</Text>
               <Text style={styles.logText} numberOfLines={2}>{item.difficulties}</Text>
             </View>
@@ -545,15 +545,16 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   chipText: {
     fontSize: 10,
+    color: colors.text,
   },
   taskIdChip: {
     backgroundColor: colors.surfaceVariant,
   },
   ownerChip: {
-    backgroundColor: '#EDE9FE',
+    backgroundColor: colors.primaryLight,
   },
   supportChip: {
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.infoLight,
   },
   taskTitle: {
     ...materialTypography.titleMedium,

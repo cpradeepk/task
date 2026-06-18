@@ -11,7 +11,7 @@
  * - Timer display
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   View,
   FlatList,
@@ -19,10 +19,12 @@ import {
   RefreshControl,
   ScrollView,
   Alert,
+  Vibration,
 } from 'react-native'
 import Swipeable from 'react-native-gesture-handler/Swipeable'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import QuickActionsModal from '../components/QuickActionsModal'
+import AppHeader from '../components/AppHeader'
 import { updateTask } from '../services/taskService'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Card, Text, FAB, ActivityIndicator, Searchbar, Chip, Button as PaperButton, IconButton, Modal, Portal, Divider } from 'react-native-paper'
@@ -32,7 +34,7 @@ import { useQuery } from '@apollo/client/react'
 import { GET_TASKS, GET_PROJECTS, GET_USERS, GET_SETTINGS } from '../config/graphql-queries'
 import { FilterHeader, FilterSection, FilterSearch } from '../components/FilterComponents'
 import { ListSkeleton } from '../components/SkeletonLoaders'
-import { Task, Project } from '../types'
+import { Task, Project, TaskFilters } from '../types'
 import { formatDateIST } from '../utils/datetime'
 import { getUserData, save, get, STORAGE_KEYS } from '../utils/secureStorage'
 import { getStatusColor, getStatusTextColor, getPriorityColor, getPriorityTextColor } from '../utils/bugHelpers'
@@ -43,11 +45,27 @@ import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { useTabBarControl } from '../context/TabBarContext'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 
-interface TaskFilters {
-  searchQuery: string
-  statusFilter: string[]
-  priorityFilter: string[]
-  assigneeFilter: string[]
+function getTaskSwipeDetails(item: Task, action: string) {
+  if (action === 'None' || !item) return null
+  const currentStatus = item.status
+  if (action === 'In Progress') {
+    if (currentStatus === 'Yet to Start' || currentStatus === 'Open') {
+      return { label: 'In Progress', newStatus: 'In Progress' }
+    } else if (currentStatus === 'In Progress') {
+      return { label: 'Complete', newStatus: 'Done' }
+    } else if (['Done', 'Completed', 'Closed', 'Cancel'].includes(currentStatus)) {
+      return { label: 'Reopen', newStatus: 'In Progress' }
+    } else {
+      return { label: 'In Progress', newStatus: 'In Progress' }
+    }
+  } else if (action === 'Complete') {
+    if (['Done', 'Completed', 'Closed', 'Cancel'].includes(currentStatus)) {
+      return { label: 'Reopen', newStatus: 'In Progress' }
+    } else {
+      return { label: 'Complete', newStatus: 'Done' }
+    }
+  }
+  return null
 }
 
 export default function TaskListScreen({ navigation }: any) {
@@ -56,6 +74,7 @@ export default function TaskListScreen({ navigation }: any) {
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
   const { isOffline } = useNetworkStatus()
   const insets = useSafeAreaInsets()
+  const swipeableRefs = useRef<Map<string, any>>(new Map())
   const fabBottom = 60 + Math.max(insets.bottom, 10) + 16
   const filterFabBottom = fabBottom + 64
 
@@ -71,55 +90,97 @@ export default function TaskListScreen({ navigation }: any) {
   const [selectedTask, setSelectedTask] = useState<any>(null)
   const [quickActionsVisible, setQuickActionsVisible] = useState(false)
 
-  const loadSwipePreferences = async () => {
+  const loadSwipePreferences = useCallback(async (employeeId?: string) => {
+    const userId = employeeId || currentUser?.employeeId
+    if (!userId) return
     try {
-      const left = await AsyncStorage.getItem('jsr_swipe_left_action')
-      const right = await AsyncStorage.getItem('jsr_swipe_right_action')
-      if (left) setSwipeLeftAction(left)
-      if (right) setSwipeRightAction(right)
+      const leftKey = `jsr_swipe_left_${userId}`
+      const rightKey = `jsr_swipe_right_${userId}`
+      const left = await AsyncStorage.getItem(leftKey)
+      const right = await AsyncStorage.getItem(rightKey)
+      setSwipeLeftAction(left || 'In Progress')
+      setSwipeRightAction(right || 'Complete')
     } catch (err) {
       console.warn('Failed to load swipe preferences', err)
     }
-  }
+  }, [currentUser])
 
   useEffect(() => {
-    loadSwipePreferences()
+    if (currentUser?.employeeId) {
+      loadSwipePreferences(currentUser.employeeId)
+    }
+  }, [currentUser, loadSwipePreferences])
+
+  useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      loadSwipePreferences()
+      if (currentUser?.employeeId) {
+        loadSwipePreferences(currentUser.employeeId)
+      }
     })
     return unsubscribe
-  }, [navigation])
+  }, [navigation, currentUser, loadSwipePreferences])
 
   const handleSwipeAction = async (item: any, action: string) => {
-    if (action === 'None') return
+    const details = getTaskSwipeDetails(item, action)
+    if (!details) return
+
+    // Close the swipeable row immediately so the card slides back
+    const swipeableRef = swipeableRefs.current.get(item.taskId)
+    if (swipeableRef) {
+      swipeableRef.close()
+    }
+
+    const { newStatus } = details
+    if (item.status === newStatus) return
+
+    // Optimistic UI update
+    const previousTasks = [...tasks]
+    const previousFiltered = [...filteredTasks]
+
+    const updateStatus = (list: Task[]) =>
+      list.map(t => (t.taskId === item.taskId ? { ...t, status: newStatus } : t))
+
+    setTasks(updateStatus(tasks))
+    setFilteredTasks(updateStatus(filteredTasks))
+
+    // Display instant feedback toast
+    Alert.alert('Success', `Task updated to ${newStatus}`)
+
     try {
-      const newStatus = action === 'In Progress' ? 'In Progress' : 'Done'
-      if (item.status === newStatus) return
-      
       const res = await updateTask(item.taskId, { status: newStatus })
-      if (res.success) {
-        Alert.alert('Success', `Task updated to ${newStatus}`)
-        fetchTasks()
-      } else {
+      if (!res.success) {
+        // Revert on failure
+        setTasks(previousTasks)
+        setFilteredTasks(previousFiltered)
         Alert.alert('Error', res.error || 'Failed to update task')
+      } else {
+        fetchTasks()
       }
     } catch (error) {
       console.error('Failed to update task status via swipe:', error)
+      // Revert on failure
+      setTasks(previousTasks)
+      setFilteredTasks(previousFiltered)
+      Alert.alert('Error', 'Failed to update task')
     }
   }
 
-  const renderLeftActions = () => {
+  const renderLeftActions = (item: Task) => {
+    const details = getTaskSwipeDetails(item, swipeRightAction)
+    if (!details) return null
     return (
       <View style={{ flex: 1, backgroundColor: colors.primary, justifyContent: 'center', paddingLeft: 20, marginVertical: 4, borderRadius: 12 }}>
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{swipeRightAction}</Text>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{details.label}</Text>
       </View>
     )
   }
 
-  const renderRightActions = () => {
+  const renderRightActions = (item: Task) => {
+    const details = getTaskSwipeDetails(item, swipeLeftAction)
+    if (!details) return null
     return (
       <View style={{ flex: 1, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'flex-end', paddingRight: 20, marginVertical: 4, borderRadius: 12 }}>
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{swipeLeftAction}</Text>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{details.label}</Text>
       </View>
     )
   }
@@ -202,45 +263,28 @@ export default function TaskListScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const fetchTasks = useCallback(async () => {
     try {
       if (!refreshing) setLoading(true)
       setError(null)
 
+      if (!currentUser?.employeeId) {
+        setTasks([])
+        return
+      }
+
       // Dynamically import apiRequest to avoid circular dependency issues if any
       const { apiRequest } = require('../services/apiClient')
 
-      const params = new URLSearchParams()
-      params.append('limit', '1000')
-
-      if (statusFilter.length > 0) params.append('status', statusFilter.join(','))
-      if (priorityFilter.length > 0) params.append('priority', priorityFilter.join(','))
-      if (projectId) params.append('projectId', projectId)
-      if (subprojectId) params.append('subprojectId', subprojectId)
-      if (assigneeFilter.length > 0) {
-        // Handle 'Me' filter if we use that convention
-        const filters = [...assigneeFilter]
-        // If filters has 'me' and we have user ID, replace 'me' with ID? 
-        // Or backend handles 'me'? Backend usually expects IDs.
-        // Let's assume we pass what we have, but if 'me' is used, we might need to resolve it.
-        // Web logic resolves 'me' to ID.
-        // Let's resolve 'me' to currentUser.employeeId here if present
-        if (filters.includes('me') && currentUser?.employeeId) {
-          const index = filters.indexOf('me')
-          filters[index] = currentUser.employeeId
-        }
-        params.append('assignedTo', filters.join(','))
-      }
-
-      console.log('Fetching tasks with params:', params.toString())
-      const response = await apiRequest(`/api/tasks?${params.toString()}`, { method: 'GET' })
+      console.log('Fetching tasks for user:', currentUser.employeeId)
+      const response = await apiRequest(`/api/tasks/user/${currentUser.employeeId}`, { method: 'GET' })
       console.log('Tasks API Response success:', response?.success, 'Count:', Array.isArray(response) ? response.length : response?.data?.length)
 
       if (response && response.error) {
         console.error('API Error:', response.error)
         setError(response.error)
-        // Alert.alert('Error', response.error) // Optional: show alert
         return
       }
 
@@ -259,13 +303,15 @@ export default function TaskListScreen({ navigation }: any) {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [statusFilter, priorityFilter, projectId, subprojectId, assigneeFilter, refreshing])
+  }, [currentUser, refreshing])
 
   useEffect(() => {
-    fetchTasks()
-  }, [fetchTasks])
+    if (isInitialized) {
+      fetchTasks()
+    }
+  }, [fetchTasks, isInitialized])
 
-  // Client-side filtering (Search + Subtasks)
+  // Client-side filtering (Search + Project + Subproject + Status + Priority + Subtasks)
   useEffect(() => {
     let filtered = tasks
 
@@ -279,20 +325,50 @@ export default function TaskListScreen({ navigation }: any) {
       )
     }
 
+    // Project Filter
+    if (projectId) {
+      filtered = filtered.filter(task => task.projectId === projectId)
+    }
+
+    // Subproject Filter
+    if (subprojectId) {
+      filtered = filtered.filter(task => task.subprojectId === subprojectId)
+    }
+
+    // Status Filter
+    if (statusFilter.length > 0) {
+      filtered = filtered.filter(task => statusFilter.includes(task.status))
+    }
+
+    // Priority Filter
+    if (priorityFilter.length > 0) {
+      filtered = filtered.filter(task => priorityFilter.includes(task.priority))
+    }
+
     // Subtask Filter - Hide tasks that are subtasks
     filtered = filtered.filter(task => !task.parentTaskId)
 
+    // Stable sorting: Completed/Cancelled at bottom, active at top. Stably sorted by taskId DESC.
+    filtered = [...filtered].sort((a, b) => {
+      const aDone = ['Done', 'Completed', 'Cancelled', 'Cancel'].includes(a.status) ? 1 : 0
+      const bDone = ['Done', 'Completed', 'Cancelled', 'Cancel'].includes(b.status) ? 1 : 0
+      if (aDone !== bDone) {
+        return aDone - bDone
+      }
+      return b.taskId.localeCompare(a.taskId)
+    })
+
     setFilteredTasks(filtered)
-  }, [tasks, searchQuery])
-
-
+  }, [tasks, searchQuery, projectId, subprojectId, statusFilter, priorityFilter])
 
   const loadCurrentUser = useCallback(async () => {
     try {
       const userData = await getUserData()
       setCurrentUser(userData)
+      return userData
     } catch (error) {
       console.error('Failed to load user:', error)
+      return null
     }
   }, [])
 
@@ -305,9 +381,10 @@ export default function TaskListScreen({ navigation }: any) {
         setPriorityFilter(savedFilters.priorityFilter || [])
         setAssigneeFilter(savedFilters.assigneeFilter || [])
       }
-      // Default filter is now handled in a separate useEffect that waits for currentUser
+      return savedFilters
     } catch (error) {
       console.error('Failed to load saved filters:', error)
+      return null
     }
   }, [])
 
@@ -327,26 +404,25 @@ export default function TaskListScreen({ navigation }: any) {
 
   // Initialization
   useEffect(() => {
-    loadCurrentUser()
-    loadSavedFilters()
-  }, [loadCurrentUser, loadSavedFilters])
-
-  // Set default "My Tasks" filter after currentUser loads (if no saved filters)
-  useEffect(() => {
-    if (currentUser?.employeeId && assigneeFilter.length === 0) {
-      // Only set default if no filters are currently set
-      setAssigneeFilter([currentUser.employeeId])
+    const init = async () => {
+      const user = await loadCurrentUser()
+      const saved = await loadSavedFilters()
+      if (user?.employeeId && (!saved || !saved.assigneeFilter || saved.assigneeFilter.length === 0)) {
+        setAssigneeFilter([user.employeeId])
+      }
+      setIsInitialized(true)
     }
-  }, [currentUser])
+    init()
+  }, [])
 
   // Refresh when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      fetchTasks()
-    }, [fetchTasks])
+      if (isInitialized) {
+        fetchTasks()
+      }
+    }, [fetchTasks, isInitialized])
   )
-
-
 
   const clearFilters = () => {
     setSearchQuery('')
@@ -354,13 +430,13 @@ export default function TaskListScreen({ navigation }: any) {
     setPriorityFilter([])
     setProjectId('')
     setSubprojectId('')
-    setAssigneeFilter([])
   }
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
     await fetchTasks()
   }, [fetchTasks])
+
 
   // ... (refresh logic same)
 
@@ -419,6 +495,7 @@ export default function TaskListScreen({ navigation }: any) {
         elevation={1} 
         onPress={() => handleTaskPress(item)}
         onLongPress={() => {
+          Vibration.vibrate(50)
           setSelectedTask(item)
           setQuickActionsVisible(true)
         }}
@@ -446,8 +523,15 @@ export default function TaskListScreen({ navigation }: any) {
 
     return (
       <Swipeable
-        renderLeftActions={swipeRightAction !== 'None' ? renderLeftActions : undefined}
-        renderRightActions={swipeLeftAction !== 'None' ? renderRightActions : undefined}
+        ref={ref => {
+          if (ref) {
+            swipeableRefs.current.set(item.taskId, ref)
+          } else {
+            swipeableRefs.current.delete(item.taskId)
+          }
+        }}
+        renderLeftActions={swipeRightAction !== 'None' ? () => renderLeftActions(item) : undefined}
+        renderRightActions={swipeLeftAction !== 'None' ? () => renderRightActions(item) : undefined}
         onSwipeableWillOpen={(direction) => {
           if (direction === 'left') {
             handleSwipeAction(item, swipeRightAction)
@@ -470,6 +554,18 @@ export default function TaskListScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AppHeader
+        title="Tasks"
+        rightAction={
+          <IconButton
+            icon="filter-variant"
+            size={22}
+            iconColor={colors.text}
+            onPress={() => setFilterModalVisible(true)}
+            style={{ margin: 0 }}
+          />
+        }
+      />
       {/* Task List */}
       <Animated.FlatList
         data={filteredTasks}
@@ -484,14 +580,6 @@ export default function TaskListScreen({ navigation }: any) {
             <Text style={styles.emptyText}>{searchQuery || statusFilter.length > 0 ? 'No tasks match your filters' : 'No tasks found'}</Text>
           </View>
         }
-      />
-
-      <FAB
-        icon="filter-variant"
-        style={[styles.filterFab, { bottom: filterFabBottom }]}
-        onPress={() => setFilterModalVisible(true)}
-        color="#FFFFFF"
-        size="small"
       />
 
       <FAB
@@ -580,7 +668,7 @@ export default function TaskListScreen({ navigation }: any) {
               )}
             </FilterSection>
 
-            {/* 3. Assign To */}
+            {/* 3. Assign To - Hidden since tasks are strictly filtered to the logged-in user
             <FilterSection
               title="Assign To"
               count={assigneeFilter.length}
@@ -624,6 +712,7 @@ export default function TaskListScreen({ navigation }: any) {
                 ))}
               </View>
             </FilterSection>
+            */}
 
             {/* 4. Search Input (Moved HERE as per instructions) */}
             <FilterSearch value={searchQuery} onChangeText={setSearchQuery} placeholder="Search tasks..." />
@@ -864,8 +953,14 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: 16,
+    right: 20,
     backgroundColor: colors.primary,
+    borderRadius: 16,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
   },
   modalContent: {
     backgroundColor: colors.surface,

@@ -812,8 +812,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
                       <ExternalLink className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-blue-950">Google Meet</h4>
-                      <p className="text-xs text-blue-700">Join the meeting for this task</p>
+                      <h4 className="text-sm font-semibold text-blue-950 dark:text-blue-100">Google Meet</h4>
+                      <p className="text-xs text-blue-700 dark:text-blue-300">Join the meeting for this task</p>
                     </div>
                   </div>
                   <a
