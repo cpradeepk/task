@@ -134,3 +134,10 @@ Successfully implemented 100% feature parity between the web app and the mobile 
 - **[CreateTaskScreen.tsx](file:///Volumes/EassyLife%20Projects/Task/task_app/apps/mobile/src/screens/CreateTaskScreen.tsx)**:
   - Replaced static `materialColors.border` and `materialColors.primary` props with dynamic `colors.border` and `colors.primary`.
   - Added explicit `textColor={colors.text}` to all `TextInput` elements to enforce dark mode compatibility.
+
+## Android Local AAB Build Verification
+
+We successfully verified the creation of the signed Android App Bundle (AAB) using `./build_local.sh aab`:
+- **Execution**: The script cleans the environment, runs `expo prebuild`, applies path patches for spaces, updates assets, and uses local EAS CLI.
+- **Output**: Generates a signed release bundle at the root of the project: [Karmayog-1.1.2-release.aab](file:///Volumes/EassyLife%20Projects/Task/task_app/Karmayog-1.1.2-release.aab).
+- **Gradle Phase Status**: Completed successfully with 100% clean build.
