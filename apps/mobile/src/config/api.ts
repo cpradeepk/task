@@ -5,8 +5,8 @@
 
 // API URL auto-toggled based on build type (local dev vs production release)
 export const API_BASE_URL = __DEV__
-  ? 'https://task.amtariksha.com' // 'http://192.168.0.107:3001'
-  : 'https://task.amtariksha.com'
+  ? 'https://task.karmayog.com' // 'http://192.168.0.107:3001'
+  : 'https://task.karmayog.com'
 
 // API Endpoints
 export const API_ENDPOINTS = {

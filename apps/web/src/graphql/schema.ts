@@ -441,6 +441,7 @@ export const typeDefs = `#graphql
       status: [String!]
       priority: [String!]
       projectId: String
+      projectIds: [String!]
       subprojectId: String
       limit: Int
       offset: Int
@@ -459,6 +460,7 @@ export const typeDefs = `#graphql
       category: [String!]
       type: [String!]
       projectId: String
+      projectIds: [String!]
       subprojectId: String
       limit: Int
       offset: Int

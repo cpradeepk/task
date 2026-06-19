@@ -146,6 +146,7 @@ export async function getAllBugs(options?: {
   assignedTo?: string[];
   reportedBy?: string[];
   projectId?: string;
+  projectIds?: string[];
   subprojectId?: string;
   search?: string;
 }): Promise<Bug[]> {
@@ -186,6 +187,11 @@ export async function getAllBugs(options?: {
     if (options?.projectId) {
       sql += ` AND project_id = $${params.length + 1}`
       params.push(options.projectId)
+    }
+
+    if (options?.projectIds && options.projectIds.length > 0) {
+      sql += ` AND project_id = ANY($${params.length + 1})`
+      params.push(options.projectIds)
     }
 
     if (options?.subprojectId) {

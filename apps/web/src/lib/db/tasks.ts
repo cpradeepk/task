@@ -162,7 +162,8 @@ export async function getAllTasks(options?: {
   priority?: string[];
   assignedTo?: string[];
   assignedBy?: string[]; // Kept as array for consistency but usually single
-  projectId?: string; // Keep as single for now, or array if needed (User asked for array params "update params to accept arrays")
+  projectId?: string;
+  projectIds?: string[];
   subprojectId?: string;
   search?: string;
 }): Promise<Task[]> {
@@ -183,6 +184,11 @@ export async function getAllTasks(options?: {
     if (options?.projectId) {
       sql += ` AND project_id = $${params.length + 1}`
       params.push(options.projectId)
+    }
+
+    if (options?.projectIds && options.projectIds.length > 0) {
+      sql += ` AND project_id = ANY($${params.length + 1})`
+      params.push(options.projectIds)
     }
 
     if (options?.subprojectId) {

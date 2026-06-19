@@ -568,7 +568,7 @@ export default function LoginForm() {
                 Terms &amp; Conditions
               </a>
               <p className="mt-2 text-white/50">
-                © {new Date().getFullYear()} Amtariksha Tech Pvt Ltd
+                © {new Date().getFullYear()} Karmayog Tech Pvt Ltd
               </p>
             </div>
           </form>

@@ -47,6 +47,7 @@ import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData
 import { LOGIN_MUTATION, REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN, GET_FEED_POSTS, GET_FEED_TOPICS } from './config/graphql-queries'
 import { ThemeProvider, useTheme, lightColors, darkColors, DrawerProvider, useDrawer } from './contexts/ThemeContext'
 import { ToastProvider } from './contexts/ToastContext'
+import { ProjectFilterProvider } from './contexts/ProjectFilterContext'
 import { registerForPushNotifications, setupNotificationListeners, cancelAllNotifications, setBadgeCount } from './services/pushNotificationService'
 import Constants from 'expo-constants'
 import * as Application from 'expo-application'
@@ -1093,7 +1094,9 @@ export default function App() {
       <ErrorBoundary>
         <ThemeProvider>
           <DrawerProvider>
-            <AppContent />
+            <ProjectFilterProvider>
+              <AppContent />
+            </ProjectFilterProvider>
           </DrawerProvider>
         </ThemeProvider>
       </ErrorBoundary>

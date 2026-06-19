@@ -359,7 +359,7 @@ export default function UserManagement() {
 
   const roles = [
     { value: 'all', label: 'All Roles' },
-    { value: 'amtarikshian', label: 'Amtariksian' },
+    { value: 'amtarikshian', label: 'Employee' },
     { value: 'management', label: 'Management' },
     { value: 'top_management', label: 'Top Management' },
     { value: 'admin', label: 'Administrator' }

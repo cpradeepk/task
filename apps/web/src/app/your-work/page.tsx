@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { hasTabAccess } from '@/lib/permissions'
 import { isTaskOwner, isTaskSupporter } from '@/lib/data'
 import { QUERIES } from '@/lib/graphql-queries'
+import { useProjectFilter } from '@/contexts/ProjectFilterContext'
 
 import { Task } from '@/lib/types'
 import { Calendar, Clock, BarChart3, FileText, CheckCircle, AlertCircle, RefreshCw, Crown, Heart, AlertTriangle, Edit } from 'lucide-react'
@@ -27,6 +28,7 @@ async function executeGraphQLQuery(query: string, variables: any) {
 }
 
 export default function YourWork() {
+  const { selectedProjectIds } = useProjectFilter()
   const [tasks, setTasks] = useState<Task[]>([])
   const [selectedDate, setSelectedDate] = useState('')
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([])
@@ -59,9 +61,13 @@ export default function YourWork() {
       // Try GraphQL first
       try {
         console.log('🔵 [Your Work] Attempting GraphQL query...')
-        const data = await executeGraphQLQuery(QUERIES.GET_TASKS, {
+        const variables: any = {
           assignedTo: currentUser.employeeId
-        })
+        }
+        if (selectedProjectIds && selectedProjectIds.length > 0) {
+          variables.projectIds = selectedProjectIds
+        }
+        const data = await executeGraphQLQuery(QUERIES.GET_TASKS, variables)
         userTasks = data.tasks || []
         console.log('✅ [Your Work] GraphQL query successful:', userTasks.length, 'tasks')
       } catch (graphqlError) {
@@ -72,6 +78,9 @@ export default function YourWork() {
         if (response.ok) {
           const result = await response.json()
           userTasks = result.data || []
+          if (selectedProjectIds && selectedProjectIds.length > 0) {
+            userTasks = userTasks.filter((task: any) => task.projectId && selectedProjectIds.includes(task.projectId))
+          }
           console.log('✅ [Your Work] REST API successful:', userTasks.length, 'tasks')
         } else {
           userTasks = []
@@ -94,7 +103,7 @@ export default function YourWork() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentUser, selectedDate])
+  }, [currentUser, selectedDate, selectedProjectIds])
 
   useEffect(() => {
     if (!currentUser) {
@@ -113,6 +122,13 @@ export default function YourWork() {
       setInitialized(true)
     }
   }, [currentUser, router, initialized, loadTasks])
+
+  // Reload when project filter changes
+  useEffect(() => {
+    if (initialized) {
+      loadTasks()
+    }
+  }, [selectedProjectIds])
 
   useEffect(() => {
     if (selectedDate) {

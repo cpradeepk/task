@@ -7,10 +7,11 @@ import ChunkErrorBoundary from '@/components/error/ChunkErrorBoundary'
 import TimerProvider from '@/components/TimerProvider'
 import ApolloWrapper from '@/components/providers/ApolloWrapper'
 import { SecurityProvider } from '@/contexts/SecurityContext'
+import { ProjectFilterProvider } from '@/contexts/ProjectFilterContext'
 
 export const metadata: Metadata = {
   title: 'Karmayog — Task Management',
-  description: 'Karmayog by Amtariksha Tech — task, bug, and project management for teams.',
+  description: 'Karmayog — task, bug, and project management for teams.',
   icons: {
     icon: [
       { url: '/icon.png', sizes: 'any' },
@@ -70,9 +71,11 @@ export default function RootLayout({
               <TimerProvider>
                 <ApolloWrapper>
                   <SecurityProvider>
-                    <PageTransition>
-                      {children}
-                    </PageTransition>
+                    <ProjectFilterProvider>
+                      <PageTransition>
+                        {children}
+                      </PageTransition>
+                    </ProjectFilterProvider>
                   </SecurityProvider>
                 </ApolloWrapper>
               </TimerProvider>

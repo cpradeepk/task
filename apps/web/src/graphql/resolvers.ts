@@ -251,6 +251,10 @@ export const resolvers = {
           query += ` AND project_id = $${paramIndex++}`
           params.push(filters.projectId)
         }
+        if (filters.projectIds && filters.projectIds.length > 0) {
+          query += ` AND project_id = ANY($${paramIndex++})`
+          params.push(filters.projectIds)
+        }
         if (filters.subprojectId) {
           query += ` AND subproject_id = $${paramIndex++}`
           params.push(filters.subprojectId)
@@ -357,6 +361,10 @@ export const resolvers = {
         if (filters.projectId) {
           query += ` AND project_id = $${paramIndex++}`
           params.push(filters.projectId)
+        }
+        if (filters.projectIds && filters.projectIds.length > 0) {
+          query += ` AND project_id = ANY($${paramIndex++})`
+          params.push(filters.projectIds)
         }
         if (filters.subprojectId) {
           query += ` AND subproject_id = $${paramIndex++}`

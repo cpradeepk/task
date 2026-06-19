@@ -13,6 +13,7 @@ import { getAllBugs, getBugStatistics } from '@/lib/bugService'
 import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth'
 import { hasTabAccess } from '@/lib/permissions'
 import { useLoading } from '@/contexts/LoadingContext'
+import { useProjectFilter } from '@/contexts/ProjectFilterContext'
 import { QUERIES } from '@/lib/graphql-queries'
 import HierarchicalBugRow from '@/components/bugs/HierarchicalBugRow'
 import BugGridView from '@/components/bugs/BugGridView'
@@ -73,6 +74,7 @@ function ProjectDisplay({ project }: { project?: { projectId: string; projectNam
 }
 
 export default function BugsPage() {
+  const { selectedProjectIds } = useProjectFilter()
   const [bugs, setBugs] = useState<Bug[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -180,14 +182,14 @@ export default function BugsPage() {
         if (filters.viewMode === 'grid' || filters.viewMode === 'cards') {
           setViewMode(filters.viewMode)
         }
-      } else {
-        // Set default assignee filter to "me" (My Bugs) if no saved filters
-        setAssigneeFilter(['me'])
       }
     } catch (error) {
       console.error('Failed to load saved filters:', error)
-      // Set default assignee filter to "me" on error
-      setAssigneeFilter(['me'])
+    }
+
+    // Enforce default assignee filter to current user
+    if (user?.employeeId) {
+      setAssigneeFilter([user.employeeId])
     }
 
     // Monitor network status
@@ -352,6 +354,9 @@ export default function BugsPage() {
       if (subprojectFilter && subprojectFilter !== 'all') {
         variables.subprojectId = subprojectFilter
       }
+      if (selectedProjectIds && selectedProjectIds.length > 0) {
+        variables.projectIds = selectedProjectIds
+      }
 
       // Try GraphQL first with pagination and filters
       try {
@@ -382,6 +387,9 @@ export default function BugsPage() {
         if (typeFilter.length > 0) params.append('type', typeFilter.join(','))
         if (projectFilter && projectFilter !== 'all') params.append('projectId', projectFilter)
         if (subprojectFilter && subprojectFilter !== 'all') params.append('subprojectId', subprojectFilter)
+        if (selectedProjectIds && selectedProjectIds.length > 0) {
+          params.append('projectIds', selectedProjectIds.join(','))
+        }
 
         const response = await fetch(`/api/bugs?${params.toString()}`)
         if (!response.ok) {
@@ -446,7 +454,7 @@ export default function BugsPage() {
       setIsLoading(false)
       setIsLoadingMore(false)
     }
-  }, [offset, assigneeFilter, statusFilter, severityFilter, projectFilter, subprojectFilter, bugs, ITEMS_PER_PAGE, currentUser])
+  }, [offset, assigneeFilter, statusFilter, severityFilter, projectFilter, subprojectFilter, selectedProjectIds, bugs, ITEMS_PER_PAGE, currentUser])
 
   // Reload bugs when filters change (reset pagination)
   useEffect(() => {
@@ -454,7 +462,7 @@ export default function BugsPage() {
 
     console.log('🔵 [Bugs] Filters changed, reloading bugs from beginning...')
     loadBugs(false, false) // Reset to first page
-  }, [statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, projectFilter, subprojectFilter, initialized])
+  }, [statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, projectFilter, subprojectFilter, selectedProjectIds, initialized])
 
   // Intersection Observer for infinite scroll (trigger at 80% scroll)
   useEffect(() => {
@@ -963,20 +971,7 @@ export default function BugsPage() {
               </select>
             </div>
 
-            {/* Assignee Filter */}
-            <div className="w-full relative z-50">
-              <MultiSelect
-                label=""
-                placeholder="Assignee"
-                options={[
-                  { value: 'me', label: 'My Bugs' },
-                  ...users.map(user => ({ value: user.employeeId, label: user.name }))
-                ]}
-                selectedValues={assigneeFilter}
-                onChange={setAssigneeFilter}
-                className="[&_button]:h-[42px]"
-              />
-            </div>
+            {/* Assignee Filter hidden to enforce current user */}
 
             {/* Search */}
             <div className="w-full relative">
@@ -1054,7 +1049,7 @@ export default function BugsPage() {
                   setStatusFilter([])
                   setSeverityFilter([])
                   setCategoryFilter([])
-                  setAssigneeFilter([])
+                  setAssigneeFilter(currentUser?.employeeId ? [currentUser.employeeId] : [])
                   setProjectFilter('all')
                   setSubprojectFilter('all')
                 }}

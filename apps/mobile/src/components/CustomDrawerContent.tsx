@@ -133,6 +133,21 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
     await signOut()
   }
 
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'amtarikshian':
+        return 'Employee'
+      case 'management':
+        return 'Management'
+      case 'top_management':
+        return 'Top Management'
+      case 'admin':
+        return 'Admin'
+      default:
+        return role
+    }
+  }
+
   const getInitials = (name: string) => {
     if (!name) return '?'
     const parts = name.split(' ')
@@ -178,7 +193,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
                 color="#FFFFFF"
               />
               <Text style={styles.userName}>{currentUser?.name || 'Loading...'}</Text>
-              <Text style={styles.userRole}>{currentUser?.role || ''}</Text>
+              <Text style={styles.userRole}>{currentUser ? getRoleDisplayName(currentUser.role) : ''}</Text>
               <Text style={styles.userEmployeeId}>{currentUser?.employeeId || ''}</Text>
             </View>
 

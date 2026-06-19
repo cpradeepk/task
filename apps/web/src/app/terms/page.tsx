@@ -28,7 +28,7 @@ export default function TermsAndConditionsPage() {
               These Terms &amp; Conditions (&ldquo;Terms&rdquo;) govern your
               access to and use of <strong>Karmayog</strong>
               {' '}(the &ldquo;Service&rdquo;), operated by{' '}
-              <strong>Amtariksha Tech Pvt Ltd</strong> (&ldquo;Amtariksha&rdquo;,
+              <strong>Karmayog Tech Pvt Ltd</strong> (&ldquo;Karmayog&rdquo;,
               &ldquo;we&rdquo;, &ldquo;us&rdquo;), a company incorporated under
               the laws of India and headquartered in Bangalore, Karnataka.
             </p>
@@ -44,7 +44,7 @@ export default function TermsAndConditionsPage() {
             <h2 className="text-xl font-semibold mt-8 mb-3">1. Eligibility &amp; Accounts</h2>
             <ul className="list-disc pl-6 space-y-1">
               <li>You must be at least 18 years old and legally able to enter into a binding contract.</li>
-              <li>Accounts are created by Amtariksha or by an authorising client / vendor organisation. You may not create an account through self-signup.</li>
+              <li>Accounts are created by Karmayog or by an authorising client / vendor organisation. You may not create an account through self-signup.</li>
               <li>You are responsible for safeguarding your credentials. Do not share your password. Notify us immediately if you suspect unauthorised access.</li>
               <li>You are responsible for all activity that occurs under your account.</li>
               <li>One person, one account. Accounts are not transferable.</li>
@@ -72,16 +72,16 @@ export default function TermsAndConditionsPage() {
             <h3 className="text-base font-semibold mt-4 mb-2">3.1 Our IP</h3>
             <p>
               The Service, including its software, design, trademarks, and
-              all related intellectual property, is owned by Amtariksha Tech
+              all related intellectual property, is owned by Karmayog Tech
               Pvt Ltd. We grant you a limited, non-exclusive, non-transferable,
               revocable licence to use the Service for its intended purpose
-              during your engagement with Amtariksha or the authorising client
+              during your engagement with Karmayog or the authorising client
               organisation.
             </p>
             <h3 className="text-base font-semibold mt-4 mb-2">3.2 Your content</h3>
             <p>
               You retain ownership of any original work you create in the
-              Service. However, you grant Amtariksha and your authorising
+              Service. However, you grant Karmayog and your authorising
               organisation a worldwide, royalty-free licence to host, process,
               display, and back up that content for the purpose of operating
               the Service.
@@ -101,7 +101,7 @@ export default function TermsAndConditionsPage() {
             <h2 className="text-xl font-semibold mt-8 mb-3">4. Confidentiality</h2>
             <p>
               The Service contains confidential business information of
-              Amtariksha and its clients (project details, internal bugs,
+              Karmayog and its clients (project details, internal bugs,
               employee performance data, financial information). You must:
             </p>
             <ul className="list-disc pl-6 space-y-1">
@@ -128,8 +128,8 @@ export default function TermsAndConditionsPage() {
           <section>
             <h2 className="text-xl font-semibold mt-8 mb-3">6. Suspension &amp; Termination</h2>
             <ul className="list-disc pl-6 space-y-1">
-              <li>We may suspend or terminate your access at any time, without prior notice, if you breach these Terms or if your employment / engagement with Amtariksha or the authorising organisation ends.</li>
-              <li>You may stop using the Service at any time. Your authorising organisation controls deletion of your account; contact them or write to <a className="text-primary hover:underline" href="mailto:contactus@amtariksha.com">contactus@amtariksha.com</a> for assistance.</li>
+              <li>We may suspend or terminate your access at any time, without prior notice, if you breach these Terms or if your employment / engagement with Karmayog or the authorising organisation ends.</li>
+              <li>You may stop using the Service at any time. Your authorising organisation controls deletion of your account; contact them or write to <a className="text-primary hover:underline" href="mailto:contactus@karmayog.com">contactus@karmayog.com</a> for assistance.</li>
               <li>Upon termination, your right to use the Service ceases immediately. Sections that by their nature should survive (e.g., Confidentiality, IP, Indemnification, Limitation of Liability, Governing Law) will continue to apply.</li>
             </ul>
           </section>
@@ -155,7 +155,7 @@ export default function TermsAndConditionsPage() {
               The Service is provided &ldquo;as is&rdquo; and &ldquo;as available.&rdquo;
             </p>
             <p>
-              To the maximum extent permitted by law, Amtariksha disclaims all
+              To the maximum extent permitted by law, Karmayog disclaims all
               warranties, express or implied, including warranties of
               merchantability, fitness for a particular purpose,
               non-infringement, accuracy, and quiet enjoyment. We do not
@@ -174,7 +174,7 @@ export default function TermsAndConditionsPage() {
             <h2 className="text-xl font-semibold mt-8 mb-3">9. Limitation of Liability</h2>
             <p>
               To the maximum extent permitted by law, in no event will
-              Amtariksha (or its directors, officers, employees, or
+              Karmayog (or its directors, officers, employees, or
               sub-processors) be liable for:
             </p>
             <ul className="list-disc pl-6 space-y-1">
@@ -196,7 +196,7 @@ export default function TermsAndConditionsPage() {
           <section>
             <h2 className="text-xl font-semibold mt-8 mb-3">10. Indemnification</h2>
             <p>
-              You agree to indemnify and hold harmless Amtariksha and its
+              You agree to indemnify and hold harmless Karmayog and its
               officers, directors, employees, and sub-processors from any
               claim, loss, damage, liability, or expense (including reasonable
               legal fees) arising out of:
@@ -237,7 +237,7 @@ export default function TermsAndConditionsPage() {
           <section>
             <h2 className="text-xl font-semibold mt-8 mb-3">13. Miscellaneous</h2>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>Entire agreement.</strong> These Terms and the Privacy Policy constitute the entire agreement between you and Amtariksha regarding the Service.</li>
+              <li><strong>Entire agreement.</strong> These Terms and the Privacy Policy constitute the entire agreement between you and Karmayog regarding the Service.</li>
               <li><strong>Severability.</strong> If any provision is held unenforceable, the remaining provisions remain in effect.</li>
               <li><strong>No waiver.</strong> Our failure to enforce any provision does not waive our right to enforce it later.</li>
               <li><strong>Assignment.</strong> You may not assign these Terms. We may assign them to an affiliate or successor in connection with a merger, acquisition, or sale of assets.</li>
@@ -248,14 +248,14 @@ export default function TermsAndConditionsPage() {
           <section>
             <h2 className="text-xl font-semibold mt-8 mb-3">14. Contact</h2>
             <div className="mt-3 p-4 rounded-lg bg-gray-50 border border-gray-200">
-              <p><strong>Amtariksha Tech Pvt Ltd</strong></p>
+              <p><strong>Karmayog Tech Pvt Ltd</strong></p>
               <p className="flex items-center gap-2 mt-1 text-gray-500">
                 <MapPin className="h-4 w-4" aria-hidden="true" />
                 Bangalore, Karnataka, India
               </p>
               <p className="flex items-center gap-2 mt-1 text-gray-500">
                 <Mail className="h-4 w-4" aria-hidden="true" />
-                <a className="text-primary hover:underline" href="mailto:contactus@amtariksha.com">contactus@amtariksha.com</a>
+                <a className="text-primary hover:underline" href="mailto:contactus@karmayog.com">contactus@karmayog.com</a>
               </p>
             </div>
           </section>

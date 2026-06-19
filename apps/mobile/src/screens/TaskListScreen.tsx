@@ -39,6 +39,7 @@ import { formatDateIST } from '../utils/datetime'
 import { getUserData, save, get, STORAGE_KEYS } from '../utils/secureStorage'
 import { getStatusColor, getStatusTextColor, getPriorityColor, getPriorityTextColor } from '../utils/bugHelpers'
 import { useTheme } from '../contexts/ThemeContext'
+import { useProjectFilter } from '../contexts/ProjectFilterContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
@@ -69,6 +70,7 @@ function getTaskSwipeDetails(item: Task, action: string) {
 }
 
 export default function TaskListScreen({ navigation }: any) {
+  const { selectedProjectIds } = useProjectFilter()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
@@ -315,6 +317,11 @@ export default function TaskListScreen({ navigation }: any) {
   useEffect(() => {
     let filtered = tasks
 
+    // Global Project Filter
+    if (selectedProjectIds && selectedProjectIds.length > 0) {
+      filtered = filtered.filter(task => task.projectId && selectedProjectIds.includes(task.projectId))
+    }
+
     // Search Filter
     if (searchQuery) {
       const lower = searchQuery.toLowerCase()
@@ -359,7 +366,7 @@ export default function TaskListScreen({ navigation }: any) {
     })
 
     setFilteredTasks(filtered)
-  }, [tasks, searchQuery, projectId, subprojectId, statusFilter, priorityFilter])
+  }, [tasks, searchQuery, projectId, subprojectId, statusFilter, priorityFilter, selectedProjectIds])
 
   const loadCurrentUser = useCallback(async () => {
     try {

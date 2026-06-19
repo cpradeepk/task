@@ -4,6 +4,7 @@
 
 [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
    ▲ Next.js 16.0.7 (Turbopack)
+   - Environments: .env.local
 
  ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
    Creating an optimized production build ...
@@ -12,7 +13,7 @@
 Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
   npx update-browserslist-db@latest
   Why you should do it regularly: https://github.com/browserslist/update-db#readme
- ✓ Compiled successfully in 6.6s
+ ✓ Compiled successfully in 4.7s
    Running TypeScript ...
    Collecting page data using 9 workers ...
 [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
@@ -26,190 +27,199 @@ Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
 [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
 ⚠️ Redis Cloud credentials not found, using in-memory cache
    Required: REDIS_HOST, REDIS_PASSWORD
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__a720bab7._.js:1:1231)
 🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
 ⚠️ Redis Cloud credentials not found, using in-memory cache
    Required: REDIS_HOST, REDIS_PASSWORD
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__a720bab7._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
 🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ee348713._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__a720bab7._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ce0c38b5._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ce0c38b5._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
 🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ce0c38b5._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-⚠️ Redis Cloud credentials not found, using in-memory cache
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ce0c38b5._.js:1:1231)
-   Required: REDIS_HOST, REDIS_PASSWORD
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ce0c38b5._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ee348713._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ce0c38b5._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__a720bab7._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ce0c38b5._.js:1:1231)
+🔄 Initializing email service...
+🔄 Initializing email service...
+🔄 Initializing email service...
+🔄 Initializing email service...
 ⚠️ Redis Cloud credentials not found, using in-memory cache
    Required: REDIS_HOST, REDIS_PASSWORD
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__025832f0._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ce0c38b5._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__ee348713._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__858a493a._.js:1:1349)
 🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__a720bab7._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__025832f0._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
 ⚠️ Redis Cloud credentials not found, using in-memory cache
    Required: REDIS_HOST, REDIS_PASSWORD
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__a720bab7._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__a720bab7._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
 ⚠️ Redis Cloud credentials not found, using in-memory cache
    Required: REDIS_HOST, REDIS_PASSWORD
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__858a493a._.js:1:1349)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__bef89d89._.js:1:535)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__b48ea5a1._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__a720bab7._.js:1:1231)
-🔄 Initializing email service...
-⚠️ Email credentials not configured. Email service will run in test mode.
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__025832f0._.js:1:1231)
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__adddef0b._.js:1:535)
 ⚠️  Missing AWS S3 environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET
    File uploads will not work until these are configured in Vercel.
 ⚠️  Missing AWS S3 environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET
    File uploads will not work until these are configured in Vercel.
-Error: DATABASE_URL environment variable is required. Set it in apps/web/.env.local for local development or in your hosting environment (e.g., Vercel project settings) for production.
-    at <unknown> (.next/server/chunks/[root-of-the-server]__3c064a45._.js:1:1349)
 ⚠️  Missing AWS S3 environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET
    File uploads will not work until these are configured in Vercel.
+⚠️ FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not defined
+   Generating static pages using 9 workers (0/102) ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+🔄 Initializing email service...
+⚠️ FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not defined
+⚠️ Redis Cloud credentials not found, using in-memory cache
+   Required: REDIS_HOST, REDIS_PASSWORD
+⚠️ Redis Cloud credentials not found, using in-memory cache
+   Required: REDIS_HOST, REDIS_PASSWORD
+⚠️ Redis Cloud credentials not found, using in-memory cache
+   Required: REDIS_HOST, REDIS_PASSWORD
+   Generating static pages using 9 workers (25/102) 
+🔄 Initializing email service...
+   Generating static pages using 9 workers (50/102) 
+⚠️ Redis Cloud credentials not found, using in-memory cache
+   Required: REDIS_HOST, REDIS_PASSWORD
+⚠️  Missing AWS S3 environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET
+   File uploads will not work until these are configured in Vercel.
+🔄 Initializing email service...
+⚠️ Redis Cloud credentials not found, using in-memory cache
+   Required: REDIS_HOST, REDIS_PASSWORD
+   Generating static pages using 9 workers (76/102) 
+ ✓ Generating static pages using 9 workers (102/102) in 466.0ms
+   Finalizing page optimization ...
 
-> Build error occurred
-Error: Failed to collect page data for /api/bugs/subtasks
-    at ignore-listed frames {
-  type: 'Error'
-}
-npm error Lifecycle script `build` failed with error:
-npm error code 1
-npm error path /Volumes/EassyLife Projects/Task/task_app/apps/web
-npm error workspace @jsr/web@0.1.0
-npm error location /Volumes/EassyLife Projects/Task/task_app/apps/web
-npm error command failed
-npm error command sh -c next build
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin/attendance
+├ ○ /admin/attendance-approvals
+├ ○ /admin/feed-approvals
+├ ○ /admin/feed-topics
+├ ○ /admin/settings
+├ ○ /analytics
+├ ƒ /api/activity-log
+├ ƒ /api/activity-log/[id]
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/bugs
+├ ƒ /api/bugs/[bugId]
+├ ƒ /api/bugs/[bugId]/comments
+├ ƒ /api/bugs/subtasks
+├ ƒ /api/cache/clear
+├ ƒ /api/cache/stats
+├ ƒ /api/cache/test
+├ ƒ /api/cron/reminders/12pm
+├ ƒ /api/cron/reminders/6pm
+├ ƒ /api/cron/reminders/9am
+├ ƒ /api/cron/reminders/due-checking
+├ ƒ /api/dashboard-data
+├ ƒ /api/db-status
+├ ƒ /api/debug-email
+├ ƒ /api/deleted-items
+├ ƒ /api/deleted-items/permanent-delete
+├ ƒ /api/deleted-items/restore
+├ ƒ /api/development-checklists
+├ ƒ /api/development-checklists/[id]
+├ ƒ /api/development-checklists/reorder
+├ ƒ /api/diagnostic/activity-log-schema
+├ ƒ /api/diagnostic/db-test
+├ ƒ /api/feed/og-preview
+├ ƒ /api/feed/posts
+├ ƒ /api/feed/posts/[postId]/approve
+├ ƒ /api/feed/posts/[postId]/comments
+├ ƒ /api/feed/posts/[postId]/reactions
+├ ƒ /api/feed/posts/[postId]/save
+├ ƒ /api/feed/posts/[postId]/views
+├ ƒ /api/feed/topics
+├ ƒ /api/feed/topics/[topicId]
+├ ƒ /api/feed/topics/init-personal
+├ ƒ /api/graphql
+├ ƒ /api/half-day
+├ ƒ /api/health
+├ ƒ /api/leaves
+├ ƒ /api/leaves/[id]
+├ ƒ /api/leaves/[id]/approve
+├ ƒ /api/leaves/[id]/reject
+├ ƒ /api/leaves/user/[employeeId]
+├ ƒ /api/metrics
+├ ƒ /api/migrations/collapsible-text-settings
+├ ƒ /api/notification-preferences
+├ ƒ /api/permissions
+├ ƒ /api/projects
+├ ƒ /api/projects/[projectId]
+├ ƒ /api/projects/[projectId]/restore
+├ ƒ /api/projects/[projectId]/users
+├ ƒ /api/projects/[projectId]/users/[employeeId]/artifacts
+├ ƒ /api/projects/hierarchy
+├ ƒ /api/relationships
+├ ƒ /api/relationships/[id]
+├ ƒ /api/settings
+├ ƒ /api/settings/[id]
+├ ƒ /api/settings/app-management
+├ ƒ /api/settings/validate
+├ ƒ /api/simple-test
+├ ƒ /api/task-checklists
+├ ƒ /api/task-checklists/[id]
+├ ƒ /api/task-checklists/reorder
+├ ƒ /api/tasks
+├ ƒ /api/tasks/[taskId]
+├ ƒ /api/tasks/subtasks
+├ ƒ /api/tasks/support
+├ ƒ /api/tasks/update-delayed
+├ ƒ /api/tasks/user/[employeeId]
+├ ƒ /api/test
+├ ƒ /api/test-email
+├ ƒ /api/time-tracking/sync
+├ ƒ /api/upload
+├ ƒ /api/upload/id-card-photo
+├ ƒ /api/upload/presigned-url
+├ ƒ /api/users
+├ ƒ /api/users/[employeeId]
+├ ƒ /api/users/[employeeId]/send-credentials
+├ ƒ /api/users/[employeeId]/warning/increment
+├ ƒ /api/users/[employeeId]/warning/reset
+├ ƒ /api/users/batch
+├ ƒ /api/users/team/[managerId]
+├ ƒ /api/verify-email
+├ ƒ /api/wfh
+├ ƒ /api/wfh/[id]
+├ ƒ /api/wfh/[id]/approve
+├ ƒ /api/wfh/[id]/reject
+├ ƒ /api/wfh/user/[employeeId]
+├ ƒ /api/work-hours
+├ ƒ /api/work-items/user/[employeeId]
+├ ○ /apple-icon.png
+├ ○ /approvals
+├ ○ /bugs
+├ ƒ /bugs/[bugId]
+├ ○ /bugs/analytics
+├ ○ /bugs/create
+├ ○ /dashboard
+├ ○ /deleted-items
+├ ○ /feed
+├ ○ /feed-topics
+├ ○ /home
+├ ○ /icon.png
+├ ○ /leave/apply
+├ ○ /my-applications
+├ ○ /performance
+├ ○ /privacy
+├ ○ /profile
+├ ○ /profile/notifications
+├ ○ /projects
+├ ƒ /projects/[projectId]
+├ ○ /projects/create
+├ ○ /refresh-data
+├ ○ /reports
+├ ○ /settings
+├ ○ /settings/app-management
+├ ○ /settings/dropdowns
+├ ○ /settings/permissions
+├ ○ /switch-user
+├ ○ /tasks
+├ ƒ /tasks/[taskId]
+├ ○ /tasks/analytics
+├ ○ /tasks/create
+├ ○ /team-tasks
+├ ○ /terms
+├ ○ /users
+├ ○ /users/permissions
+├ ○ /wfh/apply
+└ ○ /your-work
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -4,11 +4,11 @@
     "slug": "karmayog",
     "version": "1.1.2",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/ic_logo.png",
     "userInterfaceStyle": "light",
     "scheme": "karmayog",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/amtariksha_icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -22,7 +22,7 @@
     "android": {
       "googleServicesFile": "./android/app/google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/ic_logo.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.karmayog",
@@ -49,7 +49,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/amtariksha_icon.png"
     },
     "plugins": [
       [
