@@ -33,7 +33,7 @@ export default function IDCard({ user }: IDCardProps) {
   }
 
   const generateQRData = () => {
-    return `Amtariksha-${user.employeeId}-${user.name}-${user.department}`
+    return `Karmayog-${user.employeeId}-${user.name}-${user.department}`
   }
 
   const handlePrint = () => {
@@ -272,7 +272,7 @@ export default function IDCard({ user }: IDCardProps) {
                         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full mb-3 shadow-lg">
                           <Shield className="h-10 w-10 text-white" />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900">Amstarikha</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">Karmayog</h3>
                       </div>
 
                       {/* Employee Photo and Name */}

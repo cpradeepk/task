@@ -210,7 +210,7 @@ export async function addUser(newUser: Omit<User, 'createdAt' | 'updatedAt'>): P
 
 export function getRoleDisplayName(role: string): string {
   const roleNames = {
-    'amtarikshian': 'Amtariksian',
+    'amtarikshian': 'Employee',
     'management': 'Management',
     'top_management': 'Top Management',
     'admin': 'Administrator'

@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
       assignedTo: getArrayParam('assignedTo'),
       reportedBy: getArrayParam('reportedBy'),
       projectId: searchParams.get('projectId') || undefined,
+      projectIds: getArrayParam('projectIds'),
       subprojectId: searchParams.get('subprojectId') || undefined,
       search: searchParams.get('search') || undefined
     }

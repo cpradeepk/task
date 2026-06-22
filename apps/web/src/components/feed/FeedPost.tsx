@@ -212,17 +212,30 @@ export default function FeedPost({ post, onReact, onComment }: FeedPostProps) {
         )
 
       case 'youtube':
+        let embedUrl = post.linkUrl || ''
+        if (embedUrl && !embedUrl.includes('youtube.com/embed/')) {
+          const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+          const match = embedUrl.match(regExp)
+          if (match && match[2].length === 11) {
+            embedUrl = `https://www.youtube.com/embed/${match[2]}`
+          }
+        }
         return (
           <div>
             {post.content && <p className="text-gray-700 mb-3 whitespace-pre-wrap">{post.content}</p>}
             {post.linkUrl && (
-              <div className="aspect-video">
-                <iframe
-                  src={post.linkUrl}
-                  className="w-full h-full rounded-lg"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+              <div className="space-y-2">
+                <div className="aspect-video">
+                  <iframe
+                    src={embedUrl}
+                    className="w-full h-full rounded-lg"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+                <a href={post.linkUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1">
+                  Watch on YouTube
+                </a>
               </div>
             )}
           </div>

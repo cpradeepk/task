@@ -34,7 +34,7 @@ export default function NavigationMenu({ visible, onClose }: NavigationMenuProps
   const getRoleDisplayName = (role: string) => {
     switch (role) {
       case 'amtarikshian':
-        return 'Amtarikshian'
+        return 'Employee'
       case 'management':
         return 'Management'
       case 'top_management':

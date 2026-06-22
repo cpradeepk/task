@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { hasTabAccess } from '@/lib/permissions'
+import { useProjectFilter } from '@/contexts/ProjectFilterContext'
 import { 
   generateDailyReport, 
   generateMonthlyReport, 
@@ -21,6 +22,7 @@ import {
 import Navbar from '@/components/layout/Navbar'
 
 export default function Reports() {
+  const { selectedProjectIds } = useProjectFilter()
   const [reportType, setReportType] = useState<'daily' | 'monthly' | 'team'>('daily')
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedMonth, setSelectedMonth] = useState('')
@@ -128,19 +130,28 @@ export default function Reports() {
       switch (reportType) {
         case 'daily':
           console.log('Generating daily report for:', selectedDate)
-          const reports = await generateDailyReport(selectedDate)
+          let reports = await generateDailyReport(selectedDate, selectedProjectIds)
+          if (selectedProjectIds && selectedProjectIds.length > 0 && currentUser?.employeeId) {
+            reports = reports.filter(r => r.employeeId === currentUser.employeeId)
+          }
           setDailyReports(reports)
           console.log('Daily reports generated:', reports.length)
           break
         case 'monthly':
           console.log('Generating monthly report for:', selectedMonth, selectedYear)
-          const monthlyReports = await generateMonthlyReport(selectedMonth, selectedYear)
-          setMonthlyReports(monthlyReports)
-          console.log('Monthly reports generated:', monthlyReports.length)
+          let monthly = await generateMonthlyReport(selectedMonth, selectedYear, selectedProjectIds)
+          if (selectedProjectIds && selectedProjectIds.length > 0 && currentUser?.employeeId) {
+            monthly = monthly.filter(r => r.employeeId === currentUser.employeeId)
+          }
+          setMonthlyReports(monthly)
+          console.log('Monthly reports generated:', monthly.length)
           break
         case 'team':
           console.log('Generating team report for:', selectedDate)
-          const teamReport = await generateTeamTaskReport(selectedDate, currentUser?.employeeId)
+          let teamReport = await generateTeamTaskReport(selectedDate, currentUser?.employeeId, selectedProjectIds)
+          if (selectedProjectIds && selectedProjectIds.length > 0 && teamReport && teamReport.teamTasks) {
+            teamReport.teamTasks = teamReport.teamTasks.filter((t: any) => t.employeeId === currentUser?.employeeId || t.employeeName === currentUser?.name)
+          }
           setTeamReport(teamReport)
           console.log('Team report generated:', teamReport)
           break
@@ -152,6 +163,13 @@ export default function Reports() {
       setIsLoading(false)
     }
   }
+
+  // Re-generate report automatically if selectedProjectIds changes and a report is already displayed
+  useEffect(() => {
+    if (dailyReports.length > 0 || monthlyReports.length > 0 || teamReport !== null) {
+      generateReport()
+    }
+  }, [selectedProjectIds])
 
   const exportReport = () => {
     // Simple CSV export functionality

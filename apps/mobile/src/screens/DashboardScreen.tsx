@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useContext } from 'react'
 import {
   View,
   StyleSheet,
@@ -11,28 +11,40 @@ import { DashboardSkeleton } from '../components/SkeletonLoaders'
 import { useNavigation } from '@react-navigation/native'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { useTheme } from '../contexts/ThemeContext'
+import { useProjectFilter } from '../contexts/ProjectFilterContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { DebugMenu } from '../components/DebugMenu'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { getUserToken, getUserData } from '../utils/secureStorage'
 import apiClient from '../services/apiClient'
-import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
+
 import { useTabBarControl } from '../context/TabBarContext'
 import AppHeader from '../components/AppHeader'
+import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
+import { AuthContext } from '../contexts/AuthContext'
 
 export default function DashboardScreen() {
+  const { signOut } = useContext(AuthContext)
   const navigation = useNavigation()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
   const { isOffline } = useNetworkStatus()
 
+  const { selectedProjectIds } = useProjectFilter()
   const [user, setUser] = useState<any>(null)
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [debugMenuVisible, setDebugMenuVisible] = useState(false)
+
+  const filteredTasks = useMemo(() => {
+    if (!selectedProjectIds || selectedProjectIds.length === 0) {
+      return tasks
+    }
+    return tasks.filter(task => task.projectId && selectedProjectIds.includes(task.projectId))
+  }, [tasks, selectedProjectIds])
 
   const { handleScroll } = useTabBarControl()
   const scrollHandler = useAnimatedScrollHandler({
@@ -79,13 +91,27 @@ export default function DashboardScreen() {
       <AppHeader
         title="Karmayog"
         rightAction={
-          <IconButton
-            icon="bug"
-            size={22}
-            iconColor={colors.text}
-            onPress={() => setDebugMenuVisible(true)}
-            style={{ margin: 0 }}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <IconButton
+              icon="bug"
+              size={22}
+              iconColor={colors.text}
+              onPress={() => setDebugMenuVisible(true)}
+              style={{ margin: 0 }}
+            />
+            <IconButton
+              icon="logout"
+              size={22}
+              iconColor={materialColors.error}
+              onPress={() => {
+                Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Sign Out', style: 'destructive', onPress: () => signOut() },
+                ])
+              }}
+              style={{ margin: 0 }}
+            />
+          </View>
         }
       />
       <Animated.ScrollView
@@ -101,16 +127,8 @@ export default function DashboardScreen() {
           />
         }
       >
-        {/* Greeting Section */}
-        <View style={styles.welcomeSection}>
-          <Text style={[styles.welcomeSub, { color: colors.textSecondary }]}>Hello,</Text>
-          <Text style={[styles.welcomeTitle, { color: colors.text }]}>{user?.name} 👋</Text>
-          {user?.role ? (
-            <Text style={[styles.welcomeRole, { color: colors.primary }]}>{user.role}</Text>
-          ) : null}
-        </View>
 
-        {/* Attendance Card */}
+        {/* Daily Attendance */}
         <View style={styles.section}>
           <DailyAttendanceCard />
         </View>
@@ -119,14 +137,14 @@ export default function DashboardScreen() {
         <View style={styles.statsContainer}>
           <Card style={styles.statCard} elevation={1}>
             <Card.Content style={styles.statCardContent}>
-              <Text style={styles.statNumber}>{tasks.length}</Text>
+              <Text style={styles.statNumber}>{filteredTasks.length}</Text>
               <Text style={styles.statLabel}>Total Tasks</Text>
             </Card.Content>
           </Card>
           <Card style={styles.statCard} elevation={1}>
             <Card.Content style={styles.statCardContent}>
               <Text style={styles.statNumber}>
-                {tasks.filter((t) => t.status === 'In Progress').length}
+                {filteredTasks.filter((t) => t.status === 'In Progress').length}
               </Text>
               <Text style={styles.statLabel}>In Progress</Text>
             </Card.Content>
@@ -134,7 +152,7 @@ export default function DashboardScreen() {
           <Card style={styles.statCard} elevation={1}>
             <Card.Content style={styles.statCardContent}>
               <Text style={styles.statNumber}>
-                {tasks.filter((t) => t.status === 'Done').length}
+                {filteredTasks.filter((t) => t.status === 'Done').length}
               </Text>
               <Text style={styles.statLabel}>Completed</Text>
             </Card.Content>
@@ -191,14 +209,14 @@ export default function DashboardScreen() {
         {/* Recent Tasks */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Tasks</Text>
-          {tasks.length === 0 ? (
+          {filteredTasks.length === 0 ? (
             <Card style={styles.emptyCard} elevation={0}>
               <Card.Content>
                 <Text style={styles.emptyText}>No tasks yet</Text>
               </Card.Content>
             </Card>
           ) : (
-            tasks.slice(0, 5).map((task) => (
+            filteredTasks.slice(0, 5).map((task) => (
               <Card key={task.taskId} style={styles.taskCard} elevation={1}>
                 <Card.Content>
                   <Text style={styles.taskTitle}>{task.name || task.description}</Text>

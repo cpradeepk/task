@@ -59,9 +59,8 @@ case "$COMMAND" in
     echo "🔧 Applying Android space-in-path patches..."
     python3 scripts/patch-android-spaces.py
     
-    # 2. Regenerate branding assets and patch build.gradle dynamically
-    echo "🎨 Regenerating branding assets..."
-    python3 "/Users/eassylife/.gemini/antigravity-ide/brain/1e9e45f8-f2b8-41f9-a0ca-db43d5d84536/scratch/update_all_assets.py"
+    # 2. Regenerate branding assets (Skipped as per user request to use images as is)
+    echo "🎨 Using standard branding assets as-is..."
     
     # 3. Build signed APK locally using EAS CLI to automatically pull production credentials
     echo "🔨 Running EAS local build for APK with auto-signing..."
@@ -98,9 +97,8 @@ case "$COMMAND" in
     echo "🔧 Applying Android space-in-path patches..."
     python3 scripts/patch-android-spaces.py
     
-    # 2. Regenerate branding assets and patch build.gradle dynamically
-    echo "🎨 Regenerating branding assets..."
-    python3 "/Users/eassylife/.gemini/antigravity-ide/brain/1e9e45f8-f2b8-41f9-a0ca-db43d5d84536/scratch/update_all_assets.py"
+    # 2. Regenerate branding assets (Skipped as per user request to use images as is)
+    echo "🎨 Using standard branding assets as-is..."
     
     # 3. Build signed AAB locally using EAS CLI to automatically pull production credentials
     echo "🔨 Running EAS local build for AAB with auto-signing..."
@@ -140,9 +138,8 @@ case "$COMMAND" in
     echo "⚙️ Running Expo prebuild..."
     npx expo prebuild --platform ios --no-install
     
-    # 3. Regenerate branding assets
-    echo "🎨 Regenerating branding assets..."
-    python3 "/Users/eassylife/.gemini/antigravity-ide/brain/1e9e45f8-f2b8-41f9-a0ca-db43d5d84536/scratch/update_all_assets.py"
+    # 3. Regenerate branding assets (Skipped as per user request to use images as is)
+    echo "🎨 Using standard branding assets as-is..."
     
     # 4. Install Pod dependencies
     echo "📦 Installing CocoaPods dependencies..."
@@ -214,9 +211,8 @@ case "$COMMAND" in
     echo "🔧 Applying Android space-in-path patches..."
     python3 scripts/patch-android-spaces.py
     
-    # 2. Regenerate branding assets and patch build.gradle dynamically
-    echo "🎨 Regenerating branding assets..."
-    python3 "/Users/eassylife/.gemini/antigravity-ide/brain/1e9e45f8-f2b8-41f9-a0ca-db43d5d84536/scratch/update_all_assets.py"
+    # 2. Regenerate branding assets (Skipped as per user request to use images as is)
+    echo "🎨 Using standard branding assets as-is..."
     
     # 3. Detect connected devices using adb and extract the model name
     export ANDROID_HOME="/Users/eassylife/Library/Android/sdk"
@@ -257,9 +253,8 @@ case "$COMMAND" in
     echo "⚙️ Running Expo prebuild..."
     npx expo prebuild --platform ios --no-install
     
-    # 3. Regenerate branding assets
-    echo "🎨 Regenerating branding assets..."
-    python3 "/Users/eassylife/.gemini/antigravity-ide/brain/1e9e45f8-f2b8-41f9-a0ca-db43d5d84536/scratch/update_all_assets.py"
+    # 3. Regenerate branding assets (Skipped as per user request to use images as is)
+    echo "🎨 Using standard branding assets as-is..."
     
     # 4. Install Pod dependencies
     echo "📦 Installing CocoaPods dependencies..."

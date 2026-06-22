@@ -40,6 +40,7 @@ import { FilterHeader, FilterSection, FilterSearch, FilterToggle } from '../comp
 import { ListSkeleton } from '../components/SkeletonLoaders'
 import AppHeader from '../components/AppHeader'
 import { useTheme } from '../contexts/ThemeContext'
+import { useProjectFilter } from '../contexts/ProjectFilterContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
@@ -71,6 +72,7 @@ function getBugSwipeDetails(item: Bug, action: string) {
 }
 
 export default function BugListScreen() {
+  const { selectedProjectIds } = useProjectFilter()
   const navigation = useNavigation()
   const { colors } = useTheme()
   const responsive = useResponsive()
@@ -150,9 +152,6 @@ export default function BugListScreen() {
 
     setBugs(updateStatus(bugs))
     setFilteredBugs(updateStatus(filteredBugs))
-
-    // Display instant feedback toast
-    Alert.alert('Success', `Bug updated to ${newStatus}`)
 
     try {
       const res = await updateBug(item.bugId, { status: newStatus })
@@ -353,10 +352,15 @@ export default function BugListScreen() {
   // Apply filters whenever bugs, filters, or currentUser change
   useEffect(() => {
     filterBugs()
-  }, [bugs, searchQuery, statusFilter, severityFilter, categoryFilter, typeFilter, projectId, subprojectId, currentUser])
+  }, [bugs, searchQuery, statusFilter, severityFilter, categoryFilter, typeFilter, projectId, subprojectId, currentUser, selectedProjectIds])
 
   const filterBugs = useCallback(() => {
     let filtered = bugs
+
+    // Global Project Filter
+    if (selectedProjectIds && selectedProjectIds.length > 0) {
+      filtered = filtered.filter(bug => bug.projectId && selectedProjectIds.includes(bug.projectId))
+    }
 
     // 1. Enforce user relation: only show bugs related to logged-in user (assignedTo or reportedBy)
     if (currentUser?.employeeId) {
@@ -422,7 +426,7 @@ export default function BugListScreen() {
     })
 
     setFilteredBugs(filtered)
-  }, [bugs, searchQuery, statusFilter, severityFilter, categoryFilter, typeFilter, projectId, subprojectId, currentUser])
+  }, [bugs, searchQuery, statusFilter, severityFilter, categoryFilter, typeFilter, projectId, subprojectId, currentUser, selectedProjectIds])
 
   const clearFilters = () => {
     setSearchQuery('')

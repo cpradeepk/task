@@ -3,6 +3,7 @@ import { View, StyleSheet, Alert } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, useTheme, Surface } from 'react-native-paper'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { format } from 'date-fns'
+import { formatTimeIST } from '../../utils/datetime'
 import { useNavigation } from '@react-navigation/native'
 import { GET_ATTENDANCE, SIGN_IN, SIGN_OUT } from '../../config/graphql-queries'
 import { materialColors, materialSpacing, materialTypography } from '../../config/materialTheme'
@@ -36,7 +37,7 @@ export default function DailyAttendanceCard() {
 
     // Calculate work duration
     useEffect(() => {
-        if (attendance?.signInTime && !attendance.signOutTime) {
+        if (attendance?.signInTime && attendance.signInTime !== 'null' && (!attendance.signOutTime || attendance.signOutTime === 'null')) {
             const interval = setInterval(() => {
                 const start = new Date(parseInt(attendance.signInTime))
                 const now = new Date()
@@ -67,9 +68,13 @@ export default function DailyAttendanceCard() {
             setLoadingAction(false)
         },
         onError: (err) => {
-            console.error('Sign In Error:', err)
             setLoadingAction(false)
-            Alert.alert('Error', err.message)
+            if (err.message.includes('already signed in')) {
+                console.log('Sign In info:', err.message)
+            } else {
+                console.error('Sign In Error:', err)
+                Alert.alert('Error', err.message)
+            }
         }
     })
 
@@ -87,7 +92,12 @@ export default function DailyAttendanceCard() {
 
     const handleSignIn = () => {
         setLoadingAction(true)
-        signIn()
+        signIn().catch((err) => {
+            if (err.message.includes('already signed in')) {
+                refetch()
+            }
+            setLoadingAction(false)
+        })
     }
 
     const handleSignOut = () => {
@@ -101,7 +111,9 @@ export default function DailyAttendanceCard() {
                     style: 'destructive',
                     onPress: () => {
                         setLoadingAction(true)
-                        signOut()
+                        signOut().catch((err) => {
+                            setLoadingAction(false)
+                        })
                     }
                 }
             ]
@@ -132,8 +144,8 @@ export default function DailyAttendanceCard() {
         )
     }
 
-    const isSignedOut = !!attendance?.signOutTime
-    const isSignedIn = !!attendance?.signInTime && !isSignedOut
+    const isSignedOut = !!attendance?.signOutTime && attendance.signOutTime !== 'null'
+    const isSignedIn = !!attendance?.signInTime && attendance.signInTime !== 'null' && !isSignedOut
 
     return (
         <Card style={styles.card} elevation={1} onPress={() => navigation.navigate('AttendanceDashboard')}>
@@ -163,18 +175,26 @@ export default function DailyAttendanceCard() {
                         <Text style={styles.statLabel}>Work Hours</Text>
                         <Text style={styles.statValue}>{workDuration}</Text>
                     </View>
-                    {attendance?.signInTime && (
+                    {(attendance?.signInTime && attendance.signInTime !== 'null') && (
                         <View style={styles.statItem}>
                             <Text style={styles.statLabel}>Sign In</Text>
                             <Text style={styles.statValue}>
-                                {format(new Date(parseInt(attendance.signInTime)), 'hh:mm a')}
+                                {formatTimeIST(parseInt(attendance.signInTime))}
+                            </Text>
+                        </View>
+                    )}
+                    {(attendance?.signOutTime && attendance.signOutTime !== 'null') && (
+                        <View style={styles.statItem}>
+                            <Text style={styles.statLabel}>Sign Out</Text>
+                            <Text style={styles.statValue}>
+                                {formatTimeIST(parseInt(attendance.signOutTime))}
                             </Text>
                         </View>
                     )}
                 </View>
 
                 <View style={styles.actions}>
-                    {!attendance?.signInTime ? (
+                    {(!attendance?.signInTime || attendance.signInTime === 'null') ? (
                         <Button
                             mode="contained"
                             onPress={handleSignIn}
@@ -185,7 +205,7 @@ export default function DailyAttendanceCard() {
                         >
                             Sign In
                         </Button>
-                    ) : !attendance.signOutTime ? (
+                    ) : (!attendance.signOutTime || attendance.signOutTime === 'null') ? (
                         <Button
                             mode="contained"
                             onPress={handleSignOut}

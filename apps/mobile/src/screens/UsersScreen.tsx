@@ -417,7 +417,7 @@ export default function UsersScreen() {
                 onValueChange={(val) => setRole(val as any)}
                 items={[
                   { label: 'Employee', value: 'employee' },
-                  { label: 'Amtariksian', value: 'amtarikshian' },
+                  { label: 'Employee', value: 'amtarikshian' },
                   { label: 'Management', value: 'management' },
                   { label: 'Top Management', value: 'top_management' },
                   { label: 'Admin', value: 'admin' },

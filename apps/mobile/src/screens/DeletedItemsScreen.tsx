@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, IconButton, Divider, Chip } from 'react-native-paper'
 import { useTheme } from '../contexts/ThemeContext'
+import { useProjectFilter } from '../contexts/ProjectFilterContext'
 import { useNavigation } from '@react-navigation/native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { getUserData } from '../utils/secureStorage'
@@ -47,6 +48,7 @@ interface Counts {
 }
 
 export default function DeletedItemsScreen() {
+  const { selectedProjectIds } = useProjectFilter()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const navigation = useNavigation()
@@ -183,9 +185,20 @@ export default function DeletedItemsScreen() {
   }
 
   const filteredItems = useMemo(() => {
-    if (filterType === 'all') return deletedItems
-    return deletedItems.filter(item => item.itemType === filterType)
-  }, [deletedItems, filterType])
+    let result = deletedItems
+    if (filterType !== 'all') {
+      result = result.filter(item => item.itemType === filterType)
+    }
+
+    if (selectedProjectIds && selectedProjectIds.length > 0) {
+      result = result.filter(item => {
+        const itemProjId = item.projectId || (item.itemType === 'project' ? String(item.id) : undefined)
+        return itemProjId && selectedProjectIds.includes(itemProjId)
+      })
+    }
+
+    return result
+  }, [deletedItems, filterType, selectedProjectIds])
 
   const getItemIcon = (type: string) => {
     switch (type) {

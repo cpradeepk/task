@@ -25,12 +25,12 @@ export default function PrivacyPolicyPage() {
         <article className="prose max-w-none space-y-6 text-sm leading-relaxed">
           <section>
             <p>
-              This Privacy Policy explains how <strong>Amtariksha Tech Pvt Ltd</strong>{' '}
-              (&ldquo;Amtariksha&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) collects,
+              This Privacy Policy explains how <strong>Karmayog Tech Pvt Ltd</strong>{' '}
+              (&ldquo;Karmayog&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) collects,
               uses, discloses, and protects information in connection with the
               <strong> Karmayog</strong> web and mobile application
               (the &ldquo;Service&rdquo;). It applies to employees of
-              Amtariksha and to external collaborators (clients, vendors,
+              Karmayog and to external collaborators (clients, vendors,
               contractors) who are granted access to the Service.
             </p>
             <p>
@@ -64,7 +64,7 @@ export default function PrivacyPolicyPage() {
             <h3 className="text-base font-semibold mt-4 mb-2">1.3 Information from third parties</h3>
             <p>
               We do not buy personal data from third parties. If your employer
-              (Amtariksha or a client organisation) creates your account on your
+              (Karmayog or a client organisation) creates your account on your
               behalf, we receive the information they provide.
             </p>
           </section>
@@ -77,7 +77,7 @@ export default function PrivacyPolicyPage() {
               <li><strong>Project access control</strong> — enforce which users can see which projects, tasks, and bugs.</li>
               <li><strong>Communication</strong> — send transactional emails (assignments, comments, credentials) and in-app notifications.</li>
               <li><strong>Security &amp; integrity</strong> — detect abuse, debug crashes, audit changes, prevent unauthorised access.</li>
-              <li><strong>Product improvement</strong> — analyse aggregated usage to improve features. Where personally identifiable, this is restricted to employees within Amtariksha&apos;s engineering team.</li>
+              <li><strong>Product improvement</strong> — analyse aggregated usage to improve features. Where personally identifiable, this is restricted to employees within Karmayog&apos;s engineering team.</li>
               <li><strong>Legal compliance</strong> — comply with applicable laws (including the Information Technology Act 2000, the SPDI Rules 2011, and the Digital Personal Data Protection Act 2023) and respond to lawful requests.</li>
             </ul>
           </section>
@@ -130,7 +130,7 @@ export default function PrivacyPolicyPage() {
               <li>
                 <strong>Legal &amp; safety</strong> — we may disclose data when
                 required by law, court order, or regulatory authority, and to
-                protect the rights, property, or safety of Amtariksha,
+                protect the rights, property, or safety of Karmayog,
                 our users, or the public.
               </li>
               <li>
@@ -155,7 +155,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-xl font-semibold mt-8 mb-3">6. Data Retention</h2>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>Active accounts</strong> — retained for the duration of your engagement with Amtariksha or your authorising organisation.</li>
+              <li><strong>Active accounts</strong> — retained for the duration of your engagement with Karmayog or your authorising organisation.</li>
               <li><strong>Deactivated accounts</strong> — historical work data (tasks, bugs, attendance) is retained for as long as legitimately required (typically 7 years for finance/audit purposes), then anonymised or deleted.</li>
               <li><strong>Backups</strong> — encrypted backups are retained on a rolling 30-day basis.</li>
               <li><strong>Audit logs</strong> — retained for 1 year for security investigation purposes.</li>
@@ -191,7 +191,7 @@ export default function PrivacyPolicyPage() {
             </ul>
             <p>
               To exercise any of these rights, contact us at{' '}
-              <a className="text-primary hover:underline" href="mailto:contactus@amtariksha.com">contactus@amtariksha.com</a>.
+              <a className="text-primary hover:underline" href="mailto:contactus@karmayog.com">contactus@karmayog.com</a>.
               We aim to respond within 30 days.
             </p>
           </section>
@@ -221,14 +221,14 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-semibold mt-8 mb-3">11. Contact &amp; Grievance Officer</h2>
             <p>For any privacy questions, requests, or complaints:</p>
             <div className="mt-3 p-4 rounded-lg bg-gray-50 border border-gray-200">
-              <p><strong>Amtariksha Tech Pvt Ltd</strong></p>
+              <p><strong>Karmayog Tech Pvt Ltd</strong></p>
               <p className="flex items-center gap-2 mt-1 text-gray-500">
                 <MapPin className="h-4 w-4" aria-hidden="true" />
                 Bangalore, Karnataka, India
               </p>
               <p className="flex items-center gap-2 mt-1 text-gray-500">
                 <Mail className="h-4 w-4" aria-hidden="true" />
-                <a className="text-primary hover:underline" href="mailto:contactus@amtariksha.com">contactus@amtariksha.com</a>
+                <a className="text-primary hover:underline" href="mailto:contactus@karmayog.com">contactus@karmayog.com</a>
               </p>
             </div>
           </section>

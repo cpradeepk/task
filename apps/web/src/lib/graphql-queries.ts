@@ -143,8 +143,8 @@ export const QUERIES = {
 
   // Get all tasks with optional filters and pagination
   GET_TASKS: `
-    query GetTasks($assignedTo: [String], $status: [String], $priority: [String], $projectId: String, $subprojectId: String, $limit: Int, $offset: Int) {
-      tasks(assignedTo: $assignedTo, status: $status, priority: $priority, projectId: $projectId, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
+    query GetTasks($assignedTo: [String], $status: [String], $priority: [String], $projectId: String, $projectIds: [String], $subprojectId: String, $limit: Int, $offset: Int) {
+      tasks(assignedTo: $assignedTo, status: $status, priority: $priority, projectId: $projectId, projectIds: $projectIds, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
         id
         taskId
         name
@@ -280,8 +280,8 @@ export const QUERIES = {
 
   // Get all bugs with optional filters and pagination
   GET_BUGS: `
-    query GetBugs($assignedTo: [String], $status: [String], $severity: [String], $category: [String], $type: [String], $projectId: String, $subprojectId: String, $limit: Int, $offset: Int) {
-      bugs(assignedTo: $assignedTo, status: $status, severity: $severity, category: $category, type: $type, projectId: $projectId, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
+    query GetBugs($assignedTo: [String], $status: [String], $severity: [String], $category: [String], $type: [String], $projectId: String, $projectIds: [String], $subprojectId: String, $limit: Int, $offset: Int) {
+      bugs(assignedTo: $assignedTo, status: $status, severity: $severity, category: $category, type: $type, projectId: $projectId, projectIds: $projectIds, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
         id
         bugId
         title

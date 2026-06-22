@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, Chip } from 'react-native-paper'
 import { useTheme } from '../contexts/ThemeContext'
+import { useProjectFilter } from '../contexts/ProjectFilterContext'
 import { SearchablePicker } from '../components/SearchablePicker'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { getUserData } from '../utils/secureStorage'
@@ -44,6 +45,7 @@ interface Task {
 }
 
 export default function TeamTasksScreen() {
+  const { selectedProjectIds } = useProjectFilter()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
@@ -52,6 +54,16 @@ export default function TeamTasksScreen() {
   const [teamMembers, setTeamMembers] = useState<User[]>([])
   const [selectedEmployee, setSelectedEmployee] = useState<string>('')
   const [tasks, setTasks] = useState<Task[]>([])
+
+  const filteredTasks = useMemo(() => {
+    if (!selectedProjectIds || selectedProjectIds.length === 0) {
+      return tasks
+    }
+    return tasks.filter(task => {
+      const pId = (task as any).projectId
+      return pId && selectedProjectIds.includes(pId)
+    })
+  }, [tasks, selectedProjectIds])
   const [loadingMembers, setLoadingMembers] = useState(true)
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
@@ -81,11 +93,24 @@ export default function TeamTasksScreen() {
       }
 
       // Filter active employees only
-      const activeMembers = membersList.filter((m: any) => m.status !== 'inactive')
+      let activeMembers = membersList.filter((m: any) => m.status !== 'inactive')
+
+      // Scoping: If project filter is active, only show the logged-in user
+      if (selectedProjectIds && selectedProjectIds.length > 0) {
+        activeMembers = activeMembers.filter((m: any) => m.employeeId === user.employeeId)
+      }
+
       setTeamMembers(activeMembers)
 
       if (activeMembers.length > 0) {
-        setSelectedEmployee(activeMembers[0].employeeId)
+        setSelectedEmployee(prev => {
+          if (prev && activeMembers.some(m => m.employeeId === prev)) {
+            return prev
+          }
+          return activeMembers[0].employeeId
+        })
+      } else {
+        setSelectedEmployee('')
       }
     } catch (e) {
       console.error('Failed to load team members:', e)
@@ -93,7 +118,7 @@ export default function TeamTasksScreen() {
     } finally {
       setLoadingMembers(false)
     }
-  }, [])
+  }, [selectedProjectIds])
 
   useEffect(() => {
     loadTeam()
@@ -224,6 +249,13 @@ export default function TeamTasksScreen() {
             </View>
           ) : null}
 
+          {item.support && item.support.length > 0 ? (
+            <View style={[styles.logBox, { backgroundColor: colors.surfaceVariant }]}>
+              <Text style={[styles.logLabel, { color: colors.primary }]}>Support Members:</Text>
+              <Text style={styles.logText}>{item.support.join(', ')}</Text>
+            </View>
+          ) : null}
+
           {showProgressBtn && (
             <Button
               mode="contained"
@@ -286,13 +318,13 @@ export default function TeamTasksScreen() {
             </Card>
           )}
 
-          {loadingTasks && tasks.length === 0 ? (
+          {loadingTasks && filteredTasks.length === 0 ? (
             <View style={styles.centered}>
               <ActivityIndicator size="large" color={colors.primary} />
             </View>
           ) : (
             <FlatList
-              data={tasks}
+              data={filteredTasks}
               renderItem={renderTaskItem}
               keyExtractor={item => item.id}
               contentContainerStyle={styles.listContent}

@@ -5,8 +5,8 @@
 
 // API URL auto-toggled based on build type (local dev vs production release)
 export const API_BASE_URL = __DEV__
-  ? 'https://task.amtariksha.com' // 'http://192.168.0.107:3001'
-  : 'https://task.amtariksha.com'
+  ? 'http://localhost:3000' // Local dev via adb reverse
+  : 'https://task.karmayog.com'
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -26,8 +26,8 @@ export const API_ENDPOINTS = {
   BUG_COMMENTS: (bugId: string) => `/api/bugs/${bugId}/comments`,
 
   // Bug Subtasks
-  BUG_SUBTASKS: '/api/bug-subtasks',
-  BUG_SUBTASK_BY_ID: (id: number) => `/api/bug-subtasks/${id}`,
+  BUG_SUBTASKS: '/api/bugs/subtasks',
+  BUG_SUBTASK_BY_ID: (id: number) => `/api/bugs/subtasks/${id}`,
 
   // Projects
   PROJECTS: '/api/projects',

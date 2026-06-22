@@ -141,3 +141,28 @@ We successfully verified the creation of the signed Android App Bundle (AAB) usi
 - **Execution**: The script cleans the environment, runs `expo prebuild`, applies path patches for spaces, updates assets, and uses local EAS CLI.
 - **Output**: Generates a signed release bundle at the root of the project: [Karmayog-1.1.2-release.aab](file:///Volumes/EassyLife%20Projects/Task/task_app/Karmayog-1.1.2-release.aab).
 - **Gradle Phase Status**: Completed successfully with 100% clean build.
+
+## Branding Assets & Logo Setup
+
+We updated both Web and Mobile client configurations to align exactly with the correct branding asset mapping:
+- **Square transparent logo (`amtariksha_icon.png`)**: Configured as the mobile splash screen (`splash.image`), mobile web favicon, and web client tab icons/favicons (`favicon.ico`, `icon.png`, `apple-icon.png`).
+- **Rectangle logo (`amtariksha_logo.png`)**: Set in mobile views and web components where rectangle icons are placed (e.g. Login header, Navigation drawer, Web layout navbar).
+- **App icon logo (`ic_logo.png`)**: Mapped to the mobile app launcher icon (`icon` and `android.adaptiveIcon.foregroundImage` inside `app.json`).
+
+All asset editing scripts/tools were deactivated so that the original images are utilized exactly as they are without programmatic alterations. All platform builds successfully compile.
+
+## React Rules of Hooks Fix
+
+We fixed a React console warning: *"React has detected a change in the order of Hooks called by Dashboard."*
+- **Cause**: The `filteredTasksByProject` and `filteredBugsByProject` `useMemo` hooks in `apps/web/src/app/dashboard/page.tsx` were declared *after* multiple early return checks (e.g., loading and hydration checks).
+- **Fix**: Relocated the `useMemo` declarations to the top of the component body, ensuring they are always called unconditionally on every render. Added secure checks for `currentUser` inside the hooks to avoid TypeScript compilation issues.
+
+## Role Label Cleanups ("Karmayogian" ➔ "Employee")
+
+We completely replaced the "Karmayogian" display labels across both the web and mobile apps:
+1. **Web Navbar**: Hided the role description next to the logo for standard employee accounts (`amtarikshian`), preventing visual clutter.
+2. **Global Display Mapping**: Changed the display name for `amtarikshian` from "Karmayogian" to the standard "Employee" in `apps/web/src/lib/auth.ts`.
+3. **User Management Dropdowns**: Replaced the select/filter label "Karmayogian" with "Employee" in `apps/web/src/app/users/page.tsx` and `apps/mobile/src/screens/UsersScreen.tsx`.
+4. **Mobile Navigation Drawer**:
+   - Swapped "Karmayogian" with "Employee" for display mapping inside `apps/mobile/src/components/NavigationMenu.tsx`.
+   - Updated `apps/mobile/src/components/CustomDrawerContent.tsx` to render the translated display name mapping (so standard employees see "Employee" instead of the raw database string `amtarikshian` in their profile).

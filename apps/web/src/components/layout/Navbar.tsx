@@ -8,6 +8,7 @@ import { logout, getCurrentUser, getRoleDisplayName } from '@/lib/auth'
 import { User as UserType } from '@/lib/types'
 import { hasTabAccess } from '@/lib/permissions'
 import NotificationBell from './NotificationBell'
+import { useProjectFilter } from '@/contexts/ProjectFilterContext'
 import {
   Menu,
   X,
@@ -48,6 +49,22 @@ export default function Navbar() {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [hasOverflow, setHasOverflow] = useState(false)
   const [isDark, setIsDark] = useState(false)
+
+  // Project Filtering Context & Dropdown State
+  const { selectedProjectIds, setSelectedProjectIds, projects, isLoading: isProjectsLoading } = useProjectFilter()
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Handle click outside to close project dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProjectDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -243,24 +260,105 @@ export default function Navbar() {
           {/* Logo and Title */}
           <div className="flex items-center">
             <Link href="/home" className="flex items-center space-x-3">
-              <div className="h-10 flex items-center justify-center">
+              <div className="h-12 flex items-center justify-center">
                 <Image
                   src="/images/logos/amtariksha_logo.png"
                   alt="Karmayog Logo"
-                  width={160}
-                  height={40}
-                  className="object-contain"
+                  width={1021}
+                  height={244}
+                  className="h-12 w-auto object-contain dark:brightness-100 brightness-0 transition-all"
                   priority
                 />
               </div>
-              <div className="border-l border-gray-300 pl-3 ml-1">
-                <p className="text-xs text-gray-600 font-medium">{getRoleDisplayName(currentUser.role)}</p>
-              </div>
+              {currentUser.role !== 'amtarikshian' && (
+                <div className="border-l border-gray-300 dark:border-neutral-700 pl-3 ml-1 h-8 flex items-center">
+                  <p className="text-xs text-gray-600 dark:text-neutral-400 font-medium">{getRoleDisplayName(currentUser.role)}</p>
+                </div>
+              )}
             </Link>
           </div>
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            {/* Project Filter Dropdown */}
+            {isClient && currentUser && (
+              <div className="relative mr-2" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+                  className="flex items-center space-x-2 px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-700 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors"
+                >
+                  <FolderKanban className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <span className="hidden sm:inline">Projects</span>
+                  {selectedProjectIds.length > 0 ? (
+                    <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                      {selectedProjectIds.length}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 dark:text-gray-500 text-xs">(All)</span>
+                  )}
+                  <ChevronDown className={`h-3 w-3 text-gray-500 dark:text-gray-400 transition-transform ${isProjectDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isProjectDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg shadow-lg z-[99999] py-2">
+                    <div className="px-3 py-1.5 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center">
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Filter Projects</span>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => setSelectedProjectIds([])}
+                          className="text-[11px] text-primary hover:underline font-medium"
+                        >
+                          Clear
+                        </button>
+                        <button
+                          onClick={() => setSelectedProjectIds(projects.map(p => p.projectId))}
+                          className="text-[11px] text-primary hover:underline font-medium"
+                        >
+                          Select All
+                        </button>
+                      </div>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto px-1 py-1">
+                      {isProjectsLoading ? (
+                        <div className="text-center py-4 text-xs text-gray-400 dark:text-gray-500">Loading projects...</div>
+                      ) : projects.length === 0 ? (
+                        <div className="text-center py-4 text-xs text-gray-400 dark:text-gray-500">No projects found</div>
+                      ) : (
+                        projects.map((project) => {
+                          const isSelected = selectedProjectIds.includes(project.projectId)
+                          return (
+                            <button
+                              key={project.id}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setSelectedProjectIds(selectedProjectIds.filter(id => id !== project.projectId))
+                                } else {
+                                  setSelectedProjectIds([...selectedProjectIds, project.projectId])
+                                }
+                              }}
+                              className={`w-full flex items-center space-x-2.5 px-3 py-2 text-left text-sm rounded-md transition-colors ${
+                                isSelected
+                                  ? 'bg-primary/5 dark:bg-primary/10 text-primary font-medium'
+                                  : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-800'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                readOnly
+                                className="h-4 w-4 rounded border-gray-300 dark:border-neutral-700 text-primary focus:ring-primary cursor-pointer"
+                              />
+                              <span className="truncate">{project.projectName}</span>
+                            </button>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="hidden md:block text-right">
               <p className="text-sm font-medium text-black">{currentUser.name}</p>
               <p className="text-xs text-gray-600">{currentUser.employeeId}</p>

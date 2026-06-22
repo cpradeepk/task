@@ -16,11 +16,12 @@ import { GET_UNREAD_COUNT, GET_NOTIFICATIONS } from '../config/graphql-queries'
 import { getUserData } from '../utils/secureStorage'
 import { useToast } from '../contexts/ToastContext'
 
+let globalShownNotifications: Record<string, boolean> = {}
+
 export default function NotificationBell() {
   const navigation = useNavigation<any>()
   const [unreadCount, setUnreadCount] = useState(0)
   const [currentUser, setCurrentUser] = useState<any>(null)
-  const [shownNotifications, setShownNotifications] = useState<Record<string, boolean>>({})
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -66,23 +67,17 @@ export default function NotificationBell() {
   useEffect(() => {
     if (notificationsData?.feedNotifications) {
       const items = notificationsData.feedNotifications
-      const updatedShown = { ...shownNotifications }
       let hasNew = false
-      const isFirstLoad = Object.keys(shownNotifications).length === 0
-      const now = Date.now()
+      const isFirstLoad = Object.keys(globalShownNotifications).length === 0
 
       items.forEach((item: any) => {
-        if (!updatedShown[item.notificationId]) {
-          updatedShown[item.notificationId] = true
+        if (!globalShownNotifications[item.notificationId]) {
+          globalShownNotifications[item.notificationId] = true
           
           // Conditions for showing banner:
           // 1. It must be unread (item.isRead === false)
-          // 2. Either it's a new poll item (not isFirstLoad) OR it was created in the last 5 minutes (recent)
-          const itemTime = isNaN(Number(item.createdAt))
-            ? new Date(item.createdAt).getTime()
-            : parseInt(item.createdAt, 10)
-          const isRecent = now - itemTime < 300000
-          const shouldShowBanner = !item.isRead && (!isFirstLoad || isRecent)
+          // 2. It must be a new notification received during active polling (not isFirstLoad)
+          const shouldShowBanner = !item.isRead && !isFirstLoad
 
           if (shouldShowBanner) {
             // Show premium in-app toast notification banner
@@ -91,12 +86,8 @@ export default function NotificationBell() {
           }
         }
       })
-
-      if (isFirstLoad || hasNew) {
-        setShownNotifications(updatedShown)
-      }
     }
-  }, [notificationsData, shownNotifications, showToast])
+  }, [notificationsData, showToast])
 
   const handlePress = () => {
     navigation.navigate('Notifications' as never)

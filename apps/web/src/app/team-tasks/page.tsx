@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getCurrentUser, getTeamMembers } from '@/lib/auth'
 import { hasTabAccess } from '@/lib/permissions'
 import { QUERIES } from '@/lib/graphql-queries'
+import { useProjectFilter } from '@/contexts/ProjectFilterContext'
 
 import { Task, User } from '@/lib/types'
 import { User as UserIcon, Clock, Calendar, BarChart3, Eye, Timer } from 'lucide-react'
@@ -25,6 +26,7 @@ async function executeGraphQLQuery(query: string, variables: any) {
 
 
 export default function TeamTasks() {
+  const { selectedProjectIds } = useProjectFilter()
   const [teamTasks, setTeamTasks] = useState<{[employeeId: string]: Task[]}>({})
   const [selectedEmployee, setSelectedEmployee] = useState<string>('')
   const [teamMembers, setTeamMembers] = useState<User[]>([])
@@ -49,17 +51,31 @@ export default function TeamTasks() {
       loadTeamTasks()
       setInitialized(true)
     }
-  }, [currentUser, router, initialized])
+  }, [currentUser, router, initialized, selectedProjectIds])
+
+  // Reload team tasks when selected projects filter changes
+  useEffect(() => {
+    if (initialized) {
+      loadTeamTasks()
+    }
+  }, [selectedProjectIds])
 
   // Separate effect to handle team member selection
   useEffect(() => {
     const initializeSelectedEmployee = async () => {
-      if (currentUser && initialized && selectedEmployee === '') {
+      if (currentUser && initialized) {
         try {
-          const members = await getTeamMembers(currentUser.employeeId)
+          let members = await getTeamMembers(currentUser.employeeId)
+          if (selectedProjectIds && selectedProjectIds.length > 0) {
+            members = members.filter(m => m.employeeId === currentUser.employeeId)
+          }
           setTeamMembers(members)
           if (members.length > 0) {
-            setSelectedEmployee(members[0].employeeId)
+            if (selectedEmployee === '' || !members.some(m => m.employeeId === selectedEmployee)) {
+              setSelectedEmployee(members[0].employeeId)
+            }
+          } else {
+            setSelectedEmployee('')
           }
         } catch (error) {
           console.error('Failed to get team members:', error)
@@ -68,14 +84,17 @@ export default function TeamTasks() {
     }
 
     initializeSelectedEmployee()
-  }, [currentUser, initialized, selectedEmployee])
+  }, [currentUser, initialized, selectedEmployee, selectedProjectIds])
 
   const loadTeamTasks = async () => {
     if (!currentUser) return
 
     setIsLoading(true)
     try {
-      const members = await getTeamMembers(currentUser.employeeId)
+      let members = await getTeamMembers(currentUser.employeeId)
+      if (selectedProjectIds && selectedProjectIds.length > 0) {
+        members = members.filter(m => m.employeeId === currentUser.employeeId)
+      }
       setTeamMembers(members)
       const tasksData: {[employeeId: string]: Task[]} = {}
 
@@ -84,9 +103,13 @@ export default function TeamTasks() {
           // Try GraphQL first
           try {
             console.log(`🔵 [Team Tasks] Attempting GraphQL query for ${member.employeeId}...`)
-            const data = await executeGraphQLQuery(QUERIES.GET_TASKS, {
-              assignedTo: member.employeeId
-            })
+            const variables: any = {
+              assignedTo: [member.employeeId]
+            }
+            if (selectedProjectIds && selectedProjectIds.length > 0) {
+              variables.projectIds = selectedProjectIds
+            }
+            const data = await executeGraphQLQuery(QUERIES.GET_TASKS, variables)
             tasksData[member.employeeId] = data.tasks || []
             console.log(`✅ [Team Tasks] GraphQL successful: ${tasksData[member.employeeId].length} tasks`)
           } catch (graphqlError) {
@@ -96,7 +119,11 @@ export default function TeamTasks() {
             const response = await fetch(`/api/tasks/user/${member.employeeId}`)
             if (response.ok) {
               const result = await response.json()
-              tasksData[member.employeeId] = result.data || []
+              let memberTasks = result.data || []
+              if (selectedProjectIds && selectedProjectIds.length > 0) {
+                memberTasks = memberTasks.filter((t: any) => t.projectId && selectedProjectIds.includes(t.projectId))
+              }
+              tasksData[member.employeeId] = memberTasks
               console.log(`✅ [Team Tasks] REST successful: ${tasksData[member.employeeId].length} tasks`)
             } else {
               tasksData[member.employeeId] = []

@@ -161,7 +161,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
     setIsUploading(true)
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('files', file)
       formData.append('folder', 'feed')
 
       const response = await fetch('/api/upload', {
@@ -170,9 +170,9 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
       })
 
       const data = await response.json()
-      if (data.success) {
+      if (data.success && data.files && data.files.length > 0) {
         setUploadedFile({
-          url: data.url,
+          url: data.files[0],
           name: file.name,
           size: file.size
         })
@@ -324,6 +324,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
             </label>
             <div className="grid grid-cols-3 gap-2">
               <button
+                type="button"
                 onClick={() => setContentType('text')}
                 className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'text'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
@@ -334,6 +335,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
                 Text
               </button>
               <button
+                type="button"
                 onClick={() => setContentType('link')}
                 className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'link'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
@@ -344,6 +346,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
                 Link
               </button>
               <button
+                type="button"
                 onClick={() => setContentType('image')}
                 className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'image'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
@@ -354,6 +357,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
                 Image
               </button>
               <button
+                type="button"
                 onClick={() => setContentType('youtube')}
                 className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'youtube'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
@@ -364,6 +368,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
                 YouTube
               </button>
               <button
+                type="button"
                 onClick={() => setContentType('pdf')}
                 className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'pdf'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
@@ -374,6 +379,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
                 PDF
               </button>
               <button
+                type="button"
                 onClick={() => setContentType('video')}
                 className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${contentType === 'video'
                     ? 'bg-blue-50 border-blue-500 text-blue-700'
@@ -431,6 +437,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button
+                    type="button"
                     onClick={fetchLinkPreview}
                     disabled={!linkUrl || isFetchingPreview}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300"
@@ -543,6 +550,7 @@ export default function PostCreator({ isOpen, onClose, onPostCreated }: PostCrea
             <div className="flex flex-wrap gap-2">
               {topics.map((topic) => (
                 <button
+                  type="button"
                   key={topic.id}
                   onClick={() => toggleTopic(topic.id)}
                   className={`px-3 py-1 rounded-full text-sm ${selectedTopics.includes(topic.id)

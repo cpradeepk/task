@@ -103,7 +103,7 @@ export default function DailyAttendanceCard() {
             hideGlobalLoading()
         },
         onError: (err) => {
-            console.error('Sign In Error:', err)
+            console.warn('Sign In Error:', err)
             hideGlobalLoading()
             alert(err.message)
         }
@@ -115,7 +115,7 @@ export default function DailyAttendanceCard() {
             hideGlobalLoading()
         },
         onError: (err) => {
-            console.error('Sign Out Error:', err)
+            console.warn('Sign Out Error:', err)
             hideGlobalLoading()
             alert(err.message)
         }
@@ -127,7 +127,7 @@ export default function DailyAttendanceCard() {
             hideGlobalLoading()
         },
         onError: (err) => {
-            console.error('Undo Sign Out Error:', err)
+            console.warn('Undo Sign Out Error:', err)
             hideGlobalLoading()
             alert(err.message)
         }
@@ -150,7 +150,7 @@ export default function DailyAttendanceCard() {
             setEditReason('')
         },
         onError: (err) => {
-            console.error('Request Edit Error:', err)
+            console.warn('Request Edit Error:', err)
             hideGlobalLoading()
             alert(err.message)
         }

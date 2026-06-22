@@ -495,7 +495,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                     onChange={handleInputChange}
                     required
                     className="input-field-with-icon"
-                    placeholder="amtariksha@gmail.com"
+                    placeholder="karmayog@gmail.com"
                   />
                 </div>
               </div>
@@ -587,7 +587,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                     value={formData.managerEmail}
                     onChange={handleInputChange}
                     className="input-field"
-                    placeholder="amtariksha@gmail.com"
+                    placeholder="karmayog@gmail.com"
                   />
                   {isLookingUpManager && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

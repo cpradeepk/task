@@ -12,6 +12,7 @@ import { Task } from '@/lib/types'
 import { getCurrentUser, getUserNameByEmployeeId, getAllUsers } from '@/lib/auth'
 import { hasTabAccess } from '@/lib/permissions'
 import { useLoading } from '@/contexts/LoadingContext'
+import { useProjectFilter } from '@/contexts/ProjectFilterContext'
 import { QUERIES } from '@/lib/graphql-queries'
 import AssigneeList from '@/components/tasks/AssigneeList'
 import HierarchicalTaskRow from '@/components/tasks/HierarchicalTaskRow'
@@ -70,6 +71,7 @@ function ProjectDisplay({ project }: { project?: { projectId: string; projectNam
 }
 
 export default function TasksPage() {
+  const { selectedProjectIds } = useProjectFilter()
   const [tasks, setTasks] = useState<Task[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -136,24 +138,19 @@ export default function TasksPage() {
         // Convert old string filters to arrays if necessary
         setStatusFilter(Array.isArray(filters.statusFilter) ? filters.statusFilter : [])
         setPriorityFilter(Array.isArray(filters.priorityFilter) ? filters.priorityFilter : [])
-        setAssigneeFilter(Array.isArray(filters.assigneeFilter) ? filters.assigneeFilter : (filters.assigneeFilter === 'me' ? ['me'] : []))
         setProjectFilter(filters.projectFilter || 'all')
         setSubprojectFilter(filters.subprojectFilter || 'all')
         if (filters.viewMode === 'grid' || filters.viewMode === 'cards') {
           setViewMode(filters.viewMode)
         }
-      } else {
-        // Set default assignee filter to current user if no saved filters
-        if (currentUser?.employeeId) {
-          setAssigneeFilter([currentUser.employeeId])
-        }
       }
     } catch (error) {
       console.error('Failed to load saved filters:', error)
-      // Set default assignee filter on error
-      if (currentUser?.employeeId) {
-        setAssigneeFilter([currentUser.employeeId])
-      }
+    }
+
+    // Enforce default assignee filter to current user
+    if (user?.employeeId) {
+      setAssigneeFilter([user.employeeId])
     }
 
     // Monitor network status
@@ -265,6 +262,9 @@ export default function TasksPage() {
       if (subprojectFilter && subprojectFilter !== 'all') {
         variables.subprojectId = subprojectFilter
       }
+      if (selectedProjectIds && selectedProjectIds.length > 0) {
+        variables.projectIds = selectedProjectIds
+      }
 
       // Try GraphQL first with pagination and filters
       try {
@@ -293,6 +293,9 @@ export default function TasksPage() {
         if (priorityFilter.length > 0) params.append('priority', priorityFilter.join(','))
         if (projectFilter && projectFilter !== 'all') params.append('projectId', projectFilter)
         if (subprojectFilter && subprojectFilter !== 'all') params.append('subprojectId', subprojectFilter)
+        if (selectedProjectIds && selectedProjectIds.length > 0) {
+          params.append('projectIds', selectedProjectIds.join(','))
+        }
 
         const response = await fetch(`/api/tasks?${params.toString()}`)
         if (!response.ok) {
@@ -357,7 +360,7 @@ export default function TasksPage() {
       setIsLoading(false)
       setIsLoadingMore(false)
     }
-  }, [currentUser, offset, assigneeFilter, statusFilter, priorityFilter, projectFilter, subprojectFilter, tasks, ITEMS_PER_PAGE])
+  }, [currentUser, offset, assigneeFilter, statusFilter, priorityFilter, projectFilter, subprojectFilter, selectedProjectIds, tasks, ITEMS_PER_PAGE])
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -385,7 +388,7 @@ export default function TasksPage() {
 
     console.log('🔵 [Tasks] Filters changed, reloading tasks from beginning...')
     loadTasks(false, false) // Reset to first page
-  }, [statusFilter, priorityFilter, assigneeFilter, projectFilter, subprojectFilter, initialized])
+  }, [statusFilter, priorityFilter, assigneeFilter, projectFilter, subprojectFilter, selectedProjectIds, initialized])
 
   // Intersection Observer for infinite scroll (trigger at 80% scroll)
   useEffect(() => {
@@ -844,20 +847,7 @@ export default function TasksPage() {
               </select>
             </div>
 
-            {/* Assignee Filter */}
-            <div className="w-full relative z-30">
-              <MultiSelect
-                label=""
-                placeholder="Assignee"
-                options={[
-                  { value: 'me', label: 'My Tasks' },
-                  ...users.map(user => ({ value: user.employeeId, label: user.name }))
-                ]}
-                selectedValues={assigneeFilter}
-                onChange={setAssigneeFilter}
-                className="[&_button]:h-[42px]"
-              />
-            </div>
+            {/* Assignee Filter hidden to enforce current user */}
 
             {/* Status Filter */}
             <div className="w-full relative z-20">

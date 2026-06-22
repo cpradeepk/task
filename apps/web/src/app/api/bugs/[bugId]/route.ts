@@ -157,10 +157,9 @@ export async function PUT(
           const recipients = new Set<string>()
           if (bug.assignedTo) recipients.add(bug.assignedTo)
           if (bug.reportedBy) recipients.add(bug.reportedBy)
-          const isSelfBug = bug.assignedTo === userId
-          if (!isSelfBug) {
-            recipients.delete(userId)
-          }
+          
+          // DO NOT notify the person who made the change
+          recipients.delete(userId)
 
           for (const recipientId of Array.from(recipients)) {
             await createNotification({
@@ -182,10 +181,9 @@ export async function PUT(
           const recipients = new Set<string>()
           if (bug.assignedTo) recipients.add(bug.assignedTo)
           if (bug.reportedBy) recipients.add(bug.reportedBy)
-          const isSelfBug = bug.assignedTo === userId
-          if (!isSelfBug) {
-            recipients.delete(userId)
-          }
+          
+          // DO NOT notify the person who made the change
+          recipients.delete(userId)
 
           for (const recipientId of Array.from(recipients)) {
             await createNotification({

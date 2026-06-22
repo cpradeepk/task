@@ -20,9 +20,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { IconButton } from 'react-native-paper'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import {
   GET_FEED_POST,
   CREATE_FEED_COMMENT,
@@ -169,6 +171,25 @@ export default function FeedPostDetailsScreen({ route }: any) {
             <Text style={styles.postTitle}>{post.linkTitle}</Text>
           )}
           <Text style={styles.postContent}>{post.content}</Text>
+
+          {/* Link/Media Rendering */}
+          {(post.contentType === 'link' || post.contentType === 'youtube') && post.linkUrl && (
+            <TouchableOpacity onPress={() => Linking.openURL(post.linkUrl)} style={{ marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <MaterialCommunityIcons name={post.contentType === 'youtube' ? 'youtube' : 'link'} size={24} color={colors.primary} />
+              <Text style={{ color: colors.primary, textDecorationLine: 'underline', fontSize: 16 }}>
+                {post.linkUrl}
+              </Text>
+            </TouchableOpacity>
+          )}
+          
+          {['pdf', 'image', 'video'].includes(post.contentType) && post.mediaUrls && post.mediaUrls.length > 0 && (
+            <TouchableOpacity onPress={() => Linking.openURL(post.mediaUrls[0])} style={{ marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <MaterialCommunityIcons name={post.contentType === 'pdf' ? 'file-pdf-box' : post.contentType === 'image' ? 'image' : 'video'} size={24} color={colors.primary} />
+              <Text style={{ color: colors.primary, textDecorationLine: 'underline', fontSize: 16 }}>
+                View Attached {post.contentType.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* Reactions */}
           <View style={styles.reactionsContainer}>

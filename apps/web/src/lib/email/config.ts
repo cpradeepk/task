@@ -33,7 +33,7 @@ export const EMAIL_CONFIG = {
     logoUrl: process.env.EMAIL_LOGO_URL || '/images/logos/amtariksha_icon.png',
     // Product name shown in emails (Karmayog by Amtariksha Tech Pvt Ltd)
     companyName: 'Karmayog',
-    supportContact: 'contactus@amtariksha.com',
+    supportContact: 'contactus@karmayog.com',
   },
 
   // Feature flags

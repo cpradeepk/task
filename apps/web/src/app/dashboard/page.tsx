@@ -6,6 +6,7 @@ import { getCurrentUser, getAllUsers, getRoleDisplayName } from '@/lib/auth'
 
 import { optimizedDataService } from '@/lib/optimizedDataService'
 import { Task, User, Bug } from '@/lib/types'
+import { useProjectFilter } from '@/contexts/ProjectFilterContext'
 import StatsCard from '@/components/dashboard/StatsCard'
 import UnifiedWorkItemsList from '@/components/dashboard/UnifiedWorkItemsList'
 import TaskWarningAlert from '@/components/TaskWarningAlert'
@@ -60,6 +61,7 @@ async function executeGraphQLQuery(query: string, variables: any) {
 }
 
 export default function Dashboard() {
+  const { selectedProjectIds } = useProjectFilter()
   const [tasks, setTasks] = useState<Task[]>([])
   const [bugs, setBugs] = useState<Bug[]>([])
   const [users, setUsers] = useState<User[]>([])
@@ -76,6 +78,45 @@ export default function Dashboard() {
   const router = useRouter()
   const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading} = useLoading()
+
+  // Filter by selected project IDs from context and scope to current user
+  const filteredTasksByProject = React.useMemo(() => {
+    let filtered = tasks
+    if (selectedProjectIds && selectedProjectIds.length > 0) {
+      filtered = filtered.filter(task => task.projectId && selectedProjectIds.includes(task.projectId))
+      // Enforce current user relationship
+      filtered = filtered.filter(task => {
+        if (!currentUser || !currentUser.employeeId) return false
+        const isAssignedTo = Array.isArray(task.assignedTo)
+          ? task.assignedTo.includes(currentUser.employeeId)
+          : task.assignedTo === currentUser.employeeId
+        const isAssignedBy = task.assignedBy === currentUser.employeeId
+        const isSupport = Array.isArray(task.support)
+          ? task.support.includes(currentUser.employeeId)
+          : task.support === currentUser.employeeId
+        return isAssignedTo || isAssignedBy || isSupport
+      })
+    }
+    return filtered
+  }, [tasks, selectedProjectIds, currentUser])
+
+  const filteredBugsByProject = React.useMemo(() => {
+    let filtered = bugs
+    if (selectedProjectIds && selectedProjectIds.length > 0) {
+      filtered = filtered.filter(bug => bug.projectId && selectedProjectIds.includes(bug.projectId))
+      // Enforce current user relationship
+      filtered = filtered.filter(bug => {
+        if (!currentUser || !currentUser.employeeId) return false
+        const isAssignedTo = Array.isArray(bug.assignedTo)
+          ? bug.assignedTo.includes(currentUser.employeeId)
+          : bug.assignedTo === currentUser.employeeId
+        const isAssignedBy = bug.assignedBy === currentUser.employeeId
+        const isReportedBy = bug.reportedBy === currentUser.employeeId
+        return isAssignedTo || isAssignedBy || isReportedBy
+      })
+    }
+    return filtered
+  }, [bugs, selectedProjectIds, currentUser])
 
   // Handle hydration
   useEffect(() => {
@@ -570,12 +611,14 @@ export default function Dashboard() {
     )
   }
 
+  // Already computed at the top to satisfy React's Rule of Hooks
+
   // For non-admin users, show the original task-based dashboard
   // Calculate statistics for ALL tasks (not filtered by employee)
-  const allTasksCount = tasks.length
+  const allTasksCount = filteredTasksByProject.length
 
   // Calculate statistics for current user's tasks (assigned to OR created by current user)
-  const myTasks = tasks.filter(task => {
+  const myTasks = filteredTasksByProject.filter(task => {
     const isAssignedTo = Array.isArray(task.assignedTo)
       ? task.assignedTo.includes(currentUser.employeeId)
       : task.assignedTo === currentUser.employeeId
@@ -592,9 +635,9 @@ export default function Dashboard() {
     let filteredTasks: typeof tasks = []
 
     // Apply "My Tasks Only" filter first
-    let baseTasks = tasks
+    let baseTasks = filteredTasksByProject
     if (myTasksOnly) {
-      baseTasks = tasks.filter(task => {
+      baseTasks = filteredTasksByProject.filter(task => {
         return Array.isArray(task.assignedTo)
           ? task.assignedTo.includes(currentUser.employeeId)
           : task.assignedTo === currentUser.employeeId
@@ -734,23 +777,25 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* My Tasks Checkbox */}
-          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-4">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={myTasksOnly}
-                onChange={(e) => setMyTasksOnly(e.target.checked)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-              />
-              <span className="text-sm font-medium text-gray-700">
-                My Tasks Only
-              </span>
-              <span className="text-xs text-gray-500">
-                (Show only tasks assigned to me)
-              </span>
-            </label>
-          </div>
+          {/* My Tasks Checkbox - hidden when project is selected since it's already user-scoped */}
+          {(!selectedProjectIds || selectedProjectIds.length === 0) && (
+            <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={myTasksOnly}
+                  onChange={(e) => setMyTasksOnly(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  My Tasks Only
+                </span>
+                <span className="text-xs text-gray-500">
+                  (Show only tasks assigned to me)
+                </span>
+              </label>
+            </div>
+          )}
 
           {/* Statistics Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -804,7 +849,7 @@ export default function Dashboard() {
           {/* Unified Work Items (Tasks + Bugs) */}
           <UnifiedWorkItemsList
             tasks={displayTasks}
-            bugs={bugs}
+            bugs={filteredBugsByProject}
             title="Recent Work Items (Tasks & Bugs)"
             showAssignee={false}
             allowEdit={true}

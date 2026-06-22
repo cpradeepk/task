@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     StyleSheet,
+    Linking,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQuery, useMutation } from '@apollo/client/react'
@@ -54,7 +55,7 @@ export default function FeedScreen({ navigation }: any) {
             limit: 20,
             offset: 0
         },
-        fetchPolicy: 'cache-and-network',
+        fetchPolicy: 'cache-first',
     })
 
     const topics = (topicsData as any)?.feedTopics || []
@@ -216,6 +217,25 @@ export default function FeedScreen({ navigation }: any) {
                             <Text style={styles.postContent} numberOfLines={3}>
                                 {post.content}
                             </Text>
+
+                            {/* Link/Media Rendering */}
+                            {(post.contentType === 'link' || post.contentType === 'youtube') && post.linkUrl && (
+                                <TouchableOpacity onPress={() => Linking.openURL(post.linkUrl)} style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                    <MaterialCommunityIcons name={post.contentType === 'youtube' ? 'youtube' : 'link'} size={20} color={colors.primary} />
+                                    <Text style={{ color: colors.primary, textDecorationLine: 'underline' }} numberOfLines={1}>
+                                        {post.linkUrl}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                            
+                            {['pdf', 'image', 'video'].includes(post.contentType) && post.mediaUrls && post.mediaUrls.length > 0 && (
+                                <TouchableOpacity onPress={() => Linking.openURL(post.mediaUrls[0])} style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                    <MaterialCommunityIcons name={post.contentType === 'pdf' ? 'file-pdf-box' : post.contentType === 'image' ? 'image' : 'video'} size={20} color={colors.primary} />
+                                    <Text style={{ color: colors.primary, textDecorationLine: 'underline' }}>
+                                        View Attached {post.contentType.toUpperCase()}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
 
                             {/* Post Stats */}
                             <View style={styles.postStats}>

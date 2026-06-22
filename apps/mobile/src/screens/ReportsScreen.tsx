@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, IconButton, Divider, Chip } from 'react-native-paper'
 import { useTheme } from '../contexts/ThemeContext'
+import { useProjectFilter } from '../contexts/ProjectFilterContext'
 import { useNavigation } from '@react-navigation/native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { getUserData } from '../utils/secureStorage'
@@ -34,6 +35,7 @@ class DateUtils {
 }
 
 export default function ReportsScreen() {
+  const { selectedProjectIds } = useProjectFilter()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const navigation = useNavigation()
@@ -90,7 +92,11 @@ export default function ReportsScreen() {
 
       // Fetch tasks (needed for daily & team & monthly)
       const tasksRes = await apiClient.get('/api/tasks?scopeByUserProjects=true&limit=1000')
-      const tasks: any[] = (tasksRes && tasksRes.success ? tasksRes.data : tasksRes) || []
+      let tasks: any[] = (tasksRes && tasksRes.success ? tasksRes.data : tasksRes) || []
+
+      if (selectedProjectIds && selectedProjectIds.length > 0) {
+        tasks = tasks.filter(task => task.projectId && selectedProjectIds.includes(task.projectId))
+      }
 
       const targetDateStr = selectedDate.toISOString().split('T')[0]
 
@@ -153,7 +159,11 @@ export default function ReportsScreen() {
           })
         })
 
-        setDailyReports(reports.filter(r => r.totalTasks > 0 || r.hoursWorked > 0))
+        let filteredDaily = reports.filter(r => r.totalTasks > 0 || r.hoursWorked > 0)
+        if (selectedProjectIds && selectedProjectIds.length > 0 && currentUser?.employeeId) {
+          filteredDaily = filteredDaily.filter(r => r.employeeId === currentUser.employeeId)
+        }
+        setDailyReports(filteredDaily)
 
       } else if (reportType === 'monthly') {
         // Fetch leaves & wfh
@@ -204,7 +214,11 @@ export default function ReportsScreen() {
           })
         })
 
-        setMonthlyReports(reports)
+        let filteredMonthly = reports
+        if (selectedProjectIds && selectedProjectIds.length > 0 && currentUser?.employeeId) {
+          filteredMonthly = filteredMonthly.filter(r => r.employeeId === currentUser.employeeId)
+        }
+        setMonthlyReports(filteredMonthly)
 
       } else if (reportType === 'team') {
         // Find tasks on date
@@ -235,7 +249,11 @@ export default function ReportsScreen() {
           }
         })
 
-        setTeamReports(reports)
+        let filteredTeam = reports
+        if (selectedProjectIds && selectedProjectIds.length > 0 && currentUser?.employeeId) {
+          filteredTeam = filteredTeam.filter(r => r.employeeId === currentUser.employeeId || r.employeeName === currentUser.name)
+        }
+        setTeamReports(filteredTeam)
       }
 
     } catch (err) {

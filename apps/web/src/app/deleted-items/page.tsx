@@ -11,6 +11,7 @@ import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser, getUserNameByEmployeeId } from '@/lib/auth'
 import { hasTabAccess } from '@/lib/permissions'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { useProjectFilter } from '@/contexts/ProjectFilterContext'
 import {
   Trash2,
   RotateCcw,
@@ -68,6 +69,7 @@ function UserName({ employeeId }: { employeeId: string }) {
 
 export default function DeletedItemsPage() {
   const router = useRouter()
+  const { selectedProjectIds } = useProjectFilter()
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([])
@@ -208,9 +210,16 @@ export default function DeletedItemsPage() {
     }
   }
 
-  const filteredItems = filterType === 'all' 
+  let filteredItems = filterType === 'all' 
     ? deletedItems 
     : deletedItems.filter(item => item.itemType === filterType)
+
+  if (selectedProjectIds && selectedProjectIds.length > 0) {
+    filteredItems = filteredItems.filter(item => {
+      const pId = item.projectId || (item.itemType === 'project' ? String(item.id) : undefined)
+      return pId && selectedProjectIds.includes(pId)
+    })
+  }
 
   if (loading) {
     return (

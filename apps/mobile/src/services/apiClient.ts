@@ -60,7 +60,18 @@ export const apiRequest = async <T = any>(
     }
 
     // Parse response
-    const data = await response.json()
+    let data;
+    try {
+      const text = await response.text();
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error(`API Error: ${endpoint} returned non-JSON. Text preview: ${text.substring(0, 100)}`);
+        throw new Error(`JSON Parse Error for ${endpoint}`);
+      }
+    } catch (e) {
+      throw e;
+    }
 
     return data
   } catch (error) {

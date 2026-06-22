@@ -48,6 +48,7 @@ export default function BugDetailsScreen() {
   const [comments, setComments] = useState<BugComment[]>([])
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [newComment, setNewComment] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [quickActionsVisible, setQuickActionsVisible] = useState(false)
@@ -62,6 +63,7 @@ export default function BugDetailsScreen() {
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
+      setError(null)
       const user = await getCurrentUser()
       setCurrentUser(user)
 
@@ -86,6 +88,8 @@ export default function BugDetailsScreen() {
           )
           return
         }
+        // Handle other errors (like "Not found")
+        setError(bugResponse.error || 'Failed to load bug details')
       }
 
       if (commentsResponse.success && commentsResponse.data) {
@@ -224,6 +228,17 @@ export default function BugDetailsScreen() {
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading bug details...</Text>
       </View>
+    )
+  }
+
+  if (error) {
+    return (
+      <Surface style={styles.errorContainer} elevation={0}>
+        <Text style={styles.errorText}>{error}</Text>
+        <Button mode="contained" onPress={loadData} style={{ marginTop: 16 }}>
+          Retry
+        </Button>
+      </Surface>
     )
   }
 
@@ -408,7 +423,7 @@ export default function BugDetailsScreen() {
               <Surface style={styles.timeItem} elevation={0}>
                 <Text style={styles.timeLabel}>Timer</Text>
                 <Text style={styles.timeValue}>
-                  {formatTime(bug.timerTotalTime)}
+                  0:00
                 </Text>
               </Surface>
               <Surface style={styles.timeItem} elevation={0}>
@@ -591,8 +606,8 @@ export default function BugDetailsScreen() {
               Comments ({comments.length})
             </Text>
             <Divider style={styles.divider} />
-            {comments.map((comment) => (
-              <Surface key={comment.id} style={styles.comment} elevation={0}>
+            {comments.map((comment, index) => (
+              <Surface key={index} style={styles.comment} elevation={0}>
                 <Text style={styles.commentUser}>{comment.userId}</Text>
                 <Text style={styles.commentText}>{comment.comment}</Text>
                 <Text style={styles.commentTime}>

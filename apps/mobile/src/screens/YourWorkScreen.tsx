@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { Card, Text, Button, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Chip } from 'react-native-paper'
 import { useTheme } from '../contexts/ThemeContext'
+import { useProjectFilter } from '../contexts/ProjectFilterContext'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { getUserData } from '../utils/secureStorage'
@@ -37,6 +38,7 @@ interface Task {
 }
 
 export default function YourWorkScreen() {
+  const { selectedProjectIds } = useProjectFilter()
   const { colors } = useTheme()
   const responsive = useResponsive()
   const styles = useMemo(() => getStyles(colors, responsive), [colors, responsive])
@@ -123,11 +125,20 @@ export default function YourWorkScreen() {
 
   // Filter tasks worked on selected date
   const filteredTasks = useMemo(() => {
-    return tasks.filter(task => {
+    let result = tasks.filter(task => {
       const hours = getHoursForDate(formattedSelectedDate, task.dailyHours)
       return hours > 0
     })
-  }, [tasks, formattedSelectedDate])
+
+    if (selectedProjectIds && selectedProjectIds.length > 0) {
+      result = result.filter(task => {
+        const pId = (task as any).projectId
+        return pId && selectedProjectIds.includes(pId)
+      })
+    }
+
+    return result
+  }, [tasks, formattedSelectedDate, selectedProjectIds])
 
   const totalHoursWorked = useMemo(() => {
     return filteredTasks.reduce((sum, task) => {

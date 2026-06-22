@@ -7,9 +7,13 @@ import { DateUtils } from './dateUtils'
 // Helper functions to fetch data from APIs
 // Reports are scoped to the user's accessible projects via the scopeByUserProjects flag.
 // Server enforces this for non-admin/non-top_management users.
-async function fetchTasks(): Promise<Task[]> {
+async function fetchTasks(projectIds?: string[]): Promise<Task[]> {
   try {
-    const response = await fetch('/api/tasks?scopeByUserProjects=true')
+    let url = '/api/tasks?scopeByUserProjects=true'
+    if (projectIds && projectIds.length > 0) {
+      url += `&projectIds=${projectIds.join(',')}`
+    }
+    const response = await fetch(url)
     const result = await response.json()
     return result.success ? result.data : []
   } catch (error) {
@@ -41,8 +45,8 @@ async function fetchWFHApplications(): Promise<WFHApplication[]> {
 }
 
 // Daily Performance Report
-export async function generateDailyReport(date: string): Promise<DailyReport[]> {
-  const tasks = await fetchTasks()
+export async function generateDailyReport(date: string, projectIds?: string[]): Promise<DailyReport[]> {
+  const tasks = await fetchTasks(projectIds)
   const users = await getAllUsers()
   const reports: DailyReport[] = []
 
@@ -111,11 +115,11 @@ export async function generateDailyReport(date: string): Promise<DailyReport[]> 
 }
 
 // Monthly Summary Report
-export async function generateMonthlyReport(month: string, year: number): Promise<MonthlyReport[]> {
+export async function generateMonthlyReport(month: string, year: number, projectIds?: string[]): Promise<MonthlyReport[]> {
   const users = await getAllUsers()
   const leaveApplications = await fetchLeaveApplications()
   const wfhApplications = await fetchWFHApplications()
-  const tasks = await fetchTasks()
+  const tasks = await fetchTasks(projectIds)
   const reports: MonthlyReport[] = []
 
   users.forEach(user => {
@@ -164,8 +168,8 @@ export async function generateMonthlyReport(month: string, year: number): Promis
 }
 
 // Team Task Overview Report
-export async function generateTeamTaskReport(date: string, managerId?: string): Promise<any> {
-  const tasks = await fetchTasks()
+export async function generateTeamTaskReport(date: string, managerId?: string, projectIds?: string[]): Promise<any> {
+  const tasks = await fetchTasks(projectIds)
   const users = await getAllUsers()
   
   // Filter tasks for the specific date
