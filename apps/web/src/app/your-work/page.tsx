@@ -111,12 +111,6 @@ export default function YourWork() {
       return
     }
 
-    // Only amtariksians can access this page
-    if (currentUser.role !== 'amtarikshian') {
-      router.push('/dashboard')
-      return
-    }
-
     if (!initialized) {
       loadTasks()
       setInitialized(true)
@@ -197,19 +191,7 @@ export default function YourWork() {
 
   if (!currentUser) return null
 
-  if (currentUser.role !== 'amtarikshian') {
-    return (
-      <div>
-        <Navbar />
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-black mb-4">Access Denied</h1>
-            <p className="text-gray-600">This page is only available for amtariksians.</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
+
 
   const totalHours = calculateTotalHours()
   const tasksCompleted = getTasksCompletedOnDate()
