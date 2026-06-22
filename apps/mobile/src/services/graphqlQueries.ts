@@ -171,8 +171,8 @@ export const QUERIES = {
         actualHours
         createdAt
         updatedAt
-        resolvedAt
-        closedAt
+        resolvedDate
+        reportedDate
       }
     }
   `,
@@ -203,8 +203,8 @@ export const QUERIES = {
         actualHours
         createdAt
         updatedAt
-        resolvedAt
-        closedAt
+        resolvedDate
+        reportedDate
         subtasks {
           id
           parentBugId
