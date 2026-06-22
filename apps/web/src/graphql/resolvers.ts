@@ -21,14 +21,21 @@ const getISTDate = (date: Date = new Date()) => addMinutes(date, 330) // UTC + 5
 
 // Helper to get start/end of day in IST, converted back to UTC for DB query
 const getISTDayRangeInUTC = (date: Date) => {
-  const istDate = getISTDate(date)
-  const istStart = startOfDay(istDate)
-  const istEnd = endOfDay(istDate)
-  // Convert back to UTC: subtract 330 minutes
-  return {
-    start: addMinutes(istStart, -330),
-    end: addMinutes(istEnd, -330)
-  }
+    const utcTime = date.getTime()
+    const istTime = utcTime + (330 * 60 * 1000)
+    const istDate = new Date(istTime)
+    
+    const y = istDate.getUTCFullYear()
+    const m = istDate.getUTCMonth()
+    const d = istDate.getUTCDate()
+    
+    const istStart = new Date(Date.UTC(y, m, d, 0, 0, 0, 0))
+    const istEnd = new Date(Date.UTC(y, m, d, 23, 59, 59, 999))
+    
+    return {
+      start: new Date(istStart.getTime() - (330 * 60 * 1000)),
+      end: new Date(istEnd.getTime() - (330 * 60 * 1000))
+    }
 }
 
 // Lazy-load pool to avoid database connection during build time
