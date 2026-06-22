@@ -43,7 +43,7 @@ export default function BugChecklistManager({
 
     const fetchChecklists = async () => {
         try {
-            const data = await apiClient.get(`/api/bug-checklists?bugId=${bugId}`)
+            const data = await apiClient.get(`/api/development-checklists?parentBugId=${bugId}`)
             if (data.success) {
                 setChecklists(data.data || [])
             }
@@ -59,10 +59,11 @@ export default function BugChecklistManager({
 
         setIsAdding(true)
         try {
-            const data = await apiClient.post('/api/bug-checklists', {
-                bugId,
-                itemText: newItemText.trim(),
-                isCompleted: false,
+            const data = await apiClient.post('/api/development-checklists', {
+                parentBugId: bugId,
+                description: newItemText.trim(),
+                assignedTo: 'current', // Backend might require this, check if it fails
+                createdBy: 'current', // Will be handled by session or API
             })
             if (data.success) {
                 setNewItemText('')
@@ -80,7 +81,7 @@ export default function BugChecklistManager({
 
     const handleToggleItem = async (item: ChecklistItem) => {
         try {
-            const data = await apiClient.put(`/api/bug-checklists/${item.id}`, {
+            const data = await apiClient.put(`/api/development-checklists/${item.id}`, {
                 isCompleted: !item.isCompleted,
             })
             if (data.success) {
@@ -105,7 +106,7 @@ export default function BugChecklistManager({
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const data = await apiClient.del(`/api/bug-checklists/${itemId}`)
+                            const data = await apiClient.del(`/api/development-checklists/${itemId}`)
                             if (data.success) {
                                 await fetchChecklists()
                             } else {
@@ -163,49 +164,49 @@ export default function BugChecklistManager({
             )}
 
             {/* Checklist Items */}
-            <ScrollView style={styles.list}>
-                {checklists.length === 0 ? (
-                    <View style={styles.emptyContainer}>
-                        <MaterialCommunityIcons
-                            name="checkbox-marked-circle-outline"
-                            size={48}
-                            color={materialColors.textSecondary}
-                        />
-                        <Text style={styles.emptyText}>No checklist items yet</Text>
-                    </View>
-                ) : (
-                    checklists.map((item, index) => (
-                        <View key={item.id}>
-                            <View style={styles.checklistItem}>
-                                <Checkbox
-                                    status={item.isCompleted ? 'checked' : 'unchecked'}
-                                    onPress={() => canEdit && handleToggleItem(item)}
-                                    color={materialColors.primary}
-                                    disabled={!canEdit}
+        <ScrollView style={styles.list}>
+            {checklists.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                    <MaterialCommunityIcons
+                        name="checkbox-marked-circle-outline"
+                        size={48}
+                        color={materialColors.textSecondary}
+                    />
+                    <Text style={styles.emptyText}>No checklist items yet</Text>
+                </View>
+            ) : (
+                checklists.map((item, index) => (
+                    <View key={item.id}>
+                        <View style={styles.checklistItem}>
+                            <Checkbox
+                                status={item.isCompleted ? 'checked' : 'unchecked'}
+                                onPress={() => canEdit && handleToggleItem(item)}
+                                color={materialColors.primary}
+                                disabled={!canEdit}
+                            />
+                            <Text
+                                style={[
+                                    styles.itemText,
+                                    item.isCompleted && styles.itemTextCompleted,
+                                ]}
+                                numberOfLines={2}
+                            >
+                                {item.description || (item as any).itemText}
+                            </Text>
+                            {canEdit && (
+                                <IconButton
+                                    icon="delete"
+                                    size={20}
+                                    iconColor={materialColors.error}
+                                    onPress={() => handleDeleteItem(item.id)}
                                 />
-                                <Text
-                                    style={[
-                                        styles.itemText,
-                                        item.isCompleted && styles.itemTextCompleted,
-                                    ]}
-                                    numberOfLines={2}
-                                >
-                                    {item.itemText}
-                                </Text>
-                                {canEdit && (
-                                    <IconButton
-                                        icon="delete"
-                                        size={20}
-                                        iconColor={materialColors.error}
-                                        onPress={() => handleDeleteItem(item.id)}
-                                    />
-                                )}
-                            </View>
-                            {index < checklists.length - 1 && <Divider />}
+                            )}
                         </View>
-                    ))
-                )}
-            </ScrollView>
+                        {index < checklists.length - 1 && <Divider />}
+                    </View>
+                ))
+            )}
+        </ScrollView>
         </View>
     )
 }

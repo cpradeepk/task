@@ -32,7 +32,7 @@ export interface Bug {
   updatedAt: string
   resolvedAt?: string
   closedAt?: string
-  timerTotalTime?: number
+  
   actualHours?: number
   // Additional fields surfaced by the web schema
   type?: 'testcase' | 'feature' | 'bug' | 'other' | null
@@ -99,7 +99,16 @@ export const getBugById = async (bugId: string): Promise<ApiResponse<Bug>> => {
   ).then(response => {
     if (response.success && response.data) {
       // GraphQL returns bug directly, REST returns { data: bug }
-      const bug = (response.data as any).bug || response.data
+      let bug = (response.data as any).bug
+      if (bug === undefined) {
+        bug = response.data
+      }
+      
+      // If bug is explicitly null (e.g. not found), return success: false or data: null
+      if (bug === null) {
+        return { success: false, error: 'Bug not found' }
+      }
+      
       return { success: true, data: bug }
     }
     return response
@@ -120,7 +129,16 @@ export const updateBug = async (
   bugId: string,
   updates: Partial<Bug>
 ): Promise<ApiResponse<Bug>> => {
-  return patch<Bug>(API_ENDPOINTS.BUG_BY_ID(bugId), updates)
+  const result = await executeGraphQLWithFallback<any>(
+    QUERIES.UPDATE_BUG,
+    { bugId, input: updates },
+    async () => patch<Bug>(API_ENDPOINTS.BUG_BY_ID(bugId), updates)
+  )
+  
+  if (result.success && result.data && result.data.updateBug) {
+    return { success: true, data: result.data.updateBug }
+  }
+  return result as ApiResponse<Bug>
 }
 
 /**
@@ -141,8 +159,8 @@ export const addBugComment = async (
   userId: string
 ): Promise<ApiResponse<BugComment>> => {
   return post<BugComment>(API_ENDPOINTS.BUG_COMMENTS(bugId), {
-    comment,
-    userId,
+    commentText: comment,
+    commentedBy: userId,
   })
 }
 
@@ -189,12 +207,12 @@ export const deleteBugSubtask = async (
  */
 export const syncTimerTime = async (
   bugId: string,
-  timerTotalTime: number
+  
 ): Promise<ApiResponse<void>> => {
   return post(API_ENDPOINTS.TIME_TRACKING_SYNC, {
     itemId: bugId,
     itemType: 'bug',
-    timerTotalTime,
+    
   })
 }
 

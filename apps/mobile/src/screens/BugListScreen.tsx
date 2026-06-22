@@ -153,9 +153,6 @@ export default function BugListScreen() {
     setBugs(updateStatus(bugs))
     setFilteredBugs(updateStatus(filteredBugs))
 
-    // Display instant feedback toast
-    Alert.alert('Success', `Bug updated to ${newStatus}`)
-
     try {
       const res = await updateBug(item.bugId, { status: newStatus })
       if (!res.success) {

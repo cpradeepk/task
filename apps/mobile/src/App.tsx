@@ -8,6 +8,7 @@ import LoginScreen from './screens/LoginScreen'
 import PinSetupScreen from './screens/PinSetupScreen'
 import PinLockScreen from './screens/PinLockScreen'
 import DashboardScreen from './screens/DashboardScreen'
+import HomeScreen from './screens/HomeScreen'
 import BugListScreen from './screens/BugListScreen'
 import BugDetailsScreen from './screens/BugDetailsScreen'
 import CreateBugScreen from './screens/CreateBugScreen'
@@ -129,9 +130,9 @@ function BottomTabNavigator({ toggleDrawer }: { toggleDrawer: () => void }) {
         name="HomeTab"
         component={DashboardScreen}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: 'Dashboard',
           tabBarIcon: ({ focused }) => (
-            <MaterialCommunityIcons name="home" size={25} color={focused ? materialColors.primary : '#748c94'} />
+            <MaterialCommunityIcons name="view-dashboard" size={25} color={focused ? materialColors.primary : '#748c94'} />
           )
         }}
       />
@@ -356,7 +357,7 @@ function SplashScreenView() {
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center' }}>
       <Image 
-        source={require('../assets/splash.png')} 
+        source={require('../assets/amtariksha_logo.png')} 
         style={{ width: '100%', height: '100%', resizeMode: 'contain' }} 
       />
     </View>
@@ -709,7 +710,7 @@ function AppContent() {
             // Check if PIN setup is required
             const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
             if (storedPin) {
-              setIsAppLocked(false)
+              setIsAppLocked(true) // Lock the app so they have to enter the PIN
               setIsPinSetupNeeded(false)
             } else {
               setIsPinSetupNeeded(true)
@@ -857,9 +858,9 @@ function AppContent() {
                   </Stack.Screen>
                 ) : (
                   <>
-                     <Stack.Screen name="Main" options={{ headerShown: false }}>
-                      {() => <BottomTabNavigator toggleDrawer={openDrawer} />}
-                    </Stack.Screen>
+                    <Stack.Screen name="Main" options={{ headerShown: false }}>
+                    {() => <BottomTabNavigator toggleDrawer={openDrawer} />}
+                  </Stack.Screen>
 
                     {/* Task Screens */}
                     <Stack.Screen

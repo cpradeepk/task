@@ -262,11 +262,15 @@ export async function getTasksByEmployeeId(employee_id: string): Promise<Task[]>
        AND (
          assigned_by = $1
          OR EXISTS (
-           SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
+           SELECT 1 FROM jsonb_array_elements_text(
+             CASE WHEN assigned_to IS NULL OR assigned_to::text = '' OR assigned_to::text = 'null' THEN '[]'::jsonb ELSE assigned_to::jsonb END
+           ) AS elem
            WHERE elem = $1
          )
          OR EXISTS (
-           SELECT 1 FROM jsonb_array_elements_text(support) AS elem
+           SELECT 1 FROM jsonb_array_elements_text(
+             CASE WHEN support IS NULL OR support::text = '' OR support::text = 'null' THEN '[]'::jsonb ELSE support::jsonb END
+           ) AS elem
            WHERE elem = $1
          )
        )
@@ -317,7 +321,9 @@ export async function getSupportTasksForEmployee(employee_id: string): Promise<T
       `SELECT * FROM tasks
        WHERE deleted_at IS NULL
        AND EXISTS (
-         SELECT 1 FROM jsonb_array_elements_text(support) AS elem
+         SELECT 1 FROM jsonb_array_elements_text(
+           CASE WHEN support IS NULL OR support::text = '' OR support::text = 'null' THEN '[]'::jsonb ELSE support::jsonb END
+         ) AS elem
          WHERE elem = $1
        )
        ORDER BY created_at DESC`,

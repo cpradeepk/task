@@ -24,7 +24,7 @@ export const QUERIES = {
           actualHours
           projectId
           subprojectId
-          timerTotalTime
+          
           createdAt
           updatedAt
         }
@@ -41,7 +41,7 @@ export const QUERIES = {
           assignedTo
           projectId
           subprojectId
-          timerTotalTime
+          
           actualHours
           createdAt
           updatedAt
@@ -84,11 +84,10 @@ export const QUERIES = {
         projectId
         subprojectId
         status
-        attachments
         relatedTasks
         remarks
         difficulties
-        timerTotalTime
+        
         meetingLink
         meetingReminder
         startTime
@@ -119,11 +118,10 @@ export const QUERIES = {
         projectId
         subprojectId
         status
-        attachments
         relatedTasks
         remarks
         difficulties
-        timerTotalTime
+        
         meetingLink
         meetingReminder
         startTime
@@ -164,12 +162,12 @@ export const QUERIES = {
         projectId
         subprojectId
         environment
-        browser
+        browserInfo
         device
         relatedBugs
         attachments
-        videoUrl
-        timerTotalTime
+        
+        
         actualHours
         createdAt
         updatedAt
@@ -196,12 +194,12 @@ export const QUERIES = {
         projectId
         subprojectId
         environment
-        browser
+        browserInfo
         device
         relatedBugs
         attachments
-        videoUrl
-        timerTotalTime
+        
+        
         actualHours
         createdAt
         updatedAt

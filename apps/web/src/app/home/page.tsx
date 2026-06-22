@@ -5,6 +5,7 @@ import { useQuery } from '@apollo/client/react'
 import { gql } from '@apollo/client'
 import { format } from 'date-fns'
 import Navbar from '@/components/layout/Navbar'
+import UnifiedWorkItemsList from '@/components/dashboard/UnifiedWorkItemsList'
 import DailyAttendanceCard from '@/components/home/DailyAttendanceCard'
 import SummaryCards from '@/components/home/SummaryCards'
 import CalendarWidget from '@/components/home/CalendarWidget'
@@ -110,6 +111,16 @@ export default function HomePage() {
             skip: !hasAttendanceDashboardAccess || activeTab !== 'attendance'
         }
     )
+
+    const { data: dashData } = useQuery(gql(QUERIES.GET_DASHBOARD), {
+        variables: { employeeId: currentUser?.employeeId, role: currentUser?.role },
+        skip: !currentUser,
+        pollInterval: 60000
+    })
+
+    const handleTaskUpdate = () => {
+        // Apollo will handle cache updates, but we could trigger refetch here if needed
+    }
 
     if (loading && !data) {
         return (
@@ -262,22 +273,15 @@ export default function HomePage() {
                                     totalWFHApproved={totalWFHApproved}
                                 />
 
-                                {/* Additional Quick Stats or Charts could go here */}
-                                <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Weekly Activity</h3>
-                                    <div className="h-32 flex items-end justify-between space-x-2">
-                                        {[65, 80, 75, 90, 85, 40, 30].map((h, i) => (
-                                            <div key={i} className="w-full bg-blue-100 rounded-t-lg relative group">
-                                                <div
-                                                    className="absolute bottom-0 left-0 right-0 bg-blue-500 rounded-t-lg transition-all duration-500"
-                                                    style={{ height: `${h}%` }}
-                                                ></div>
-                                                <div className="absolute -bottom-6 left-0 right-0 text-center text-xs text-gray-500">
-                                                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                <div className="mt-6">
+                                    <UnifiedWorkItemsList
+                                        tasks={dashData?.dashboard?.tasks || []}
+                                        bugs={dashData?.dashboard?.bugs || []}
+                                        title="Recent Work Items"
+                                        showAssignee={false}
+                                        allowEdit={true}
+                                        onTaskUpdate={handleTaskUpdate}
+                                    />
                                 </div>
                             </div>
                         </div>

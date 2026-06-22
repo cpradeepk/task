@@ -249,6 +249,13 @@ export default function TeamTasksScreen() {
             </View>
           ) : null}
 
+          {item.support && item.support.length > 0 ? (
+            <View style={[styles.logBox, { backgroundColor: colors.surfaceVariant }]}>
+              <Text style={[styles.logLabel, { color: colors.primary }]}>Support Members:</Text>
+              <Text style={styles.logText}>{item.support.join(', ')}</Text>
+            </View>
+          ) : null}
+
           {showProgressBtn && (
             <Button
               mode="contained"

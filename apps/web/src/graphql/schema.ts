@@ -44,6 +44,10 @@ export const typeDefs = `#graphql
     parentTaskId: String
     department: String
     timerState: String
+    timerStartTime: String
+    timerPausedTime: Int
+    timerTotalTime: Int
+    timerSessions: String
     deletedAt: String
     deletedBy: String
     meetingLink: String
@@ -130,6 +134,7 @@ export const typeDefs = `#graphql
     subprojectId: String
     relatedBugs: String
     platform: String
+    device: String
     type: String
     feature: String
     environment: String
@@ -644,6 +649,7 @@ export const typeDefs = `#graphql
     description: String
     category: String
     severity: String
+    priority: String
     status: String
     assignedTo: String
     estimatedHours: Float

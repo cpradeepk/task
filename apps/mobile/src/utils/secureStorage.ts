@@ -128,8 +128,6 @@ export async function clearSecureData(): Promise<void> {
     await Promise.all([
       deleteSecure(SECURE_KEYS.USER_TOKEN),
       deleteSecure(SECURE_KEYS.USER_DATA),
-      deleteSecure(SECURE_KEYS.USER_PIN),
-      deleteSecure(SECURE_KEYS.BIOMETRIC_ENABLED),
     ])
   } catch (error) {
     console.error('Failed to clear secure data:', error)

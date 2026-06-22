@@ -201,12 +201,12 @@ export function logOperationError(
   // Network errors
   if (error.networkError) {
     console.log(`%c${emoji.warning} Network Error:`, 'color: #f59e0b; font-weight: bold;')
-    console.error(error.networkError)
+    console.warn(error.networkError)
   }
 
   // Full error object
   console.log('%c🔍 Full Error Object:', 'color: #6b7280; font-weight: bold;')
-  console.error(error)
+  console.log(error)
 
   // Stack trace
   if (error.stack) {

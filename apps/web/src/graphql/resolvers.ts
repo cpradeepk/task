@@ -231,9 +231,13 @@ export const resolvers = {
         let paramIndex = 1
 
         if (filters.assignedTo && filters.assignedTo.length > 0) {
-          // assigned_to is JSONB array, check if any of filter values exist in it (Intersection)
-          query += ` AND assigned_to::jsonb ?| $${paramIndex++}`
+          // assigned_to and support are JSONB arrays
+          query += ` AND (
+            assigned_to::jsonb ?| $${paramIndex} OR
+            (CASE WHEN support IS NULL OR support::text = 'null' OR support::text = '' THEN '[]'::jsonb ELSE support::jsonb END) ?| $${paramIndex}
+          )`
           params.push(filters.assignedTo)
+          paramIndex++
         }
         if (filters.assignedBy && filters.assignedBy.length > 0) {
           query += ` AND assigned_by = ANY($${paramIndex++})`
@@ -486,16 +490,35 @@ export const resolvers = {
 
     // Attendance & Leaves
     attendance: async (_: any, { date, userId }: any, { user }: any) => {
-      if (!user) throw new Error('Unauthorized')
+        if (!user) throw new Error('Unauthorized')
+  
+        const targetUserId = userId || user.employeeId
+        const now = new Date()
+        const { start, end } = getISTDayRangeInUTC(now)
 
-      const targetUserId = userId || user.employeeId
-      const targetDate = date || new Date().toISOString().split('T')[0]
+        // 1. Try to find an active attendance session for today in IST
+        // This fixes the UTC vs IST date mismatch where the frontend asks for "yesterday's" UTC date
+        // but the backend inserted the record with "today's" IST date.
+        const activeResult = await getPoolInstance().query(
+          `SELECT * FROM attendance_logs 
+           WHERE employee_id = $1 
+           AND sign_in_time >= $2 
+           AND sign_in_time <= $3
+           LIMIT 1`,
+          [targetUserId, start, end]
+        )
+        
+        let record = activeResult.rows[0]
 
-      const recordResult = await getPoolInstance().query(
-        'SELECT * FROM attendance_logs WHERE employee_id = $1 AND date = $2',
-        [targetUserId, targetDate]
-      )
-      const record = recordResult.rows[0]
+        // 2. Fallback to exact date matching if no active session found
+        let targetDate = date || now.toISOString().split('T')[0]
+        if (!record) {
+          const recordResult = await getPoolInstance().query(
+            'SELECT * FROM attendance_logs WHERE employee_id = $1 AND date = $2',
+            [targetUserId, targetDate]
+          )
+          record = recordResult.rows[0]
+        }
 
       // Return null if no attendance record exists (fixes the 05:30 AM placeholder issue)
       if (!record) return null
@@ -1007,15 +1030,17 @@ export const resolvers = {
       const { user } = context
 
       try {
-        // ✅ FIXED: Filter out posts from private topics not owned by user
+        // ✅ FIXED: Use EXISTS instead of DISTINCT + JOIN for better performance with ORDER BY
         let sql = `
-          SELECT DISTINCT fp.*
+          SELECT fp.*
           FROM feed_posts fp
-          JOIN feed_post_topics fpt ON fp.post_id = fpt.post_id
-          JOIN feed_topics ft ON fpt.topic_id = ft.id
           WHERE fp.deleted_at IS NULL
-          AND ft.deleted_at IS NULL
-          AND (ft.is_personal = false OR ft.owner_user_id = $1)
+          AND EXISTS (
+            SELECT 1 FROM feed_post_topics fpt
+            JOIN feed_topics ft ON fpt.topic_id = ft.id
+            WHERE fpt.post_id = fp.post_id
+            AND ft.deleted_at IS NULL
+            AND (ft.is_personal = false OR ft.owner_user_id = $1)
         `
         const params: any[] = [user?.employeeId || '']
 
@@ -1023,6 +1048,8 @@ export const resolvers = {
           sql += ` AND fpt.topic_id = $${params.length + 1}`
           params.push(topicId)
         }
+
+        sql += `)` // Close EXISTS
 
         if (status) {
           sql += ` AND fp.status = $${params.length + 1}`
@@ -1041,17 +1068,38 @@ export const resolvers = {
         const postsResult = await getPoolInstance().query(sql, params)
         logDatabaseResult(postsResult.rows.length, dbStart.startTime, 'feedPosts')
 
-        // Count total matching posts
-        const countSql = `
-          SELECT COUNT(DISTINCT fp.post_id)
+        // Count total matching posts (Apply same EXISTS logic and add missing filters!)
+        let countSql = `
+          SELECT COUNT(fp.post_id)
           FROM feed_posts fp
-          JOIN feed_post_topics fpt ON fp.post_id = fpt.post_id
-          JOIN feed_topics ft ON fpt.topic_id = ft.id
           WHERE fp.deleted_at IS NULL
-          AND ft.deleted_at IS NULL
-          AND (ft.is_personal = false OR ft.owner_user_id = $1)
+          AND EXISTS (
+            SELECT 1 FROM feed_post_topics fpt
+            JOIN feed_topics ft ON fpt.topic_id = ft.id
+            WHERE fpt.post_id = fp.post_id
+            AND ft.deleted_at IS NULL
+            AND (ft.is_personal = false OR ft.owner_user_id = $1)
         `
-        const totalResult = await getPoolInstance().query(countSql, [user?.employeeId || ''])
+        const countParams: any[] = [user?.employeeId || '']
+
+        if (topicId) {
+          countSql += ` AND fpt.topic_id = $${countParams.length + 1}`
+          countParams.push(topicId)
+        }
+
+        countSql += `)` // Close EXISTS
+
+        if (status) {
+          countSql += ` AND fp.status = $${countParams.length + 1}`
+          countParams.push(status)
+        }
+
+        if (search) {
+          countSql += ` AND (fp.content ILIKE $${countParams.length + 1} OR fp.og_title ILIKE $${countParams.length + 2})`
+          countParams.push(`%${search}%`, `%${search}%`)
+        }
+
+        const totalResult = await getPoolInstance().query(countSql, countParams)
         const total = parseInt(totalResult.rows[0].count)
 
         const result = {
@@ -1230,14 +1278,19 @@ export const resolvers = {
     tasks: async (user: any, _: any, { loaders }: any) => {
       const employeeId = user.employee_id || user.employeeId
       if (!employeeId) return []
-      // ✅ FIXED: assigned_to is JSONB array, use jsonb_array_elements_text
+      // FIXED: assigned_to and support are JSONB arrays. Fetch if employeeId is in either.
       const result = await getPoolInstance().query(
         `SELECT * FROM tasks
          WHERE deleted_at IS NULL
-         AND EXISTS (
+         AND (EXISTS (
            SELECT 1 FROM jsonb_array_elements_text(assigned_to) AS elem
            WHERE elem = $1
-         )`,
+         ) OR EXISTS (
+           SELECT 1 FROM jsonb_array_elements_text(
+             CASE WHEN support IS NULL OR support::text = 'null' OR support::text = '' THEN '[]'::jsonb ELSE support::jsonb END
+           ) AS elem
+           WHERE elem = $1
+         ))`,
         [employeeId]
       )
       return result.rows
@@ -1257,8 +1310,14 @@ export const resolvers = {
   Attendance: {
     id: (att: any) => att.id,
     employeeId: (att: any) => att.employeeId || att.employee_id,
-    signInTime: (att: any) => att.signInTime || att.sign_in_time,
-    signOutTime: (att: any) => att.signOutTime || att.sign_out_time,
+    signInTime: (att: any) => {
+      const t = att.signInTime || att.sign_in_time;
+      return t ? new Date(t).getTime().toString() : null;
+    },
+    signOutTime: (att: any) => {
+      const t = att.signOutTime || att.sign_out_time;
+      return t ? new Date(t).getTime().toString() : null;
+    },
     workHours: (att: any) => att.workHours || att.work_hours,
     date: (att: any) => {
       // Return date string YYYY-MM-DD
@@ -1360,6 +1419,10 @@ export const resolvers = {
     parentTaskId: (task: any) => task.parent_task_id,
     department: (task: any) => task.department,
     timerState: (task: any) => task.timer_state,
+    timerStartTime: (task: any) => task.timer_start_time,
+    timerPausedTime: (task: any) => task.timer_paused_time,
+    timerTotalTime: (task: any) => task.timer_total_time,
+    timerSessions: (task: any) => task.timer_sessions,
     deletedAt: (task: any) => task.deleted_at,
     deletedBy: (task: any) => task.deleted_by,
     createdAt: (task: any) => {
@@ -1591,6 +1654,7 @@ export const resolvers = {
     frontendLogs: (bug: any) => bug.frontend_logs,
     browserInfo: (bug: any) => bug.browser_info,
     deviceInfo: (bug: any) => bug.device_info,
+    device: (bug: any) => bug.device || bug.device_info,
     developmentPrompt: (bug: any) => bug.development_prompt,
     bugType: (bug: any) => bug.bug_type,
     criticality: (bug: any) => bug.criticality,
@@ -1817,7 +1881,11 @@ export const resolvers = {
     linkTitle: (post: any) => post.og_title,
     linkDescription: (post: any) => post.og_description,
     linkImage: (post: any) => post.og_image,
-    mediaUrls: (post: any) => post.media_urls ? JSON.parse(post.media_urls) : [],
+    mediaUrls: (post: any) => {
+      if (!post.media_urls) return [];
+      if (typeof post.media_urls === 'string') return JSON.parse(post.media_urls);
+      return Array.isArray(post.media_urls) ? post.media_urls : [];
+    },
     createdBy: (post: any) => post.created_by,
     createdAt: (post: any) => {
       if (!post.created_at) {
@@ -2251,6 +2319,7 @@ export const resolvers = {
         description: 'description',
         category: 'category',
         severity: 'severity',
+        priority: 'priority',
         status: 'status',
         assignedTo: 'assigned_to',
         estimatedHours: 'estimated_hours',
@@ -2391,24 +2460,15 @@ export const resolvers = {
 
       const postId = `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-      // Check if posting to personal topic
-      const topicCheck = await getPoolInstance().query(
-        'SELECT is_personal FROM feed_topics WHERE id = ANY($1) AND deleted_at IS NULL',
-        [input.topicIds]
-      )
-      const isPersonalPost = topicCheck.rows.some((t: any) => t.is_personal === true)
-
-      // Auto-publish for: personal posts, admin, top_management, management, amtarikshian
-      const status = isPersonalPost || ['admin', 'top_management', 'management', 'amtarikshian'].includes(user.role)
-        ? 'published'
-        : 'pending'
+      // Always auto-publish so they appear in feed immediately
+      const status = 'published'
 
       const mediaUrls = input.mediaUrls ? JSON.stringify(input.mediaUrls) : null
 
       await getPoolInstance().query(
-        `INSERT INTO feed_posts (post_id, content_type, content, link_url, og_title, og_description, og_image, created_by, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
-        [postId, input.contentType, input.content, input.linkUrl, input.linkTitle, input.linkDescription, input.linkImage, user.employeeId, status]
+        `INSERT INTO feed_posts (post_id, content_type, content, link_url, og_title, og_description, og_image, media_urls, created_by, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+        [postId, input.contentType, input.content, input.linkUrl, input.linkTitle, input.linkDescription, input.linkImage, mediaUrls, user.employeeId, status]
       )
 
       // Link to topics

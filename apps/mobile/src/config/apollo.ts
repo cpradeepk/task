@@ -20,7 +20,7 @@ import { logger, logApiRequest, logApiResponse, logApiError } from '../utils/deb
 
 // API URL auto-toggled based on build type (local dev vs production release)
 const API_URL = __DEV__
-  ? 'https://task.karmayog.com/api/graphql' //'http://192.168.0.107:3001/api/graphql'
+  ? 'http://localhost:3000/api/graphql' // local dev server via adb reverse
   : 'https://task.karmayog.com/api/graphql'
 
 /**

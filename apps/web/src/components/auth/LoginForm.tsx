@@ -433,7 +433,7 @@ export default function LoginForm() {
 
       if (success) {
         // All users go to home page after login
-        router.push('/home')
+        router.push('/dashboard')
       } else {
         setError('Invalid Employee ID or Password')
       }

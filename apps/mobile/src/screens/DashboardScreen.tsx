@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useContext } from 'react'
 import {
   View,
   StyleSheet,
@@ -18,11 +18,14 @@ import { materialColors, materialTypography, materialSpacing, materialElevation 
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { getUserToken, getUserData } from '../utils/secureStorage'
 import apiClient from '../services/apiClient'
-import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
+
 import { useTabBarControl } from '../context/TabBarContext'
 import AppHeader from '../components/AppHeader'
+import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
+import { AuthContext } from '../contexts/AuthContext'
 
 export default function DashboardScreen() {
+  const { signOut } = useContext(AuthContext)
   const navigation = useNavigation()
   const { colors } = useTheme()
   const responsive = useResponsive()
@@ -88,13 +91,27 @@ export default function DashboardScreen() {
       <AppHeader
         title="Karmayog"
         rightAction={
-          <IconButton
-            icon="bug"
-            size={22}
-            iconColor={colors.text}
-            onPress={() => setDebugMenuVisible(true)}
-            style={{ margin: 0 }}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <IconButton
+              icon="bug"
+              size={22}
+              iconColor={colors.text}
+              onPress={() => setDebugMenuVisible(true)}
+              style={{ margin: 0 }}
+            />
+            <IconButton
+              icon="logout"
+              size={22}
+              iconColor={materialColors.error}
+              onPress={() => {
+                Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Sign Out', style: 'destructive', onPress: () => signOut() },
+                ])
+              }}
+              style={{ margin: 0 }}
+            />
+          </View>
         }
       />
       <Animated.ScrollView
@@ -110,16 +127,8 @@ export default function DashboardScreen() {
           />
         }
       >
-        {/* Greeting Section */}
-        <View style={styles.welcomeSection}>
-          <Text style={[styles.welcomeSub, { color: colors.textSecondary }]}>Hello,</Text>
-          <Text style={[styles.welcomeTitle, { color: colors.text }]}>{user?.name} 👋</Text>
-          {user?.role ? (
-            <Text style={[styles.welcomeRole, { color: colors.primary }]}>{user.role}</Text>
-          ) : null}
-        </View>
 
-        {/* Attendance Card */}
+        {/* Daily Attendance */}
         <View style={styles.section}>
           <DailyAttendanceCard />
         </View>

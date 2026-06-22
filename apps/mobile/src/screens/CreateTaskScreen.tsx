@@ -66,6 +66,7 @@ export default function CreateTaskScreen({ navigation }: any) {
   const [subprojects, setSubprojects] = useState<any[]>(STATIC_SUBPROJECTS)
   const [settings, setSettings] = useState<any>({})
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [projectUsers, setProjectUsers] = useState<any[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Helper to safely format picker items and avoid undefined properties causing native Picker crashes
@@ -151,14 +152,30 @@ export default function CreateTaskScreen({ navigation }: any) {
     loadInitialData()
   }, [loadInitialData])
 
+  const loadProjectUsers = useCallback(async (pId: string) => {
+    try {
+      const response = await get(`/api/projects/${pId}/users`)
+      if (response.success && response.data) {
+        setProjectUsers(response.data)
+      } else {
+        setProjectUsers([])
+      }
+    } catch (error) {
+      console.error('Failed to load project users:', error)
+      setProjectUsers([])
+    }
+  }, [])
+
   useEffect(() => {
     if (projectId) {
       loadSubprojects(projectId)
+      loadProjectUsers(projectId)
     } else {
       setSubprojects(STATIC_SUBPROJECTS)
       setSubprojectId('')
+      setProjectUsers([])
     }
-  }, [projectId, loadSubprojects])
+  }, [projectId, loadSubprojects, loadProjectUsers])
 
   const validateTimeFormat = useCallback((time: string): boolean => {
     const timeRegex = /^(\d{1,2}):(\d{2}):(\d{2})$/
@@ -530,10 +547,12 @@ export default function CreateTaskScreen({ navigation }: any) {
             placeholder="Select support members"
             selectedValues={support}
             onValuesChange={setSupport}
-            items={users.filter(u => u.employeeId !== assignedTo).map(u => ({
-              label: u.name,
-              value: u.employeeId,
-            }))}
+            items={(projectId && projectUsers.length > 0 ? projectUsers : users)
+              .filter(u => u.employeeId !== assignedTo)
+              .map(u => ({
+                label: u.name || u.employeeName,
+                value: u.employeeId,
+              }))}
             disabled={isOffline}
           />
 

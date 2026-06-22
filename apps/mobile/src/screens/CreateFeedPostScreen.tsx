@@ -23,8 +23,10 @@ import {
 import { TextInput, Button, Surface } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { GET_FEED_TOPICS, CREATE_FEED_POST } from '../config/graphql-queries'
-import { getUserData } from '../utils/secureStorage'
+import * as DocumentPicker from 'expo-document-picker'
+import { GET_FEED_TOPICS, CREATE_FEED_POST, GET_FEED_POSTS } from '../config/graphql-queries'
+import { getUserData, getUserToken } from '../utils/secureStorage'
+import { API_BASE_URL } from '../config/api'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialSpacing, materialTypography } from '../config/materialTheme'
@@ -42,6 +44,8 @@ export default function CreateFeedPostScreen({ route }: any) {
   const [contentType, setContentType] = useState<string>('text')
   const [linkUrl, setLinkUrl] = useState('')
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [attachedFile, setAttachedFile] = useState<any>(null)
+  const [isUploading, setIsUploading] = useState(false)
 
   // GraphQL queries and mutations
   const { data: topicsData, loading: topicsLoading } = useQuery(GET_FEED_TOPICS, {
@@ -66,6 +70,26 @@ export default function CreateFeedPostScreen({ route }: any) {
     }
   }
 
+  const handleFilePick = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: contentType === 'image' ? 'image/*' : contentType === 'video' ? 'video/*' : contentType === 'pdf' ? 'application/pdf' : '*/*',
+        copyToCacheDirectory: true,
+      })
+
+      if (result.assets && result.assets.length > 0) {
+        setAttachedFile(result.assets[0])
+      }
+    } catch (err) {
+      console.warn('File pick cancelled or failed:', err)
+    }
+  }
+
+  useEffect(() => {
+    // Reset attached file when changing content type
+    setAttachedFile(null)
+  }, [contentType])
+
   const handleCreatePost = async () => {
     if (!content.trim()) {
       Alert.alert('Error', 'Please enter post content')
@@ -82,7 +106,40 @@ export default function CreateFeedPostScreen({ route }: any) {
       return
     }
 
+    if (['pdf', 'image', 'video'].includes(contentType) && !attachedFile) {
+      Alert.alert('Error', 'Please attach a file for this content type')
+      return
+    }
+
     try {
+      let mediaUrls: string[] = []
+
+      if (attachedFile) {
+        setIsUploading(true)
+        const token = await getUserToken()
+        const uploadUrl = `${API_BASE_URL}/api/upload`
+        const formData = new FormData()
+        formData.append('files', {
+          uri: attachedFile.uri,
+          name: attachedFile.name || 'file',
+          type: attachedFile.mimeType || 'application/octet-stream'
+        } as any)
+
+        const uploadRes = await fetch(uploadUrl, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        const uploadData = await uploadRes.json()
+        if (uploadData.success && uploadData.files && uploadData.files.length > 0) {
+          mediaUrls = uploadData.files
+        } else {
+          throw new Error(uploadData.error || 'Failed to upload file')
+        }
+      }
+
       await createPost({
         variables: {
           input: {
@@ -90,15 +147,22 @@ export default function CreateFeedPostScreen({ route }: any) {
             content: content.trim(),
             linkUrl: (contentType === 'link' || contentType === 'youtube') ? linkUrl.trim() : null,
             linkTitle: title.trim() || null,
+            mediaUrls: mediaUrls.length > 0 ? mediaUrls : null,
             topicIds: [selectedTopicId],
           }
         },
+        refetchQueries: [
+          { query: GET_FEED_POSTS, variables: { topicId: null, status: 'published', limit: 20, offset: 0 } },
+          { query: GET_FEED_POSTS, variables: { topicId: selectedTopicId, status: 'published', limit: 20, offset: 0 } }
+        ]
       })
 
       Alert.alert('Success', 'Post created successfully')
       navigation.goBack()
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to create post')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -236,13 +300,30 @@ export default function CreateFeedPostScreen({ route }: any) {
           </View>
         )}
 
+        {/* File Picker for PDF, Image, Video */}
+        {['pdf', 'image', 'video'].includes(contentType) && (
+          <View style={styles.section}>
+            <Text style={styles.label}>Attachment *</Text>
+            <TouchableOpacity style={[styles.fileButton, { borderColor: colors.border }]} onPress={handleFilePick}>
+              <Text style={{ color: colors.primary, fontWeight: '600' }}>
+                {attachedFile ? 'Change File' : `Select ${contentType.toUpperCase()}`}
+              </Text>
+            </TouchableOpacity>
+            {attachedFile && (
+              <Text style={[styles.fileName, { color: colors.textSecondary }]}>
+                Attached: {attachedFile.name}
+              </Text>
+            )}
+          </View>
+        )}
+
         {/* Create Button */}
         <TouchableOpacity
-          style={[styles.createButton, creating && styles.createButtonDisabled, { backgroundColor: colors.primary }]}
+          style={[styles.createButton, (creating || isUploading) && styles.createButtonDisabled, { backgroundColor: colors.primary }]}
           onPress={handleCreatePost}
-          disabled={creating}
+          disabled={creating || isUploading}
         >
-          {creating ? (
+          {(creating || isUploading) ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
             <Text style={styles.createButtonText}>Create Post</Text>
@@ -324,5 +405,17 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  fileButton: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  fileName: {
+    fontSize: 14,
+    marginTop: 4,
   },
 })

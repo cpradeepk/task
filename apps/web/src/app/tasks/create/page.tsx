@@ -67,8 +67,10 @@ function CreateTaskContent() {
   // Project state
   const [projects, setProjects] = useState<any[]>([])
   const [subprojects, setSubprojects] = useState<any[]>([])
+  const [projectUsers, setProjectUsers] = useState<any[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isLoadingSubprojects, setIsLoadingSubprojects] = useState(false)
+  const [isLoadingProjectUsers, setIsLoadingProjectUsers] = useState(false)
   const [projectsLoaded, setProjectsLoaded] = useState(false)
 
   const router = useRouter()
@@ -242,6 +244,34 @@ function CreateTaskContent() {
     }
   }, [])
 
+  // Load project users
+  const loadProjectUsers = useCallback(async (projectId: string) => {
+    if (!projectId) {
+      setProjectUsers([])
+      return
+    }
+
+    try {
+      setIsLoadingProjectUsers(true)
+      const response = await fetch(`/api/projects/${projectId}/users`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data) {
+          setProjectUsers(data.data)
+        } else {
+          setProjectUsers([])
+        }
+      } else {
+        setProjectUsers([])
+      }
+    } catch (error) {
+      console.error('Failed to load project users:', error)
+      setProjectUsers([])
+    } finally {
+      setIsLoadingProjectUsers(false)
+    }
+  }, [])
+
   // Initialize data loading
   useEffect(() => {
     if (!isHydrated) return
@@ -275,12 +305,14 @@ function CreateTaskContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated])
 
-  // Load subprojects when project changes
+  // Load subprojects and project users when project changes
   useEffect(() => {
     if (formData.projectId) {
       loadSubprojects(formData.projectId)
+      loadProjectUsers(formData.projectId)
     } else {
       setSubprojects([])
+      setProjectUsers([])
       setFormData(prev => ({ ...prev, subprojectId: undefined }))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -519,9 +551,8 @@ function CreateTaskContent() {
         throw new Error('Failed to create task')
       }
 
-      // Support tasks are no longer needed - removed as per user requirement
-      // (Multiple assignees are now supported in a single task)
-      if (false) {
+      // Support tasks creation
+      if (formData.support && formData.support.length > 0) {
         try {
           const supportTaskIds = await SupportTaskService.createSupportTasks(
             mainTaskData,
@@ -952,28 +983,36 @@ function CreateTaskContent() {
                   ) : (
                     <div className={`border rounded-lg p-4 max-h-64 overflow-y-auto space-y-2 ${missingFields.includes('assignees') ? 'border-2 border-red-500' : 'border-gray-200'
                       }`}>
-                      {users.map(user => (
-                        <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.assignees.includes(user.employeeId)}
-                            onChange={(e) => {
-                              const newAssignees = e.target.checked
-                                ? [...formData.assignees, user.employeeId]
-                                : formData.assignees.filter(id => id !== user.employeeId)
-                              setFormData({ ...formData, assignees: newAssignees })
-                              // Clear from missing fields when user selects
-                              if (newAssignees.length > 0 && missingFields.includes('assignees')) {
-                                setMissingFields(prev => prev.filter(field => field !== 'assignees'))
-                              }
-                            }}
-                            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                          />
-                          <span className="text-sm text-gray-700">
-                            {user.name} ({user.employeeId}) - {user.role}
-                          </span>
-                        </label>
-                      ))}
+                      {!formData.projectId ? (
+                        <p className="text-gray-500 italic text-sm">Please select a project first to see assignees</p>
+                      ) : isLoadingProjectUsers ? (
+                        <p className="text-gray-500 italic text-sm">Loading project users...</p>
+                      ) : projectUsers.length === 0 ? (
+                        <p className="text-gray-500 italic text-sm">No users found for this project</p>
+                      ) : (
+                        projectUsers.map(user => (
+                          <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.assignees.includes(user.employeeId)}
+                              onChange={(e) => {
+                                const newAssignees = e.target.checked
+                                  ? [...formData.assignees, user.employeeId]
+                                  : formData.assignees.filter(id => id !== user.employeeId)
+                                setFormData({ ...formData, assignees: newAssignees })
+                                // Clear from missing fields when user selects
+                                if (newAssignees.length > 0 && missingFields.includes('assignees')) {
+                                  setMissingFields(prev => prev.filter(field => field !== 'assignees'))
+                                }
+                              }}
+                              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            <span className="text-sm text-gray-700">
+                              {user.name} ({user.employeeId}) - {user.role}
+                            </span>
+                          </label>
+                        ))
+                      )}
                     </div>
                   )}
                   {formData.assignees.length > 0 && (
@@ -999,16 +1038,22 @@ function CreateTaskContent() {
                         setMissingFields(prev => prev.filter(field => field !== 'assignedTo'))
                       }
                     }}
-                    required
                     className={getFieldClass('assignedTo')}
-                    disabled={isLoading || isLoadingUsers}
+                    disabled={!formData.projectId || isLoadingProjectUsers}
+                    required
                   >
-                    <option value="">Select user...</option>
-                    {users.map(user => (
-                      <option key={user.employeeId} value={user.employeeId}>
-                        {user.name} ({user.employeeId}) - {user.role}
-                      </option>
-                    ))}
+                    <option value="">Select Assignee...</option>
+                    {!formData.projectId ? (
+                      <option disabled>Select a project first...</option>
+                    ) : isLoadingProjectUsers ? (
+                      <option disabled>Loading project users...</option>
+                    ) : (
+                      projectUsers.map((user) => (
+                        <option key={user.employeeId} value={user.employeeId}>
+                          {user.name} ({user.employeeId})
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
               )}
@@ -1022,19 +1067,21 @@ function CreateTaskContent() {
               <p className="text-sm text-gray-600 mb-3">
                 Select team members who will receive separate support tasks. Each selected member will get their own task to track their contribution.
               </p>
-              {!usersLoaded ? (
+              {!formData.projectId ? (
                 <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
-                  {isLoadingUsers ? (
-                    <LoadingSpinner size="sm" message="Loading team members..." center />
-                  ) : (
-                    <div className="animate-pulse">
-                      <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
-                    </div>
-                  )}
+                  <p className="text-gray-500 italic text-sm">Please select a project first to see support members</p>
+                </div>
+              ) : isLoadingProjectUsers ? (
+                <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
+                  <LoadingSpinner size="sm" message="Loading project members..." center />
+                </div>
+              ) : projectUsers.length === 0 ? (
+                <div className="border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center">
+                  <p className="text-gray-500 italic text-sm">No members found for this project</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
-                  {users.map(user => (
+                  {projectUsers.map(user => (
                     <label key={user.employeeId} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
                       <input
                         type="checkbox"

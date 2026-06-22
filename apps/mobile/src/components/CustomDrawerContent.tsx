@@ -64,7 +64,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
 
   // Navigation Sections matching WebApp
   const homeItems: NavigationItem[] = [
-    { screen: 'Dashboard', label: 'Home', icon: 'home' },
+    { screen: 'Home', label: 'Home', icon: 'home' },
   ]
 
   const feedItems: NavigationItem[] = [
@@ -73,7 +73,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
 
   const workItems = React.useMemo(() => {
     const items: NavigationItem[] = [
-      { screen: 'Dashboard', label: 'Dashboard', icon: 'view-dashboard' },
+      { screen: 'DashboardScreen', label: 'Dashboard', icon: 'view-dashboard' },
       { screen: 'TaskList', label: 'Tasks', icon: 'checkbox-marked-circle-outline' },
       { screen: 'BugList', label: 'Development', icon: 'bug-outline' },
     ]
@@ -114,8 +114,10 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
       return;
     }
 
-    if (item.screen === 'Dashboard') {
+    if (item.screen === 'Home') {
       navigation.navigate('Main', { screen: 'HomeTab' });
+    } else if (item.screen === 'DashboardScreen') {
+      navigation.navigate('DashboardScreen');
     } else if (item.screen === 'TaskList') {
       navigation.navigate('Main', { screen: 'TasksTab' });
     } else if (item.screen === 'BugList') {

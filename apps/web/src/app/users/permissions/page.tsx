@@ -50,7 +50,7 @@ export default function PermissionsPage() {
         }
         // Only admins should access this page
         if (user.role !== 'admin') {
-            router.push('/home')
+            router.push('/dashboard')
             return
         }
         setCurrentUser(user)
