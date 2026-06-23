@@ -112,7 +112,7 @@ export default function HomePage() {
         }
     )
 
-    const { data: dashData } = useQuery(gql(QUERIES.GET_DASHBOARD), {
+    const { data: dashData } = useQuery<any>(gql(QUERIES.GET_DASHBOARD), {
         variables: { employeeId: currentUser?.employeeId, role: currentUser?.role },
         skip: !currentUser,
         pollInterval: 60000
