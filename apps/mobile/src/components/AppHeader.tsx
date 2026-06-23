@@ -134,6 +134,10 @@ export default function AppHeader({ title, rightAction }: AppHeaderProps) {
                 const isSelected = selectedProjectIds.includes(project.projectId)
                 return (
                   <TouchableOpacity
+                    // Use project.projectId as the key instead of project.id.
+                    // The backend API returns 'projectId' as the primary identifier.
+                    // Using 'project.id' (which is undefined) would cause duplicate keys,
+                    // resulting in silent React Native rendering errors and broken layout states.
                     key={project.projectId}
                     onPress={() => handleToggleProject(project.projectId)}
                     style={[

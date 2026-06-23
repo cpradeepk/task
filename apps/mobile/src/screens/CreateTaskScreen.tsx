@@ -152,10 +152,16 @@ export default function CreateTaskScreen({ navigation }: any) {
     loadInitialData()
   }, [loadInitialData])
 
+
+  // Fetch users assigned specifically to the selected project from the backend.
+  // This ensures that assignees and support team members are scoped correctly to the project,
+  // matching the business logic implemented in the web application.
   const loadProjectUsers = useCallback(async (pId: string) => {
     try {
       const response = await get(`/api/projects/${pId}/users`)
       if (response.success && response.data) {
+        // Normalize the API response properties (userName -> name, userRole -> role)
+        // so that picker and list components receive a uniform data shape.
         const normalized = response.data.map((pu: any) => ({
           ...pu,
           name: pu.userName || pu.name,
@@ -508,7 +514,9 @@ export default function CreateTaskScreen({ navigation }: any) {
             required
           />
 
-          {/* Task Assignment (synced with web multi-user toggle) */}
+          {/* Task Assignment Section */}
+          {/* Enables toggling between single-user assignment (default) and multi-user assignment, */}
+          {/* in parity with the web dashboard. */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingHorizontal: 4 }}>
             <Text style={{ fontSize: 14, color: colors.textSecondary, fontWeight: '500' }}>Task Assignment</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -528,6 +536,9 @@ export default function CreateTaskScreen({ navigation }: any) {
             </View>
           </View>
 
+          {/* Scoped User Selection */}
+          {/* Note: Assignees must belong to the selected project. Selection is disabled */}
+          {/* and displays a placeholder prompting project selection if no project is active yet. */}
           {multiUserAssignment ? (
             <MultiSelectPicker
               label="Assign To Multiple Users *"
@@ -552,7 +563,9 @@ export default function CreateTaskScreen({ navigation }: any) {
             />
           )}
 
-          {/* Support Team */}
+          {/* Support Team Selection */}
+          {/* Aligned with web logic: Only project-assigned users can be support members, */}
+          {/* and the primary assignee is filtered out from selection to avoid duplicate role assignment. */}
           <MultiSelectPicker
             label="Support Team (Optional)"
             placeholder={!projectId ? "Select a project first" : "Select support members"}
