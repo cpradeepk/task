@@ -1,4 +1,11 @@
 {
+  "buildCommand": "cd apps/web && npm run build",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs",
+  "installCommand": "npm install --legacy-peer-deps",
+  "git": {
+    "deploymentEnabled": true
+  },
   "crons": [
     {
       "path": "/api/cron/reminders/9am",
