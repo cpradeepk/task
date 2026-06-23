@@ -244,7 +244,9 @@ function CreateTaskContent() {
     }
   }, [])
 
-  // Load project users
+  // Load users who are assigned to the selected project.
+  // This allows the task creation form to restrict assignees and support members
+  // to only those team members who are actually part of the project.
   const loadProjectUsers = useCallback(async (projectId: string) => {
     if (!projectId) {
       setProjectUsers([])
@@ -257,6 +259,9 @@ function CreateTaskContent() {
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.data) {
+          // Normalize user properties (userName -> name, userRole -> role)
+          // because the project users endpoint returns database camelCase columns
+          // while other components expect the standard 'name' and 'role' properties.
           const normalized = data.data.map((pu: any) => ({
             ...pu,
             name: pu.userName || pu.name,

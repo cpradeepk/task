@@ -328,6 +328,9 @@ export default function Navbar() {
                           const isSelected = selectedProjectIds.includes(project.projectId)
                           return (
                             <button
+                              // Use project.projectId as the key instead of project.id.
+                              // The API returns 'projectId' as the primary key. Using 'project.id' (undefined)
+                              // would cause duplicate keys, leading to React reconciliation issues.
                               key={project.projectId}
                               onClick={() => {
                                 if (isSelected) {
