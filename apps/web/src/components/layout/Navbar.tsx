@@ -328,7 +328,7 @@ export default function Navbar() {
                           const isSelected = selectedProjectIds.includes(project.projectId)
                           return (
                             <button
-                              key={project.id}
+                              key={project.projectId}
                               onClick={() => {
                                 if (isSelected) {
                                   setSelectedProjectIds(selectedProjectIds.filter(id => id !== project.projectId))

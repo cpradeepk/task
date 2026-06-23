@@ -156,7 +156,12 @@ export default function CreateTaskScreen({ navigation }: any) {
     try {
       const response = await get(`/api/projects/${pId}/users`)
       if (response.success && response.data) {
-        setProjectUsers(response.data)
+        const normalized = response.data.map((pu: any) => ({
+          ...pu,
+          name: pu.userName || pu.name,
+          role: pu.userRole || pu.role,
+        }))
+        setProjectUsers(normalized)
       } else {
         setProjectUsers([])
       }
@@ -218,6 +223,11 @@ export default function CreateTaskScreen({ navigation }: any) {
 
     if (!description.trim()) {
       Alert.alert('Error', 'Please enter task description')
+      return
+    }
+
+    if (!projectId) {
+      Alert.alert('Error', 'Please select a project')
       return
     }
 
@@ -452,7 +462,7 @@ export default function CreateTaskScreen({ navigation }: any) {
 
           {/* Project */}
           <SearchablePicker
-            label="Project"
+            label="Project *"
             placeholder="Select Project"
             selectedValue={projectId}
             onValueChange={(value) => {
@@ -521,39 +531,40 @@ export default function CreateTaskScreen({ navigation }: any) {
           {multiUserAssignment ? (
             <MultiSelectPicker
               label="Assign To Multiple Users *"
-              placeholder="Select assignees"
+              placeholder={!projectId ? "Select a project first" : "Select assignees"}
               selectedValues={assignees}
               onValuesChange={setAssignees}
-              items={users.map(u => ({
+              items={(!projectId ? [] : projectUsers).map(u => ({
                 label: `${u.name} (${u.employeeId})`,
                 value: u.employeeId,
               }))}
-              disabled={isOffline}
+              disabled={isOffline || !projectId}
             />
           ) : (
             <SearchablePicker
-              label="Assigned To"
-              placeholder="Select User"
+              label="Assigned To *"
+              placeholder={!projectId ? "Select a project first" : "Select User"}
               selectedValue={assignedTo}
               onValueChange={setAssignedTo}
-              items={getPickerItems(users)}
+              items={getPickerItems(!projectId ? [] : projectUsers)}
               required
+              disabled={isOffline || !projectId}
             />
           )}
 
           {/* Support Team */}
           <MultiSelectPicker
             label="Support Team (Optional)"
-            placeholder="Select support members"
+            placeholder={!projectId ? "Select a project first" : "Select support members"}
             selectedValues={support}
             onValuesChange={setSupport}
-            items={(projectId && projectUsers.length > 0 ? projectUsers : users)
+            items={(!projectId ? [] : projectUsers)
               .filter(u => u.employeeId !== assignedTo)
               .map(u => ({
-                label: u.name || u.employeeName,
+                label: u.name,
                 value: u.employeeId,
               }))}
-            disabled={isOffline}
+            disabled={isOffline || !projectId}
           />
 
           {/* Start Date */}

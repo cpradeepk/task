@@ -134,7 +134,7 @@ export default function AppHeader({ title, rightAction }: AppHeaderProps) {
                 const isSelected = selectedProjectIds.includes(project.projectId)
                 return (
                   <TouchableOpacity
-                    key={project.id}
+                    key={project.projectId}
                     onPress={() => handleToggleProject(project.projectId)}
                     style={[
                       styles.projectItem,

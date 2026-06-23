@@ -257,7 +257,12 @@ function CreateTaskContent() {
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.data) {
-          setProjectUsers(data.data)
+          const normalized = data.data.map((pu: any) => ({
+            ...pu,
+            name: pu.userName || pu.name,
+            role: pu.userRole || pu.role
+          }))
+          setProjectUsers(normalized)
         } else {
           setProjectUsers([])
         }
