@@ -253,6 +253,8 @@ export default function LoginScreen() {
           </Text>
 
           {/* Legal Links */}
+          {/* Pointing to the active production server 'https://task.amtariksha.com' */}
+          {/* so that privacy policies and terms load successfully in production builds. */}
           <View style={styles.legalLinks}>
             <TouchableOpacity onPress={() => Linking.openURL('https://task.amtariksha.com/privacy')}>
               <Text style={styles.legalLinkText}>Privacy Policy</Text>

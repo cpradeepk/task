@@ -3,9 +3,14 @@
  * Centralized API endpoint configuration for the mobile app
  */
 
-// API URL auto-toggled based on build type (local dev vs production release)
+// API URL auto-toggled based on build type (local dev vs production release).
+// The production base URL has been updated to 'https://task.amtariksha.com'
+// because the previous host ('https://task.karmayog.com') is inactive/dead.
+// By default, __DEV__ is also pointed to the live server for testing stability;
+// you can toggle the __DEV__ line to 'http://localhost:3000' to test against a local server
+// running via ADB port forwarding (adb reverse tcp:3000 tcp:3000).
 export const API_BASE_URL = __DEV__
-  ? 'https://task.amtariksha.com' // Pointing to live server for testing stability (or change to http://localhost:3000 for local dev)
+  ? 'https://task.amtariksha.com' 
   : 'https://task.amtariksha.com'
 
 // API Endpoints
