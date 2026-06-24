@@ -254,11 +254,11 @@ export default function LoginScreen() {
 
           {/* Legal Links */}
           <View style={styles.legalLinks}>
-            <TouchableOpacity onPress={() => Linking.openURL('https://task.karmayog.com/privacy')}>
+            <TouchableOpacity onPress={() => Linking.openURL('https://task.amtariksha.com/privacy')}>
               <Text style={styles.legalLinkText}>Privacy Policy</Text>
             </TouchableOpacity>
             <Text style={styles.legalLinkSeparator}>  •  </Text>
-            <TouchableOpacity onPress={() => Linking.openURL('https://task.karmayog.com/terms')}>
+            <TouchableOpacity onPress={() => Linking.openURL('https://task.amtariksha.com/terms')}>
               <Text style={styles.legalLinkText}>Terms of Service</Text>
             </TouchableOpacity>
           </View>

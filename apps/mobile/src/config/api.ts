@@ -5,8 +5,8 @@
 
 // API URL auto-toggled based on build type (local dev vs production release)
 export const API_BASE_URL = __DEV__
-  ? 'http://localhost:3000' // Local dev via adb reverse
-  : 'https://task.karmayog.com'
+  ? 'https://task.amtariksha.com' // Pointing to live server for testing stability (or change to http://localhost:3000 for local dev)
+  : 'https://task.amtariksha.com'
 
 // API Endpoints
 export const API_ENDPOINTS = {

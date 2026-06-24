@@ -19,14 +19,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { logger, logApiRequest, logApiResponse, logApiError } from '../utils/debugLogger'
 
 // API URL configuration for the GraphQL endpoint.
-// In __DEV__ mode, this is currently pointed to the live server 'https://task.karmayog.com/api/graphql'
+// In __DEV__ mode, this is currently pointed to the live server 'https://task.amtariksha.com/api/graphql'
 // to bypass local API connection or environment setup issues during testing.
 // To test against a local development server running on port 3000, revert this to:
 // 'http://localhost:3000/api/graphql' and ensure ADB port forwarding is configured
 // via: adb reverse tcp:3000 tcp:3000
 const API_URL = __DEV__
-  ? 'https://task.karmayog.com/api/graphql' // Pointing to live server for testing stability
-  : 'https://task.karmayog.com/api/graphql' // Production server URL
+  ? 'https://task.amtariksha.com/api/graphql' // Pointing to live server for testing stability
+  : 'https://task.amtariksha.com/api/graphql' // Production server URL
 
 /**
  * HTTP Link - connects to GraphQL endpoint
