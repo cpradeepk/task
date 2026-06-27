@@ -13,6 +13,8 @@ import { Project, User, ProjectUserWithUser } from '@/lib/types'
 import { formatDateTimeIST } from '@/lib/datetime-utils'
 import ProjectModal from '@/components/projects/ProjectModal'
 import { Plus, X, UserPlus, Users, Search, AlertTriangle } from 'lucide-react'
+import { hasTabAccess } from '@/lib/permissions'
+import { getCurrentUser } from '@/lib/auth'
 
 interface ProjectWithSubProjects extends Project {
   subProjects?: Project[]
@@ -309,7 +311,7 @@ export default function ProjectDetailsPage() {
   }
 
   // Only check permissions after hydration to avoid SSR/client mismatch
-  const canManageProjects = isHydrated && (userRole === 'admin' || userRole === 'top_management' || employeeId === 'AM-0001')
+  const canManageProjects = isHydrated && (hasTabAccess(getCurrentUser(), 'projects') || userRole === 'admin' || userRole === 'top_management' || employeeId === 'AM-0001')
   const canDelete = isHydrated && userRole === 'admin'
 
   if (loading) {
