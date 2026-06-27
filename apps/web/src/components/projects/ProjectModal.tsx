@@ -34,7 +34,10 @@ export default function ProjectModal({ project, employeeId, parentProjectId, onC
       // Edit mode - populate form with existing data
       setFormData({
         projectName: project.projectName,
-        parentProjectId: project.parentProjectId || null,
+        // Fall back to the parentProjectId prop so the Release toggle (gated on
+        // parentProjectId) shows when editing an existing sub-project whose
+        // object may not carry parentProjectId.
+        parentProjectId: project.parentProjectId ?? parentProjectId ?? null,
         description: project.description || '',
         status: (project.status === 'Deleted' ? 'Inactive' : project.status) as 'Active' | 'Inactive',
         releaseEnabled: project.releaseEnabled ?? false,
