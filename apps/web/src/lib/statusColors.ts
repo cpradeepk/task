@@ -122,7 +122,7 @@ export function getTaskPriorityStyle(priority: string | null | undefined): Badge
 export function getBugTypeStyle(type: string | null | undefined): BadgeStyle {
   switch (type) {
     case 'bug':      return style('danger', AlertOctagon, 'Bug')
-    case 'testcase': return style('info', Info, 'Test Case')
+    case 'release':  return style('info', Info, 'Release')
     case 'feature':  return style('success', CheckCircle2, 'Feature')
     case 'other':    return style('neutral', Circle, 'Other')
     default:         return style('neutral', Circle, type || '—')

@@ -111,6 +111,8 @@ export async function PUT(
     if (body.parentProjectId !== undefined) updates.parentProjectId = body.parentProjectId
     if (body.description !== undefined) updates.description = body.description
     if (body.status !== undefined) updates.status = body.status
+    if (body.releaseEnabled !== undefined) updates.releaseEnabled = body.releaseEnabled
+    if (body.releaseChecklist !== undefined) updates.releaseChecklist = body.releaseChecklist
 
     // Update project (validation happens in the database layer)
     const updatedProject = await updateProject(projectId, updates, body.updatedBy)

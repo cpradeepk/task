@@ -261,6 +261,63 @@ export interface TeamTaskReport {
  *    ↓
  * Reopened → In Progress → Resolved → Closed
  */
+// ============================================================================
+// RELEASE WORK-ITEM TYPES
+// ============================================================================
+
+/**
+ * A single checklist item (a test case or release step).
+ * `label` is an optional short tag (e.g. "TC-01", "Step 1"); `text` is the body.
+ */
+export interface ReleaseChecklistItem {
+  id: string
+  label?: string
+  text: string
+}
+
+/**
+ * A checklist section scoped to a platform.
+ * platform 'common' shows on every platform's checklist; 'android'/'ios' are
+ * platform-specific. The sub-project's template is a list of these sections.
+ */
+export interface ReleaseChecklistSection {
+  id: string
+  title: string
+  platform: 'common' | 'android' | 'ios'
+  items: ReleaseChecklistItem[]
+}
+
+/** The default release checklist template stored on a (sub)project. */
+export interface ReleaseChecklistTemplate {
+  sections: ReleaseChecklistSection[]
+}
+
+/**
+ * Per-platform snapshot stored on a release bug. The template sections are
+ * snapshotted at creation; `manual` items are added on the task itself;
+ * `completed` maps item id -> done.
+ */
+export interface ReleasePlatformChecklist {
+  template: ReleaseChecklistSection[]
+  manual: ReleaseChecklistItem[]
+  completed: Record<string, boolean>
+}
+
+/**
+ * Full release state persisted in bugs.release_state (JSONB).
+ */
+export interface ReleaseState {
+  platforms: ('android' | 'ios')[]
+  checklists: {
+    android?: ReleasePlatformChecklist
+    ios?: ReleasePlatformChecklist
+  }
+  versions: {
+    android?: string | null
+    ios?: string | null
+  }
+}
+
 export interface Bug {
   bugId: string             // Unique bug ID (e.g., "BUG-1735123456789001234")
   title: string             // Bug title/summary
@@ -294,7 +351,8 @@ export interface Bug {
   subprojectId?: string | null // Optional: Subproject ID this bug belongs to
   parentDevId?: string | null // Optional: Parent bug ID for subtasks (e.g., "BUG-0001")
   feature?: string | null   // Optional: Feature name this bug is related to
-  type?: 'testcase' | 'feature' | 'bug' | 'other' | null  // Optional: Bug type categorization
+  type?: 'feature' | 'bug' | 'other' | 'release' | null  // Optional: Bug type categorization
+  releaseState?: ReleaseState | null // Optional: Release checklist state (type='release' only)
   developmentPrompt?: string | null // Optional: Development prompt or instructions for fixing the bug
   timerState?: string | null // Optional: Timer state (stopped, running, paused)
   timerStartTime?: string | null // Optional: Timer start timestamp
@@ -355,9 +413,11 @@ export interface BugFormData {
   projectId?: string | null
   subprojectId?: string | null
   feature?: string | null
-  type?: 'testcase' | 'feature' | 'bug' | 'other' | null
+  type?: 'feature' | 'bug' | 'other' | 'release' | null
   parentDevId?: string | null
   developmentPrompt?: string | null
+  startDate?: string        // Optional: Start date (required for release type)
+  releaseState?: ReleaseState | null // Optional: Release checklist state (type='release' only)
 }
 
 // ============================================================================
@@ -391,6 +451,8 @@ export interface Project {
   updatedAt: string         // Timestamp when project was last updated
   deletedAt?: string | null // Timestamp when project was soft-deleted
   deletedBy?: string | null // Employee ID of who deleted the project
+  releaseEnabled?: boolean  // Sub-project only: enables the 'release' work-item type
+  releaseChecklist?: ReleaseChecklistTemplate | null // Sub-project only: default release checklist template
 }
 
 /**

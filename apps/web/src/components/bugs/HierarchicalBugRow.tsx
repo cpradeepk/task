@@ -121,6 +121,11 @@ export default function HierarchicalBugRow({
                 {getStatusIcon(bug.status)}
                 <span>{bug.status}</span>
               </span>
+              {bug.type === 'release' && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
+                  🚀 Release
+                </span>
+              )}
             </div>
 
             <div className="mb-2">

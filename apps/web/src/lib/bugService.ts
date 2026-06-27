@@ -157,9 +157,9 @@ export async function createBug(bugData: BugFormData): Promise<string | null> {
       throw new Error('Failed to create bug')
     }
 
-    // Parse the response and return the created bug data
+    // Parse the response and return the created bug ID (callers string-template it)
     const result = await response.json()
-    return result.data
+    return result.data?.bugId ?? result.data
   } catch (error) {
     console.error('Failed to create bug:', error)
     return null

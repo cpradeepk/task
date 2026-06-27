@@ -49,7 +49,7 @@ const SEVERITY_OPTIONS: Bug['severity'][] = ['Critical', 'Major', 'Minor']
 const CATEGORY_OPTIONS: Bug['category'][] = [
   'UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'
 ]
-const TYPE_OPTIONS: Array<Exclude<Bug['type'], null | undefined>> = ['testcase', 'feature', 'bug', 'other']
+const TYPE_OPTIONS: Array<Exclude<Bug['type'], null | undefined>> = ['feature', 'bug', 'other', 'release']
 
 type EditableField =
   | 'title' | 'type' | 'status' | 'severity' | 'category' | 'assignedTo' | 'projectId'

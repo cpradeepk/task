@@ -1,9 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Project } from '@/lib/types'
+import { Project, ReleaseChecklistTemplate } from '@/lib/types'
 import { X } from 'lucide-react'
 import ProjectSelector from '@/components/ProjectSelector'
+import ReleaseChecklistEditor from '@/components/projects/ReleaseChecklistEditor'
+import { DEFAULT_RELEASE_CHECKLIST } from '@/lib/releaseChecklistDefault'
+
+const EMPTY_CHECKLIST: ReleaseChecklistTemplate = { sections: [] }
 
 interface ProjectModalProps {
   project: Project | null
@@ -18,7 +22,9 @@ export default function ProjectModal({ project, employeeId, parentProjectId, onC
     projectName: '',
     parentProjectId: null as string | null,
     description: '',
-    status: 'Active' as 'Active' | 'Inactive'
+    status: 'Active' as 'Active' | 'Inactive',
+    releaseEnabled: false,
+    releaseChecklist: EMPTY_CHECKLIST as ReleaseChecklistTemplate
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,7 +36,9 @@ export default function ProjectModal({ project, employeeId, parentProjectId, onC
         projectName: project.projectName,
         parentProjectId: project.parentProjectId || null,
         description: project.description || '',
-        status: (project.status === 'Deleted' ? 'Inactive' : project.status) as 'Active' | 'Inactive'
+        status: (project.status === 'Deleted' ? 'Inactive' : project.status) as 'Active' | 'Inactive',
+        releaseEnabled: project.releaseEnabled ?? false,
+        releaseChecklist: project.releaseChecklist ?? EMPTY_CHECKLIST
       })
     } else {
       // Create mode - reset form (with optional pre-selected parent)
@@ -38,7 +46,9 @@ export default function ProjectModal({ project, employeeId, parentProjectId, onC
         projectName: '',
         parentProjectId: parentProjectId || null,
         description: '',
-        status: 'Active'
+        status: 'Active',
+        releaseEnabled: false,
+        releaseChecklist: EMPTY_CHECKLIST
       })
     }
   }, [project, parentProjectId])
@@ -55,9 +65,15 @@ export default function ProjectModal({ project, employeeId, parentProjectId, onC
       
       const method = project ? 'PUT' : 'POST'
       
+      const isSubproject = formData.parentProjectId != null
+      const { releaseEnabled, releaseChecklist, ...baseFields } = formData
+      const releaseFields = isSubproject
+        ? { releaseEnabled, releaseChecklist }
+        : { releaseEnabled: false, releaseChecklist: EMPTY_CHECKLIST }
+
       const body = project
-        ? { ...formData, updatedBy: employeeId }
-        : { ...formData, createdBy: employeeId }
+        ? { ...baseFields, ...releaseFields, updatedBy: employeeId }
+        : { ...baseFields, ...releaseFields, createdBy: employeeId }
 
       const response = await fetch(url, {
         method,
@@ -169,6 +185,43 @@ export default function ProjectModal({ project, employeeId, parentProjectId, onC
               <option value="Inactive">Inactive</option>
             </select>
           </div>
+
+          {/* Release configuration (sub-projects only) */}
+          {formData.parentProjectId != null && (
+            <div className="border-t border-gray-200 pt-6 space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.releaseEnabled}
+                  onChange={(e) =>
+                    setFormData({ ...formData, releaseEnabled: e.target.checked })
+                  }
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  Release enabled
+                </span>
+              </label>
+              <p className="text-sm text-gray-500 -mt-2">
+                Enable to allow creating release work-items for this sub-project and to define its release checklist.
+              </p>
+
+              {formData.releaseEnabled && (
+                <ReleaseChecklistEditor
+                  value={formData.releaseChecklist}
+                  onChange={(releaseChecklist) =>
+                    setFormData({ ...formData, releaseChecklist })
+                  }
+                  onLoadDefault={() =>
+                    setFormData({
+                      ...formData,
+                      releaseChecklist: DEFAULT_RELEASE_CHECKLIST
+                    })
+                  }
+                />
+              )}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">

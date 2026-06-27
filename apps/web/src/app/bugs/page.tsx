@@ -84,7 +84,6 @@ export default function BugsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string[]>([])
   const [assigneeFilter, setAssigneeFilter] = useState<string[]>([])
   const [typeFilter, setTypeFilter] = useState<string[]>([]) // New: Bug type filter
-  const [projectFilter, setProjectFilter] = useState('all') // NEW: Project filter
   const [subprojectFilter, setSubprojectFilter] = useState('all') // NEW: Subproject filter
   const [viewMode, setViewMode] = useState<'cards' | 'grid'>('cards')
 
@@ -177,7 +176,6 @@ export default function BugsPage() {
         setCategoryFilter(Array.isArray(filters.categoryFilter) ? filters.categoryFilter : [])
         setAssigneeFilter(Array.isArray(filters.assigneeFilter) ? filters.assigneeFilter : (filters.assigneeFilter === 'me' ? ['me'] : []))
         setTypeFilter(Array.isArray(filters.typeFilter) ? filters.typeFilter : [])
-        setProjectFilter(filters.projectFilter || 'all')
         setSubprojectFilter(filters.subprojectFilter || 'all')
         if (filters.viewMode === 'grid' || filters.viewMode === 'cards') {
           setViewMode(filters.viewMode)
@@ -299,7 +297,7 @@ export default function BugsPage() {
             bugTypes: bugTypes.length > 0 ? bugTypes : [
               { value: 'Bug', icon: '🐛' },
               { value: 'Feature', icon: '✨' },
-              { value: 'Testcase', icon: '📋' },
+              { value: 'Release', icon: '🚀' },
               { value: 'Other', icon: '📦' }
             ]
           })
@@ -348,9 +346,6 @@ export default function BugsPage() {
       if (categoryFilter.length > 0) variables.category = categoryFilter
       if (typeFilter.length > 0) variables.type = typeFilter
 
-      if (projectFilter && projectFilter !== 'all') {
-        variables.projectId = projectFilter
-      }
       if (subprojectFilter && subprojectFilter !== 'all') {
         variables.subprojectId = subprojectFilter
       }
@@ -385,7 +380,6 @@ export default function BugsPage() {
         if (severityFilter.length > 0) params.append('severity', severityFilter.join(','))
         if (categoryFilter.length > 0) params.append('category', categoryFilter.join(','))
         if (typeFilter.length > 0) params.append('type', typeFilter.join(','))
-        if (projectFilter && projectFilter !== 'all') params.append('projectId', projectFilter)
         if (subprojectFilter && subprojectFilter !== 'all') params.append('subprojectId', subprojectFilter)
         if (selectedProjectIds && selectedProjectIds.length > 0) {
           params.append('projectIds', selectedProjectIds.join(','))
@@ -454,7 +448,7 @@ export default function BugsPage() {
       setIsLoading(false)
       setIsLoadingMore(false)
     }
-  }, [offset, assigneeFilter, statusFilter, severityFilter, projectFilter, subprojectFilter, selectedProjectIds, bugs, ITEMS_PER_PAGE, currentUser])
+  }, [offset, assigneeFilter, statusFilter, severityFilter, subprojectFilter, selectedProjectIds, bugs, ITEMS_PER_PAGE, currentUser])
 
   // Reload bugs when filters change (reset pagination)
   useEffect(() => {
@@ -462,7 +456,7 @@ export default function BugsPage() {
 
     console.log('🔵 [Bugs] Filters changed, reloading bugs from beginning...')
     loadBugs(false, false) // Reset to first page
-  }, [statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, projectFilter, subprojectFilter, selectedProjectIds, initialized])
+  }, [statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, subprojectFilter, selectedProjectIds, initialized])
 
   // Intersection Observer for infinite scroll (trigger at 80% scroll)
   useEffect(() => {
@@ -502,7 +496,6 @@ export default function BugsPage() {
         categoryFilter,
         assigneeFilter,
         typeFilter,
-        projectFilter,
         subprojectFilter,
         viewMode
       }
@@ -510,7 +503,7 @@ export default function BugsPage() {
     } catch (error) {
       console.error('Failed to save filters:', error)
     }
-  }, [searchTerm, statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, projectFilter, subprojectFilter, viewMode, isHydrated])
+  }, [searchTerm, statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, subprojectFilter, viewMode, isHydrated])
 
   // Calculate statistics from filtered bugs (user's visible bugs)
   const calculateStatistics = useCallback((bugsData: Bug[]) => {
@@ -576,14 +569,15 @@ export default function BugsPage() {
     }
   }, [])
 
-  // NEW: Load subprojects when project changes
+  // Load subprojects when exactly one global project is selected
   useEffect(() => {
-    if (projectFilter && projectFilter !== 'all') {
-      fetch(`/api/projects?parentId=${projectFilter}`)
+    if (selectedProjectIds.length === 1) {
+      const parentId = selectedProjectIds[0]
+      fetch(`/api/projects?parentId=${parentId}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
-            setSubprojects(data.filter((p: any) => p.parentProjectId === projectFilter))
+            setSubprojects(data.filter((p: any) => p.parentProjectId === parentId))
           }
         })
         .catch(error => console.error('Failed to load subprojects:', error))
@@ -591,7 +585,7 @@ export default function BugsPage() {
       setSubprojects([])
       setSubprojectFilter('all')
     }
-  }, [projectFilter])
+  }, [selectedProjectIds])
 
   useEffect(() => {
     if (!isHydrated) return
@@ -938,28 +932,12 @@ export default function BugsPage() {
 
           {/* Unified Filter Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-9 gap-4 items-end">
-            {/* Project Filter */}
-            <div className="w-full">
-              <select
-                value={projectFilter}
-                onChange={(e) => setProjectFilter(e.target.value)}
-                className="w-full px-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="all">All Projects</option>
-                {projects.map(project => (
-                  <option key={project.projectId} value={project.projectId}>
-                    📁 {project.projectName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {/* Subproject Filter */}
             <div className="w-full">
               <select
                 value={subprojectFilter}
                 onChange={(e) => setSubprojectFilter(e.target.value)}
-                disabled={projectFilter === 'all' || subprojects.length === 0}
+                disabled={selectedProjectIds.length !== 1 || subprojects.length === 0}
                 className="w-full px-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="all">All Subprojects</option>
@@ -995,7 +973,7 @@ export default function BugsPage() {
                 options={[
                   { value: 'bug', label: '🐛 Bug' },
                   { value: 'feature', label: '✨ Feature' },
-                  { value: 'testcase', label: '🧪 Testcase' },
+                  { value: 'release', label: '🚀 Release' },
                   { value: 'other', label: '📝 Other' }
                 ]}
                 selectedValues={typeFilter}
@@ -1050,7 +1028,6 @@ export default function BugsPage() {
                   setSeverityFilter([])
                   setCategoryFilter([])
                   setAssigneeFilter(currentUser?.employeeId ? [currentUser.employeeId] : [])
-                  setProjectFilter('all')
                   setSubprojectFilter('all')
                 }}
                 className="w-full px-4 h-[42px] border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium flex items-center justify-center whitespace-nowrap"

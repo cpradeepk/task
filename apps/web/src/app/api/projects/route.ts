@@ -109,7 +109,9 @@ export async function POST(request: NextRequest) {
       parentProjectId: body.parentProjectId || undefined,
       description: body.description || undefined,
       status: body.status || 'Active',
-      createdBy: body.createdBy
+      createdBy: body.createdBy,
+      releaseEnabled: body.releaseEnabled ?? false,
+      releaseChecklist: body.releaseChecklist ?? null
     }
 
     // Create project (validation happens in the database layer)

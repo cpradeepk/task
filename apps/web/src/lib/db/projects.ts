@@ -35,6 +35,8 @@ interface ProjectRow  {
   updated_at: string
   deleted_at: string | null
   deleted_by: string | null
+  release_enabled: boolean | null
+  release_checklist: any | null
 }
 
 /**
@@ -52,7 +54,13 @@ function rowToProject(row: ProjectRow): Project {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at || undefined,
-    deletedBy: row.deleted_by || undefined
+    deletedBy: row.deleted_by || undefined,
+    releaseEnabled: row.release_enabled ?? false,
+    releaseChecklist: row.release_checklist
+      ? (typeof row.release_checklist === 'string'
+          ? JSON.parse(row.release_checklist)
+          : row.release_checklist)
+      : null
   }
 }
 
@@ -218,15 +226,18 @@ export async function createProject(
     // Insert project
     await query<any>(
       `INSERT INTO projects (
-        project_id, project_name, parent_project_id, description, status, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6)`,
+        project_id, project_name, parent_project_id, description, status, created_by,
+        release_enabled, release_checklist
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [
         project_id,
         project.projectName,
         project.parentProjectId || null,
         project.description || null,
         project.status || 'Active',
-        createdBy
+        createdBy,
+        project.releaseEnabled ?? false,
+        project.releaseChecklist ? JSON.stringify(project.releaseChecklist) : null
       ]
     )
 
@@ -279,6 +290,14 @@ export async function updateProject(
     if (updates.status !== undefined) {
       fields.push(`status = $${paramIndex++}`)
       values.push(updates.status)
+    }
+    if (updates.releaseEnabled !== undefined) {
+      fields.push(`release_enabled = $${paramIndex++}`)
+      values.push(updates.releaseEnabled)
+    }
+    if (updates.releaseChecklist !== undefined) {
+      fields.push(`release_checklist = $${paramIndex++}`)
+      values.push(updates.releaseChecklist ? JSON.stringify(updates.releaseChecklist) : null)
     }
 
     if (fields.length === 0) {

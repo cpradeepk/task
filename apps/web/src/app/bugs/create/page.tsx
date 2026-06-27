@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
-import { BugFormData, User } from '@/lib/types'
+import { BugFormData, User, Project, ReleaseChecklistSection, ReleaseState, ReleasePlatformChecklist, Bug as BugItem } from '@/lib/types'
 import { createBug } from '@/lib/bugService'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
 import { Bug, AlertCircle, Save, X, FileText, Settings, CheckSquare, Paperclip, Clock, Tag } from 'lucide-react'
@@ -52,6 +52,29 @@ function CreateBugPageContent() {
   const [error, setError] = useState('')
   const [isHydrated, setIsHydrated] = useState(false)
   const [missingFields, setMissingFields] = useState<string[]>([])
+
+  // Release mode state
+  const [releasePlatforms, setReleasePlatforms] = useState<('android' | 'ios')[]>([])
+  const [releaseBugs, setReleaseBugs] = useState<BugItem[]>([]) // candidate + searched bugs (deduped)
+  const [selectedReleaseBugIds, setSelectedReleaseBugIds] = useState<string[]>([])
+  const [releaseBugSearch, setReleaseBugSearch] = useState('')
+  const [isLoadingReleaseBugs, setIsLoadingReleaseBugs] = useState(false)
+  const [isSearchingReleaseBugs, setIsSearchingReleaseBugs] = useState(false)
+
+  // Currently-selected subproject object (carries releaseEnabled + releaseChecklist)
+  const selectedSub = (subprojects as Project[]).find(
+    (sub) => sub.projectId === formData.subprojectId
+  )
+  const isReleaseEnabled = selectedSub?.releaseEnabled === true
+  const isReleaseMode = formData.type === 'release'
+
+  // Platform availability derived from the sub-project's checklist sections.
+  const releaseSections: ReleaseChecklistSection[] = selectedSub?.releaseChecklist?.sections ?? []
+  const hasAndroidSpecific = releaseSections.some((s) => s.platform === 'android')
+  const hasIosSpecific = releaseSections.some((s) => s.platform === 'ios')
+  const hasCommon = releaseSections.some((s) => s.platform === 'common')
+  const androidAvailable = hasAndroidSpecific || hasCommon
+  const iosAvailable = hasIosSpecific || hasCommon
 
   // Settings state
   const [severityOptions, setSeverityOptions] = useState<string[]>([])
@@ -166,7 +189,7 @@ function CreateBugPageContent() {
         setCategoryOptions(grouped.category && grouped.category.length > 0 ? grouped.category : ['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
         setPlatformOptions(grouped.platform && grouped.platform.length > 0 ? grouped.platform : ['Web', 'iOS', 'Android', 'All'])
         setEnvironmentOptions(grouped.environment && grouped.environment.length > 0 ? grouped.environment : ['Development', 'Staging', 'UAT', 'Production'])
-        setBugTypeOptions(grouped.bug_type && grouped.bug_type.length > 0 ? grouped.bug_type : ['testcase', 'feature', 'bug', 'other'])
+        setBugTypeOptions(grouped.bug_type && grouped.bug_type.length > 0 ? grouped.bug_type : ['feature', 'bug', 'other'])
 
         console.log('Settings loaded successfully:', grouped)
       } else {
@@ -176,7 +199,7 @@ function CreateBugPageContent() {
         setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
         setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
         setEnvironmentOptions(['Development', 'Staging', 'UAT', 'Production'])
-        setBugTypeOptions(['testcase', 'feature', 'other'])
+        setBugTypeOptions(['feature', 'bug', 'other'])
       }
 
       setSettingsLoaded(true)
@@ -187,7 +210,7 @@ function CreateBugPageContent() {
       setCategoryOptions(['UI', 'API', 'Backend', 'Performance', 'Security', 'Database', 'Integration', 'Other'])
       setPlatformOptions(['Web', 'iOS', 'Android', 'All'])
       setEnvironmentOptions(['Development', 'Staging', 'UAT', 'Production'])
-      setBugTypeOptions(['testcase', 'feature', 'other'])
+      setBugTypeOptions(['feature', 'bug', 'other'])
       setError('Using default dropdown options. Database settings may be unavailable.')
       setSettingsLoaded(true)
     } finally {
@@ -284,6 +307,80 @@ function CreateBugPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.projectId])
 
+  // If the chosen sub-project is no longer release-enabled, drop the release type.
+  useEffect(() => {
+    if (formData.type === 'release' && !isReleaseEnabled) {
+      setFormData(prev => ({ ...prev, type: undefined }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReleaseEnabled, formData.type])
+
+  // Default-check the available platforms when entering release mode / changing sub-project.
+  // Prefer platforms that have platform-specific sections; if only 'common' sections exist, offer both.
+  useEffect(() => {
+    if (!isReleaseMode || !selectedSub) return
+
+    const defaults: ('android' | 'ios')[] = []
+    if (hasAndroidSpecific) defaults.push('android')
+    if (hasIosSpecific) defaults.push('ios')
+    if (defaults.length === 0 && hasCommon) {
+      if (androidAvailable) defaults.push('android')
+      if (iosAvailable) defaults.push('ios')
+    }
+    setReleasePlatforms(defaults)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReleaseMode, formData.subprojectId])
+
+  // Fetch the bugs completed since the last release for this sub-project (pre-checked).
+  useEffect(() => {
+    if (!isReleaseMode || !formData.subprojectId) {
+      setReleaseBugs([])
+      setSelectedReleaseBugIds([])
+      return
+    }
+
+    let cancelled = false
+    const fetchCompleted = async () => {
+      try {
+        setIsLoadingReleaseBugs(true)
+        const response = await fetch(
+          `/api/bugs/completed-for-release?subprojectId=${encodeURIComponent(formData.subprojectId!)}`
+        )
+        const result = await response.json()
+        if (cancelled) return
+        if (result.success && Array.isArray(result.data)) {
+          const bugs = result.data as BugItem[]
+          setReleaseBugs(bugs)
+          setSelectedReleaseBugIds(bugs.map((b) => b.bugId)) // all pre-checked
+        } else {
+          setReleaseBugs([])
+          setSelectedReleaseBugIds([])
+        }
+      } catch (err) {
+        console.error('Failed to load completed bugs for release:', err)
+        if (!cancelled) {
+          setReleaseBugs([])
+          setSelectedReleaseBugIds([])
+        }
+      } finally {
+        if (!cancelled) setIsLoadingReleaseBugs(false)
+      }
+    }
+
+    fetchCompleted()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReleaseMode, formData.subprojectId])
+
+  // Keep formData.relatedBugs in sync with the selected release bug ids.
+  useEffect(() => {
+    if (!isReleaseMode) return
+    setFormData(prev => ({ ...prev, relatedBugs: selectedReleaseBugIds.join(', ') }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedReleaseBugIds, isReleaseMode])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -303,6 +400,50 @@ function CreateBugPageContent() {
       : baseClass
   }
 
+  const togglePlatform = (platform: 'android' | 'ios') => {
+    setReleasePlatforms((prev) =>
+      prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
+    )
+    if (missingFields.includes('platforms')) {
+      setMissingFields((prev) => prev.filter((field) => field !== 'platforms'))
+    }
+  }
+
+  const toggleReleaseBug = (bugId: string) => {
+    setSelectedReleaseBugIds((prev) =>
+      prev.includes(bugId) ? prev.filter((id) => id !== bugId) : [...prev, bugId]
+    )
+  }
+
+  // Search for additional bugs and append any not already listed (selected on add).
+  const handleReleaseBugSearch = async () => {
+    const query = releaseBugSearch.trim()
+    if (!query) return
+
+    try {
+      setIsSearchingReleaseBugs(true)
+      const response = await fetch(`/api/bugs?search=${encodeURIComponent(query)}`)
+      const result = await response.json()
+      const found: BugItem[] = Array.isArray(result?.data)
+        ? (result.data as BugItem[])
+        : Array.isArray(result)
+          ? (result as BugItem[])
+          : []
+
+      const existingIds = new Set(releaseBugs.map((b) => b.bugId))
+      const newBugs = found.filter((b) => b.type !== 'release' && !existingIds.has(b.bugId))
+
+      if (newBugs.length > 0) {
+        setReleaseBugs((prev) => [...prev, ...newBugs])
+        setSelectedReleaseBugIds((prev) => [...prev, ...newBugs.map((b) => b.bugId)])
+      }
+    } catch (err) {
+      console.error('Failed to search bugs:', err)
+    } finally {
+      setIsSearchingReleaseBugs(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -311,16 +452,28 @@ function CreateBugPageContent() {
     // Validate required fields - Track missing fields for visual feedback
     const missing: string[] = []
 
-    if (!formData.title || !formData.title.trim()) missing.push('title')
+    // Title is auto-filled for releases, so it is only required for non-release types.
+    if (!isReleaseMode && (!formData.title || !formData.title.trim())) missing.push('title')
     if (!formData.description || !formData.description.trim()) missing.push('description')
     if (!formData.projectId) missing.push('projectId')
     if (!formData.subprojectId) missing.push('subprojectId')
     if (!formData.type) missing.push('type')
 
+    // Release-specific validation: assignee + start date + at least one platform.
+    if (isReleaseMode) {
+      if (!formData.assignedTo) missing.push('assignedTo')
+      if (!formData.startDate) missing.push('startDate')
+      if (releasePlatforms.length === 0) missing.push('platforms')
+    }
+
     // If there are missing fields, show error and highlight them
     if (missing.length > 0) {
       setMissingFields(missing)
-      setError('Please fill in all required fields')
+      setError(
+        missing.includes('platforms') && missing.length === 1
+          ? 'Please select at least one platform'
+          : 'Please fill in all required fields'
+      )
       return
     }
 
@@ -386,10 +539,51 @@ function CreateBugPageContent() {
         setIsUploading(false)
       }
 
-      const bugData = {
+      let bugData: BugFormData & { reportedBy: string } = {
         ...formData,
         attachments: attachmentUrls.join(', '),
         reportedBy: currentUser.employeeId
+      }
+
+      // Release transform: hardcode fields, auto-fill, and snapshot the checklist.
+      if (isReleaseMode && selectedSub) {
+        const subName = selectedSub.projectName
+        const platform: BugFormData['platform'] =
+          releasePlatforms.includes('android') && releasePlatforms.includes('ios')
+            ? 'All'
+            : releasePlatforms.includes('android')
+              ? 'Android'
+              : 'iOS'
+
+        const checklists: ReleaseState['checklists'] = {}
+        for (const p of releasePlatforms) {
+          const template: ReleaseChecklistSection[] = releaseSections.filter(
+            (s) => s.platform === 'common' || s.platform === p
+          )
+          const platformChecklist: ReleasePlatformChecklist = {
+            template,
+            manual: [],
+            completed: {}
+          }
+          checklists[p] = platformChecklist
+        }
+
+        const releaseState: ReleaseState = {
+          platforms: releasePlatforms,
+          checklists,
+          versions: {}
+        }
+
+        bugData = {
+          ...bugData,
+          environment: 'Production',
+          severity: 'Critical',
+          platform,
+          title: bugData.title?.trim() ? bugData.title : `Release — ${subName} — ${formData.startDate}`,
+          feature: bugData.feature?.trim() ? bugData.feature : subName,
+          startDate: formData.startDate,
+          releaseState
+        }
       }
 
       const bugId = await createBug(bugData)
@@ -481,49 +675,7 @@ function CreateBugPageContent() {
               </div>
 
               <div className="grid grid-cols-1 gap-6">
-                {/* Bug Type - MANDATORY FIELD */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Bug Type <span className="text-red-500">*</span>
-                    {missingFields.includes('type') && (
-                      <span className="text-red-500 text-xs ml-2">Required</span>
-                    )}
-                  </label>
-                  <div className="flex gap-3 flex-wrap">
-                    {isLoadingSettings ? (
-                      <span className="text-gray-500 text-sm">Loading types...</span>
-                    ) : (
-                      bugTypeOptions.map(type => {
-                        const icon = getIcon('bug_types', type)
-                        const isSelected = formData.type === type
-                        return (
-                          <button
-                            key={type}
-                            type="button"
-                            onClick={() => {
-                              setFormData(prev => ({ ...prev, type: type as BugFormData['type'] }))
-                              if (missingFields.includes('type')) {
-                                setMissingFields(prev => prev.filter(field => field !== 'type'))
-                              }
-                            }}
-                            className={`px-5 py-3 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-2 ${
-                              isSelected
-                                ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                : missingFields.includes('type')
-                                  ? 'bg-white text-gray-700 border-red-500 hover:border-red-600 hover:bg-red-50'
-                                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                            }`}
-                          >
-                            <span>{icon || '🪲'}</span>
-                            <span>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
-                          </button>
-                        )
-                      })
-                    )}
-                  </div>
-                </div>
-
-                {/* Project and Subproject */}
+                {/* Project and Subproject (moved above Type) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -587,6 +739,118 @@ function CreateBugPageContent() {
                   </div>
                 </div>
 
+                {/* Type - MANDATORY FIELD */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Type <span className="text-red-500">*</span>
+                    {missingFields.includes('type') && (
+                      <span className="text-red-500 text-xs ml-2">Required</span>
+                    )}
+                  </label>
+                  <div className="flex gap-3 flex-wrap">
+                    {isLoadingSettings ? (
+                      <span className="text-gray-500 text-sm">Loading types...</span>
+                    ) : (
+                      // 'release' is only offered when the selected sub-project enables it.
+                      bugTypeOptions
+                        .filter(type => type !== 'release' || isReleaseEnabled)
+                        .concat(isReleaseEnabled && !bugTypeOptions.includes('release') ? ['release'] : [])
+                        .map(type => {
+                        const icon = getIcon('bug_types', type)
+                        const isSelected = formData.type === type
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, type: type as BugFormData['type'] }))
+                              if (missingFields.includes('type')) {
+                                setMissingFields(prev => prev.filter(field => field !== 'type'))
+                              }
+                            }}
+                            className={`px-5 py-3 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-2 ${
+                              isSelected
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                : missingFields.includes('type')
+                                  ? 'bg-white text-gray-700 border-red-500 hover:border-red-600 hover:bg-red-50'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                            }`}
+                          >
+                            <span>{icon || (type === 'release' ? '🚀' : '🪲')}</span>
+                            <span>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                          </button>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Release: platform selection + start date */}
+                {isReleaseMode && (
+                  <div className="space-y-6 rounded-lg border border-blue-200 bg-blue-50/40 p-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Platforms <span className="text-red-500">*</span>
+                        {missingFields.includes('platforms') && (
+                          <span className="text-red-500 text-xs ml-2">Select at least one</span>
+                        )}
+                      </label>
+                      <div className="flex gap-3 flex-wrap">
+                        {androidAvailable && (
+                          <button
+                            type="button"
+                            onClick={() => togglePlatform('android')}
+                            className={`px-5 py-3 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-2 ${
+                              releasePlatforms.includes('android')
+                                ? 'bg-green-600 text-white border-green-600 shadow-md'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-green-400 hover:bg-green-50'
+                            }`}
+                          >
+                            <span>🤖</span>
+                            <span>Android</span>
+                          </button>
+                        )}
+                        {iosAvailable && (
+                          <button
+                            type="button"
+                            onClick={() => togglePlatform('ios')}
+                            className={`px-5 py-3 rounded-lg font-medium transition-all duration-200 border-2 text-sm flex items-center space-x-2 ${
+                              releasePlatforms.includes('ios')
+                                ? 'bg-gray-900 text-white border-gray-900 shadow-md'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-gray-500 hover:bg-gray-50'
+                            }`}
+                          >
+                            <span></span>
+                            <span>iOS</span>
+                          </button>
+                        )}
+                        {!androidAvailable && !iosAvailable && (
+                          <span className="text-gray-500 text-sm">
+                            No release checklist configured for this sub-project.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Start Date <span className="text-red-500">*</span>
+                        {missingFields.includes('startDate') && (
+                          <span className="text-red-500 text-xs ml-2">Required</span>
+                        )}
+                      </label>
+                      <input
+                        type="date"
+                        name="startDate"
+                        value={formData.startDate || ''}
+                        onChange={handleInputChange}
+                        className={getFieldClass('startDate', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white')}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Feature (renamed from Bug Title) */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -644,6 +908,7 @@ function CreateBugPageContent() {
                     </div>
                   </div>
 
+                  {formData.type !== 'release' && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Category <span className="text-red-500">*</span>
@@ -676,6 +941,7 @@ function CreateBugPageContent() {
                       )}
                     </div>
                   </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -712,6 +978,7 @@ function CreateBugPageContent() {
                 </div>
 
                 {/* Technical Details - Environment, Browser, Device (MOVED HERE) */}
+                {formData.type !== 'release' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -774,8 +1041,10 @@ function CreateBugPageContent() {
                     />
                   </div>
                 </div>
+                )}
 
-                {/* Related Items (Tasks/Bugs) */}
+                {/* Related Items (Tasks/Bugs) - hidden in release mode (replaced by bug picker) */}
+                {!isReleaseMode && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
                     <Bug className="h-4 w-4" />
@@ -791,11 +1060,94 @@ function CreateBugPageContent() {
                   />
                   <p className="text-xs text-gray-500 mt-1">Enter comma-separated task or bug IDs to link related work items</p>
                 </div>
+                )}
 
-                {/* Assign To - Sorted by employee_id */}
+                {/* Bugs solved in this release (release mode only) */}
+                {isReleaseMode && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
+                    <Bug className="h-4 w-4" />
+                    <span>Bugs solved in this release</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Completed items since the last release are pre-selected. Deselect any that should not be
+                    included, or search to add more.
+                  </p>
+
+                  {/* Search + add */}
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      value={releaseBugSearch}
+                      onChange={(e) => setReleaseBugSearch(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleReleaseBugSearch()
+                        }
+                      }}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="Search bugs by title or ID to add..."
+                    />
+                    <button
+                      type="button"
+                      onClick={handleReleaseBugSearch}
+                      disabled={isSearchingReleaseBugs || !releaseBugSearch.trim()}
+                      className="px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                    >
+                      {isSearchingReleaseBugs ? 'Searching...' : 'Add'}
+                    </button>
+                  </div>
+
+                  {/* Selectable list */}
+                  <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-72 overflow-y-auto">
+                    {isLoadingReleaseBugs ? (
+                      <div className="p-4">
+                        <LoadingSpinner size="sm" message="Loading completed bugs..." />
+                      </div>
+                    ) : releaseBugs.length === 0 ? (
+                      <p className="p-4 text-sm text-gray-500">
+                        No completed bugs found for this sub-project. Use search to add bugs.
+                      </p>
+                    ) : (
+                      releaseBugs.map((bug) => {
+                        const checked = selectedReleaseBugIds.includes(bug.bugId)
+                        return (
+                          <label
+                            key={bug.bugId}
+                            className="flex items-start gap-3 p-3 cursor-pointer hover:bg-gray-50"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleReleaseBug(bug.bugId)}
+                              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-800">
+                              <span className="font-medium text-gray-900">{bug.bugId}</span>
+                              {bug.title ? ` — ${bug.title}` : ''}
+                              {bug.status ? (
+                                <span className="ml-2 text-xs text-gray-500">({bug.status})</span>
+                              ) : null}
+                            </span>
+                          </label>
+                        )
+                      })
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {selectedReleaseBugIds.length} selected
+                  </p>
+                </div>
+                )}
+
+                {/* Assign To - Sorted by employee_id (required for releases) */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Assign To (Optional)
+                    Assign To {isReleaseMode ? <span className="text-red-500">*</span> : '(Optional)'}
+                    {missingFields.includes('assignedTo') && (
+                      <span className="text-red-500 text-xs ml-2">Required</span>
+                    )}
                   </label>
                   {!usersLoaded ? (
                     <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center min-h-[48px]">
@@ -812,7 +1164,7 @@ function CreateBugPageContent() {
                       name="assignedTo"
                       value={formData.assignedTo || ''}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      className={getFieldClass('assignedTo', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white')}
                     >
                       <option value="">👤 Select assignee...</option>
                       {users.map(user => (
@@ -839,7 +1191,7 @@ function CreateBugPageContent() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    {formData.type === 'feature' ? 'Feature Description' : 'Steps to Reproduce'} <span className="text-red-500">*</span>
+                    {isReleaseMode ? 'Release Notes' : formData.type === 'feature' ? 'Feature Description' : 'Steps to Reproduce'} <span className="text-red-500">*</span>
                     {missingFields.includes('description') && (
                       <span className="text-red-500 text-xs ml-2">Required</span>
                     )}
@@ -850,15 +1202,17 @@ function CreateBugPageContent() {
                     onChange={handleInputChange}
                     rows={4}
                     className={getFieldClass('description', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical')}
-                    placeholder={formData.type === 'feature'
+                    placeholder={isReleaseMode
+                      ? "Summarize what this release contains: key features, fixes, and notable changes..."
+                      : formData.type === 'feature'
                       ? "Describe the feature in detail:&#10;- What is the purpose of this feature?&#10;- What functionality should it provide?&#10;- Any specific requirements or constraints?"
                       : "Please provide step-by-step instructions:&#10;1. Go to the login page&#10;2. Enter invalid credentials&#10;3. Click 'Sign In' button&#10;4. Observe the error"}
                     required
                   />
                 </div>
 
-                {/* Hide these fields for feature-type bugs */}
-                {formData.type !== 'feature' && (
+                {/* Hide these fields for feature-type and release-type bugs */}
+                {formData.type !== 'feature' && formData.type !== 'release' && (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>

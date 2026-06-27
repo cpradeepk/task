@@ -125,7 +125,9 @@ export async function POST(request: NextRequest) {
       projectId: bugData.projectId || null,
       subprojectId: bugData.subprojectId || null,
       feature: bugData.feature || null,
-      type: bugData.type || null
+      type: bugData.type || null,
+      startDate: bugData.startDate || null,
+      releaseState: bugData.releaseState || null
     }
 
     // Add bug to MySQL

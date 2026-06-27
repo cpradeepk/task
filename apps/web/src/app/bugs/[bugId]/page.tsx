@@ -11,12 +11,13 @@ import React, { useState, useEffect, use, useCallback, useMemo, useRef } from 'r
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { getCurrentUser, getAllUsers } from '@/lib/auth'
-import { Bug, User } from '@/lib/types'
+import { Bug, User, ReleaseState } from '@/lib/types'
 import { getBugById, updateBug, canEditBug, canCommentOnBug } from '@/lib/bugService'
 import { getCurrentDateTime, formatDateTimeIST } from '@/lib/datetime-utils'
 import UnifiedTimeline from '@/components/UnifiedTimeline'
 import BugEditModal from '@/components/bugs/BugEditModal'
 import BugChecklistManager from '@/components/bugs/BugChecklistManager'
+import ReleaseChecklistView from '@/components/bugs/ReleaseChecklistView'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import LoadingButton from '@/components/ui/LoadingButton'
 import ImageLightbox from '@/components/bugs/ImageLightbox'
@@ -510,6 +511,24 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
     }
   }
 
+  const handleReleaseStateChange = async (releaseState: ReleaseState) => {
+    if (!bug) return
+
+    const updates: Partial<Bug> = {
+      releaseState,
+      updatedAt: new Date().toISOString()
+    }
+
+    // Optimistic UI update
+    setBug({ ...bug, ...updates })
+
+    try {
+      await updateBug(bug.bugId, updates)
+    } catch (error) {
+      console.error('Failed to update release state:', error)
+    }
+  }
+
   const handleAddHours = async () => {
     if (!bug || !currentUser) return
 
@@ -984,24 +1003,6 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
           </div>
 
           <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-            {bug.type === 'testcase' && (
-              <button
-                onClick={() => {
-                  const params = new URLSearchParams({
-                    convertFrom: bug.bugId,
-                    type: 'bug',
-                    title: bug.title || '',
-                    projectId: bug.projectId || '',
-                    subprojectId: bug.subprojectId || '',
-                  })
-                  router.push(`/bugs/create?${params.toString()}`)
-                }}
-                className="inline-flex items-center px-4 py-2.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-medium rounded-lg shadow-sm hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                <span>Convert to Bug</span>
-              </button>
-            )}
             {bug.status === 'Resolved' && canEdit && (
               <button
                 onClick={() => handleStatusChange('Closed')}
@@ -1017,7 +1018,17 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Release Checklist View - replaces Bug Details + Reproduction + Activity for release bugs */}
+            {bug.type === 'release' && (
+              <ReleaseChecklistView
+                bug={bug}
+                canEdit={canEdit}
+                onChange={handleReleaseStateChange}
+              />
+            )}
+
             {/* Bug Details */}
+            {bug.type !== 'release' && (
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-3 mb-4">
                 {/* Criticality (Severity) */}
@@ -1302,6 +1313,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 </div>
               </div>
             </div>
+            )}
 
             {/* Subtasks */}
             <SubtasksList
@@ -1317,7 +1329,8 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
               }}
             />
 
-            {/* Activity Timeline (includes comments and system activities) */}
+            {/* Activity Timeline (includes comments and system activities) - hidden for release bugs */}
+            {bug.type !== 'release' && (
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-2 mb-4">
                 <MessageSquare className="h-5 w-5" />
@@ -1399,6 +1412,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
                 }}
               />
             </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -1660,15 +1674,59 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
             </div>
 
             {/* Bug Checklists - Moved from bottom */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <BugChecklistManager
-                parentBugId={bug.bugId}
-                createdBy={currentUser.employeeId}
-                editable={canEdit}
-                defaultExpanded={true}
-                compact={false}
-              />
-            </div>
+            {bug.type === 'release' ? (
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
+                  <CheckSquare className="h-5 w-5" />
+                  <span>Release Checklist</span>
+                </h3>
+                <div className="max-h-96 overflow-y-auto space-y-4 pr-1">
+                  {(bug.releaseState?.platforms ?? []).map((platform) => {
+                    const checklist = bug.releaseState?.checklists?.[platform]
+                    if (!checklist) return null
+                    const templateItems = checklist.template.flatMap((s) => s.items)
+                    const allItems = [...templateItems, ...checklist.manual]
+                    return (
+                      <div key={platform}>
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2 capitalize">
+                          {platform === 'ios' ? 'iOS' : 'Android'}
+                        </h4>
+                        <div className="space-y-1">
+                          {allItems.length === 0 && (
+                            <p className="text-xs text-gray-400">No items.</p>
+                          )}
+                          {allItems.map((item) => {
+                            const done = !!checklist.completed[item.id]
+                            return (
+                              <div key={item.id} className="flex items-start space-x-2 text-sm">
+                                {done ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                ) : (
+                                  <span className="h-4 w-4 rounded-full border border-gray-300 flex-shrink-0 mt-0.5" />
+                                )}
+                                <span className={done ? 'text-gray-500 line-through' : 'text-gray-700'}>
+                                  {item.text}
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                <BugChecklistManager
+                  parentBugId={bug.bugId}
+                  createdBy={currentUser.employeeId}
+                  editable={canEdit}
+                  defaultExpanded={true}
+                  compact={false}
+                />
+              </div>
+            )}
 
             {/* Related Items */}
             <RelatedItemsManager
