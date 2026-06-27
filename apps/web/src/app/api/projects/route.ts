@@ -47,10 +47,12 @@ export async function GET(request: NextRequest) {
       projects = await getActiveProjects()
     }
 
-    // Filter by user assignment for non-admin/non-top_management users (Commented out to expose all projects)
-    /*
+    // Project dropdowns must show ONLY projects the user has been added to —
+    // for EVERY role (admin/top_management included). The admin project
+    // management surfaces use /api/projects/hierarchy, which is intentionally
+    // left role-based so admins can still manage all projects.
     const authUser = await getAuthUser(request)
-    if (authUser && authUser.role !== 'admin' && authUser.role !== 'top_management') {
+    if (authUser) {
       const userProjectIds = await getUserProjectIds(authUser.employeeId)
       // Include projects the user is assigned to, plus their sub-projects
       const assignedSet = new Set(userProjectIds)
@@ -59,7 +61,6 @@ export async function GET(request: NextRequest) {
         (p.parentProjectId && assignedSet.has(p.parentProjectId))
       )
     }
-    */
 
     return NextResponse.json(projects, { status: 200 })
   } catch (error) {
