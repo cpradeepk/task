@@ -12,11 +12,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { TextInput, Button, Surface, Text, ActivityIndicator, SegmentedButtons } from 'react-native-paper'
+import { TextInput, Button, Surface, Text, ActivityIndicator, SegmentedButtons, Chip } from 'react-native-paper'
 import { SearchablePicker } from '../components/SearchablePicker'
+import { MultiSelectPicker } from '../components/MultiSelectPicker'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import * as DocumentPicker from 'expo-document-picker'
-import { createBug } from '../services/bugService'
-import { getProjectHierarchy, ProjectHierarchy } from '../services/projectService'
+import { createBug, getCompletedBugsForRelease, Bug } from '../services/bugService'
+import { getProjectHierarchy, getProjectById, ProjectHierarchy } from '../services/projectService'
 import { getAllSettings, GroupedSettings } from '../services/settingsService'
 import { getAllUsers, getCurrentUser, User } from '../services/userService'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -24,6 +26,21 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
 import { materialTypography, materialSpacing } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
+import {
+  ReleaseState,
+  ReleasePlatformChecklist,
+  ReleaseChecklistSection,
+} from '../types'
+
+type ReleasePlatform = 'android' | 'ios'
+
+/** Format a Date as YYYY-MM-DD to match the web's <input type="date"> value. */
+const toDateString = (d: Date): string => {
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
 
 interface CreateBugRouteParams {
   convertFrom?: string
@@ -79,6 +96,15 @@ export default function CreateBugScreen() {
   const [frontendLogs, setFrontendLogs] = useState('')
 
   const [attachedFile, setAttachedFile] = useState<any>(null)
+
+  // Release work-item state
+  const [selectedSub, setSelectedSub] = useState<any | null>(null)
+  const [releasePlatforms, setReleasePlatforms] = useState<ReleasePlatform[]>([])
+  const [releaseBugs, setReleaseBugs] = useState<Bug[]>([])
+  const [selectedReleaseBugIds, setSelectedReleaseBugIds] = useState<string[]>([])
+  const [startDate, setStartDate] = useState<Date | null>(null)
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false)
+  const [isLoadingReleaseBugs, setIsLoadingReleaseBugs] = useState(false)
 
   // Data state
   const STATIC_PROJECTS = [
@@ -178,35 +204,87 @@ export default function CreateBugScreen() {
     }
   }
 
+  const selectedProject = useMemo(() => projects.find((p) => p.projectId === projectId), [projects, projectId])
+  const subprojects = useMemo(() => {
+    const dynamicSubs = selectedProject?.subprojects || []
+    return [...STATIC_SUBPROJECTS, ...dynamicSubs]
+  }, [selectedProject])
+
+  // ----- Release work-item derivations (declared before handleSubmit, which reads them) -----
+  const subName = useMemo(() => {
+    if (selectedSub?.projectName) return selectedSub.projectName
+    const found: any = subprojects.find(
+      (s: any) => (s.subprojectId || s.projectId) === subprojectId
+    )
+    return found?.subprojectName || found?.projectName || ''
+  }, [selectedSub, subprojects, subprojectId])
+
+  const releaseSections: ReleaseChecklistSection[] = useMemo(
+    () => selectedSub?.releaseChecklist?.sections ?? [],
+    [selectedSub]
+  )
+  const isReleaseEnabled = selectedSub?.releaseEnabled === true && releaseSections.length > 0
+  const hasCommon = releaseSections.some((s) => s.platform === 'common')
+  const androidAvailable = releaseSections.some((s) => s.platform === 'android') || hasCommon
+  const iosAvailable = releaseSections.some((s) => s.platform === 'ios') || hasCommon
+  const isReleaseMode = bugType === 'release' && isReleaseEnabled
+
   const handleSubmit = useCallback(async () => {
-    // Validation
-    if (!title.trim()) {
-      Alert.alert('Validation Error', 'Feature is required')
-      return
-    }
-    if (!description.trim()) {
-      Alert.alert('Validation Error', 'Description is required')
-      return
-    }
-    if (!projectId) {
-      Alert.alert('Validation Error', 'Project is required')
-      return
-    }
-    if (!subprojectId) {
-      Alert.alert('Validation Error', 'Subproject is required')
-      return
-    }
-    if (!severity) {
-      Alert.alert('Validation Error', 'Criticality is required')
-      return
-    }
-    if (!category) {
-      Alert.alert('Validation Error', 'Category is required')
-      return
-    }
-    if (!platform) {
-      Alert.alert('Validation Error', 'Platform is required')
-      return
+    // Validation — release work-items have a different required-field set.
+    if (isReleaseMode) {
+      if (!projectId) {
+        Alert.alert('Validation Error', 'Project is required')
+        return
+      }
+      if (!subprojectId) {
+        Alert.alert('Validation Error', 'Subproject is required')
+        return
+      }
+      if (!description.trim()) {
+        Alert.alert('Validation Error', 'Release notes are required')
+        return
+      }
+      if (!assignedTo && !currentUser?.employeeId) {
+        Alert.alert('Validation Error', 'Assignee is required')
+        return
+      }
+      if (!startDate) {
+        Alert.alert('Validation Error', 'Start date is required')
+        return
+      }
+      if (releasePlatforms.length === 0) {
+        Alert.alert('Validation Error', 'Select at least one platform')
+        return
+      }
+    } else {
+      if (!title.trim()) {
+        Alert.alert('Validation Error', 'Feature is required')
+        return
+      }
+      if (!description.trim()) {
+        Alert.alert('Validation Error', 'Description is required')
+        return
+      }
+      if (!projectId) {
+        Alert.alert('Validation Error', 'Project is required')
+        return
+      }
+      if (!subprojectId) {
+        Alert.alert('Validation Error', 'Subproject is required')
+        return
+      }
+      if (!severity) {
+        Alert.alert('Validation Error', 'Criticality is required')
+        return
+      }
+      if (!category) {
+        Alert.alert('Validation Error', 'Category is required')
+        return
+      }
+      if (!platform) {
+        Alert.alert('Validation Error', 'Platform is required')
+        return
+      }
     }
 
     try {
@@ -225,7 +303,54 @@ export default function CreateBugScreen() {
 
       let payload: any
 
-      if (attachedFile) {
+      if (isReleaseMode) {
+        // Snapshot the template per selected platform (common + platform-specific).
+        const startDateStr = startDate ? toDateString(startDate) : ''
+        const checklists: ReleaseState['checklists'] = {}
+        for (const p of releasePlatforms) {
+          const template = releaseSections.filter(
+            (s) => s.platform === 'common' || s.platform === p
+          )
+          const platformChecklist: ReleasePlatformChecklist = {
+            template,
+            manual: [],
+            completed: {},
+          }
+          checklists[p] = platformChecklist
+        }
+        const releaseState: ReleaseState = {
+          platforms: releasePlatforms,
+          checklists,
+          versions: {},
+        }
+
+        const releasePlatformLabel =
+          releasePlatforms.length === 2
+            ? 'All'
+            : releasePlatforms[0] === 'android'
+            ? 'Android'
+            : 'iOS'
+
+        payload = {
+          title: title.trim() || `Release — ${subName} — ${startDateStr}`,
+          description: description.trim(),
+          projectId,
+          subprojectId,
+          type: 'release',
+          // Locked fields for releases (mirrors web).
+          severity: 'Critical',
+          priority,
+          environment: 'Production',
+          platform: releasePlatformLabel,
+          feature: feature.trim() || subName,
+          startDate: startDateStr,
+          relatedBugs: selectedReleaseBugIds.join(', ') || undefined,
+          assignedTo: assignedTo || currentUser?.employeeId,
+          reportedBy: currentUser?.employeeId || '',
+          status: 'New',
+          releaseState,
+        }
+      } else if (attachedFile) {
         const formData = new FormData()
         formData.append('title', title.trim())
         formData.append('description', fullDescription)
@@ -293,10 +418,19 @@ export default function CreateBugScreen() {
       const response = await createBug(payload)
 
       if (response.success) {
-        Alert.alert('Success', 'Bug created successfully', [
+        const newBugId = (response.data as any)?.bugId
+        Alert.alert('Success', isReleaseMode ? 'Release created successfully' : 'Bug created successfully', [
           {
             text: 'OK',
-            onPress: () => navigation.goBack(),
+            onPress: () => {
+              if (isReleaseMode && newBugId) {
+                ;(navigation as any).replace
+                  ? (navigation as any).replace('BugDetails', { bugId: newBugId })
+                  : (navigation as any).navigate('BugDetails', { bugId: newBugId })
+              } else {
+                navigation.goBack()
+              }
+            },
           },
         ])
       } else {
@@ -308,7 +442,7 @@ export default function CreateBugScreen() {
     } finally {
       setIsSubmitting(false)
     }
-  }, [title, description, projectId, subprojectId, bugType, severity, priority, category, platform, environment, browser, device, feature, tags, relatedBugs, assignedTo, currentUser, navigation, attachedFile, stepsToReproduce, expectedBehavior, actualBehavior, serverLogs, frontendLogs, behaviour])
+  }, [title, description, projectId, subprojectId, bugType, severity, priority, category, platform, environment, browser, device, feature, tags, relatedBugs, assignedTo, currentUser, navigation, attachedFile, stepsToReproduce, expectedBehavior, actualBehavior, serverLogs, frontendLogs, behaviour, isReleaseMode, releasePlatforms, releaseSections, selectedReleaseBugIds, startDate, subName])
 
   // Helper to safely format picker items and avoid undefined properties causing native Picker crashes
   const getPickerItems = (items: any) => {
@@ -327,11 +461,82 @@ export default function CreateBugScreen() {
     });
   };
 
-  const selectedProject = useMemo(() => projects.find((p) => p.projectId === projectId), [projects, projectId])
-  const subprojects = useMemo(() => {
-    const dynamicSubs = selectedProject?.subprojects || []
-    return [...STATIC_SUBPROJECTS, ...dynamicSubs]
-  }, [selectedProject])
+  // Fetch the full sub-project record (incl. release config) when it changes.
+  useEffect(() => {
+    if (!subprojectId) {
+      setSelectedSub(null)
+      return
+    }
+    let cancelled = false
+    getProjectById(subprojectId)
+      .then((res) => {
+        if (!cancelled && res.success) setSelectedSub(res.data)
+      })
+      .catch(() => {
+        if (!cancelled) setSelectedSub(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [subprojectId])
+
+  // If the chosen type is 'release' but the sub is no longer release-enabled, reset.
+  useEffect(() => {
+    if (bugType === 'release' && !isReleaseEnabled) {
+      setBugType('bug')
+    }
+  }, [bugType, isReleaseEnabled])
+
+  // Default platform selection when entering release mode / changing sub.
+  useEffect(() => {
+    if (!isReleaseMode) return
+    const hasAndroidSpecific = releaseSections.some((s) => s.platform === 'android')
+    const hasIosSpecific = releaseSections.some((s) => s.platform === 'ios')
+    let defaults: ReleasePlatform[] = []
+    if (hasAndroidSpecific) defaults.push('android')
+    if (hasIosSpecific) defaults.push('ios')
+    if (defaults.length === 0 && hasCommon) defaults = ['android', 'ios']
+    setReleasePlatforms(defaults)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReleaseMode, subprojectId])
+
+  // Fetch completed bugs since last release and pre-select them all.
+  useEffect(() => {
+    if (!isReleaseMode || !subprojectId) {
+      setReleaseBugs([])
+      setSelectedReleaseBugIds([])
+      return
+    }
+    let cancelled = false
+    setIsLoadingReleaseBugs(true)
+    getCompletedBugsForRelease(subprojectId)
+      .then((res) => {
+        if (cancelled) return
+        if (res.success && res.data) {
+          setReleaseBugs(res.data)
+          setSelectedReleaseBugIds(res.data.map((b) => b.bugId))
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingReleaseBugs(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isReleaseMode, subprojectId])
+
+  // Keep the relatedBugs string in sync with the selected completed bugs.
+  useEffect(() => {
+    if (isReleaseMode) {
+      setRelatedBugs(selectedReleaseBugIds.join(', '))
+    }
+  }, [isReleaseMode, selectedReleaseBugIds])
+
+  const togglePlatform = (p: ReleasePlatform) => {
+    setReleasePlatforms((prev) =>
+      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]
+    )
+  }
 
   if (isLoading) {
     return (
@@ -389,26 +594,100 @@ export default function CreateBugScreen() {
           />
 
           {/* Bug Type */}
-          <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8, fontWeight: '500' }}>Bug Type</Text>
+          <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8, fontWeight: '500' }}>Type</Text>
           <SegmentedButtons
             value={bugType}
             onValueChange={setBugType}
             buttons={[
               { value: 'bug', label: 'Bug' },
               { value: 'feature', label: 'Feature' },
-              { value: 'testcase', label: 'Test Case' },
               { value: 'other', label: 'Other' },
+              // 'release' is only offered for release-enabled sub-projects.
+              ...(isReleaseEnabled ? [{ value: 'release', label: 'Release' }] : []),
             ]}
             style={{ marginBottom: 16 }}
           />
 
+          {/* Release configuration (release mode only) */}
+          {isReleaseMode && (
+            <View style={styles.releaseBox}>
+              <Text style={styles.label}>Platforms <Text style={styles.required}>*</Text></Text>
+              <View style={styles.platformRow}>
+                {androidAvailable && (
+                  <Chip
+                    selected={releasePlatforms.includes('android')}
+                    onPress={() => togglePlatform('android')}
+                    icon="android"
+                    style={styles.platformChip}
+                    disabled={isOffline}
+                  >
+                    Android
+                  </Chip>
+                )}
+                {iosAvailable && (
+                  <Chip
+                    selected={releasePlatforms.includes('ios')}
+                    onPress={() => togglePlatform('ios')}
+                    icon="apple"
+                    style={styles.platformChip}
+                    disabled={isOffline}
+                  >
+                    iOS
+                  </Chip>
+                )}
+              </View>
+
+              <Text style={[styles.label, { marginTop: materialSpacing.sm }]}>
+                Start Date <Text style={styles.required}>*</Text>
+              </Text>
+              <Button
+                mode="outlined"
+                icon="calendar"
+                onPress={() => setShowStartDatePicker(true)}
+                disabled={isOffline}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                {startDate ? toDateString(startDate) : 'Select start date'}
+              </Button>
+              {showStartDatePicker && (
+                <DateTimePicker
+                  value={startDate || new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(event, selected) => {
+                    setShowStartDatePicker(Platform.OS === 'ios')
+                    if (event.type === 'dismissed') {
+                      setShowStartDatePicker(false)
+                      return
+                    }
+                    if (selected) setStartDate(selected)
+                  }}
+                />
+              )}
+
+              <View style={{ marginTop: materialSpacing.md }}>
+                <MultiSelectPicker
+                  label="Bugs solved in this release"
+                  placeholder={isLoadingReleaseBugs ? 'Loading bugs…' : 'Select solved bugs'}
+                  selectedValues={selectedReleaseBugIds}
+                  onValuesChange={setSelectedReleaseBugIds}
+                  items={releaseBugs.map((b) => ({
+                    label: `${b.bugId} — ${b.title}`,
+                    value: b.bugId,
+                  }))}
+                  disabled={isOffline}
+                />
+              </View>
+            </View>
+          )}
+
           {/* Feature (Title) */}
           <TextInput
             mode="outlined"
-            label="Feature *"
+            label={isReleaseMode ? 'Release Title (optional — auto-generated)' : 'Feature *'}
             value={title}
             onChangeText={setTitle}
-            placeholder="Enter feature name"
+            placeholder={isReleaseMode ? 'Leave blank to auto-generate' : 'Enter feature name'}
             style={styles.input}
             outlineColor={colors.border}
             activeOutlineColor={colors.primary}
@@ -419,10 +698,10 @@ export default function CreateBugScreen() {
           {/* Description & Reproduction Steps */}
           <TextInput
             mode="outlined"
-            label="Summary *"
+            label={isReleaseMode ? 'Release Notes *' : 'Summary *'}
             value={description}
             onChangeText={setDescription}
-            placeholder="Brief summary of the bug"
+            placeholder={isReleaseMode ? 'Notes for this release' : 'Brief summary of the bug'}
             multiline
             numberOfLines={2}
             style={styles.input}
@@ -432,6 +711,9 @@ export default function CreateBugScreen() {
             disabled={isOffline}
           />
 
+          {/* Reproduction & behavior — not applicable to releases */}
+          {!isReleaseMode && (
+          <>
           <Text style={styles.sectionHeader}>Reproduction & Behavior</Text>
 
           {/* Conditional rendering based on bug type */}
@@ -569,10 +851,12 @@ export default function CreateBugScreen() {
               )}
             </View>
           </View>
+          </>
+          )}
 
           {/* Assigned To */}
           <SearchablePicker
-            label="Assign To"
+            label={isReleaseMode ? 'Assign To *' : 'Assign To'}
             placeholder="Select User"
             selectedValue={assignedTo}
             onValueChange={setAssignedTo}
@@ -583,6 +867,9 @@ export default function CreateBugScreen() {
             disabled={isOffline}
           />
 
+          {/* Bug-only metadata — environment/severity are locked for releases */}
+          {!isReleaseMode && (
+          <>
           {/* Criticality (from API settings, synced with web) */}
           <SearchablePicker
             label="Criticality"
@@ -677,6 +964,8 @@ export default function CreateBugScreen() {
             textColor={colors.text}
             disabled={isOffline}
           />
+          </>
+          )}
 
           {/* Submit Button */}
           <Button
@@ -687,7 +976,7 @@ export default function CreateBugScreen() {
             style={styles.submitButton}
             buttonColor={colors.primary}
           >
-            {isSubmitting ? 'Creating...' : 'Create Bug'}
+            {isSubmitting ? 'Creating...' : isReleaseMode ? 'Create Release' : 'Create Bug'}
           </Button>
         </Surface>
       </ScrollView>
@@ -761,6 +1050,22 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     color: colors.primary,
     marginTop: materialSpacing.sm,
     marginBottom: materialSpacing.xs,
+  },
+  releaseBox: {
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
+    borderRadius: 8,
+    padding: materialSpacing.md,
+    marginBottom: materialSpacing.md,
+  },
+  platformRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: materialSpacing.sm,
+  },
+  platformChip: {
+    marginRight: materialSpacing.xs,
   },
 })
 

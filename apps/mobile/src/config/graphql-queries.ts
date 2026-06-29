@@ -25,6 +25,7 @@ export const LOGIN_MUTATION = gql`
         status
         isTodayTask
         warningCount
+        tabPermissions
       }
     }
   }

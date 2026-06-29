@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native'
-import { Card, Text, Button, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Divider, Avatar } from 'react-native-paper'
+import { Card, Text, Button, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Divider, Avatar, Switch } from 'react-native-paper'
 import { useTheme } from '../contexts/ThemeContext'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -16,6 +16,10 @@ import { materialSpacing, materialTypography, materialColors } from '../config/m
 import { useResponsive } from '../hooks/useResponsive'
 import apiClient from '../services/apiClient'
 import { SearchablePicker } from '../components/SearchablePicker'
+import ReleaseChecklistEditor from '../components/ReleaseChecklistEditor'
+import { DEFAULT_RELEASE_CHECKLIST } from '../constants/releaseChecklistDefault'
+import { ReleaseChecklistTemplate } from '../types'
+import { canManageProjects as canManageProjectsFn, canDeleteProjects } from '../utils/permissions'
 
 interface SubProject {
   projectId: string
@@ -33,6 +37,8 @@ interface ProjectDetails {
   createdAt: string
   updatedAt: string
   subProjects?: SubProject[]
+  releaseEnabled?: boolean
+  releaseChecklist?: ReleaseChecklistTemplate | null
 }
 
 interface AssignedUser {
@@ -79,6 +85,8 @@ export default function ProjectDetailsScreen() {
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editStatus, setEditStatus] = useState<'Active' | 'Inactive' | 'completed'>('Active')
+  const [editReleaseEnabled, setEditReleaseEnabled] = useState(false)
+  const [editReleaseChecklist, setEditReleaseChecklist] = useState<ReleaseChecklistTemplate>({ sections: [] })
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -93,16 +101,15 @@ export default function ProjectDetailsScreen() {
   const [subprojectDesc, setSubprojectDesc] = useState('')
   const [isSubmittingSub, setIsSubmittingSub] = useState(false)
 
-  const canManageProjects = useMemo(() => {
-    if (!currentUser) return false
-    const role = currentUser.role?.toLowerCase()
-    return role === 'admin' || role === 'top_management' || currentUser.employeeId === 'AM-0001'
-  }, [currentUser])
+  const canManageProjects = useMemo(
+    () => canManageProjectsFn(currentUser),
+    [currentUser]
+  )
 
-  const canDelete = useMemo(() => {
-    if (!currentUser) return false
-    return currentUser.role?.toLowerCase() === 'admin'
-  }, [currentUser])
+  const canDelete = useMemo(
+    () => canDeleteProjects(currentUser),
+    [currentUser]
+  )
 
   const loadData = useCallback(async () => {
     try {
@@ -122,6 +129,12 @@ export default function ProjectDetailsScreen() {
         setEditName(projData.projectName)
         setEditDescription(projData.description || '')
         setEditStatus(projData.status === 'Deleted' ? 'Inactive' : projData.status)
+        setEditReleaseEnabled(projData.releaseEnabled === true)
+        setEditReleaseChecklist(
+          projData.releaseChecklist && Array.isArray(projData.releaseChecklist.sections)
+            ? projData.releaseChecklist
+            : { sections: [] }
+        )
       } else {
         setError('Failed to find project details')
       }
@@ -168,11 +181,17 @@ export default function ProjectDetailsScreen() {
 
     try {
       setIsSaving(true)
-      const payload = {
+      const isSubproject = project?.parentProjectId != null
+      const payload: Record<string, any> = {
         projectName: editName.trim(),
         description: editDescription.trim() || null,
         status: editStatus,
         updatedBy: currentUser?.employeeId || 'System'
+      }
+      // Release config applies to sub-projects only (mirrors web ProjectModal).
+      if (isSubproject) {
+        payload.releaseEnabled = editReleaseEnabled
+        payload.releaseChecklist = editReleaseEnabled ? editReleaseChecklist : null
       }
 
       const res = await apiClient.put(`/api/projects/${projectId}`, payload)
@@ -394,6 +413,32 @@ export default function ProjectDetailsScreen() {
                     { label: 'Completed', value: 'completed' },
                   ]}
                 />
+
+                {/* Release configuration — sub-projects only */}
+                {project.parentProjectId != null && (
+                  <View style={styles.releaseConfig}>
+                    <View style={styles.releaseToggleRow}>
+                      <View style={{ flex: 1, paddingRight: 12 }}>
+                        <Text style={styles.selectLabel}>Release enabled</Text>
+                        <Text style={styles.releaseHint}>
+                          Allow creating release work-items for this sub-project and define its release checklist.
+                        </Text>
+                      </View>
+                      <Switch
+                        value={editReleaseEnabled}
+                        onValueChange={setEditReleaseEnabled}
+                        color={colors.primary}
+                      />
+                    </View>
+                    {editReleaseEnabled && (
+                      <ReleaseChecklistEditor
+                        value={editReleaseChecklist}
+                        onChange={setEditReleaseChecklist}
+                        onLoadDefault={() => setEditReleaseChecklist(DEFAULT_RELEASE_CHECKLIST)}
+                      />
+                    )}
+                  </View>
+                )}
 
                 <View style={styles.editActions}>
                   <Button mode="outlined" onPress={() => setIsEditing(false)} style={styles.actionBtn}>
@@ -833,5 +878,21 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
   modalInput: {
     marginBottom: 12,
     backgroundColor: colors.surface,
+  },
+  releaseConfig: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: materialSpacing.md,
+    marginTop: materialSpacing.xs,
+  },
+  releaseToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  releaseHint: {
+    ...materialTypography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 })

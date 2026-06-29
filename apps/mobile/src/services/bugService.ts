@@ -8,6 +8,7 @@ import { get, post, patch, del, ApiResponse } from './apiClient'
 import { API_ENDPOINTS } from '../config/api'
 import { executeGraphQLWithFallback } from './graphqlClient'
 import { QUERIES } from './graphqlQueries'
+import { ReleaseState } from '../types'
 
 export interface Bug {
   bugId: string
@@ -35,7 +36,8 @@ export interface Bug {
   
   actualHours?: number
   // Additional fields surfaced by the web schema
-  type?: 'testcase' | 'feature' | 'bug' | 'other' | null
+  type?: 'testcase' | 'feature' | 'bug' | 'other' | 'release' | null
+  releaseState?: ReleaseState | null
   expectedBehavior?: string | null
   actualBehavior?: string | null
   serverLogs?: string | null
@@ -116,10 +118,65 @@ export const getBugById = async (bugId: string): Promise<ApiResponse<Bug>> => {
 }
 
 /**
+ * Get bug by ID over REST only.
+ *
+ * The GraphQL GET_BUG selection set does NOT include `releaseState`, and
+ * `executeGraphQLWithFallback` only falls back to REST when GraphQL throws —
+ * not when it returns a successful-but-incomplete payload. So for release
+ * work-items (and anywhere we need `releaseState`) we must bypass GraphQL and
+ * read the full record from the REST route, which maps `release_state`.
+ */
+export const getBugByIdRest = async (bugId: string): Promise<ApiResponse<Bug>> => {
+  const response = await get<Bug>(API_ENDPOINTS.BUG_BY_ID(bugId))
+  if (response.success && response.data) {
+    // REST returns { data: bug }; some shapes nest under `bug`.
+    const bug = (response.data as any).bug ?? response.data
+    if (bug === null) {
+      return { success: false, error: 'Bug not found' }
+    }
+    return { success: true, data: bug }
+  }
+  return response
+}
+
+/**
  * Create new bug
  */
 export const createBug = async (bugData: Partial<Bug>): Promise<ApiResponse<Bug>> => {
   return post<Bug>(API_ENDPOINTS.BUGS, bugData)
+}
+
+/**
+ * Persist a release work-item's checklist state (REST PATCH).
+ *
+ * Mirrors the web `PATCH /api/bugs/{bugId}` with `{ releaseState }`. We use REST
+ * directly (not the UPDATE_BUG GraphQL mutation, which neither accepts nor
+ * returns `releaseState`).
+ */
+export const updateBugReleaseState = async (
+  bugId: string,
+  releaseState: ReleaseState
+): Promise<ApiResponse<Bug>> => {
+  return patch<Bug>(API_ENDPOINTS.BUG_BY_ID(bugId), { releaseState })
+}
+
+/**
+ * Fetch completed (Resolved/Closed) bugs since the last release for a
+ * sub-project — used to pre-fill the "bugs solved in this release" list.
+ */
+export const getCompletedBugsForRelease = async (
+  subprojectId: string
+): Promise<ApiResponse<Bug[]>> => {
+  const response = await get<Bug[]>(
+    `${API_ENDPOINTS.BUGS_COMPLETED_FOR_RELEASE}?subprojectId=${encodeURIComponent(subprojectId)}`
+  )
+  if (response.success && response.data) {
+    const bugs = Array.isArray(response.data)
+      ? response.data
+      : (response.data as any).data || []
+    return { success: true, data: bugs }
+  }
+  return response
 }
 
 /**

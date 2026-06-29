@@ -65,6 +65,11 @@ export const API_ENDPOINTS = {
    * @returns {string} Relative API path
    */
   BUG_COMMENTS: (bugId: string) => `/api/bugs/${bugId}/comments`,
+  /**
+   * Completed (Resolved/Closed) bugs since the last release for a sub-project.
+   * Used to pre-fill the "bugs solved in this release" list on a release work-item.
+   */
+  BUGS_COMPLETED_FOR_RELEASE: '/api/bugs/completed-for-release',
 
   /**
    * Bug checklist/subtask endpoints
@@ -81,6 +86,12 @@ export const API_ENDPOINTS = {
    * Project management endpoints
    */
   PROJECTS: '/api/projects',
+  /**
+   * Generates endpoint to fetch, update, or delete a specific project/sub-project.
+   * @param {string} projectId - Unique identifier of the project
+   * @returns {string} Relative API path
+   */
+  PROJECT_BY_ID: (projectId: string) => `/api/projects/${projectId}`,
   /**
    * Fetches hierarchical parent-child relationships of active projects
    */

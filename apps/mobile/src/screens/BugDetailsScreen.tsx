@@ -12,13 +12,16 @@ import {
 } from 'react-native'
 import { Card, Text, Surface, Button, TextInput, ActivityIndicator, Chip, Divider, IconButton } from 'react-native-paper'
 import {
-  getBugById,
+  getBugByIdRest,
   getBugComments,
   addBugComment,
   updateBug,
+  updateBugReleaseState,
   Bug,
   BugComment,
 } from '../services/bugService'
+import ReleaseChecklistView from '../components/ReleaseChecklistView'
+import { ReleaseState } from '../types'
 import { getCurrentUser, User } from '../services/userService'
 import { getStatusColor, getStatusTextColor, getSeverityColor, getSeverityTextColor } from '../utils/bugHelpers'
 import { useRoute, useNavigation } from '@react-navigation/native'
@@ -67,8 +70,10 @@ export default function BugDetailsScreen() {
       const user = await getCurrentUser()
       setCurrentUser(user)
 
+      // Fetch over REST so `releaseState` (omitted by the GraphQL selection)
+      // is present for release work-items.
       const [bugResponse, commentsResponse] = await Promise.all([
-        getBugById(bugId),
+        getBugByIdRest(bugId),
         getBugComments(bugId),
       ])
 
@@ -208,6 +213,24 @@ export default function BugDetailsScreen() {
     }
   }, [bug, bugId])
 
+  const handleReleaseStateChange = useCallback(async (nextState: ReleaseState) => {
+    if (!bug) return
+    // Optimistic update, then persist via REST PATCH.
+    const previous = bug
+    setBug({ ...bug, releaseState: nextState })
+    try {
+      const response = await updateBugReleaseState(bugId, nextState)
+      if (!response.success) {
+        setBug(previous)
+        Alert.alert('Error', response.error || 'Failed to save release checklist')
+      }
+    } catch (error) {
+      console.error('Failed to save release state:', error)
+      setBug(previous)
+      Alert.alert('Error', 'Failed to save release checklist')
+    }
+  }, [bug, bugId])
+
   const formatTime = useCallback((milliseconds?: number | string): string => {
     if (!milliseconds) return '00:00:00'
     const ms = typeof milliseconds === 'string' ? Number(milliseconds) : milliseconds
@@ -250,6 +273,8 @@ export default function BugDetailsScreen() {
     )
   }
 
+  const isRelease = bug.type === 'release'
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
@@ -284,11 +309,26 @@ export default function BugDetailsScreen() {
         {/* Description Card */}
         <Card style={styles.sectionCard} elevation={1}>
           <Card.Content>
-            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.sectionTitle}>{isRelease ? 'Release Notes' : 'Description'}</Text>
             <Divider style={styles.divider} />
             <Text style={styles.description}>{bug.description}</Text>
           </Card.Content>
         </Card>
+
+        {/* Release Checklist (release work-items only) */}
+        {isRelease && (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Release Checklist</Text>
+              <Divider style={styles.divider} />
+              <ReleaseChecklistView
+                bug={bug}
+                canEdit={!isOffline}
+                onChange={handleReleaseStateChange}
+              />
+            </Card.Content>
+          </Card>
+        )}
 
         {/* Convert Test Case to Bug button */}
         {bug.type === 'testcase' && (
@@ -465,14 +505,16 @@ export default function BugDetailsScreen() {
           </Card.Content>
         </Card>
 
-        {/* Bug Flow Section */}
-        <Card style={styles.sectionCard} elevation={1}>
-          <Card.Content>
-            <Text style={styles.sectionTitle}>Bug Flow</Text>
-            <Divider style={styles.divider} />
-            <BugFlow currentStatus={bug.status} />
-          </Card.Content>
-        </Card>
+        {/* Bug Flow Section (not applicable to releases) */}
+        {!isRelease && (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Bug Flow</Text>
+              <Divider style={styles.divider} />
+              <BugFlow currentStatus={bug.status} />
+            </Card.Content>
+          </Card>
+        )}
 
         {/* Activity & Comments Section (Unified Timeline) */}
         <Card style={styles.sectionCard} elevation={1}>
@@ -489,19 +531,21 @@ export default function BugDetailsScreen() {
           </Card.Content>
         </Card>
 
-        {/* Checklists Section */}
-        <Card style={styles.sectionCard} elevation={1}>
-          <Card.Content>
-            <Text style={styles.sectionTitle}>Checklists</Text>
-            <Divider style={styles.divider} />
-            <View style={styles.checklistContainer}>
-              <BugChecklistManager
-                bugId={bugId}
-                canEdit={!isOffline}
-              />
-            </View>
-          </Card.Content>
-        </Card>
+        {/* Checklists Section (releases use the Release Checklist above instead) */}
+        {!isRelease && (
+          <Card style={styles.sectionCard} elevation={1}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Checklists</Text>
+              <Divider style={styles.divider} />
+              <View style={styles.checklistContainer}>
+                <BugChecklistManager
+                  bugId={bugId}
+                  canEdit={!isOffline}
+                />
+              </View>
+            </Card.Content>
+          </Card>
+        )}
 
         {/* Related Items Section */}
         <Card style={styles.sectionCard} elevation={1}>

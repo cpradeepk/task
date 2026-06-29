@@ -16,6 +16,7 @@ import { materialSpacing, materialTypography, materialColors } from '../config/m
 import { useResponsive } from '../hooks/useResponsive'
 import apiClient from '../services/apiClient'
 import { SearchablePicker } from '../components/SearchablePicker'
+import { canManageProjects as canManageProjectsFn } from '../utils/permissions'
 
 interface ProjectNode {
   projectId: string
@@ -64,11 +65,10 @@ export default function ProjectsScreen() {
     }))
   }
 
-  const canManageProjects = useMemo(() => {
-    if (!currentUser) return false
-    const role = currentUser.role?.toLowerCase()
-    return role === 'admin' || role === 'top_management' || currentUser.employeeId === 'AM-0001'
-  }, [currentUser])
+  const canManageProjects = useMemo(
+    () => canManageProjectsFn(currentUser),
+    [currentUser]
+  )
 
   const loadData = useCallback(async () => {
     try {
