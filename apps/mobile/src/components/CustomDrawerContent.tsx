@@ -6,6 +6,7 @@ import { getUserData } from '../utils/secureStorage'
 import { materialTypography, materialSpacing } from '../config/materialTheme'
 import { AuthContext } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
+import { DebugMenu } from './DebugMenu'
 
 interface NavigationItem {
   screen: string
@@ -24,6 +25,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [expandedAdmin, setExpandedAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [debugMenuVisible, setDebugMenuVisible] = useState(false)
   const { colors } = useTheme()
   const styles = getStyles(colors)
 
@@ -104,10 +106,18 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
 
   const accountItems: NavigationItem[] = [
     { screen: 'Settings', label: 'Account', icon: 'account-circle-outline' },
+    { screen: 'Debug', label: 'Debug Menu', icon: 'bug' },
   ]
 
   const handleNavigation = (item: NavigationItem) => {
     const missingScreens: string[] = [];
+
+    // Debug menu is a modal, not a screen — open it and close the drawer.
+    if (item.screen === 'Debug') {
+      onClose();
+      setDebugMenuVisible(true);
+      return;
+    }
 
     if (missingScreens.includes(item.screen)) {
       Alert.alert('Coming Soon', 'This feature is not yet available in the mobile app.');
@@ -160,6 +170,7 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
   }
 
   return (
+    <>
     <Modal
       visible={visible}
       animationType="fade"
@@ -309,6 +320,11 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
         <TouchableOpacity style={styles.backdrop} onPress={onClose} activeOpacity={1} />
       </View>
     </Modal>
+    <DebugMenu
+      visible={debugMenuVisible}
+      onClose={() => setDebugMenuVisible(false)}
+    />
+    </>
   )
 }
 

@@ -5,11 +5,10 @@ import {
   RefreshControl,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Text, IconButton, Card } from 'react-native-paper'
+import { Text, Card } from 'react-native-paper'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { useTheme } from '../contexts/ThemeContext'
 import { useResponsive } from '../hooks/useResponsive'
-import { DebugMenu } from '../components/DebugMenu'
 import { materialTypography, materialSpacing } from '../config/materialTheme'
 import { getUserData } from '../utils/secureStorage'
 import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
@@ -25,7 +24,6 @@ export default function HomeScreen() {
   const [user, setUser] = useState<any>(null)
   const [tasks, setTasks] = useState<any[]>([])
   const [refreshing, setRefreshing] = useState(false)
-  const [debugMenuVisible, setDebugMenuVisible] = useState(false)
 
   const { handleScroll } = useTabBarControl()
   const scrollHandler = useAnimatedScrollHandler({
@@ -61,15 +59,6 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <AppHeader
         title="Karmayog"
-        rightAction={
-          <IconButton
-            icon="bug"
-            size={22}
-            iconColor={colors.text}
-            onPress={() => setDebugMenuVisible(true)}
-            style={{ margin: 0 }}
-          />
-        }
       />
       <Animated.ScrollView
         onScroll={scrollHandler}
@@ -120,11 +109,6 @@ export default function HomeScreen() {
         </View>
 
       </Animated.ScrollView>
-
-      <DebugMenu
-        visible={debugMenuVisible}
-        onClose={() => setDebugMenuVisible(false)}
-      />
     </SafeAreaView>
   )
 }

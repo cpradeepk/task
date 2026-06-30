@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useContext } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   View,
   StyleSheet,
@@ -6,15 +6,14 @@ import {
   RefreshControl,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Card, Text, ActivityIndicator, IconButton, Surface } from 'react-native-paper'
+import { Card, Text, ActivityIndicator, Surface } from 'react-native-paper'
 import { DashboardSkeleton } from '../components/SkeletonLoaders'
 import { useNavigation } from '@react-navigation/native'
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 import { useTheme } from '../contexts/ThemeContext'
 import { useProjectFilter } from '../contexts/ProjectFilterContext'
 import { useResponsive } from '../hooks/useResponsive'
-import { DebugMenu } from '../components/DebugMenu'
-import { materialColors, materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
+import { materialTypography, materialSpacing, materialElevation } from '../config/materialTheme'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { getUserToken, getUserData } from '../utils/secureStorage'
 import apiClient from '../services/apiClient'
@@ -22,10 +21,8 @@ import apiClient from '../services/apiClient'
 import { useTabBarControl } from '../context/TabBarContext'
 import AppHeader from '../components/AppHeader'
 import DailyAttendanceCard from '../components/home/DailyAttendanceCard'
-import { AuthContext } from '../contexts/AuthContext'
 
 export default function DashboardScreen() {
-  const { signOut } = useContext(AuthContext)
   const navigation = useNavigation()
   const { colors } = useTheme()
   const responsive = useResponsive()
@@ -37,7 +34,6 @@ export default function DashboardScreen() {
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [debugMenuVisible, setDebugMenuVisible] = useState(false)
 
   const filteredTasks = useMemo(() => {
     if (!selectedProjectIds || selectedProjectIds.length === 0) {
@@ -90,29 +86,6 @@ export default function DashboardScreen() {
     <SafeAreaView style={styles.container}>
       <AppHeader
         title="Karmayog"
-        rightAction={
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <IconButton
-              icon="bug"
-              size={22}
-              iconColor={colors.text}
-              onPress={() => setDebugMenuVisible(true)}
-              style={{ margin: 0 }}
-            />
-            <IconButton
-              icon="logout"
-              size={22}
-              iconColor={materialColors.error}
-              onPress={() => {
-                Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Sign Out', style: 'destructive', onPress: () => signOut() },
-                ])
-              }}
-              style={{ margin: 0 }}
-            />
-          </View>
-        }
       />
       <Animated.ScrollView
         onScroll={scrollHandler}
@@ -228,11 +201,6 @@ export default function DashboardScreen() {
         </View>
 
       </Animated.ScrollView>
-
-      <DebugMenu
-        visible={debugMenuVisible}
-        onClose={() => setDebugMenuVisible(false)}
-      />
     </SafeAreaView>
   )
 }
