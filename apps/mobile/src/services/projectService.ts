@@ -78,12 +78,18 @@ export const getProjectHierarchy = async (): Promise<
 export const getProjectById = async (
   projectId: string
 ): Promise<ApiResponse<any>> => {
-  const response = await get<any>(API_ENDPOINTS.PROJECT_BY_ID(projectId))
-  if (response.success && response.data) {
-    const project = (response.data as any).project ?? response.data
-    return { success: true, data: project }
+  const body = await get<any>(API_ENDPOINTS.PROJECT_BY_ID(projectId))
+  // GET /api/projects/{id} returns the project object DIRECTLY (spread, no
+  // {success,data} wrapper) — e.g. { projectId, releaseEnabled, ... }. Error
+  // paths (401/network) still use {success:false,...}. Handle both shapes.
+  const b: any = body
+  if (b && b.projectId) {
+    return { success: true, data: b }
   }
-  return response
+  if (b && b.success && b.data) {
+    return { success: true, data: b.data.project ?? b.data }
+  }
+  return { success: false, error: b?.error || 'Project not found' }
 }
 
 /**
