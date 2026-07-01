@@ -140,10 +140,17 @@ export default function CreateBugScreen() {
 
       setCurrentUser(user)
 
-      if (projectsRes.success && projectsRes.data) {
+      // /api/projects/hierarchy returns a bare array (no {success,data} wrapper);
+      // tolerate both shapes so real projects actually load.
+      const hierarchyArr: any[] = Array.isArray(projectsRes)
+        ? (projectsRes as any)
+        : (projectsRes && (projectsRes as any).success && Array.isArray((projectsRes as any).data))
+          ? (projectsRes as any).data
+          : []
+      if (hierarchyArr.length > 0) {
         // Merge static and dynamic projects
         const newProjects = [...STATIC_PROJECTS]
-        projectsRes.data.forEach((p: any) => {
+        hierarchyArr.forEach((p: any) => {
           if (!newProjects.find(sp => sp.projectId === p.projectId)) {
             newProjects.push(p)
           }
@@ -206,7 +213,10 @@ export default function CreateBugScreen() {
 
   const selectedProject = useMemo(() => projects.find((p) => p.projectId === projectId), [projects, projectId])
   const subprojects = useMemo(() => {
-    const dynamicSubs = selectedProject?.subprojects || []
+    // The hierarchy endpoint nests sub-projects under `children`; fall back to
+    // `subprojects` for any other shape.
+    const dynamicSubs =
+      (selectedProject as any)?.children || (selectedProject as any)?.subprojects || []
     return [...STATIC_SUBPROJECTS, ...dynamicSubs]
   }, [selectedProject])
 
