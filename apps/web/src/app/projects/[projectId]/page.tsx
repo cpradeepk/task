@@ -9,12 +9,16 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Project, User, ProjectUserWithUser } from '@/lib/types'
+import { Project, User, ProjectUserWithUser, ReleaseChecklistTemplate } from '@/lib/types'
 import { formatDateTimeIST } from '@/lib/datetime-utils'
 import ProjectModal from '@/components/projects/ProjectModal'
+import ReleaseChecklistEditor from '@/components/projects/ReleaseChecklistEditor'
+import { DEFAULT_RELEASE_CHECKLIST } from '@/lib/releaseChecklistDefault'
 import { Plus, X, UserPlus, Users, Search, AlertTriangle } from 'lucide-react'
 import { hasTabAccess } from '@/lib/permissions'
 import { getCurrentUser } from '@/lib/auth'
+
+const EMPTY_CHECKLIST: ReleaseChecklistTemplate = { sections: [] }
 
 interface ProjectWithSubProjects extends Project {
   subProjects?: Project[]
@@ -35,7 +39,9 @@ export default function ProjectDetailsPage() {
   const [editData, setEditData] = useState({
     projectName: '',
     description: '',
-    status: 'Active' as 'Active' | 'Inactive' | 'Deleted'
+    status: 'Active' as 'Active' | 'Inactive' | 'Deleted',
+    releaseEnabled: false,
+    releaseChecklist: EMPTY_CHECKLIST as ReleaseChecklistTemplate
   })
   const [saving, setSaving] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
@@ -93,7 +99,9 @@ export default function ProjectDetailsPage() {
       setEditData({
         projectName: data.projectName,
         description: data.description || '',
-        status: data.status
+        status: data.status,
+        releaseEnabled: data.releaseEnabled ?? false,
+        releaseChecklist: data.releaseChecklist ?? EMPTY_CHECKLIST
       })
     } catch (err) {
       console.error('Error fetching project:', err)
@@ -214,7 +222,9 @@ export default function ProjectDetailsPage() {
       setEditData({
         projectName: project.projectName,
         description: project.description || '',
-        status: project.status
+        status: project.status,
+        releaseEnabled: project.releaseEnabled ?? false,
+        releaseChecklist: project.releaseChecklist ?? EMPTY_CHECKLIST
       })
     }
     setIsEditing(false)
@@ -229,15 +239,25 @@ export default function ProjectDetailsPage() {
     try {
       setSaving(true)
 
+      // Release config is only meaningful for sub-projects; for main projects
+      // omit it so the PUT never touches those columns.
+      const isSubproject = project?.parentProjectId != null
+      const { releaseEnabled, releaseChecklist, ...baseFields } = editData
+      const payload = isSubproject
+        ? {
+            ...baseFields,
+            releaseEnabled,
+            releaseChecklist: releaseEnabled ? releaseChecklist : EMPTY_CHECKLIST,
+            updatedBy: employeeId
+          }
+        : { ...baseFields, updatedBy: employeeId }
+
       const response = await fetch(`/api/projects/${projectId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          ...editData,
-          updatedBy: employeeId
-        })
+        body: JSON.stringify(payload)
       })
 
       if (!response.ok) {
@@ -413,6 +433,38 @@ export default function ProjectDetailsPage() {
                     <option value="Deleted">Deleted</option>
                   </select>
                 </div>
+
+                {/* Release configuration (sub-projects only) */}
+                {project?.parentProjectId != null && (
+                  <div className="border-t border-gray-200 pt-4 space-y-4">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editData.releaseEnabled}
+                        onChange={(e) =>
+                          setEditData({ ...editData, releaseEnabled: e.target.checked })
+                        }
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm font-medium text-gray-900">Release enabled</span>
+                    </label>
+                    <p className="text-sm text-gray-500">
+                      Enable to allow creating release work-items for this sub-project and to define its release checklist.
+                    </p>
+
+                    {editData.releaseEnabled && (
+                      <ReleaseChecklistEditor
+                        value={editData.releaseChecklist}
+                        onChange={(releaseChecklist) =>
+                          setEditData({ ...editData, releaseChecklist })
+                        }
+                        onLoadDefault={() =>
+                          setEditData({ ...editData, releaseChecklist: DEFAULT_RELEASE_CHECKLIST })
+                        }
+                      />
+                    )}
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-3 pt-4">
