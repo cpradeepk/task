@@ -169,6 +169,7 @@ export default function PinSetupScreen({ onComplete }: PinSetupScreenProps) {
           style={styles.hiddenInput}
           autoComplete="off"
           importantForAutofill="no"
+          autoFocus={true}
         />
 
         <Animated.View style={[styles.content, { opacity: fadeAnim }]}>

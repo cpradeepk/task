@@ -42,6 +42,12 @@ switch ($Command) {
         Write-Host "[*] Building Android Release APK using native Gradle..." -ForegroundColor Green
         Push-Location apps/mobile/android
         
+        Write-Host "[-] Configuring Production Keystore Credentials (whokeval)..." -ForegroundColor Yellow
+        $env:RELEASE_STORE_FILE = "@whokevalshah__karmayog-keystore.bak.jks"
+        $env:RELEASE_STORE_PASSWORD = "20257b7d4d89ce77e024d49aba93e7bd"
+        $env:RELEASE_KEY_ALIAS = "217cfb419b714bdab109a7df7b821066"
+        $env:RELEASE_KEY_PASSWORD = "29fa4be941ea1b348f0d266096c75b72"
+
         Write-Host "[-] Running Gradle assembleRelease..." -ForegroundColor Yellow
         .\gradlew assembleRelease
         
@@ -66,6 +72,12 @@ switch ($Command) {
         Write-Host "[*] Building Android Release AAB using native Gradle..." -ForegroundColor Green
         Push-Location apps/mobile/android
         
+        Write-Host "[-] Configuring Production Keystore Credentials (whokeval)..." -ForegroundColor Yellow
+        $env:RELEASE_STORE_FILE = "@whokevalshah__karmayog-keystore.bak.jks"
+        $env:RELEASE_STORE_PASSWORD = "20257b7d4d89ce77e024d49aba93e7bd"
+        $env:RELEASE_KEY_ALIAS = "217cfb419b714bdab109a7df7b821066"
+        $env:RELEASE_KEY_PASSWORD = "29fa4be941ea1b348f0d266096c75b72"
+
         Write-Host "[-] Running Gradle bundleRelease..." -ForegroundColor Yellow
         .\gradlew bundleRelease
         

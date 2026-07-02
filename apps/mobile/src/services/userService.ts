@@ -19,6 +19,7 @@ export interface User {
   designation?: string
   reportingManager?: string
   isActive: boolean
+  tabPermissions?: string[]
   createdAt: string
   updatedAt: string
 }

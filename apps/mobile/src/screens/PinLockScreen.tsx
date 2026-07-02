@@ -146,6 +146,7 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
           style={styles.hiddenInput}
           autoComplete="off"
           importantForAutofill="no"
+          autoFocus={true}
         />
 
         <View style={styles.content}>

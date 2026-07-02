@@ -18,7 +18,7 @@ import { MultiSelectPicker } from '../components/MultiSelectPicker'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as DocumentPicker from 'expo-document-picker'
 import { createBug, getCompletedBugsForRelease, Bug } from '../services/bugService'
-import { getProjectHierarchy, getProjectById, ProjectHierarchy } from '../services/projectService'
+import { getProjectHierarchy, getProjectById } from '../services/projectService'
 import { getAllSettings, GroupedSettings } from '../services/settingsService'
 import { getAllUsers, getCurrentUser, User } from '../services/userService'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -107,21 +107,7 @@ export default function CreateBugScreen() {
   const [isLoadingReleaseBugs, setIsLoadingReleaseBugs] = useState(false)
 
   // Data state
-  const STATIC_PROJECTS = [
-    { projectId: 'dsn', projectName: 'dsn', subprojects: [] },
-    { projectId: 'amtariksha', projectName: 'amtariksha', subprojects: [] },
-    { projectId: 'task management', projectName: 'task management', subprojects: [] },
-    { projectId: 'swarg', projectName: 'swarg', subprojects: [] },
-    { projectId: 'other', projectName: 'other', subprojects: [] }
-  ]
-  const STATIC_SUBPROJECTS = [
-    { subprojectId: 'testing', subprojectName: 'testing' },
-    { subprojectId: 'development', subprojectName: 'development' },
-    { subprojectId: 'reporting', subprojectName: 'reporting' }
-  ]
-
-  // Data state
-  const [projects, setProjects] = useState<ProjectHierarchy[]>(STATIC_PROJECTS)
+  const [projects, setProjects] = useState<any[]>([])
   const [settings, setSettings] = useState<GroupedSettings>({})
   const [users, setUsers] = useState<User[]>([])
   const [currentUser, setCurrentUser] = useState<User | null>(null)
@@ -140,22 +126,15 @@ export default function CreateBugScreen() {
 
       setCurrentUser(user)
 
-      // /api/projects/hierarchy returns a bare array (no {success,data} wrapper);
-      // tolerate both shapes so real projects actually load.
+      // Get projects from hierarchy
       const hierarchyArr: any[] = Array.isArray(projectsRes)
         ? (projectsRes as any)
         : (projectsRes && (projectsRes as any).success && Array.isArray((projectsRes as any).data))
           ? (projectsRes as any).data
           : []
+      
       if (hierarchyArr.length > 0) {
-        // Merge static and dynamic projects
-        const newProjects = [...STATIC_PROJECTS]
-        hierarchyArr.forEach((p: any) => {
-          if (!newProjects.find(sp => sp.projectId === p.projectId)) {
-            newProjects.push(p)
-          }
-        })
-        setProjects(newProjects)
+        setProjects(hierarchyArr)
       }
 
       if (settingsRes.success && settingsRes.data) {
@@ -212,12 +191,11 @@ export default function CreateBugScreen() {
   }
 
   const selectedProject = useMemo(() => projects.find((p) => p.projectId === projectId), [projects, projectId])
+  
   const subprojects = useMemo(() => {
-    // The hierarchy endpoint nests sub-projects under `children`; fall back to
-    // `subprojects` for any other shape.
     const dynamicSubs =
       (selectedProject as any)?.children || (selectedProject as any)?.subprojects || []
-    return [...STATIC_SUBPROJECTS, ...dynamicSubs]
+    return dynamicSubs
   }, [selectedProject])
 
   // ----- Release work-item derivations (declared before handleSubmit, which reads them) -----
