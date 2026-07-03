@@ -21,6 +21,7 @@ interface ChecklistItem {
     itemText: string
     isCompleted: boolean
     createdAt: string
+    description?: string
 }
 
 interface BugChecklistManagerProps {

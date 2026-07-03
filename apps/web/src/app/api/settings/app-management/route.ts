@@ -72,7 +72,8 @@ export async function POST(request: NextRequest) {
       minIosVersion: String(minIosVersion).trim(),
       androidUrl: String(androidUrl).trim(),
       iosUrl: String(iosUrl).trim(),
-      maintenanceMode: Boolean(maintenanceMode)
+      maintenanceMode: Boolean(maintenanceMode),
+      updatedAt: new Date().toISOString()
     }
 
     // 1. Save to PostgreSQL settings table

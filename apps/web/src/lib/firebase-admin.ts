@@ -32,7 +32,9 @@ export interface AppConfig {
   androidUrl: string
   iosUrl: string
   maintenanceMode: boolean
+  updatedAt?: string
 }
+
 
 /**
  * Syncs the application version and maintenance settings to Firebase Firestore
