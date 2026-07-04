@@ -1,7 +1,7 @@
 // MySQL User Service
 // Server-side only - do not use 'use client'
 
-import { query, queryOne, withRetry } from './config'
+import { query, queryOne, withRetry, execute } from './config'
 import { User } from '../types'
 interface UserRow {
   id: number
@@ -295,11 +295,11 @@ export async function deleteUser(employee_id: string): Promise<boolean> {
       throw new Error('Cannot delete system admin user')
     }
 
-    const result = await query<any>(
+    const affected = await execute(
       'UPDATE users SET status = $1 WHERE employee_id = $2',
       ['inactive', employee_id]
     )
-    return result.affectedRows > 0
+    return affected > 0
   })
 }
 

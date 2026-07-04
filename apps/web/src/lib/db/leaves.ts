@@ -1,7 +1,7 @@
 // MySQL Leave Applications Service
 // Server-side only - do not use 'use client'
 
-import { query, queryOne, withRetry } from './config'
+import { query, queryOne, withRetry, execute } from './config'
 import { LeaveApplication } from '../types'
 interface LeaveRow  {
   id: number
@@ -212,11 +212,11 @@ export async function rejectLeave(id: string, rejectedBy: string, remarks?: stri
 // Delete leave application
 export async function deleteLeave(id: string): Promise<boolean> {
   return withRetry(async () => {
-    const result = await query<any>(
+    const affected = await execute(
       'DELETE FROM leave_applications WHERE application_id = $1',
       [id]
     )
-    return result.affectedRows > 0
+    return affected > 0
   })
 }
 

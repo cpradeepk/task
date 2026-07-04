@@ -14,7 +14,7 @@
  * - Support for bug comments and relationships
  */
 
-import { query, queryOne, withRetry } from './config'
+import { query, queryOne, withRetry, execute } from './config'
 import { Bug, BugComment } from '../types'
 /**
  * BugRow Interface
@@ -505,11 +505,11 @@ export async function deleteBug(bug_id: string): Promise<boolean> {
     // The activity_log entries will remain for audit trail purposes
 
     // Delete bug
-    const result = await query<any>(
+    const affected = await execute(
       'DELETE FROM bugs WHERE bug_id = $1',
       [bug_id]
     )
-    return result.affectedRows > 0
+    return affected > 0
   })
 }
 

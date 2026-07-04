@@ -502,8 +502,10 @@ export const resolvers = {
       return result.rows || []
     },
 
-    user: async (_: any, { id }: any) => {
-      const result = await getPoolInstance().query('SELECT * FROM users WHERE id = $1', [id])
+    user: async (_: any, { employeeId }: any) => {
+      // The schema arg is `employeeId` and the users PK is `employee_id`
+      // (there is no `id` column) — the previous version always errored.
+      const result = await getPoolInstance().query('SELECT * FROM users WHERE employee_id = $1', [employeeId])
       return result.rows[0] || null
     },
 
@@ -677,6 +679,9 @@ export const resolvers = {
               createdAt: row.created_at,
               updatedAt: row.updated_at
             },
+            // UserWFHStatus schema requires a non-null `date` and has `contactNumber`.
+            date: row.from_date,
+            contactNumber: row.phone || row.contact_number || null,
             startDate: row.from_date,
             endDate: row.to_date,
             reason: row.reason || ''
@@ -940,7 +945,7 @@ export const resolvers = {
           CASE
             WHEN al.sign_in_time IS NOT NULL AND al.sign_out_time IS NULL THEN 'ONLINE'
             WHEN al.sign_in_time IS NOT NULL AND al.sign_out_time IS NOT NULL THEN 
-              CASE WHEN COALESCE(la.is_half_day, 0) = 1 THEN 'HALF_DAY' ELSE 'PRESENT' END
+              CASE WHEN COALESCE(la.is_half_day, FALSE) = TRUE THEN 'HALF_DAY' ELSE 'PRESENT' END
             WHEN la.status = 'Approved' THEN 'ON_LEAVE'
             WHEN wfh.status = 'Approved' THEN 'WFH'
             WHEN d.date > CURRENT_DATE THEN NULL
@@ -1275,7 +1280,7 @@ export const resolvers = {
       if (!employeeId) return 0
       const currentYear = new Date().getFullYear()
       const result = await getPoolInstance().query(
-        `SELECT COALESCE(SUM(EXTRACT(DAY FROM (to_date - from_date)) + 1), 0) as total_days
+        `SELECT COALESCE(SUM((to_date - from_date) + 1), 0) as total_days
          FROM leave_applications
          WHERE employee_id = $1
          AND status = 'Approved'
@@ -1290,7 +1295,7 @@ export const resolvers = {
       if (!employeeId) return 0
       const currentYear = new Date().getFullYear()
       const result = await getPoolInstance().query(
-        `SELECT COALESCE(SUM(EXTRACT(DAY FROM (to_date - from_date)) + 1), 0) as total_days
+        `SELECT COALESCE(SUM((to_date - from_date) + 1), 0) as total_days
          FROM wfh_applications
          WHERE employee_id = $1
          AND status = 'Approved'
