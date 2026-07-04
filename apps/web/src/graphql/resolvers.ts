@@ -2168,7 +2168,19 @@ export const resolvers = {
           throw new Error('Invalid credentials')
         }
 
-        // Generate JWT token
+        // Password login is a break-glass fallback for admin/service accounts only.
+        // Everyone else must sign in with OTP (/api/auth/otp/*).
+        const isAdminAccount = user.role === 'admin' || Boolean(user.is_system_admin)
+        if (!isAdminAccount) {
+          logResolverError('login', new Error('Password login disabled for non-admin'), startTime)
+          throw new Error('Password login is disabled for this account. Please sign in with OTP.')
+        }
+
+        // Generate JWT token (JWT_SECRET is required — no hardcoded fallback)
+        const jwtSecret = process.env.JWT_SECRET
+        if (!jwtSecret || jwtSecret.length < 16) {
+          throw new Error('JWT_SECRET is not configured')
+        }
         const jwt = require('jsonwebtoken')
         const token = jwt.sign(
           {
@@ -2176,7 +2188,7 @@ export const resolvers = {
             role: user.role,
             name: user.name
           },
-          process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
+          jwtSecret,
           { expiresIn: '7d' }
         )
 

@@ -730,6 +730,82 @@ function AppContent() {
           }
         }
       },
+      requestOtp: async (employeeId: string) => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/auth/otp/request`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ employeeId }),
+          })
+          const json = await res.json().catch(() => ({}))
+          if (!res.ok) {
+            return { success: false, error: json.error || 'Failed to send OTP' }
+          }
+          return { success: true, maskedPhone: json.maskedPhone }
+        } catch (error: any) {
+          console.error('OTP request error:', error)
+          return { success: false, error: error.message || 'Network error. Please try again.' }
+        }
+      },
+      verifyOtp: async (employeeId: string, otp: string) => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/auth/otp/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ employeeId, otp }),
+          })
+          const json = await res.json().catch(() => ({}))
+          if (!res.ok || !json.token) {
+            return { success: false, error: json.error || 'Invalid or expired OTP' }
+          }
+
+          const token = json.token
+          const user = json.data
+          await saveUserToken(token)
+          await saveUserData(user)
+
+          const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
+          if (storedPin) {
+            setIsAppLocked(true)
+            setIsPinSetupNeeded(false)
+          } else {
+            setIsPinSetupNeeded(true)
+            setIsAppLocked(false)
+          }
+
+          dispatch({ type: 'SIGN_IN', payload: token })
+          return { success: true, user }
+        } catch (error: any) {
+          console.error('OTP verify error:', error)
+          return { success: false, error: error.message || 'Network error. Please try again.' }
+        }
+      },
+      restoreSession: async () => {
+        // Used by biometric login: reuse the already-stored token instead of
+        // re-authenticating. If no token is present, the caller must sign in.
+        try {
+          const token = await getUserToken()
+          const userData = await getUserData()
+          if (!token || !userData) {
+            return { success: false, error: 'No stored session' }
+          }
+
+          const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
+          if (storedPin) {
+            setIsAppLocked(true)
+            setIsPinSetupNeeded(false)
+          } else {
+            setIsPinSetupNeeded(false)
+            setIsAppLocked(false)
+          }
+
+          dispatch({ type: 'SIGN_IN', payload: token })
+          return { success: true, user: userData }
+        } catch (error: any) {
+          console.error('Session restore error:', error)
+          return { success: false, error: error.message || 'Failed to restore session' }
+        }
+      },
       signOut: async () => {
         try {
           // Unregister push token from backend
