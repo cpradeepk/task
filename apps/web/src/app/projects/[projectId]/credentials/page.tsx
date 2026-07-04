@@ -48,6 +48,7 @@ export default function ProjectCredentialsPage() {
   const [envSecrets, setEnvSecrets] = useState<EnvSecret[]>([])
   const [newEnv, setNewEnv] = useState({ key: '', value: '' })
   const [envFileText, setEnvFileText] = useState('')
+  const [showEnvValues, setShowEnvValues] = useState(false)
 
   const loadCredentials = useCallback(async () => {
     const { ok, status, json } = await api(`/api/projects/${projectId}/credentials`)
@@ -58,10 +59,10 @@ export default function ProjectCredentialsPage() {
   }, [projectId, router])
 
   const loadEnv = useCallback(async () => {
-    const { ok, status, json } = await api(`/api/projects/${projectId}/env?environment=${environment}`)
+    const { ok, status, json } = await api(`/api/projects/${projectId}/env?environment=${environment}&reveal=${showEnvValues}`)
     if (status === 403) { setForbidden(true); return }
     if (ok) setEnvSecrets(json.data || [])
-  }, [projectId, environment])
+  }, [projectId, environment, showEnvValues])
 
   useEffect(() => { loadCredentials() }, [loadCredentials])
   useEffect(() => { if (tab === 'env') loadEnv() }, [tab, loadEnv])
@@ -217,7 +218,8 @@ export default function ProjectCredentialsPage() {
             <select className="border rounded px-3 py-2 text-sm" value={environment} onChange={(e) => setEnvironment(e.target.value as Environment)}>
               {ENVIRONMENTS.map((e) => <option key={e} value={e}>{e}</option>)}
             </select>
-            <a href={`/api/projects/${projectId}/env/export?environment=${environment}`} className="ml-auto text-sm text-indigo-600 hover:underline">Export .env</a>
+            <button onClick={() => setShowEnvValues((v) => !v)} className="ml-auto text-sm text-indigo-600 hover:underline">{showEnvValues ? 'Hide values' : 'Show values'}</button>
+            <a href={`/api/projects/${projectId}/env/export?environment=${environment}`} className="text-sm text-indigo-600 hover:underline">Export .env</a>
           </div>
 
           {/* Upload .env */}
@@ -239,11 +241,18 @@ export default function ProjectCredentialsPage() {
           <div className="rounded-lg border border-gray-200 divide-y">
             {envSecrets.length === 0 && <p className="text-sm text-gray-500 p-4">No variables for {environment}.</p>}
             {envSecrets.map((s) => (
-              <div key={s.id} className="flex items-center justify-between px-4 py-2 text-sm">
-                <span className="font-mono text-gray-800">{s.key}</span>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-gray-400">••••••••</span>
-                  <button onClick={() => deleteEnv(s.key)} className="text-rose-600 hover:underline">Delete</button>
+              <div key={s.id} className="flex items-center justify-between px-4 py-2 text-sm gap-3">
+                <span className="font-mono text-gray-800 shrink-0">{s.key}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  {s.value !== undefined ? (
+                    <>
+                      <span className="font-mono text-gray-700 truncate max-w-[260px]" title={s.value}>{s.value}</span>
+                      <button onClick={() => navigator.clipboard?.writeText(s.value || '')} className="text-indigo-600 hover:underline shrink-0">Copy</button>
+                    </>
+                  ) : (
+                    <span className="font-mono text-gray-400">••••••••</span>
+                  )}
+                  <button onClick={() => deleteEnv(s.key)} className="text-rose-600 hover:underline shrink-0">Delete</button>
                 </div>
               </div>
             ))}
