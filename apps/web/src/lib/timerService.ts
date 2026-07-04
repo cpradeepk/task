@@ -100,8 +100,9 @@ export async function stopTimer(): Promise<void> {
   }
 
   // Sync to backend
+  let syncOk = true
   try {
-    await fetch('/api/time-tracking/sync', {
+    const res = await fetch('/api/time-tracking/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -112,8 +113,10 @@ export async function stopTimer(): Promise<void> {
         sessions: timer.sessions
       })
     })
+    syncOk = res.ok
   } catch (error) {
     console.error('Failed to sync timer:', error)
+    syncOk = false
   }
 
   // Create activity log entry with hh:mm:ss format
@@ -135,11 +138,15 @@ export async function stopTimer(): Promise<void> {
     console.error('Failed to log time to activity log:', error)
   }
 
-  // Clear from localStorage
-  localStorage.removeItem('activeTimer')
-
-  // Trigger storage event
-  window.dispatchEvent(new Event('storage'))
+  // Only clear the timer if the backend actually recorded the time. Otherwise
+  // keep it in localStorage so the tracked time isn't silently discarded and
+  // the user can retry.
+  if (syncOk) {
+    localStorage.removeItem('activeTimer')
+    window.dispatchEvent(new Event('storage'))
+  } else {
+    console.warn('Timer not cleared — backend sync failed; tracked time preserved for retry')
+  }
 }
 
 /**

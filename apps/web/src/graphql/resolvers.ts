@@ -522,23 +522,28 @@ export const resolvers = {
         const targetUserId = userId || user.employeeId
         const now = new Date()
         const { start, end } = getISTDayRangeInUTC(now)
+        const todayIST = new Date(now.getTime() + 5.5 * 60 * 60 * 1000).toISOString().split('T')[0]
+        let targetDate = date || todayIST
+        const isToday = targetDate === todayIST
 
-        // 1. Try to find an active attendance session for today in IST
-        // This fixes the UTC vs IST date mismatch where the frontend asks for "yesterday's" UTC date
-        // but the backend inserted the record with "today's" IST date.
-        const activeResult = await getPoolInstance().query(
-          `SELECT * FROM attendance_logs 
-           WHERE employee_id = $1 
-           AND sign_in_time >= $2 
-           AND sign_in_time <= $3
-           LIMIT 1`,
-          [targetUserId, start, end]
-        )
-        
-        let record = activeResult.rows[0]
+        let record: any = undefined
+
+        // 1. Only for TODAY, find an active session by sign_in_time. This handles
+        // the UTC/IST date mismatch, but must NOT be used when a past date is
+        // requested (it would return today's record mislabelled with that date).
+        if (isToday) {
+          const activeResult = await getPoolInstance().query(
+            `SELECT * FROM attendance_logs
+             WHERE employee_id = $1
+             AND sign_in_time >= $2
+             AND sign_in_time <= $3
+             LIMIT 1`,
+            [targetUserId, start, end]
+          )
+          record = activeResult.rows[0]
+        }
 
         // 2. Fallback to exact date matching if no active session found
-        let targetDate = date || now.toISOString().split('T')[0]
         if (!record) {
           const recordResult = await getPoolInstance().query(
             'SELECT * FROM attendance_logs WHERE employee_id = $1 AND date = $2',

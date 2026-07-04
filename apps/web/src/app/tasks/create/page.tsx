@@ -296,7 +296,7 @@ function CreateTaskContent() {
     }
 
     // Set default dates only once on mount
-    const today = new Date().toISOString().split('T')[0]
+    const today = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().split('T')[0]
     setFormData(prev => {
       // Only set if not already set to prevent infinite loop
       if (!prev.startDate && !prev.endDate) {
@@ -590,7 +590,7 @@ function CreateTaskContent() {
   }
 
   const resetForm = () => {
-    const today = new Date().toISOString().split('T')[0]
+    const today = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().split('T')[0]
     setFormData({
       selectType: 'Normal',
       recursiveType: '',
