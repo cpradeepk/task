@@ -147,6 +147,7 @@ export const QUERIES = {
       tasks(assignedTo: $assignedTo, status: $status, priority: $priority, projectId: $projectId, projectIds: $projectIds, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
         id
         taskId
+        parentTaskId
         name
         selectType
         recursiveType
@@ -217,6 +218,8 @@ export const QUERIES = {
       task(taskId: $taskId) {
         id
         taskId
+        parentTaskId
+        timerTotalTime
         name
         selectType
         recursiveType
@@ -284,6 +287,7 @@ export const QUERIES = {
       bugs(assignedTo: $assignedTo, status: $status, severity: $severity, category: $category, type: $type, projectId: $projectId, projectIds: $projectIds, subprojectId: $subprojectId, limit: $limit, offset: $offset) {
         id
         bugId
+        parentDevId
         title
         description
         category
@@ -358,6 +362,8 @@ export const QUERIES = {
       bug(bugId: $bugId) {
         id
         bugId
+        parentDevId
+        timerTotalTime
         title
         description
         category
