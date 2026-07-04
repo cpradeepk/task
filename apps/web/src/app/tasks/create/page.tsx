@@ -479,7 +479,11 @@ function CreateTaskContent() {
           // Upload each file to S3 using presigned URLs
           for (let i = 0; i < uploads.length; i++) {
             const upload = uploads[i]
-            const file = uploadedFiles[i]
+            // Pair by filename, not index: the server may reject some files,
+            // making `uploads` shorter than `uploadedFiles` and misaligning
+            // the index-based pairing (uploading the wrong bytes to a URL).
+            const file = uploadedFiles.find(f => f.name === upload.filename)
+            if (!file) continue
 
             const uploadResponse = await fetch(upload.uploadUrl, {
               method: 'PUT',
@@ -559,6 +563,19 @@ function CreateTaskContent() {
 
       if (!response.ok) {
         throw new Error('Failed to create task')
+      }
+
+      // Capture the server-generated task ID for support-task linkage.
+      // taskData has no taskId — the backend generates it — so without this the
+      // support tasks were linked to "undefined".
+      try {
+        const createdResult = await response.json()
+        const createdTask = createdResult?.data ?? createdResult
+        if (createdTask?.taskId) {
+          mainTaskData = { ...taskData, taskId: createdTask.taskId }
+        }
+      } catch {
+        // If the body isn't JSON, fall back to taskData (linkage may be missing).
       }
 
       // Support tasks creation

@@ -494,15 +494,16 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
         updates.closedDate = getCurrentDateTime()
       }
 
-      // Update UI immediately
+      // Update UI immediately (optimistic)
+      const previousBug = bug
       setBug({ ...bug, ...updates })
 
-      // Update backend - activity log will automatically track the status change
-      try {
-        await updateBug(bug.bugId, updates)
-        console.log('Bug status updated successfully')
-      } catch (error) {
-        console.warn('Backend update failed, but UI updated:', error)
+      // Persist; updateBug returns false on failure (it does not throw), so
+      // revert the optimistic update instead of silently keeping a stale UI.
+      const ok = await updateBug(bug.bugId, updates)
+      if (!ok) {
+        setBug(previousBug)
+        alert('Failed to update bug status. Please try again.')
       }
     } catch (error) {
       console.error('Failed to update status:', error)
