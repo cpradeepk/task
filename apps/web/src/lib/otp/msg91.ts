@@ -1,9 +1,9 @@
 // MSG91 SMS/OTP delivery (server-side only).
 // Sends a templated SMS carrying an app-generated OTP. We manage OTP
-// generation/verification ourselves (see ./store) and use MSG91 purely as the
-// delivery channel via its DLT-approved Flow template.
+// generation/verification ourselves (see ./store) and use MSG91's OTP API
+// purely as the delivery channel, passing our own OTP via the `otp` param.
 
-const MSG91_FLOW_URL = 'https://control.msg91.com/api/v5/flow/'
+const MSG91_OTP_URL = 'https://control.msg91.com/api/v5/otp'
 
 interface Msg91Config {
   authKey: string
@@ -13,9 +13,10 @@ interface Msg91Config {
 
 function getConfig(): Msg91Config {
   const authKey = process.env.MSG91_AUTH_KEY
-  const templateId = process.env.MSG91_DLT_TEMPLATE_ID
+  // Prefer MSG91_TEMPLATE_ID (our standard); fall back to the older name.
+  const templateId = process.env.MSG91_TEMPLATE_ID || process.env.MSG91_DLT_TEMPLATE_ID
   if (!authKey || !templateId) {
-    throw new Error('MSG91 is not configured (MSG91_AUTH_KEY / MSG91_DLT_TEMPLATE_ID)')
+    throw new Error('MSG91 is not configured (MSG91_AUTH_KEY / MSG91_TEMPLATE_ID)')
   }
   return { authKey, templateId, senderId: process.env.MSG91_SENDER_ID }
 }
@@ -48,20 +49,22 @@ export function maskMobile(mobile: string): string {
 export async function sendOtpSms(mobile: string, otp: string): Promise<void> {
   const { authKey, templateId, senderId } = getConfig()
 
-  const body: Record<string, unknown> = {
-    template_id: templateId,
-    recipients: [{ mobiles: mobile, otp }],
-  }
-  if (senderId) body.sender = senderId
+  // MSG91 OTP API: pass our own OTP so we retain verification control.
+  const url = new URL(MSG91_OTP_URL)
+  url.searchParams.set('template_id', templateId)
+  url.searchParams.set('mobile', mobile)
+  url.searchParams.set('otp', otp)
+  url.searchParams.set('otp_expiry', '5')
+  if (senderId) url.searchParams.set('sender', senderId)
 
-  const res = await fetch(MSG91_FLOW_URL, {
+  const res = await fetch(url.toString(), {
     method: 'POST',
     headers: {
       authkey: authKey,
       'Content-Type': 'application/json',
       accept: 'application/json',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({}),
   })
 
   if (!res.ok) {
