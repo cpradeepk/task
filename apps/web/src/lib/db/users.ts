@@ -40,7 +40,10 @@ function rowToUser(row: UserRow): User {
     isTodayTask: Boolean(row.is_today_task),
     warningCount: row.warning_count,
     role: row.role as User['role'],
-    password: row.password,
+    // SECURITY: never expose the stored password through API responses.
+    // Auth uses a direct SQL comparison (authenticateUser); admin-only flows
+    // that genuinely need it use getUserPasswordByEmployeeId().
+    password: '',
     status: row.status as User['status'],
     hoursLog: row.hours_log || undefined,
     idCardPhoto: row.id_card_photo || undefined,
@@ -49,6 +52,18 @@ function rowToUser(row: UserRow): User {
     tabPermissions: row.tab_permissions || undefined,
     isSystemAdmin: row.is_system_admin
   }
+}
+
+// Admin-only: read a user's stored password directly (bypasses rowToUser which
+// now blanks it). Only call from routes that have verified admin authorization.
+export async function getUserPasswordByEmployeeId(employee_id: string): Promise<string | null> {
+  return withRetry(async () => {
+    const row = await queryOne<{ password: string }>(
+      'SELECT password FROM users WHERE employee_id = $1',
+      [employee_id]
+    )
+    return row?.password ?? null
+  })
 }
 
 // Get all active users

@@ -224,6 +224,24 @@ export const createContext = () => {
 }
 
 
+// ── Auth guards ────────────────────────────────────────────────────────────
+// context.user is populated from the JWT by the GraphQL route. These enforce
+// that a caller is authenticated / authorized before a resolver runs.
+function requireUser(context: any): { employeeId: string; role: string; name: string } {
+  if (!context || !context.user || !context.user.employeeId) {
+    throw new Error('UNAUTHENTICATED: You must be signed in.')
+  }
+  return context.user
+}
+
+function requireRole(context: any, roles: string[]): { employeeId: string; role: string; name: string } {
+  const user = requireUser(context)
+  if (!roles.includes(user.role)) {
+    throw new Error('FORBIDDEN: You do not have permission to perform this action.')
+  }
+  return user
+}
+
 export const resolvers = {
   Query: {
 
@@ -2206,7 +2224,8 @@ export const resolvers = {
     },
 
     // Task mutations
-    createTask: async (_: any, { input }: any) => {
+    createTask: async (_: any, { input }: any, context: any) => {
+      requireUser(context)
       const taskId = `TSK-${Date.now()}`
       const support = input.support ? JSON.stringify(input.support) : '[]'
 
@@ -2228,7 +2247,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    updateTask: async (_: any, { taskId, input }: any) => {
+    updateTask: async (_: any, { taskId, input }: any, context: any) => {
+      requireUser(context)
       const updates: string[] = []
       const params: any[] = []
       let paramIndex = 1
@@ -2288,7 +2308,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    deleteTask: async (_: any, { taskId }: any) => {
+    deleteTask: async (_: any, { taskId }: any, context: any) => {
+      requireUser(context)
       await getPoolInstance().query(
         'UPDATE tasks SET deleted_at = NOW() WHERE task_id = $1',
         [taskId]
@@ -2297,7 +2318,8 @@ export const resolvers = {
     },
 
     // Bug mutations
-    createBug: async (_: any, { input }: any) => {
+    createBug: async (_: any, { input }: any, context: any) => {
+      requireUser(context)
       // ✅ UPDATED: Generate sequential bug ID with DEV- prefix
       // Get latest bug ID from database to continue numbering
       const latestBugResult = await getPoolInstance().query(
@@ -2328,7 +2350,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    updateBug: async (_: any, { bugId, input }: any) => {
+    updateBug: async (_: any, { bugId, input }: any, context: any) => {
+      requireUser(context)
       const updates: string[] = []
       const params: any[] = []
       let paramIndex = 1
@@ -2374,7 +2397,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    deleteBug: async (_: any, { bugId }: any) => {
+    deleteBug: async (_: any, { bugId }: any, context: any) => {
+      requireUser(context)
       await getPoolInstance().query(
         'UPDATE bugs SET deleted_at = NOW() WHERE bug_id = $1',
         [bugId]
@@ -2383,7 +2407,8 @@ export const resolvers = {
     },
 
     // User mutations
-    createUser: async (_: any, { input }: any) => {
+    createUser: async (_: any, { input }: any, context: any) => {
+      requireRole(context, ['admin', 'top_management'])
       const bcrypt = require('bcryptjs')
       const hashedPassword = await bcrypt.hash(input.password, 10)
 
@@ -2401,7 +2426,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    updateUser: async (_: any, { employeeId, input }: any) => {
+    updateUser: async (_: any, { employeeId, input }: any, context: any) => {
+      requireRole(context, ['admin', 'top_management'])
       const updates: string[] = []
       const params: any[] = []
       let paramIndex = 1

@@ -24,9 +24,17 @@ export const pushTokenMutations = {
       pushToken: string
       deviceType: string
       deviceId?: string
-    }
+    },
+    context: any
   ): Promise<boolean> => {
     try {
+      // Auth: token must belong to the signed-in user (or an admin acting for them)
+      const authUserId = context?.user?.employeeId
+      if (!authUserId) throw new Error('UNAUTHENTICATED: You must be signed in.')
+      if (userId !== authUserId && context.user.role !== 'admin') {
+        throw new Error('FORBIDDEN: cannot register a token for another user')
+      }
+
       // Validate inputs
       if (!userId || !pushToken || !deviceType) {
         throw new Error('Missing required fields: userId, pushToken, deviceType')
@@ -63,9 +71,16 @@ export const pushTokenMutations = {
    */
   unregisterPushToken: async (
     _: any,
-    { userId, pushToken }: { userId: string; pushToken: string }
+    { userId, pushToken }: { userId: string; pushToken: string },
+    context: any
   ): Promise<boolean> => {
     try {
+      const authUserId = context?.user?.employeeId
+      if (!authUserId) throw new Error('UNAUTHENTICATED: You must be signed in.')
+      if (userId !== authUserId && context.user.role !== 'admin') {
+        throw new Error('FORBIDDEN: cannot unregister a token for another user')
+      }
+
       // Validate inputs
       if (!userId || !pushToken) {
         throw new Error('Missing required fields: userId, pushToken')

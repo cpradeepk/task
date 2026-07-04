@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { approveLeave, getLeaveById } from '@/lib/db/leaves'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
+import { requireAuth } from '@/lib/auth-server'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
     const { id } = await params
-    const { approverId, remarks } = await request.json()
+    const { remarks } = await request.json()
+    // SECURITY: the approver is the authenticated user, never a client-supplied id.
+    const approverId = auth.user.employeeId
 
     if (!id) {
       return NextResponse.json({
@@ -18,14 +24,21 @@ export async function POST(
       }, { status: 400 })
     }
 
-    if (!approverId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Approver ID is required'
-      }, { status: 400 })
+    // Authorization: privileged roles approve anyone; otherwise only the
+    // applicant's direct manager may approve. Prevents self-approval.
+    const isPrivileged = ['admin', 'top_management', 'management'].includes(auth.user.role)
+    if (!isPrivileged) {
+      const leaveApp = await getLeaveById(id)
+      const applicant = leaveApp ? await getUserByEmployeeId(leaveApp.employeeId) : null
+      if (!applicant || applicant.managerId !== approverId) {
+        return NextResponse.json(
+          { success: false, error: 'You are not authorized to approve this leave' },
+          { status: 403 }
+        )
+      }
     }
 
-    // Approve leave in MySQL
+    // Approve leave
     const leave = await approveLeave(id, approverId, remarks)
 
     if (leave) {

@@ -21,7 +21,11 @@ export const mentionQueries = {
    * @param limit - Number of mentions to return (default: 20)
    * @param offset - Offset for pagination (default: 0)
    */
-  feedMentions: async (_: any, { userId, isRead, limit = 20, offset = 0 }: any) => {
+  feedMentions: async (_: any, { userId: requestedUserId, isRead, limit = 20, offset = 0 }: any, context: any) => {
+    const authUserId = context?.user?.employeeId
+    if (!authUserId) throw new Error('UNAUTHENTICATED: You must be signed in.')
+    // Non-admins may only read their own mentions
+    const userId = context.user.role === 'admin' ? (requestedUserId || authUserId) : authUserId
     const { startTime } = logResolverStart('feedMentions', { userId, isRead, limit, offset })
 
     try {
@@ -117,7 +121,10 @@ export const mentionMutations = {
   /**
    * Mark all mentions as read for a user
    */
-  markAllMentionsAsRead: async (_: any, { userId }: any) => {
+  markAllMentionsAsRead: async (_: any, { userId: requestedUserId }: any, context: any) => {
+    const authUserId = context?.user?.employeeId
+    if (!authUserId) throw new Error('UNAUTHENTICATED: You must be signed in.')
+    const userId = context.user.role === 'admin' ? (requestedUserId || authUserId) : authUserId
     const { startTime } = logResolverStart('markAllMentionsAsRead', { userId })
 
     try {
