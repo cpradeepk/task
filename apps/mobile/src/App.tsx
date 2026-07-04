@@ -43,7 +43,7 @@ import CustomDrawerContent from './components/CustomDrawerContent'
 import { OfflineBanner } from './components/OfflineBanner'
 import { ActivityIndicator, View, LogBox, Text, ScrollView, TouchableOpacity, Image, StatusBar } from 'react-native'
 import { IconButton, Provider as PaperProvider } from 'react-native-paper'
-import { apolloClient, initializeApollo } from './config/apollo'
+import { apolloClient, initializeApollo, persistor } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData, getSecure, SECURE_KEYS, save, get, remove } from './utils/secureStorage'
 import { LOGIN_MUTATION, REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN, GET_FEED_POSTS, GET_FEED_TOPICS } from './config/graphql-queries'
 import { ThemeProvider, useTheme, lightColors, darkColors, DrawerProvider, useDrawer } from './contexts/ThemeContext'
@@ -840,8 +840,15 @@ function AppContent() {
           await clearSecureData()
           await remove('jsr_last_active_time')
 
-          // Clear Apollo Client cache
+          // Clear Apollo Client cache AND purge the persisted (AsyncStorage)
+          // copy, otherwise the previous user's cached data survives to the
+          // next session on the same device.
           await apolloClient.clearStore()
+          try {
+            await persistor.purge()
+          } catch (purgeError) {
+            console.error('Failed to purge persisted cache:', purgeError)
+          }
 
           // Close the drawer if open
           closeDrawer()

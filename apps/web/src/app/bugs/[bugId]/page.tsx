@@ -901,7 +901,7 @@ export default function BugDetailPage({ params }: { params: Promise<{ bugId: str
 
   // Calculate permissions after we know bug exists
   const isAdminOrTopManagement = currentUser.role === 'admin' || currentUser.role === 'top_management'
-  const isCanCommentAssign = currentUser.role === 'management' || currentUser.role === 'top_management' || currentUser.role === 'amtarikshian'
+  const isCanCommentAssign = currentUser.role === 'admin' || currentUser.role === 'management' || currentUser.role === 'top_management' || currentUser.role === 'amtarikshian'
   const canEdit = canEditBug(bug, currentUser.employeeId, isCanCommentAssign)
   const canComment = canCommentOnBug(bug, currentUser.employeeId, isCanCommentAssign)
   const canAssign = isCanCommentAssign || bug.reportedBy === currentUser.employeeId || bug.assignedTo === currentUser.employeeId

@@ -2377,7 +2377,9 @@ export const resolvers = {
         estimatedHours: 'estimated_hours',
         actualHours: 'actual_hours',
         remarks: 'remarks',
-        resolvedDate: 'resolved_date'
+        resolvedDate: 'resolved_date',
+        startDate: 'start_date',
+        endDate: 'end_date'
       }
 
       Object.keys(input).forEach(key => {

@@ -524,11 +524,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ taskId: s
     }
   }
 
-  // Get priority color
+  // Get priority color. Values: U&I (urgent+important), NU&I, NI&U, NU&NI.
+  // Order matters: 'U&I' is a substring of 'NU&I', so check NU&I first.
   const getPriorityColor = (priority: string) => {
-    if (priority.includes('IU&I')) return 'bg-red-100 text-red-800'
-    if (priority.includes('IU&NI')) return 'bg-orange-100 text-orange-800'
-    if (priority.includes('NU&I')) return 'bg-blue-100 text-blue-800'
+    const p = priority || ''
+    if (p.includes('NU&NI')) return 'bg-gray-100 text-gray-800'
+    if (p.includes('NU&I')) return 'bg-blue-100 text-blue-800'
+    if (p.includes('NI&U')) return 'bg-orange-100 text-orange-800'
+    if (p.includes('U&I')) return 'bg-red-100 text-red-800'
     return 'bg-gray-100 text-gray-800'
   }
 
