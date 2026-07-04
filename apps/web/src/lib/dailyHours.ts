@@ -80,11 +80,14 @@ export function getDatesWithHours(dailyHoursString?: string): string[] {
 }
 
 /**
- * Format date to YYYY-MM-DD format for consistency
+ * Format date to YYYY-MM-DD (IST calendar day) for consistency.
+ * Uses IST so early-morning IST work isn't attributed to the previous UTC day
+ * (Vercel runs in UTC).
  */
 export function formatDateForTracking(date: string | Date): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date
-  return dateObj.toISOString().split('T')[0]
+  const ist = new Date(dateObj.getTime() + 5.5 * 60 * 60 * 1000)
+  return ist.toISOString().split('T')[0]
 }
 
 /**

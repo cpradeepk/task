@@ -36,7 +36,12 @@ export class ClientTaskWarningService {
       // Check for active tasks (not completed, cancelled, or stopped)
       const activeTasks = tasks.filter((task: Task) => {
         const isActive = !['Done', 'Cancel', 'Stop'].includes(task.status)
-        const isToday = task.startDate <= today && task.endDate >= today
+        // Normalize to date-only: startDate/endDate may be ISO datetimes, and
+        // "2026-07-04T00:00:00Z" <= "2026-07-04" is false as a string compare,
+        // which previously excluded tasks starting today.
+        const start = (task.startDate || '').split('T')[0]
+        const end = (task.endDate || '').split('T')[0]
+        const isToday = start <= today && end >= today
         return isActive && isToday
       })
 
