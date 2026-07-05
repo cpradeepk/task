@@ -38,6 +38,17 @@ function readTemplate(templateName: string): string {
   }
 }
 
+// Escape user-supplied values before injecting into HTML email bodies to
+// prevent HTML/phishing injection (e.g. a task title containing markup).
+function escapeHtml(value: any): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 // Replace placeholders in template
 function replacePlaceholders(template: string, data: Record<string, any>): string {
   let result = template
@@ -55,10 +66,11 @@ function replacePlaceholders(template: string, data: Record<string, any>): strin
     }
   })
 
-  // Replace all regular placeholders with actual data
+  // Replace all regular placeholders with HTML-escaped data. A function replacer
+  // avoids '$' in values being interpreted as replacement patterns.
   Object.keys(data).forEach(key => {
     const placeholder = new RegExp(`{{${key}}}`, 'g')
-    result = result.replace(placeholder, data[key] || '')
+    result = result.replace(placeholder, () => escapeHtml(data[key]))
   })
   
   return result

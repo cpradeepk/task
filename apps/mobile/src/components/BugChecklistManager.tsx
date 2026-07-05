@@ -191,7 +191,7 @@ export default function BugChecklistManager({
                                 ]}
                                 numberOfLines={2}
                             >
-                                {item.description || (item as any).itemText}
+                                {(item as any).description || (item as any).itemText}
                             </Text>
                             {canEdit && (
                                 <IconButton
