@@ -414,8 +414,22 @@ function AppContent() {
     return () => unsubscribe()
   }, [])
 
+  // Consecutive health-check failures. We only show the "API down" screen after
+  // 2+ in a row so a single transient blip doesn't unmount the whole
+  // NavigationContainer (destroying nav state + in-progress form input).
+  const healthFailuresRef = useRef(0)
+
   // Check backend server connection health
   const checkApiHealth = useCallback(async () => {
+    const markDown = (reason: string) => {
+      healthFailuresRef.current += 1
+      console.warn(`⚠️ API health check failed (${healthFailuresRef.current}): ${reason}`)
+      if (healthFailuresRef.current >= 2) setIsApiDown(true)
+    }
+    const markUp = () => {
+      healthFailuresRef.current = 0
+      setIsApiDown(false)
+    }
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 6000)
@@ -427,15 +441,13 @@ function AppContent() {
       clearTimeout(timeoutId)
 
       if (response.status >= 500) {
-        setIsApiDown(true)
-        console.warn(`⚠️ API responded with 5xx error status: ${response.status}`)
+        markDown(`5xx status ${response.status}`)
       } else {
-        setIsApiDown(false)
+        markUp()
         console.log('✅ API connection is healthy')
       }
     } catch (err) {
-      console.warn('⚠️ API Connection health check failed:', err)
-      setIsApiDown(true)
+      markDown(String(err))
     }
   }, [])
 
@@ -522,14 +534,18 @@ function AppContent() {
     return () => subscription.remove()
   }, [])
 
-  // Register global 401 unauthorized handler to trigger signOut
+  // Register global 401 unauthorized handler to trigger signOut.
+  // Depend on authContext so we always register the latest signOut closure —
+  // authContext is memoized on [pushToken], and the previous []-dep version
+  // captured the first-render closure (pushToken=null), so a forced sign-out
+  // never unregistered the current push token.
   useEffect(() => {
     setOnUnauthorized(() => {
       console.log('Global 401 detected — signing out...')
       authContext.signOut()
     })
     return () => setOnUnauthorized(() => {})
-  }, [])
+  }, [authContext])
 
   // Helper function to handle notification navigation
   const handleNotificationNavigation = (data: any) => {
@@ -839,6 +855,9 @@ function AppContent() {
           // Clear all secure data
           await clearSecureData()
           await remove('jsr_last_active_time')
+          // Clear the saved project filter so the next user on this device
+          // doesn't inherit the previous user's selected projects.
+          await remove('selectedProjectIds')
 
           // Clear Apollo Client cache AND purge the persisted (AsyncStorage)
           // copy, otherwise the previous user's cached data survives to the
