@@ -2190,8 +2190,29 @@ export const resolvers = {
 
         const user = result.rows[0]
 
-        // Verify password (plain text comparison for now)
-        if (user.password !== password) {
+        // Verify password. Support bcrypt hashes, and upgrade legacy plaintext
+        // passwords to a hash on successful login (safe backfill — existing
+        // accounts keep working and stop living in plaintext).
+        const bcrypt = require('bcryptjs')
+        const storedPassword = user.password || ''
+        let passwordValid = false
+        if (/^\$2[aby]\$/.test(storedPassword)) {
+          passwordValid = await bcrypt.compare(password, storedPassword)
+        } else {
+          passwordValid = storedPassword.length > 0 && storedPassword === password
+          if (passwordValid) {
+            try {
+              const hash = await bcrypt.hash(password, 10)
+              await getPoolInstance().query(
+                'UPDATE users SET password = $1 WHERE employee_id = $2',
+                [hash, user.employee_id]
+              )
+            } catch (e) {
+              console.error('Failed to backfill password hash (graphql login):', e)
+            }
+          }
+        }
+        if (!passwordValid) {
           logResolverError('login', new Error('Invalid password'), startTime)
           throw new Error('Invalid credentials')
         }
