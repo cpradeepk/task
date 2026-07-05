@@ -71,11 +71,12 @@ export interface CreateActivityLogInput {
  */
 export async function createActivityLog(input: CreateActivityLogInput): Promise<ActivityLog> {
   return withRetry(async () => {
-    // Calculate IST timestamp (UTC + 5:30)
+    // Store the UTC wall-clock. The pg client parses TIMESTAMP columns as UTC
+    // (see db/config.ts) and the UI converts to IST at render, consistent with
+    // every other table that uses NOW(). Previously this stored IST wall-clock,
+    // which was then re-read as UTC and shifted the whole timeline +5:30.
     const now = new Date()
-    const istOffset = 5.5 * 60 * 60 * 1000 // 5.5 hours in milliseconds
-    const istTime = new Date(now.getTime() + istOffset)
-    const istTimestamp = istTime.toISOString().slice(0, 19).replace('T', ' ') // Format: YYYY-MM-DD HH:MM:SS
+    const istTimestamp = now.toISOString().slice(0, 19).replace('T', ' ') // Format: YYYY-MM-DD HH:MM:SS (UTC)
 
     // PostgreSQL uses RETURNING clause instead of insertId
     const rows = await withTimeout(

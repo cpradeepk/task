@@ -104,13 +104,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Generate sequential task ID on server side
-    const latestTaskId = await getLatestTaskId()
-    const newTaskId = generateSequentialTaskId(latestTaskId)
-
-    // Override any client-provided taskId with server-generated one
-    taskData.taskId = newTaskId
-
     // Set assignedBy to createdBy if not provided (required field in database)
     if (!taskData.assignedBy) {
       taskData.assignedBy = taskData.createdBy
@@ -124,8 +117,30 @@ export async function POST(request: NextRequest) {
       taskData.endDate = new Date().toISOString().split('T')[0] // Today's date in YYYY-MM-DD format
     }
 
-    // Add task to database - THIS IS THE CRITICAL OPERATION
-    const task = await createTask(taskData)
+    // Generate a sequential task ID and insert, retrying on a unique-violation.
+    // getLatestTaskId()+increment is not atomic, so two concurrent creates can
+    // pick the same id — on collision, re-read and try the next id.
+    let task
+    const MAX_ID_ATTEMPTS = 5
+    for (let attempt = 1; attempt <= MAX_ID_ATTEMPTS; attempt++) {
+      const latestTaskId = await getLatestTaskId()
+      taskData.taskId = generateSequentialTaskId(latestTaskId)
+      try {
+        task = await createTask(taskData)
+        break
+      } catch (err: any) {
+        const isDuplicate = err?.code === '23505' ||
+          /duplicate key|unique constraint/i.test(err?.message || '')
+        if (isDuplicate && attempt < MAX_ID_ATTEMPTS) {
+          console.warn(`⚠️ task_id collision (${taskData.taskId}); retrying (attempt ${attempt + 1})`)
+          continue
+        }
+        throw err
+      }
+    }
+    if (!task) {
+      throw new Error('Failed to generate a unique task ID after multiple attempts')
+    }
 
     // PERFORMANCE FIX: Return immediately after task creation
     // Execute secondary operations asynchronously without blocking the response
