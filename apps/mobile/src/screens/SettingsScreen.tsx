@@ -833,7 +833,11 @@ export default function SettingsScreen() {
                   </View>
                   <View>
                     <Text style={styles.idCardLabel}>Joined</Text>
-                    <Text style={styles.idCardValue}>{new Date(user?.createdAt).toLocaleDateString()}</Text>
+                    <Text style={styles.idCardValue}>
+                      {user?.createdAt && !isNaN(new Date(user.createdAt).getTime())
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : '—'}
+                    </Text>
                   </View>
                 </View>
               </View>

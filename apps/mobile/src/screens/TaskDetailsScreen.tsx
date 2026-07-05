@@ -64,6 +64,7 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
     hours: false,
     remarks: false,
     project: false,
+    metadata: false,
     activity: false,
     checklists: false,
     relatedItems: false,
@@ -559,8 +560,8 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
         <Card style={styles.sectionCard} elevation={1}>
           <List.Accordion
             title="Metadata"
-            expanded={expandedSections.project}
-            onPress={() => toggleSection('project')}
+            expanded={expandedSections.metadata}
+            onPress={() => toggleSection('metadata')}
             titleStyle={styles.accordionTitle}
             style={styles.accordion}
           >
@@ -654,6 +655,10 @@ export default function TaskDetailsScreen({ route, navigation }: any) {
                 setEditedPriority(task.priority)
                 setEditedDescription(task.description)
                 setEditedRemarks(task.remarks || '')
+                // Also reset meeting fields, otherwise discarded edits persist
+                // in state and get saved on a later save.
+                setEditedMeetingLink(task.meetingLink || '')
+                setEditedMeetingReminder(task.meetingReminder || false)
               }}
               style={styles.cancelButton}
             >
