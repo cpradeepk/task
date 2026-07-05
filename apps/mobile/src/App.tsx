@@ -534,18 +534,20 @@ function AppContent() {
     return () => subscription.remove()
   }, [])
 
-  // Register global 401 unauthorized handler to trigger signOut.
-  // Depend on authContext so we always register the latest signOut closure —
-  // authContext is memoized on [pushToken], and the previous []-dep version
-  // captured the first-render closure (pushToken=null), so a forced sign-out
-  // never unregistered the current push token.
+  // Always points at the latest signOut. authContext is memoized on [pushToken],
+  // so registering the first-render closure (as the old []-dep effect did) meant
+  // a forced sign-out used a stale pushToken and never unregistered the current
+  // token. The ref is reassigned every render (see below, after authContext).
+  const signOutRef = useRef<() => void>(() => {})
+
+  // Register global 401 unauthorized handler to trigger signOut (via the ref).
   useEffect(() => {
     setOnUnauthorized(() => {
       console.log('Global 401 detected — signing out...')
-      authContext.signOut()
+      signOutRef.current()
     })
     return () => setOnUnauthorized(() => {})
-  }, [authContext])
+  }, [])
 
   // Helper function to handle notification navigation
   const handleNotificationNavigation = (data: any) => {
@@ -890,6 +892,9 @@ function AppContent() {
     }),
     [pushToken]
   )
+
+  // Keep the 401 handler pointing at the latest signOut (with current pushToken).
+  signOutRef.current = authContext.signOut
 
   if (state.isLoading || !isConfigLoaded) {
     return <SplashScreenView />
