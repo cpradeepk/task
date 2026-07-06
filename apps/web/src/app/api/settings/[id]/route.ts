@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireRole } from '@/lib/auth-server'
 import {
   getSettingById,
   updateSetting,
@@ -80,6 +81,9 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireRole(request, ['admin', 'top_management'])
+    if (!auth.ok) return auth.response
+
     const { id } = await context.params
     const settingId = parseInt(id)
 
@@ -170,6 +174,9 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireRole(request, ['admin', 'top_management'])
+    if (!auth.ok) return auth.response
+
     const { id } = await context.params
     const settingId = parseInt(id)
 

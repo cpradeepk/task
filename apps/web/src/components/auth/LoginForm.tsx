@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { login, initializeUsers } from '@/lib/auth'
+import { login, requestOtp, verifyOtp, initializeUsers } from '@/lib/auth'
 import { useLoading } from '@/contexts/LoadingContext'
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion, type MotionValue } from 'framer-motion'
 
@@ -358,13 +358,28 @@ function MagneticButton({ children, className = '', onClick, disabled }: { child
   )
 }
 
+type LoginMode = 'otp' | 'password'
+type OtpStep = 'id' | 'code'
+
 export default function LoginForm() {
   const [employeeId, setEmployeeId] = useState('')
   const [password, setPassword] = useState('')
+  const [otp, setOtp] = useState('')
+  const [mode, setMode] = useState<LoginMode>('otp')
+  const [otpStep, setOtpStep] = useState<OtpStep>('id')
+  const [maskedPhone, setMaskedPhone] = useState('')
+  const [cooldown, setCooldown] = useState(0)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+
+  // Resend cooldown countdown
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const id = setInterval(() => setCooldown((c) => (c > 0 ? c - 1 : 0)), 1000)
+    return () => clearInterval(id)
+  }, [cooldown])
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
   const prefersReducedMotion = useReducedMotion()
 
@@ -421,24 +436,68 @@ export default function LoginForm() {
     init()
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const sendOtp = async () => {
     setIsLoading(true)
     setError('')
-    setWarpPulse(1) // ENGAGE WARP SPEED!
-    showGlobalLoading('Signing in...')
-
+    showGlobalLoading('Sending OTP...')
     try {
-      const success = await login(employeeId, password)
-
-      if (success) {
-        // All users go to home page after login
-        router.push('/dashboard')
+      const result = await requestOtp(employeeId.trim())
+      if (result.success) {
+        setOtpStep('code')
+        setMaskedPhone(result.maskedPhone || '')
+        setCooldown(30)
       } else {
-        setError('Invalid Employee ID or Password')
+        setError(result.error || 'Failed to send OTP')
+        if (result.retryAfterSeconds) setCooldown(result.retryAfterSeconds)
       }
     } catch {
-      setError('An error occurred during login')
+      setError('An error occurred while sending the OTP')
+    } finally {
+      setIsLoading(false)
+      hideGlobalLoading()
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setWarpPulse(1) // ENGAGE WARP SPEED!
+
+    // Admin/service break-glass password login
+    if (mode === 'password') {
+      setIsLoading(true)
+      showGlobalLoading('Signing in...')
+      try {
+        const success = await login(employeeId.trim(), password)
+        if (success) router.push('/dashboard')
+        else setError('Invalid credentials, or this account must use OTP')
+      } catch {
+        setError('An error occurred during login')
+      } finally {
+        setIsLoading(false)
+        hideGlobalLoading()
+      }
+      return
+    }
+
+    // OTP flow: step 1 requests a code, step 2 verifies it
+    if (otpStep === 'id') {
+      if (!employeeId.trim()) {
+        setError('Please enter your Employee ID')
+        return
+      }
+      await sendOtp()
+      return
+    }
+
+    setIsLoading(true)
+    showGlobalLoading('Verifying...')
+    try {
+      const success = await verifyOtp(employeeId.trim(), otp.trim())
+      if (success) router.push('/dashboard')
+      else setError('Incorrect or expired OTP')
+    } catch {
+      setError('An error occurred during verification')
     } finally {
       setIsLoading(false)
       hideGlobalLoading()
@@ -500,15 +559,16 @@ export default function LoginForm() {
               </p>
             )}
 
-            {/* Employee ID or Email */}
+            {/* Employee ID */}
             <div className="relative">
               <input
                 type="text"
                 id="employeeId"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
-                className="peer w-full px-3 pt-5 pb-2 placeholder:text-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none"
-                placeholder="Employee ID or Email"
+                disabled={mode === 'otp' && otpStep === 'code'}
+                className="peer w-full px-3 pt-5 pb-2 placeholder:text-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none disabled:opacity-60"
+                placeholder="Employee ID"
                 autoComplete="username"
                 aria-invalid={!!error && !employeeId}
               />
@@ -516,46 +576,119 @@ export default function LoginForm() {
                 htmlFor="employeeId"
                 className="absolute left-3 -top-2 text-sm text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
               >
-                Employee ID or Email
+                Employee ID
               </label>
             </div>
 
-            {/* Password */}
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="peer w-full pr-12 px-3 pt-5 pb-2 placeholder:text-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none"
-                placeholder="Password"
-                autoComplete="current-password"
-                aria-invalid={!!error && !password}
-              />
-              <label
-                htmlFor="password"
-                className="absolute left-3 -top-2 text-sm text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
-              >
-                Password
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-white/80 hover:text-white"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
+            {/* Password (admin fallback only) */}
+            {mode === 'password' && (
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="peer w-full pr-12 px-3 pt-5 pb-2 placeholder:text-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none"
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  aria-invalid={!!error && !password}
+                />
+                <label
+                  htmlFor="password"
+                  className="absolute left-3 -top-2 text-sm text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
+                >
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-white/80 hover:text-white"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            )}
 
-            {/* Magnetic Login Button with Warp Effect */}
+            {/* OTP code (step 2) */}
+            {mode === 'otp' && otpStep === 'code' && (
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  id="otp"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  className="peer w-full px-3 pt-5 pb-2 tracking-[0.5em] placeholder:text-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none"
+                  placeholder="OTP"
+                  autoComplete="one-time-code"
+                  autoFocus
+                />
+                <label
+                  htmlFor="otp"
+                  className="absolute left-3 -top-2 text-sm text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
+                >
+                  Enter 6-digit OTP
+                </label>
+                {maskedPhone && (
+                  <p className="mt-2 text-xs text-white/60">Sent to {maskedPhone}</p>
+                )}
+              </div>
+            )}
+
+            {/* Primary action */}
             <MagneticButton className="w-full" disabled={isLoading}>
-              {isLoading ? 'Engaging warp…' : 'Enter'}
+              {isLoading
+                ? 'Engaging warp…'
+                : mode === 'password'
+                  ? 'Enter'
+                  : otpStep === 'id'
+                    ? 'Send OTP'
+                    : 'Verify & Enter'}
             </MagneticButton>
 
-            {/* Helper Text */}
-            <div className="text-center text-sm text-white/80">
-              <p>Use your Employee ID (e.g., AM-0001) or email to login</p>
+            {/* OTP secondary actions */}
+            {mode === 'otp' && otpStep === 'code' && (
+              <div className="flex items-center justify-between text-sm text-white/80">
+                <button
+                  type="button"
+                  onClick={() => { setOtpStep('id'); setOtp(''); setError('') }}
+                  className="hover:text-white"
+                >
+                  ← Change ID
+                </button>
+                <button
+                  type="button"
+                  disabled={cooldown > 0 || isLoading}
+                  onClick={sendOtp}
+                  className="hover:text-white disabled:opacity-50"
+                >
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend OTP'}
+                </button>
+              </div>
+            )}
+
+            {/* Mode toggle */}
+            <div className="text-center text-sm text-white/70">
+              {mode === 'otp' ? (
+                <button
+                  type="button"
+                  onClick={() => { setMode('password'); setError(''); setOtpStep('id'); setOtp('') }}
+                  className="hover:text-white underline-offset-4 hover:underline"
+                >
+                  Admin password login
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setMode('otp'); setError(''); setPassword('') }}
+                  className="hover:text-white underline-offset-4 hover:underline"
+                >
+                  ← Back to OTP login
+                </button>
+              )}
+              <p className="mt-2 text-white/60">Use your Employee ID (e.g., AM-0001)</p>
             </div>
 
             {/* Legal footer links */}

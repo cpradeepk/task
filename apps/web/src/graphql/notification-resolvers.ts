@@ -33,8 +33,12 @@ export const notificationQueries = {
     notificationType?: string
     limit?: number
     offset?: number
-  }) => {
-    const { userId, isRead, notificationType, limit = 50, offset = 0 } = args
+  }, context: any) => {
+    const authUserId = context?.user?.employeeId
+    if (!authUserId) throw new Error('UNAUTHENTICATED: You must be signed in.')
+    const { userId: requestedUserId, isRead, notificationType, limit = 50, offset = 0 } = args
+    // Non-admins may only read their own notifications
+    const userId = context.user.role === 'admin' ? (requestedUserId || authUserId) : authUserId
 
     let query = 'SELECT * FROM feed_notifications WHERE deleted_at IS NULL'
     const params: any[] = []
@@ -71,10 +75,13 @@ export const notificationQueries = {
   },
 
   // Get unread notification count for a user
-  unreadNotificationCount: async (_: any, { userId }: { userId: string }) => {
+  unreadNotificationCount: async (_: any, { userId }: { userId: string }, context: any) => {
+    const authUserId = context?.user?.employeeId
+    if (!authUserId) throw new Error('UNAUTHENTICATED: You must be signed in.')
+    const scopedUserId = context.user.role === 'admin' ? (userId || authUserId) : authUserId
     const result = await getPoolInstance().query(
       'SELECT COUNT(*) as count FROM feed_notifications WHERE user_id = $1 AND is_read = false AND deleted_at IS NULL',
-      [userId]
+      [scopedUserId]
     )
     return parseInt(result.rows[0]?.count || '0', 10)
   }
@@ -100,12 +107,15 @@ export const notificationMutations = {
   },
 
   // Mark all notifications as read for a user
-  markAllNotificationsAsRead: async (_: any, { userId }: { userId: string }) => {
+  markAllNotificationsAsRead: async (_: any, { userId }: { userId: string }, context: any) => {
+    const authUserId = context?.user?.employeeId
+    if (!authUserId) throw new Error('UNAUTHENTICATED: You must be signed in.')
+    const scopedUserId = context.user.role === 'admin' ? (userId || authUserId) : authUserId
     await getPoolInstance().query(
-      `UPDATE feed_notifications 
-       SET is_read = true, read_at = CURRENT_TIMESTAMP 
+      `UPDATE feed_notifications
+       SET is_read = true, read_at = CURRENT_TIMESTAMP
        WHERE user_id = $1 AND is_read = false AND deleted_at IS NULL`,
-      [userId]
+      [scopedUserId]
     )
     return true
   },

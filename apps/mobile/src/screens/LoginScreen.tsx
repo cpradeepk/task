@@ -32,12 +32,24 @@ export default function LoginScreen() {
   const styles = React.useMemo(() => getStyles(colors), [colors])
   const [employeeId, setEmployeeId] = useState('')
   const [password, setPassword] = useState('')
+  const [otp, setOtp] = useState('')
+  const [mode, setMode] = useState<'otp' | 'password'>('otp')
+  const [otpStep, setOtpStep] = useState<'id' | 'code'>('id')
+  const [maskedPhone, setMaskedPhone] = useState('')
+  const [cooldown, setCooldown] = useState(0)
   const [loading, setLoading] = useState(false)
   const [biometricAvailable, setBiometricAvailable] = useState(false)
   const [biometricType, setBiometricType] = useState('Biometric')
   const [showPassword, setShowPassword] = useState(false)
-  const { signIn } = React.useContext(AuthContext)
+  const { signIn, requestOtp, verifyOtp, restoreSession } = React.useContext(AuthContext)
   const { isOffline } = useNetworkStatus()
+
+  // Resend cooldown countdown
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const id = setInterval(() => setCooldown((c) => (c > 0 ? c - 1 : 0)), 1000)
+    return () => clearInterval(id)
+  }, [cooldown])
 
   // Animation values
   const fadeAnim = React.useRef(new Animated.Value(0)).current
@@ -90,6 +102,43 @@ export default function LoginScreen() {
     }
   }
 
+  const handleSendOtp = async () => {
+    if (!employeeId.trim()) {
+      showToast('Please enter your Employee ID', 'warning')
+      return
+    }
+    setLoading(true)
+    try {
+      const result = await requestOtp(employeeId.trim())
+      if (result.success) {
+        setOtpStep('code')
+        setMaskedPhone(result.maskedPhone || '')
+        setCooldown(30)
+        showToast(result.maskedPhone ? `OTP sent to ${result.maskedPhone}` : 'OTP sent', 'success')
+      } else {
+        showToast(result.error || 'Failed to send OTP', 'error')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifyOtp = async () => {
+    if (!/^\d{6}$/.test(otp.trim())) {
+      showToast('Enter the 6-digit OTP', 'warning')
+      return
+    }
+    setLoading(true)
+    try {
+      const result = await verifyOtp(employeeId.trim(), otp.trim())
+      if (!result.success) {
+        showToast(result.error || 'Invalid or expired OTP', 'error')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleBiometricLogin = async () => {
     setLoading(true)
     try {
@@ -115,16 +164,14 @@ export default function LoginScreen() {
         return
       }
 
-      // Verify token is still valid by attempting to use it
-      // The token will be automatically used by Apollo Client
-      // If it's expired, the user will be logged out automatically
-
-      // Dispatch sign in action (token is already in SecureStore)
-      const result = await signIn(userData.employeeId, '')
+      // Restore the existing stored session (token already in SecureStore).
+      // Do NOT re-authenticate — password login is disabled for most users and
+      // there is no password to submit here.
+      const result = await restoreSession()
 
       if (!result.success) {
         showToast(
-          'Your session has expired. Please login again with your credentials.',
+          'Your session has expired. Please sign in with OTP.',
           'error'
         )
       }
@@ -169,14 +216,14 @@ export default function LoginScreen() {
           {/* Login Form Card */}
           <Surface style={styles.card} elevation={2}>
             <TextInput
-              label="Employee ID or Email"
+              label="Employee ID"
               value={employeeId}
               onChangeText={setEmployeeId}
               mode="outlined"
-              disabled={loading || isOffline}
+              disabled={loading || isOffline || (mode === 'otp' && otpStep === 'code')}
               autoCapitalize="none"
               keyboardType="email-address"
-              placeholder="AM-0001 or you@example.com"
+              placeholder="AM-0001"
               left={<TextInput.Icon icon="account" color={colors.textSecondary} />}
               style={styles.input}
               outlineColor={colors.border}
@@ -184,45 +231,116 @@ export default function LoginScreen() {
               textColor={colors.text}
             />
 
-            <View style={styles.passwordContainer}>
-              <TextInput
-                label="Password"
-                value={password}
-                onChangeText={setPassword}
-                mode="outlined"
-                disabled={loading || isOffline}
-                secureTextEntry={!showPassword}
-                placeholder="Enter your password"
-                left={<TextInput.Icon icon="lock" color={colors.primary} />}
-                style={[styles.input, styles.passwordInput]}
-                outlineColor={colors.border}
-                activeOutlineColor={colors.primary}
-                textColor={colors.text}
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeIconButton}
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons
-                  name={showPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color={colors.primary}
+            {mode === 'password' && (
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  label="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  mode="outlined"
+                  disabled={loading || isOffline}
+                  secureTextEntry={!showPassword}
+                  placeholder="Enter your password"
+                  left={<TextInput.Icon icon="lock" color={colors.primary} />}
+                  style={[styles.input, styles.passwordInput]}
+                  outlineColor={colors.border}
+                  activeOutlineColor={colors.primary}
+                  textColor={colors.text}
                 />
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIconButton}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons
+                    name={showPassword ? 'eye-off' : 'eye'}
+                    size={24}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {mode === 'otp' && otpStep === 'code' && (
+              <>
+                <TextInput
+                  label="Enter 6-digit OTP"
+                  value={otp}
+                  onChangeText={(t) => setOtp(t.replace(/\D/g, '').slice(0, 6))}
+                  mode="outlined"
+                  disabled={loading || isOffline}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  placeholder="000000"
+                  left={<TextInput.Icon icon="message-lock" color={colors.primary} />}
+                  style={styles.input}
+                  outlineColor={colors.border}
+                  activeOutlineColor={colors.primary}
+                  textColor={colors.text}
+                />
+                {!!maskedPhone && (
+                  <Text style={styles.helperText}>Sent to {maskedPhone}</Text>
+                )}
+              </>
+            )}
 
             <Button
               mode="contained"
-              onPress={handleLogin}
+              onPress={
+                mode === 'password'
+                  ? handleLogin
+                  : otpStep === 'id'
+                    ? handleSendOtp
+                    : handleVerifyOtp
+              }
               loading={loading}
-              disabled={loading || isOffline || !employeeId || !password}
+              disabled={loading || isOffline || !employeeId ||
+                (mode === 'password' && !password) ||
+                (mode === 'otp' && otpStep === 'code' && otp.length !== 6)}
               style={styles.loginButton}
               contentStyle={styles.buttonContent}
               labelStyle={styles.buttonLabel}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading
+                ? 'Please wait...'
+                : mode === 'password'
+                  ? 'Sign In'
+                  : otpStep === 'id'
+                    ? 'Send OTP'
+                    : 'Verify & Sign In'}
             </Button>
+
+            {mode === 'otp' && otpStep === 'code' && (
+              <View style={styles.otpActionsRow}>
+                <TouchableOpacity
+                  onPress={() => { setOtpStep('id'); setOtp('') }}
+                  disabled={loading}
+                >
+                  <Text style={styles.linkText}>← Change ID</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleSendOtp} disabled={loading || cooldown > 0}>
+                  <Text style={[styles.linkText, (cooldown > 0) && styles.linkTextDisabled]}>
+                    {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend OTP'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.modeToggle}
+              onPress={() => {
+                if (mode === 'otp') {
+                  setMode('password')
+                } else {
+                  setMode('otp'); setOtpStep('id'); setOtp(''); setPassword('')
+                }
+              }}
+              disabled={loading}
+            >
+              <Text style={styles.linkText}>
+                {mode === 'otp' ? 'Admin password login' : '← Back to OTP login'}
+              </Text>
+            </TouchableOpacity>
 
             {biometricAvailable && (
               <Button
@@ -394,6 +512,22 @@ const getStyles = (colors: any) => StyleSheet.create({
   },
   legalLinkSeparator: {
     ...materialTypography.bodySmall,
+    color: colors.textTertiary,
+  },
+  otpActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: materialSpacing.md,
+  },
+  modeToggle: {
+    marginTop: materialSpacing.md,
+    alignItems: 'center',
+  },
+  linkText: {
+    ...materialTypography.bodyMedium,
+    color: colors.primary,
+  },
+  linkTextDisabled: {
     color: colors.textTertiary,
   },
 })

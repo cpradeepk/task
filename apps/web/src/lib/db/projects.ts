@@ -15,7 +15,7 @@
  * - Audit trail (created_by, deleted_by, timestamps)
  */
 
-import { query, queryOne, withRetry } from './config'
+import { query, queryOne, withRetry, execute } from './config'
 import { Project } from '../types'
 /**
  * ProjectRow Interface
@@ -335,14 +335,14 @@ export async function softDeleteProject(project_id: string, deletedBy: string): 
       throw new Error('Cannot delete project with sub-projects. Delete sub-projects first.')
     }
 
-    const result = await query<any>(
+    const affected = await execute(
       `UPDATE projects
        SET status = 'Deleted', deleted_at = NOW(), deleted_by = $1
        WHERE project_id = $2`,
       [deletedBy, project_id]
     )
 
-    return result.affectedRows > 0
+    return affected > 0
   })
 }
 
@@ -352,14 +352,14 @@ export async function softDeleteProject(project_id: string, deletedBy: string): 
  */
 export async function restoreProject(project_id: string): Promise<boolean> {
   return withRetry(async () => {
-    const result = await query<any>(
+    const affected = await execute(
       `UPDATE projects
        SET status = 'Active', deleted_at = NULL, deleted_by = NULL
        WHERE project_id = $1`,
       [project_id]
     )
 
-    return result.affectedRows > 0
+    return affected > 0
   })
 }
 

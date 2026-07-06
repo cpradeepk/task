@@ -1,7 +1,7 @@
 // Activity Log Database Operations
 // Server-side only - do not use 'use client'
 
-import { query, withRetry, withTimeout } from './config'
+import { query, withRetry, withTimeout, execute } from './config'
 /**
  * Activity Log Entry Interface
  * Represents a single activity or comment in the unified timeline
@@ -71,11 +71,12 @@ export interface CreateActivityLogInput {
  */
 export async function createActivityLog(input: CreateActivityLogInput): Promise<ActivityLog> {
   return withRetry(async () => {
-    // Calculate IST timestamp (UTC + 5:30)
+    // Store the UTC wall-clock. The pg client parses TIMESTAMP columns as UTC
+    // (see db/config.ts) and the UI converts to IST at render, consistent with
+    // every other table that uses NOW(). Previously this stored IST wall-clock,
+    // which was then re-read as UTC and shifted the whole timeline +5:30.
     const now = new Date()
-    const istOffset = 5.5 * 60 * 60 * 1000 // 5.5 hours in milliseconds
-    const istTime = new Date(now.getTime() + istOffset)
-    const istTimestamp = istTime.toISOString().slice(0, 19).replace('T', ' ') // Format: YYYY-MM-DD HH:MM:SS
+    const istTimestamp = now.toISOString().slice(0, 19).replace('T', ' ') // Format: YYYY-MM-DD HH:MM:SS (UTC)
 
     // PostgreSQL uses RETURNING clause instead of insertId
     const rows = await withTimeout(
@@ -365,16 +366,16 @@ export async function deleteActivityLog(id: number, userId: string): Promise<boo
       throw new Error('You can only delete your own comments/prompts')
     }
 
-    const result = await withTimeout(
-      query<any>(
-        'DELETE FROM activity_log WHERE id = ? AND user_id = ? AND (is_comment = 1 OR action_type = ?)',
+    const affected = await withTimeout(
+      execute(
+        'DELETE FROM activity_log WHERE id = $1 AND user_id = $2 AND (is_comment = 1 OR action_type = $3)',
         [id, userId, 'prompt']
       ),
       10000,
       'Failed to delete activity log entry'
     )
 
-    return result.affectedRows > 0
+    return affected > 0
   })
 }
 
@@ -413,7 +414,7 @@ export async function getPromptsByEntity(
           al.created_at as "createdAt"
         FROM activity_log al
         LEFT JOIN users u ON al.user_id = u.employee_id
-        WHERE al.entity_type = ? AND al.entity_id = ? AND al.action_type = ?
+        WHERE al.entity_type = $1 AND al.entity_id = $2 AND al.action_type = $3
         ORDER BY al.created_at ${order}`,
         [entityType, entityId, 'prompt']
       ),

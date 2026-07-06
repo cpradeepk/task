@@ -27,13 +27,19 @@ export function getCurrentDateTime(): string {
  * Get current date in YYYY-MM-DD format
  * @returns Current date as string (e.g., "2025-12-03")
  */
-export function getCurrentDate(): string {
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = String(now.getMonth() + 1).padStart(2, '0')
-    const day = String(now.getDate()).padStart(2, '0')
+/**
+ * Return the IST (UTC+5:30) calendar day for a date as YYYY-MM-DD, independent
+ * of the server timezone (Vercel runs in UTC). Use this for any "which day did
+ * this happen" grouping so early-morning IST work isn't attributed to yesterday.
+ */
+export function toISTDateString(date: Date | string = new Date()): string {
+    const d = typeof date === 'string' ? new Date(date) : date
+    const ist = new Date(d.getTime() + 5.5 * 60 * 60 * 1000)
+    return ist.toISOString().split('T')[0]
+}
 
-    return `${year}-${month}-${day}`
+export function getCurrentDate(): string {
+    return toISTDateString(new Date())
 }
 
 /**

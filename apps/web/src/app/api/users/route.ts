@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllUsers, getAllUsersIncludingInactive, createUser } from '@/lib/db/users'
 import { withTimeout } from '@/lib/db/config'
+import { requireAuth, requireRole } from '@/lib/auth-server'
 
 export async function GET(request: NextRequest) {
   try {
+    // Any authenticated user may list users (assignee dropdowns, etc.).
+    // Passwords are never returned (blanked in rowToUser).
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
     const includeInactive = request.nextUrl.searchParams.get('includeInactive') === 'true'
 
     // Get users from database with timeout
@@ -44,6 +50,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Only admins/top management may create users.
+    const auth = await requireRole(request, ['admin', 'top_management'])
+    if (!auth.ok) return auth.response
+
     const userData = await request.json()
 
     // Add user to database with timeout

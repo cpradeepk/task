@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getPool } from '@/lib/db/config'
+import { requireRole } from '@/lib/auth-server'
 
 /**
  * Database Connection Pool Status Endpoint
@@ -12,8 +13,12 @@ import { getPool } from '@/lib/db/config'
  * IMPORTANT: This endpoint should be protected in production
  * or removed entirely. It exposes internal database metrics.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Exposes internal DB metrics — restrict to admins.
+    const auth = await requireRole(request, ['admin', 'top_management'])
+    if (!auth.ok) return auth.response
+
     const pool = getPool()
     
     // Get pool statistics

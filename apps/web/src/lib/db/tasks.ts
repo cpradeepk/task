@@ -1,7 +1,7 @@
 // MySQL Tasks Service
 // Server-side only - do not use 'use client'
 
-import { query, queryOne, withRetry } from './config'
+import { query, queryOne, withRetry, execute } from './config'
 import { Task } from '../types'
 interface TaskRow {
   id: number
@@ -552,11 +552,11 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<Ta
 // Delete task
 export async function deleteTask(id: string): Promise<boolean> {
   return withRetry(async () => {
-    const result = await query<any>(
+    const affected = await execute(
       'DELETE FROM tasks WHERE internal_id = $1 OR task_id = $2',
       [id, id]
     )
-    return result.affectedRows > 0
+    return affected > 0
   })
 }
 

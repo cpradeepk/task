@@ -1,136 +1,65 @@
 /**
  * Migration API: Add Collapsible Text Settings
- * Run this once to add the collapsible text configuration settings to the database
+ * Run this once (admin only) to seed the collapsible text configuration settings.
  */
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
+import { requireRole } from '@/lib/auth-server'
 
-export async function POST() {
+// Postgres upsert helper for a single settings row.
+async function upsertSetting(key: string, value: unknown, description: string) {
+  await query(
+    `INSERT INTO settings (key, value, description, is_active, created_at, updated_at)
+     VALUES ($1, $2, $3, TRUE, NOW(), NOW())
+     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+    [key, JSON.stringify(value), description]
+  )
+}
+
+export async function POST(request: NextRequest) {
   try {
-    // Setting 1: Collapse thresholds for different components
-    await query(`
-      INSERT INTO settings (\`key\`, value, description, metadata, is_active, created_by, created_at, updated_at)
-      VALUES (
-        'collapsible_text_thresholds',
-        ?,
-        'Collapse thresholds for different text components. Each component can have custom maxCharacters and maxLines values.',
-        ?,
-        TRUE,
-        'system',
-        NOW(),
-        NOW()
-      )
-      ON DUPLICATE KEY UPDATE
-        value = ?,
-        updated_at = NOW()
-    `, [
-      JSON.stringify({
-        bug_description: { maxCharacters: 300, maxLines: 5 },
-        task_description: { maxCharacters: 300, maxLines: 5 },
-        activity_description: { maxCharacters: 300, maxLines: 5 },
-        comment_description: { maxCharacters: 300, maxLines: 5 },
-        prompt_description: { maxCharacters: 300, maxLines: 5 },
-        default: { maxCharacters: 300, maxLines: 5 }
-      }),
-      JSON.stringify({
-        type: 'object',
-        editable: true,
-        category: 'ui_behavior',
-        components: ['bug_description', 'task_description', 'activity_description', 'comment_description', 'prompt_description', 'default']
-      }),
-      JSON.stringify({
-        bug_description: { maxCharacters: 300, maxLines: 5 },
-        task_description: { maxCharacters: 300, maxLines: 5 },
-        activity_description: { maxCharacters: 300, maxLines: 5 },
-        comment_description: { maxCharacters: 300, maxLines: 5 },
-        prompt_description: { maxCharacters: 300, maxLines: 5 },
-        default: { maxCharacters: 300, maxLines: 5 }
-      })
-    ])
+    const auth = await requireRole(request, ['admin', 'top_management'])
+    if (!auth.ok) return auth.response
 
-    // Setting 2: Persist expanded state preference
-    await query(`
-      INSERT INTO settings (\`key\`, value, description, metadata, is_active, created_by, created_at, updated_at)
-      VALUES (
-        'collapsible_text_persist_state',
-        ?,
-        'Controls whether expanded/collapsed state should persist in localStorage for different components. Set to true to remember user preference.',
-        ?,
-        TRUE,
-        'system',
-        NOW(),
-        NOW()
-      )
-      ON DUPLICATE KEY UPDATE
-        value = ?,
-        updated_at = NOW()
-    `, [
-      JSON.stringify({
+    const defaultThresholds = {
+      bug_description: { maxCharacters: 300, maxLines: 5 },
+      task_description: { maxCharacters: 300, maxLines: 5 },
+      activity_description: { maxCharacters: 300, maxLines: 5 },
+      comment_description: { maxCharacters: 300, maxLines: 5 },
+      prompt_description: { maxCharacters: 300, maxLines: 5 },
+      default: { maxCharacters: 300, maxLines: 5 }
+    }
+
+    await upsertSetting(
+      'collapsible_text_thresholds',
+      defaultThresholds,
+      'Collapse thresholds for different text components. Each component can have custom maxCharacters and maxLines values.'
+    )
+
+    await upsertSetting(
+      'collapsible_text_persist_state',
+      {
         bug_description: false,
         task_description: false,
         activity_description: false,
         comment_description: false,
         prompt_description: false,
         default: false
-      }),
-      JSON.stringify({
-        type: 'object',
-        editable: true,
-        category: 'ui_behavior',
-        components: ['bug_description', 'task_description', 'activity_description', 'comment_description', 'prompt_description', 'default']
-      }),
-      JSON.stringify({
-        bug_description: false,
-        task_description: false,
-        activity_description: false,
-        comment_description: false,
-        prompt_description: false,
-        default: false
-      })
-    ])
+      },
+      'Controls whether expanded/collapsed state should persist in localStorage for different components.'
+    )
 
-    // Setting 3: UI customization options
-    await query(`
-      INSERT INTO settings (\`key\`, value, description, metadata, is_active, created_by, created_at, updated_at)
-      VALUES (
-        'collapsible_text_ui_options',
-        ?,
-        'UI customization options for collapsible text components. Controls gradient overlay, button position, and line count display.',
-        ?,
-        TRUE,
-        'system',
-        NOW(),
-        NOW()
-      )
-      ON DUPLICATE KEY UPDATE
-        value = ?,
-        updated_at = NOW()
-    `, [
-      JSON.stringify({
+    await upsertSetting(
+      'collapsible_text_ui_options',
+      {
         showGradient: true,
         gradientColor: 'white',
         buttonPosition: 'right',
         showLineCount: true
-      }),
-      JSON.stringify({
-        type: 'object',
-        editable: true,
-        category: 'ui_appearance',
-        options: {
-          showGradient: { type: 'boolean', default: true },
-          gradientColor: { type: 'string', default: 'white', options: ['white', 'gray-50', 'blue-50'] },
-          buttonPosition: { type: 'string', default: 'right', options: ['left', 'right'] },
-          showLineCount: { type: 'boolean', default: true }
-        }
-      }),
-      JSON.stringify({
-        showGradient: true,
-        gradientColor: 'white',
-        buttonPosition: 'right',
-        showLineCount: true
-      })
-    ])
+      },
+      'UI customization options for collapsible text components (gradient overlay, button position, line count display).'
+    )
 
     return NextResponse.json({
       success: true,
@@ -149,4 +78,3 @@ export async function POST() {
     }, { status: 500 })
   }
 }
-

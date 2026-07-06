@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserByEmployeeId, updateUser } from '@/lib/db/users'
 import { withTimeout } from '@/lib/db/config'
 import { cache, CACHE_KEYS } from '@/lib/cache'
+import { requireAuth } from '@/lib/auth-server'
 
 export async function GET(
   request: NextRequest,
@@ -47,6 +48,9 @@ export async function PUT(
   { params }: { params: Promise<{ employeeId: string }> }
 ) {
   try {
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
     const { employeeId } = await params
     const userData = await request.json()
 
@@ -56,6 +60,19 @@ export async function PUT(
         success: false,
         error: 'Cannot update admin user'
       }, { status: 403 })
+    }
+
+    // Non-privileged users may only edit their OWN profile, and may not change
+    // role / status / permissions (prevents self privilege-escalation).
+    const isPrivileged = auth.user.role === 'admin' || auth.user.role === 'top_management'
+    if (!isPrivileged) {
+      if (auth.user.employeeId !== employeeId) {
+        return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+      }
+      delete userData.role
+      delete userData.status
+      delete userData.isSystemAdmin
+      delete userData.tabPermissions
     }
 
     // Update user in MySQL with timeout

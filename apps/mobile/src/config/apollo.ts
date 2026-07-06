@@ -67,6 +67,18 @@ const errorLink = onError((errorResponse) => {
       const errorMsg = `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`
       console.error(errorMsg)
       logger.error('GraphQL', errorMsg, { operation: operation.operationName })
+
+      // Auth failures are returned as GraphQL errors with HTTP 200 (not a 401
+      // networkError), so detect them here and sign the user out. Only treat
+      // UNAUTHENTICATED as a session-expiry — FORBIDDEN means authenticated but
+      // lacking permission, which must NOT log the user out.
+      const code = error?.extensions?.code
+      if (code === 'UNAUTHENTICATED' || (typeof message === 'string' && message.includes('UNAUTHENTICATED'))) {
+        console.log('GraphQL auth error - clearing token and signing out')
+        logger.warn('Auth', 'GraphQL UNAUTHENTICATED', { operation: operation?.operationName })
+        deleteSecure(SECURE_KEYS.USER_TOKEN).catch(() => {})
+        triggerUnauthorized()
+      }
     })
   }
 

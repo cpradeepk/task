@@ -127,6 +127,17 @@ export async function queryOne<T = any>(
   return rows.length > 0 ? rows[0] : null
 }
 
+// Execute a write (INSERT/UPDATE/DELETE) and return the affected row count.
+// Use this instead of reading `.affectedRows` (a mysql2 field that does not
+// exist on node-postgres results).
+export async function execute(sql: string, params?: any[]): Promise<number> {
+  const pool = getPool()
+  const result = params && params.length > 0
+    ? await pool.query(sql, params)
+    : await pool.query(sql)
+  return result.rowCount ?? 0
+}
+
 // Test database connection
 export async function testConnection(): Promise<boolean> {
   try {
