@@ -259,8 +259,19 @@ const navDarkTheme = {
 
 // Version comparison helper
 function isVersionLessThan(v1: string, v2: string): boolean {
-  const parts1 = String(v1).split('.').map(Number)
-  const parts2 = String(v2).split('.').map(Number)
+  const sanitize = (v: string) => {
+    if (!v) return []
+    // Remove "v" or other non-numeric prefix/suffix, keep only numbers and dots
+    const clean = String(v).replace(/[^0-9.]/g, '')
+    return clean.split('.').map(part => {
+      const parsed = parseInt(part, 10)
+      return isNaN(parsed) ? 0 : parsed
+    })
+  }
+
+  const parts1 = sanitize(v1)
+  const parts2 = sanitize(v2)
+
   for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
     const p1 = parts1[i] || 0
     const p2 = parts2[i] || 0
@@ -370,21 +381,47 @@ function AppContent() {
   const navigationTheme = theme === 'dark' ? navDarkTheme : navLightTheme
 
   const [appConfig, setAppConfig] = useState<{
-    maintenanceMode: boolean
     minAndroidVersion: string
     minIosVersion: string
-    androidUrl: string
-    iosUrl: string
+    updatedAt: number
   }>({
-    maintenanceMode: false,
     minAndroidVersion: '1.0.0',
     minIosVersion: '1.0.0',
-    androidUrl: '',
-    iosUrl: ''
+    updatedAt: 0
   })
   
   const [isApiDown, setIsApiDown] = useState(false)
   const [isConfigLoaded, setIsConfigLoaded] = useState(false)
+
+  // Helper to update appConfig and persist it to AsyncStorage
+  const updateAndCacheAppConfig = useCallback((
+    updater: (prev: typeof appConfig) => typeof appConfig
+  ) => {
+    setAppConfig(prevConfig => {
+      const nextConfig = updater(prevConfig)
+      if (
+        prevConfig.minAndroidVersion !== nextConfig.minAndroidVersion ||
+        prevConfig.minIosVersion !== nextConfig.minIosVersion ||
+        prevConfig.updatedAt !== nextConfig.updatedAt
+      ) {
+        save('app_config_cache', nextConfig).catch(err => {
+          console.warn('Failed to cache app config:', err)
+        })
+        return nextConfig
+      }
+      return prevConfig
+    })
+  }, [])
+
+  // Safety timeout: prevent getting stuck on the splash screen
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log('⏰ Splash screen safety timeout reached - forcing config load')
+      setIsConfigLoaded(true)
+    }, 2500) // 2.5 seconds safety timeout
+
+    return () => clearTimeout(timer)
+  }, [])
 
   // Listen to remote Firebase configuration
   useEffect(() => {
@@ -394,14 +431,33 @@ function AppContent() {
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data()
-          setAppConfig({
-            maintenanceMode: Boolean(data.maintenanceMode),
-            minAndroidVersion: data.minAndroidVersion || '1.0.0',
-            minIosVersion: data.minIosVersion || '1.0.0',
-            androidUrl: data.androidUrl || '',
-            iosUrl: data.iosUrl || ''
+          
+          // Parse Firestore updatedAt timestamp
+          let firestoreTime = 0
+          if (data.updatedAt) {
+            if (typeof data.updatedAt.toMillis === 'function') {
+              firestoreTime = data.updatedAt.toMillis()
+            } else if (data.updatedAt.seconds) {
+              firestoreTime = data.updatedAt.seconds * 1000
+            } else {
+              firestoreTime = new Date(data.updatedAt).getTime()
+            }
+          }
+          if (isNaN(firestoreTime) || firestoreTime <= 0) {
+            firestoreTime = Date.now()
+          }
+
+          updateAndCacheAppConfig(prevConfig => {
+            if (firestoreTime >= prevConfig.updatedAt) {
+              return {
+                minAndroidVersion: data.minAndroidVersion || '1.0.0',
+                minIosVersion: data.minIosVersion || '1.0.0',
+                updatedAt: firestoreTime
+              }
+            }
+            console.log('⚠️ Ignored stale Firestore AppConfig. Local/API is newer.')
+            return prevConfig
           })
-          console.log('🔥 Remote AppConfig Synced:', data)
         }
         setIsConfigLoaded(true)
       },
@@ -412,7 +468,7 @@ function AppContent() {
     )
 
     return () => unsubscribe()
-  }, [])
+  }, [updateAndCacheAppConfig])
 
   // Consecutive health-check failures. We only show the "API down" screen after
   // 2+ in a row so a single transient blip doesn't unmount the whole
@@ -434,7 +490,7 @@ function AppContent() {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 6000)
 
-      console.log('🔍 Checking backend API connection health...')
+      console.log('🔍 Checking backend API connection health & config...')
       const response = await fetch(`${API_BASE_URL}/api/settings/app-management`, {
         signal: controller.signal
       })
@@ -445,11 +501,31 @@ function AppContent() {
       } else {
         markUp()
         console.log('✅ API connection is healthy')
+        
+        const result = await response.json()
+        if (result.success && result.data) {
+          const apiTime = result.data.updatedAt 
+            ? new Date(result.data.updatedAt).getTime() 
+            : 0
+            
+          updateAndCacheAppConfig(prevConfig => {
+            if (apiTime >= prevConfig.updatedAt) {
+              return {
+                minAndroidVersion: result.data.minAndroidVersion || '1.0.0',
+                minIosVersion: result.data.minIosVersion || '1.0.0',
+                updatedAt: apiTime
+              }
+            }
+            return prevConfig
+          })
+        }
       }
     } catch (err) {
       markDown(String(err))
+    } finally {
+      setIsConfigLoaded(true)
     }
-  }, [])
+  }, [updateAndCacheAppConfig])
 
   useEffect(() => {
     checkApiHealth()
@@ -603,6 +679,13 @@ function AppContent() {
     const bootstrapAsync = async () => {
       let userToken
       try {
+        // Load cached app config first to display/dismiss blocker screens instantly
+        const cachedConfig = await get('app_config_cache')
+        if (cachedConfig) {
+          setAppConfig(cachedConfig)
+          console.log('📦 Loaded AppConfig from local cache:', cachedConfig)
+        }
+
         // Initialize Apollo cache persistence
         await initializeApollo()
 
@@ -900,15 +983,17 @@ function AppContent() {
     return <SplashScreenView />
   }
 
-  // Blocker 1: Maintenance Mode (or API is down)
-  if (appConfig.maintenanceMode || isApiDown) {
+  // Blocker 1: API is down
+  if (isApiDown) {
     return <MaintenanceScreen onRetry={checkApiHealth} />
   }
 
   // Blocker 2: Force Update Check
   const localVersion = Application.nativeApplicationVersion || Constants.expoConfig?.version || '1.0.0'
   const minVersion = Platform.OS === 'ios' ? appConfig.minIosVersion : appConfig.minAndroidVersion
-  const storeUrl = Platform.OS === 'ios' ? appConfig.iosUrl : appConfig.androidUrl
+  const storeUrl = Platform.OS === 'ios' 
+    ? 'https://apps.apple.com/app/id123456789' 
+    : 'https://play.google.com/store/apps/details?id=com.karmayog'
   const needsUpdate = isVersionLessThan(localVersion, minVersion)
 
   if (needsUpdate) {
