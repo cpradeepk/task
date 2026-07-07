@@ -381,18 +381,12 @@ function AppContent() {
   const navigationTheme = theme === 'dark' ? navDarkTheme : navLightTheme
 
   const [appConfig, setAppConfig] = useState<{
-    maintenanceMode: boolean
     minAndroidVersion: string
     minIosVersion: string
-    androidUrl: string
-    iosUrl: string
     updatedAt: number
   }>({
-    maintenanceMode: false,
     minAndroidVersion: '1.0.0',
     minIosVersion: '1.0.0',
-    androidUrl: '',
-    iosUrl: '',
     updatedAt: 0
   })
   
@@ -406,11 +400,8 @@ function AppContent() {
     setAppConfig(prevConfig => {
       const nextConfig = updater(prevConfig)
       if (
-        prevConfig.maintenanceMode !== nextConfig.maintenanceMode ||
         prevConfig.minAndroidVersion !== nextConfig.minAndroidVersion ||
         prevConfig.minIosVersion !== nextConfig.minIosVersion ||
-        prevConfig.androidUrl !== nextConfig.androidUrl ||
-        prevConfig.iosUrl !== nextConfig.iosUrl ||
         prevConfig.updatedAt !== nextConfig.updatedAt
       ) {
         save('app_config_cache', nextConfig).catch(err => {
@@ -459,11 +450,8 @@ function AppContent() {
           updateAndCacheAppConfig(prevConfig => {
             if (firestoreTime >= prevConfig.updatedAt) {
               return {
-                maintenanceMode: Boolean(data.maintenanceMode),
                 minAndroidVersion: data.minAndroidVersion || '1.0.0',
                 minIosVersion: data.minIosVersion || '1.0.0',
-                androidUrl: data.androidUrl || '',
-                iosUrl: data.iosUrl || '',
                 updatedAt: firestoreTime
               }
             }
@@ -523,11 +511,8 @@ function AppContent() {
           updateAndCacheAppConfig(prevConfig => {
             if (apiTime >= prevConfig.updatedAt) {
               return {
-                maintenanceMode: Boolean(result.data.maintenanceMode),
                 minAndroidVersion: result.data.minAndroidVersion || '1.0.0',
                 minIosVersion: result.data.minIosVersion || '1.0.0',
-                androidUrl: result.data.androidUrl || '',
-                iosUrl: result.data.iosUrl || '',
                 updatedAt: apiTime
               }
             }
@@ -998,15 +983,17 @@ function AppContent() {
     return <SplashScreenView />
   }
 
-  // Blocker 1: Maintenance Mode (or API is down)
-  if (appConfig.maintenanceMode || isApiDown) {
+  // Blocker 1: API is down
+  if (isApiDown) {
     return <MaintenanceScreen onRetry={checkApiHealth} />
   }
 
   // Blocker 2: Force Update Check
   const localVersion = Application.nativeApplicationVersion || Constants.expoConfig?.version || '1.0.0'
   const minVersion = Platform.OS === 'ios' ? appConfig.minIosVersion : appConfig.minAndroidVersion
-  const storeUrl = Platform.OS === 'ios' ? appConfig.iosUrl : appConfig.androidUrl
+  const storeUrl = Platform.OS === 'ios' 
+    ? 'https://apps.apple.com/app/id123456789' 
+    : 'https://play.google.com/store/apps/details?id=com.karmayog'
   const needsUpdate = isVersionLessThan(localVersion, minVersion)
 
   if (needsUpdate) {

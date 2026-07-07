@@ -29,15 +29,12 @@ export { firestore }
 export interface AppConfig {
   minAndroidVersion: string
   minIosVersion: string
-  androidUrl: string
-  iosUrl: string
-  maintenanceMode: boolean
   updatedAt?: string
 }
 
 
 /**
- * Syncs the application version and maintenance settings to Firebase Firestore
+ * Syncs the application version settings to Firebase Firestore
  */
 export async function syncAppConfigToFirestore(config: AppConfig): Promise<boolean> {
   if (!firestore) {
@@ -50,9 +47,6 @@ export async function syncAppConfigToFirestore(config: AppConfig): Promise<boole
     await docRef.set({
       minAndroidVersion: config.minAndroidVersion,
       minIosVersion: config.minIosVersion,
-      androidUrl: config.androidUrl,
-      iosUrl: config.iosUrl,
-      maintenanceMode: config.maintenanceMode,
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true })
     console.log('✅ Successfully synced configuration to Firestore app_config/maintenance')

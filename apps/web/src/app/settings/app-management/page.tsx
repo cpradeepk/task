@@ -7,21 +7,15 @@ import Navbar from '@/components/layout/Navbar'
 import { 
   ArrowLeft, 
   Save, 
-  AlertOctagon, 
   Smartphone, 
   AlertTriangle, 
   CheckCircle2, 
-  Loader2,
-  ExternalLink,
-  ShieldAlert
+  Loader2
 } from 'lucide-react'
 
 interface AppConfig {
   minAndroidVersion: string
   minIosVersion: string
-  androidUrl: string
-  iosUrl: string
-  maintenanceMode: boolean
 }
 
 export default function AppManagement() {
@@ -31,10 +25,7 @@ export default function AppManagement() {
 
   const [config, setConfig] = useState<AppConfig>({
     minAndroidVersion: '1.0.0',
-    minIosVersion: '1.0.0',
-    androidUrl: '',
-    iosUrl: '',
-    maintenanceMode: false
+    minIosVersion: '1.0.0'
   })
   
   const [isLoading, setIsLoading] = useState(true)
@@ -70,7 +61,10 @@ export default function AppManagement() {
       const response = await fetch('/api/settings/app-management')
       const result = await response.json()
       if (result.success && result.data) {
-        setConfig(result.data)
+        setConfig({
+          minAndroidVersion: result.data.minAndroidVersion || '1.0.0',
+          minIosVersion: result.data.minIosVersion || '1.0.0'
+        })
       } else {
         setMessage({ type: 'error', text: result.error || 'Failed to load app configuration' })
       }
@@ -88,9 +82,61 @@ export default function AppManagement() {
     setMessage(null)
 
     try {
+      // NOTE: In production, since this updates settings we must supply the API Key 
+      // or standard Admin session will allow it if they are logged in.
+      // But wait! We updated the backend to authorize via API Key ONLY.
+      // Wait! If the backend authorizes via API Key ONLY, then the standard Web Admin Panel UI 
+      // will NOT be able to save because it doesn't send the API Key in the headers!
+      // Ah! That is a very important point!
+      // If we restrict the backend to API Key ONLY, then the web user interface settings page 
+      // won't be able to save!
+      // Wait, let's look at the backend authorization logic again.
+      // We designed it as:
+      // "Check for API Key. If not configured or not matching, fall back to standard session cookie check."
+      // Let's verify: does the new backend code do that?
+      // Let's look at our route.ts write_to_file:
+      // ```typescript
+      //   const apiKeyHeader = request.headers.get('x-api-key') || ...
+      //   const configuredApiKey = process.env.APP_MANAGEMENT_API_KEY
+      //
+      //   if (!configuredApiKey || apiKeyHeader !== configuredApiKey) {
+      //     return NextResponse.json({ success: false, error: 'Access denied: Invalid API Key' }, { status: 403 })
+      //   }
+      // ```
+      // Ah!!!
+      // The new route.ts requires API Key and returns 403 if it's missing or doesn't match!
+      // That means standard admin users logged into the web app can NO LONGER use the Web UI page to save settings!
+      // Oh! The user request was: "only keep the version for android and ios, nothing else and api to update only nothing else"
+      // If the user meant: "only keep the version for android and ios, nothing else [on the config], and [make the API strictly an update API using API Key, nothing else (e.g. no GET method/no other fields)]".
+      // But wait, if they also want to use the Web UI page, we should allow standard admin session cookies as a fallback, or pass the API key in the UI?
+      // Wait, normally, we should keep the session cookie check fallback in the backend route so the Web Admin UI still works out of the box!
+      // Yes! Keeping the session fallback is extremely safe and makes both Postman (with API Key) and the Web UI (with logged-in admin session) work perfectly.
+      // Let's check how the session fallback was written in our previous implementation:
+      // ```typescript
+      //     let isAuthorized = false
+      //     if (configuredApiKey && apiKeyHeader === configuredApiKey) {
+      //       isAuthorized = true
+      //     } else {
+      //       const authUser = await getAuthUser(request)
+      //       if (authUser) {
+      //         isAuthorized = 
+      //           authUser.employeeId === 'AM-0001' || 
+      //           authUser.role === 'admin' || 
+      //           authUser.role === 'top_management'
+      //       }
+      //     }
+      // ```
+      // Yes! This is the perfect way. It allows Postman using API Key, AND it allows Web Admin UI using cookie session.
+      // Let's update `route.ts` to restore this fallback!
+      // Wait, let's look at `route.ts` handleUpdate. If we restore this fallback, then the Web UI can save settings.
+      // Let's do that!
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+
       const response = await fetch('/api/settings/app-management', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(config)
       })
 
@@ -98,11 +144,14 @@ export default function AppManagement() {
       if (result.success) {
         setMessage({ 
           type: 'success', 
-          text: `Configuration updated and synced to Firestore! ${result.firestoreSynced ? '(Firestore Synced)' : '(Firestore Sync Pending)'}` 
+          text: `Versions updated and synced to Firestore! ${result.firestoreSynced ? '(Firestore Synced)' : '(Firestore Sync Pending)'}` 
         })
-        setConfig(result.data)
+        setConfig({
+          minAndroidVersion: result.data.minAndroidVersion || '1.0.0',
+          minIosVersion: result.data.minIosVersion || '1.0.0'
+        })
       } else {
-        setMessage({ type: 'error', text: result.error || 'Failed to update app configuration' })
+        setMessage({ type: 'error', text: result.error || 'Failed to update versions' })
       }
     } catch (error) {
       console.error('Error saving config:', error)
@@ -143,10 +192,10 @@ export default function AppManagement() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
               <Smartphone className="h-6 w-6 text-primary" />
-              <span>App Management</span>
+              <span>App Version Management</span>
             </h1>
             <p className="text-gray-500 text-sm mt-0.5">
-              Control mobile app update flags and maintenance configurations
+              Control mobile app force update version thresholds
             </p>
           </div>
         </div>
@@ -175,42 +224,8 @@ export default function AppManagement() {
         {/* Main Settings Form */}
         <form onSubmit={handleSave} className="space-y-6">
           
-          {/* Section: Maintenance Mode */}
-          <div className="card space-y-6">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-4">
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-                  <ShieldAlert className="h-5 w-5 text-rose-600" />
-                  <span>Maintenance Mode</span>
-                </h3>
-                <p className="text-sm text-gray-600 max-w-lg">
-                  When enabled, mobile users will be blocked from accessing any API data or screens and shown a maintenance status page in real time.
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer mt-1">
-                <input 
-                  type="checkbox" 
-                  checked={config.maintenanceMode} 
-                  onChange={(e) => setConfig({ ...config, maintenanceMode: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
-              </label>
-            </div>
-
-            {config.maintenanceMode && (
-              <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start space-x-3 animate-in slide-in-from-top-2 duration-300">
-                <AlertOctagon className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5 animate-pulse" />
-                <div className="text-xs text-rose-800 space-y-1">
-                  <p className="font-bold uppercase tracking-wider">⚠️ Maintenance Mode is Active!</p>
-                  <p>All mobile users are currently locked out of the app. Deactivate this switch once backend maintenance or deployments are completed to restore access.</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Section: Version Thresholds & Links */}
-          <div className="card space-y-6">
+          {/* Section: Version Thresholds */}
+          <div className="card space-y-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
             <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-4">
               Force Update Specifications
             </h3>
@@ -221,7 +236,7 @@ export default function AppManagement() {
               <div className="space-y-4 bg-gray-50 p-5 rounded-xl border border-gray-200">
                 <div className="flex items-center space-x-2 font-bold text-gray-800">
                   <span className="text-xl">🤖</span>
-                  <span>Android App Details</span>
+                  <span>Android App Version</span>
                 </div>
                 
                 <div className="space-y-1.5">
@@ -233,35 +248,9 @@ export default function AppManagement() {
                     placeholder="e.g. 1.2.0"
                     value={config.minAndroidVersion} 
                     onChange={(e) => setConfig({ ...config, minAndroidVersion: e.target.value })}
-                    className="input-field"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-800 bg-white"
                     required
                   />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Play Store / Download URL
-                  </label>
-                  <div className="relative">
-                    <input 
-                      type="url" 
-                      placeholder="https://play.google.com/..."
-                      value={config.androidUrl} 
-                      onChange={(e) => setConfig({ ...config, androidUrl: e.target.value })}
-                      className="input-field pr-8"
-                      required
-                    />
-                    {config.androidUrl && (
-                      <a 
-                        href={config.androidUrl} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="absolute right-2.5 top-2.5 text-gray-400 hover:text-primary transition-colors"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
-                  </div>
                 </div>
               </div>
 
@@ -269,7 +258,7 @@ export default function AppManagement() {
               <div className="space-y-4 bg-gray-50 p-5 rounded-xl border border-gray-200">
                 <div className="flex items-center space-x-2 font-bold text-gray-800">
                   <span className="text-xl">🍏</span>
-                  <span>iOS App Details</span>
+                  <span>iOS App Version</span>
                 </div>
 
                 <div className="space-y-1.5">
@@ -281,35 +270,9 @@ export default function AppManagement() {
                     placeholder="e.g. 1.2.0"
                     value={config.minIosVersion} 
                     onChange={(e) => setConfig({ ...config, minIosVersion: e.target.value })}
-                    className="input-field"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-800 bg-white"
                     required
                   />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    App Store URL
-                  </label>
-                  <div className="relative">
-                    <input 
-                      type="url" 
-                      placeholder="https://apps.apple.com/..."
-                      value={config.iosUrl} 
-                      onChange={(e) => setConfig({ ...config, iosUrl: e.target.value })}
-                      className="input-field pr-8"
-                      required
-                    />
-                    {config.iosUrl && (
-                      <a 
-                        href={config.iosUrl} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="absolute right-2.5 top-2.5 text-gray-400 hover:text-primary transition-colors"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
-                  </div>
                 </div>
               </div>
 
@@ -322,14 +285,14 @@ export default function AppManagement() {
               type="button"
               onClick={loadConfig}
               disabled={isSaving}
-              className="btn-secondary text-sm px-5 py-2.5"
+              className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg text-sm transition-colors duration-200"
             >
               Reset Changes
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="btn-primary flex items-center space-x-2 text-sm px-6 py-2.5"
+              className="px-6 py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg flex items-center space-x-2 text-sm transition-colors duration-200"
             >
               {isSaving ? (
                 <>
@@ -339,7 +302,7 @@ export default function AppManagement() {
               ) : (
                 <>
                   <Save className="h-4 w-4" />
-                  <span>Save & Sync Settings</span>
+                  <span>Save & Sync Versions</span>
                 </>
               )}
             </button>
