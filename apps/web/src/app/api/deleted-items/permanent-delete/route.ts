@@ -6,9 +6,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db/config'
+import { requireRole } from '@/lib/auth-server'
 
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireRole(request, ['admin', 'top_management'])
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
     const { itemType, id } = body
 
@@ -47,12 +51,22 @@ export async function DELETE(request: NextRequest) {
         )
     }
 
-    // Permanently delete the item (only if it's already soft-deleted)
-    const result = await query(
-      `DELETE FROM ${tableName} 
-       WHERE ${idColumn} = ? AND deleted_at IS NOT NULL`,
+    // Permanently delete the item (only if it's already soft-deleted).
+    // tableName/idColumn come from a fixed switch (not user input); use pg ($1)
+    // placeholders and RETURNING so we can confirm a row was actually removed.
+    const rows = await query<Array<{ id: number }>>(
+      `DELETE FROM ${tableName}
+       WHERE ${idColumn} = $1 AND deleted_at IS NOT NULL
+       RETURNING ${idColumn} AS id`,
       [id]
     )
+
+    if (!rows || rows.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Item not found or not soft-deleted' },
+        { status: 404 }
+      )
+    }
 
     return NextResponse.json({
       success: true,

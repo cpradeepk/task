@@ -143,6 +143,9 @@ export async function clearSecureData(): Promise<void> {
     await Promise.all([
       deleteSecure(SECURE_KEYS.USER_TOKEN),
       deleteSecure(SECURE_KEYS.USER_DATA),
+      // Clear the app-lock PIN too, otherwise the next user on a shared device
+      // is locked out behind the previous user's PIN.
+      deleteSecure(SECURE_KEYS.USER_PIN),
     ])
   } catch (error) {
     console.error('Failed to clear secure data:', error)

@@ -2,6 +2,14 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import DOMPurify from 'dompurify'
+
+// Sanitize user-supplied HTML before rendering. DOMPurify needs the DOM, so on
+// the server we render nothing and let the client hydrate the sanitized markup.
+function sanitizeHtml(html: string): string {
+  if (typeof window === 'undefined') return ''
+  return DOMPurify.sanitize(html)
+}
 
 export interface CollapsibleTextProps {
   content: string
@@ -160,7 +168,7 @@ export default function CollapsibleText({
           <div
             className={`prose prose-sm max-w-none ${textClassName}`}
             dangerouslySetInnerHTML={{
-              __html: isExpanded || !needsCollapse ? content : previewContent
+              __html: sanitizeHtml(isExpanded || !needsCollapse ? content : previewContent)
             }}
           />
         ) : (

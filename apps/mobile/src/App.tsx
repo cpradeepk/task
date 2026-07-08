@@ -43,7 +43,7 @@ import CustomDrawerContent from './components/CustomDrawerContent'
 import { OfflineBanner } from './components/OfflineBanner'
 import { ActivityIndicator, View, LogBox, Text, ScrollView, TouchableOpacity, Image, StatusBar } from 'react-native'
 import { IconButton, Provider as PaperProvider } from 'react-native-paper'
-import { apolloClient, initializeApollo } from './config/apollo'
+import { apolloClient, initializeApollo, persistor } from './config/apollo'
 import { getUserToken, saveUserToken, saveUserData, clearSecureData, getUserData, getSecure, SECURE_KEYS, save, get, remove } from './utils/secureStorage'
 import { LOGIN_MUTATION, REGISTER_PUSH_TOKEN, UNREGISTER_PUSH_TOKEN, GET_FEED_POSTS, GET_FEED_TOPICS } from './config/graphql-queries'
 import { ThemeProvider, useTheme, lightColors, darkColors, DrawerProvider, useDrawer } from './contexts/ThemeContext'
@@ -259,8 +259,19 @@ const navDarkTheme = {
 
 // Version comparison helper
 function isVersionLessThan(v1: string, v2: string): boolean {
-  const parts1 = String(v1).split('.').map(Number)
-  const parts2 = String(v2).split('.').map(Number)
+  const sanitize = (v: string) => {
+    if (!v) return []
+    // Remove "v" or other non-numeric prefix/suffix, keep only numbers and dots
+    const clean = String(v).replace(/[^0-9.]/g, '')
+    return clean.split('.').map(part => {
+      const parsed = parseInt(part, 10)
+      return isNaN(parsed) ? 0 : parsed
+    })
+  }
+
+  const parts1 = sanitize(v1)
+  const parts2 = sanitize(v2)
+
   for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
     const p1 = parts1[i] || 0
     const p2 = parts2[i] || 0
@@ -370,21 +381,47 @@ function AppContent() {
   const navigationTheme = theme === 'dark' ? navDarkTheme : navLightTheme
 
   const [appConfig, setAppConfig] = useState<{
-    maintenanceMode: boolean
     minAndroidVersion: string
     minIosVersion: string
-    androidUrl: string
-    iosUrl: string
+    updatedAt: number
   }>({
-    maintenanceMode: false,
     minAndroidVersion: '1.0.0',
     minIosVersion: '1.0.0',
-    androidUrl: '',
-    iosUrl: ''
+    updatedAt: 0
   })
   
   const [isApiDown, setIsApiDown] = useState(false)
   const [isConfigLoaded, setIsConfigLoaded] = useState(false)
+
+  // Helper to update appConfig and persist it to AsyncStorage
+  const updateAndCacheAppConfig = useCallback((
+    updater: (prev: typeof appConfig) => typeof appConfig
+  ) => {
+    setAppConfig(prevConfig => {
+      const nextConfig = updater(prevConfig)
+      if (
+        prevConfig.minAndroidVersion !== nextConfig.minAndroidVersion ||
+        prevConfig.minIosVersion !== nextConfig.minIosVersion ||
+        prevConfig.updatedAt !== nextConfig.updatedAt
+      ) {
+        save('app_config_cache', nextConfig).catch(err => {
+          console.warn('Failed to cache app config:', err)
+        })
+        return nextConfig
+      }
+      return prevConfig
+    })
+  }, [])
+
+  // Safety timeout: prevent getting stuck on the splash screen
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log('⏰ Splash screen safety timeout reached - forcing config load')
+      setIsConfigLoaded(true)
+    }, 2500) // 2.5 seconds safety timeout
+
+    return () => clearTimeout(timer)
+  }, [])
 
   // Listen to remote Firebase configuration
   useEffect(() => {
@@ -394,14 +431,33 @@ function AppContent() {
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data()
-          setAppConfig({
-            maintenanceMode: Boolean(data.maintenanceMode),
-            minAndroidVersion: data.minAndroidVersion || '1.0.0',
-            minIosVersion: data.minIosVersion || '1.0.0',
-            androidUrl: data.androidUrl || '',
-            iosUrl: data.iosUrl || ''
+          
+          // Parse Firestore updatedAt timestamp
+          let firestoreTime = 0
+          if (data.updatedAt) {
+            if (typeof data.updatedAt.toMillis === 'function') {
+              firestoreTime = data.updatedAt.toMillis()
+            } else if (data.updatedAt.seconds) {
+              firestoreTime = data.updatedAt.seconds * 1000
+            } else {
+              firestoreTime = new Date(data.updatedAt).getTime()
+            }
+          }
+          if (isNaN(firestoreTime) || firestoreTime <= 0) {
+            firestoreTime = Date.now()
+          }
+
+          updateAndCacheAppConfig(prevConfig => {
+            if (firestoreTime >= prevConfig.updatedAt) {
+              return {
+                minAndroidVersion: data.minAndroidVersion || '1.0.0',
+                minIosVersion: data.minIosVersion || '1.0.0',
+                updatedAt: firestoreTime
+              }
+            }
+            console.log('⚠️ Ignored stale Firestore AppConfig. Local/API is newer.')
+            return prevConfig
           })
-          console.log('🔥 Remote AppConfig Synced:', data)
         }
         setIsConfigLoaded(true)
       },
@@ -412,32 +468,64 @@ function AppContent() {
     )
 
     return () => unsubscribe()
-  }, [])
+  }, [updateAndCacheAppConfig])
+
+  // Consecutive health-check failures. We only show the "API down" screen after
+  // 2+ in a row so a single transient blip doesn't unmount the whole
+  // NavigationContainer (destroying nav state + in-progress form input).
+  const healthFailuresRef = useRef(0)
 
   // Check backend server connection health
   const checkApiHealth = useCallback(async () => {
+    const markDown = (reason: string) => {
+      healthFailuresRef.current += 1
+      console.warn(`⚠️ API health check failed (${healthFailuresRef.current}): ${reason}`)
+      if (healthFailuresRef.current >= 2) setIsApiDown(true)
+    }
+    const markUp = () => {
+      healthFailuresRef.current = 0
+      setIsApiDown(false)
+    }
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 6000)
 
-      console.log('🔍 Checking backend API connection health...')
+      console.log('🔍 Checking backend API connection health & config...')
       const response = await fetch(`${API_BASE_URL}/api/settings/app-management`, {
         signal: controller.signal
       })
       clearTimeout(timeoutId)
 
       if (response.status >= 500) {
-        setIsApiDown(true)
-        console.warn(`⚠️ API responded with 5xx error status: ${response.status}`)
+        markDown(`5xx status ${response.status}`)
       } else {
-        setIsApiDown(false)
+        markUp()
         console.log('✅ API connection is healthy')
+        
+        const result = await response.json()
+        if (result.success && result.data) {
+          const apiTime = result.data.updatedAt 
+            ? new Date(result.data.updatedAt).getTime() 
+            : 0
+            
+          updateAndCacheAppConfig(prevConfig => {
+            if (apiTime >= prevConfig.updatedAt) {
+              return {
+                minAndroidVersion: result.data.minAndroidVersion || '1.0.0',
+                minIosVersion: result.data.minIosVersion || '1.0.0',
+                updatedAt: apiTime
+              }
+            }
+            return prevConfig
+          })
+        }
       }
     } catch (err) {
-      console.warn('⚠️ API Connection health check failed:', err)
-      setIsApiDown(true)
+      markDown(String(err))
+    } finally {
+      setIsConfigLoaded(true)
     }
-  }, [])
+  }, [updateAndCacheAppConfig])
 
   useEffect(() => {
     checkApiHealth()
@@ -522,11 +610,17 @@ function AppContent() {
     return () => subscription.remove()
   }, [])
 
-  // Register global 401 unauthorized handler to trigger signOut
+  // Always points at the latest signOut. authContext is memoized on [pushToken],
+  // so registering the first-render closure (as the old []-dep effect did) meant
+  // a forced sign-out used a stale pushToken and never unregistered the current
+  // token. The ref is reassigned every render (see below, after authContext).
+  const signOutRef = useRef<() => void>(() => {})
+
+  // Register global 401 unauthorized handler to trigger signOut (via the ref).
   useEffect(() => {
     setOnUnauthorized(() => {
       console.log('Global 401 detected — signing out...')
-      authContext.signOut()
+      signOutRef.current()
     })
     return () => setOnUnauthorized(() => {})
   }, [])
@@ -585,6 +679,13 @@ function AppContent() {
     const bootstrapAsync = async () => {
       let userToken
       try {
+        // Load cached app config first to display/dismiss blocker screens instantly
+        const cachedConfig = await get('app_config_cache')
+        if (cachedConfig) {
+          setAppConfig(cachedConfig)
+          console.log('📦 Loaded AppConfig from local cache:', cachedConfig)
+        }
+
         // Initialize Apollo cache persistence
         await initializeApollo()
 
@@ -730,6 +831,82 @@ function AppContent() {
           }
         }
       },
+      requestOtp: async (employeeId: string) => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/auth/otp/request`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ employeeId }),
+          })
+          const json = await res.json().catch(() => ({}))
+          if (!res.ok) {
+            return { success: false, error: json.error || 'Failed to send OTP' }
+          }
+          return { success: true, maskedPhone: json.maskedPhone }
+        } catch (error: any) {
+          console.error('OTP request error:', error)
+          return { success: false, error: error.message || 'Network error. Please try again.' }
+        }
+      },
+      verifyOtp: async (employeeId: string, otp: string) => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/auth/otp/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ employeeId, otp }),
+          })
+          const json = await res.json().catch(() => ({}))
+          if (!res.ok || !json.token) {
+            return { success: false, error: json.error || 'Invalid or expired OTP' }
+          }
+
+          const token = json.token
+          const user = json.data
+          await saveUserToken(token)
+          await saveUserData(user)
+
+          const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
+          if (storedPin) {
+            setIsAppLocked(true)
+            setIsPinSetupNeeded(false)
+          } else {
+            setIsPinSetupNeeded(true)
+            setIsAppLocked(false)
+          }
+
+          dispatch({ type: 'SIGN_IN', payload: token })
+          return { success: true, user }
+        } catch (error: any) {
+          console.error('OTP verify error:', error)
+          return { success: false, error: error.message || 'Network error. Please try again.' }
+        }
+      },
+      restoreSession: async () => {
+        // Used by biometric login: reuse the already-stored token instead of
+        // re-authenticating. If no token is present, the caller must sign in.
+        try {
+          const token = await getUserToken()
+          const userData = await getUserData()
+          if (!token || !userData) {
+            return { success: false, error: 'No stored session' }
+          }
+
+          const storedPin = await getSecure(SECURE_KEYS.USER_PIN)
+          if (storedPin) {
+            setIsAppLocked(true)
+            setIsPinSetupNeeded(false)
+          } else {
+            setIsPinSetupNeeded(false)
+            setIsAppLocked(false)
+          }
+
+          dispatch({ type: 'SIGN_IN', payload: token })
+          return { success: true, user: userData }
+        } catch (error: any) {
+          console.error('Session restore error:', error)
+          return { success: false, error: error.message || 'Failed to restore session' }
+        }
+      },
       signOut: async () => {
         try {
           // Unregister push token from backend
@@ -763,9 +940,19 @@ function AppContent() {
           // Clear all secure data
           await clearSecureData()
           await remove('jsr_last_active_time')
+          // Clear the saved project filter so the next user on this device
+          // doesn't inherit the previous user's selected projects.
+          await remove('selectedProjectIds')
 
-          // Clear Apollo Client cache
+          // Clear Apollo Client cache AND purge the persisted (AsyncStorage)
+          // copy, otherwise the previous user's cached data survives to the
+          // next session on the same device.
           await apolloClient.clearStore()
+          try {
+            await persistor.purge()
+          } catch (purgeError) {
+            console.error('Failed to purge persisted cache:', purgeError)
+          }
 
           // Close the drawer if open
           closeDrawer()
@@ -789,19 +976,24 @@ function AppContent() {
     [pushToken]
   )
 
+  // Keep the 401 handler pointing at the latest signOut (with current pushToken).
+  signOutRef.current = authContext.signOut
+
   if (state.isLoading || !isConfigLoaded) {
     return <SplashScreenView />
   }
 
-  // Blocker 1: Maintenance Mode (or API is down)
-  if (appConfig.maintenanceMode || isApiDown) {
+  // Blocker 1: API is down
+  if (isApiDown) {
     return <MaintenanceScreen onRetry={checkApiHealth} />
   }
 
   // Blocker 2: Force Update Check
   const localVersion = Application.nativeApplicationVersion || Constants.expoConfig?.version || '1.0.0'
   const minVersion = Platform.OS === 'ios' ? appConfig.minIosVersion : appConfig.minAndroidVersion
-  const storeUrl = Platform.OS === 'ios' ? appConfig.iosUrl : appConfig.androidUrl
+  const storeUrl = Platform.OS === 'ios' 
+    ? 'https://apps.apple.com/app/id123456789' 
+    : 'https://play.google.com/store/apps/details?id=com.karmayog'
   const needsUpdate = isVersionLessThan(localVersion, minVersion)
 
   if (needsUpdate) {

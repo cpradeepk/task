@@ -96,6 +96,9 @@ export default function TasksPage() {
   const [retryCount, setRetryCount] = useState(0)
   const [isOnline, setIsOnline] = useState(true)
   const hasLoadedData = useRef(false)
+  // Monotonic token to discard results from stale in-flight fetches (e.g. when
+  // filters change mid-request) so wrong-filter rows aren't appended.
+  const fetchIdRef = useRef(0)
   const [projects, setProjects] = useState<any[]>([]) // NEW: Projects list
   const [subprojects, setSubprojects] = useState<any[]>([]) // NEW: Subprojects list
 
@@ -219,6 +222,7 @@ export default function TasksPage() {
   }, [])
 
   const loadTasks = useCallback(async (isRetry = false, loadMore = false) => {
+    const myFetchId = ++fetchIdRef.current
     try {
       if (loadMore) {
         setIsLoadingMore(true)
@@ -300,6 +304,10 @@ export default function TasksPage() {
         tasksData = result.data || []
         console.log('✅ [Tasks] REST API successful:', tasksData.length, 'tasks')
       }
+
+      // Discard results from a stale request (filters changed while this fetch
+      // was in flight) so we don't append wrong-filter rows to the list.
+      if (myFetchId !== fetchIdRef.current) return
 
       // Check if there are more items to load
       if (tasksData.length < ITEMS_PER_PAGE) {

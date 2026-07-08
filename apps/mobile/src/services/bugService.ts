@@ -7,7 +7,7 @@
 import { get, post, patch, del, ApiResponse } from './apiClient'
 import { API_ENDPOINTS } from '../config/api'
 import { executeGraphQLWithFallback } from './graphqlClient'
-import { QUERIES } from './graphqlQueries'
+import { QUERIES, MUTATIONS } from './graphqlQueries'
 import { ReleaseState } from '../types'
 
 export interface Bug {
@@ -187,7 +187,7 @@ export const updateBug = async (
   updates: Partial<Bug>
 ): Promise<ApiResponse<Bug>> => {
   const result = await executeGraphQLWithFallback<any>(
-    QUERIES.UPDATE_BUG,
+    MUTATIONS.UPDATE_BUG,
     { bugId, input: updates },
     async () => patch<Bug>(API_ENDPOINTS.BUG_BY_ID(bugId), updates)
   )

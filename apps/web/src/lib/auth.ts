@@ -97,6 +97,55 @@ export async function login(employeeId: string, password: string): Promise<boole
   }
 }
 
+export interface OtpRequestResult {
+  success: boolean
+  maskedPhone?: string
+  error?: string
+  retryAfterSeconds?: number
+}
+
+/** Request an OTP for the given employee ID (sent to their registered phone). */
+export async function requestOtp(employeeId: string): Promise<OtpRequestResult> {
+  try {
+    const response = await fetch('/api/auth/otp/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employeeId }),
+    })
+    const result = await response.json()
+    if (!response.ok) {
+      return { success: false, error: result.error || 'Failed to send OTP', retryAfterSeconds: result.retryAfterSeconds }
+    }
+    return { success: true, maskedPhone: result.maskedPhone }
+  } catch (error) {
+    console.error('Failed to request OTP:', error)
+    return { success: false, error: 'Network error while requesting OTP' }
+  }
+}
+
+/** Verify an OTP; on success stores the user and sets the auth cookie. */
+export async function verifyOtp(employeeId: string, otp: string): Promise<boolean> {
+  try {
+    const response = await fetch('/api/auth/otp/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ employeeId, otp }),
+    })
+    if (!response.ok) return false
+
+    const result = await response.json()
+    if (result.success && result.data) {
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(result.data))
+      return true
+    }
+    return false
+  } catch (error) {
+    console.error('Failed to verify OTP:', error)
+    return false
+  }
+}
+
 export async function logout(): Promise<void> {
   if (typeof window === 'undefined') return
   localStorage.removeItem(CURRENT_USER_KEY)
@@ -288,11 +337,12 @@ export function verifyToken(token: string): TokenPayload | null {
     }
 
     // Server-side JWT verification
+    const secret = process.env.JWT_SECRET
+    if (!secret || secret.length < 16) {
+      throw new Error('JWT_SECRET is not configured')
+    }
     const jwt = require('jsonwebtoken')
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || 'default-secret-key-change-in-production'
-    )
+    const decoded = jwt.verify(token, secret)
 
     return decoded as TokenPayload
   } catch (error) {

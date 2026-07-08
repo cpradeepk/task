@@ -195,7 +195,7 @@ export default function SettingsScreen() {
           // Extract values if it's an object array, or use directly if string array
           // Based on services/settingsService, it returns Setting[] keyed by type
           const deptNames = Array.isArray(fetchedDepts)
-            ? fetchedDepts.map((d: any) => d.value)
+            ? fetchedDepts.map((d: any) => (typeof d === 'string' ? d : d?.value)).filter(Boolean)
             : []
           setDepartmentOptions(deptNames)
         }
@@ -833,7 +833,11 @@ export default function SettingsScreen() {
                   </View>
                   <View>
                     <Text style={styles.idCardLabel}>Joined</Text>
-                    <Text style={styles.idCardValue}>{new Date(user?.createdAt).toLocaleDateString()}</Text>
+                    <Text style={styles.idCardValue}>
+                      {user?.createdAt && !isNaN(new Date(user.createdAt).getTime())
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : '—'}
+                    </Text>
                   </View>
                 </View>
               </View>

@@ -51,6 +51,9 @@ export default function UsersScreen() {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null) // null means create mode
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // Reset-password dialog (Alert.prompt is iOS-only, so use a cross-platform modal)
+  const [resetPwVisible, setResetPwVisible] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
 
   // Form Fields
   const [empId, setEmpId] = useState('')
@@ -198,40 +201,36 @@ export default function UsersScreen() {
 
   const handleResetPassword = () => {
     if (!selectedUser) return
+    // Alert.prompt only works on iOS; open a cross-platform dialog instead.
+    setNewPassword('')
+    setResetPwVisible(true)
+  }
 
-    Alert.prompt(
-      'Reset Password',
-      `Enter a new password for ${selectedUser.name}:`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          onPress: async (newPass?: string) => {
-            if (!newPass || !newPass.trim()) {
-              Alert.alert('Error', 'Password cannot be empty')
-              return
-            }
-            try {
-              setIsSubmitting(true)
-              const res = await apiClient.put(`/api/users/${selectedUser.employeeId}`, {
-                ...selectedUser,
-                password: newPass.trim()
-              })
-              if (res && res.success) {
-                Alert.alert('Success', 'Password reset successfully!')
-              } else {
-                Alert.alert('Error', res?.error || 'Failed to reset password')
-              }
-            } catch (err) {
-              console.error(err)
-              Alert.alert('Error', 'An error occurred resetting the password')
-            } finally {
-              setIsSubmitting(false)
-            }
-          }
-        }
-      ]
-    )
+  const submitResetPassword = async () => {
+    if (!selectedUser) return
+    if (!newPassword || !newPassword.trim()) {
+      Alert.alert('Error', 'Password cannot be empty')
+      return
+    }
+    try {
+      setIsSubmitting(true)
+      const res = await apiClient.put(`/api/users/${selectedUser.employeeId}`, {
+        ...selectedUser,
+        password: newPassword.trim()
+      })
+      if (res && res.success) {
+        setResetPwVisible(false)
+        setNewPassword('')
+        Alert.alert('Success', 'Password reset successfully!')
+      } else {
+        Alert.alert('Error', res?.error || 'Failed to reset password')
+      }
+    } catch (err) {
+      console.error(err)
+      Alert.alert('Error', 'An error occurred resetting the password')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Filtered and sorted users
@@ -473,6 +472,29 @@ export default function UsersScreen() {
                 Save
               </Button>
             </View>
+          </Dialog.Actions>
+        </Dialog>
+
+        <Dialog visible={resetPwVisible} onDismiss={() => setResetPwVisible(false)}>
+          <Dialog.Title>Reset Password</Dialog.Title>
+          <Dialog.Content>
+            <Text style={{ marginBottom: 8 }}>
+              {selectedUser ? `Enter a new password for ${selectedUser.name}:` : ''}
+            </Text>
+            <TextInput
+              mode="outlined"
+              label="New password"
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setResetPwVisible(false)}>Cancel</Button>
+            <Button mode="contained" onPress={submitResetPassword} loading={isSubmitting} disabled={isSubmitting}>
+              Reset
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>

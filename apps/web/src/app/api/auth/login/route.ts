@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateUser } from '@/lib/db/users'
-import jwt from 'jsonwebtoken'
+import { issueAuthToken } from '@/lib/auth-server'
+
+/**
+ * Password login is now a break-glass fallback for admin / system-admin
+ * accounts only. Regular users authenticate via OTP (/api/auth/otp/*).
+ */
+function isAdminAccount(user: { role?: string; isSystemAdmin?: number }): boolean {
+  return user.role === 'admin' || Boolean(user.isSystemAdmin)
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,35 +24,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate JWT token for mobile app
-    const token = jwt.sign(
-      {
-        employeeId: user.employeeId,
-        role: user.role,
-        name: user.name
-      },
-      process.env.JWT_SECRET || 'default-secret-key-change-in-production',
-      { expiresIn: '7d' }
-    )
+    // Only admin/service accounts may use password login as a fallback.
+    if (!isAdminAccount(user)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Password login is disabled for this account. Please sign in with OTP.',
+          code: 'OTP_REQUIRED',
+        },
+        { status: 403 }
+      )
+    }
 
-    // Create response with token cookie for web app
-    const response = NextResponse.json({
-      success: true,
-      data: user,
-      token, // Include JWT token for mobile app
-      source: 'database'
-    })
-
-    // Set HTTP-only cookie for web app authentication
-    response.cookies.set('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/'
-    })
-
-    return response
+    // Issue JWT (httpOnly cookie for web + token in body for mobile).
+    return issueAuthToken(user, { source: 'database' })
   } catch (error) {
     console.error('Failed to authenticate user:', error)
     return NextResponse.json({

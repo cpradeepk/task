@@ -5,101 +5,103 @@ import { syncAppConfigToFirestore, AppConfig } from '@/lib/firebase-admin'
 
 const DEFAULT_CONFIG: AppConfig = {
   minAndroidVersion: '1.0.0',
-  minIosVersion: '1.0.0',
-  androidUrl: 'https://play.google.com/store/apps/details?id=com.karmayog',
-  iosUrl: 'https://apps.apple.com/app/id123456789',
-  maintenanceMode: false
+  minIosVersion: '1.0.0'
 }
 
 /**
  * GET /api/settings/app-management
- * Fetches the current app version and maintenance settings
+ * Fetches the current app version settings (Public endpoint used by mobile app)
  */
 export async function GET() {
   try {
     const config = await getSettingValue<AppConfig>('app_version_management', DEFAULT_CONFIG)
+    
+    // Ensure we only return version information
+    const filteredConfig = {
+      minAndroidVersion: config.minAndroidVersion || '1.0.0',
+      minIosVersion: config.minIosVersion || '1.0.0',
+      updatedAt: config.updatedAt
+    }
+    
     return NextResponse.json({
       success: true,
-      data: config
+      data: filteredConfig
     })
   } catch (error) {
-    console.error('❌ Failed to fetch app configuration:', error)
+    console.error('❌ Failed to fetch app version configuration:', error)
     return NextResponse.json({
       success: false,
-      error: 'Failed to fetch app configuration'
+      error: 'Failed to fetch app version configuration'
     }, { status: 500 })
   }
 }
 
 /**
- * POST /api/settings/app-management
- * Updates and syncs app version and maintenance settings
+ * POST/PATCH /api/settings/app-management
+ * Updates and syncs app version settings.
+ * Secured via API Key header or standard Admin Session Cookie.
  */
-export async function POST(request: NextRequest) {
+async function handleUpdate(request: NextRequest) {
   try {
-    // Authenticate user
-    const authUser = await getAuthUser(request)
-    if (!authUser) {
-      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 })
+    // 1. Authorize via API Key or standard session cookie
+    const apiKeyHeader = request.headers.get('x-api-key') || request.headers.get('Authorization')?.replace('Bearer ', '')
+    const configuredApiKey = process.env.APP_MANAGEMENT_API_KEY
+
+    let isAuthorized = false
+
+    if (configuredApiKey && apiKeyHeader === configuredApiKey) {
+      isAuthorized = true
+    } else {
+      const authUser = await getAuthUser(request)
+      if (authUser) {
+        isAuthorized = 
+          authUser.employeeId === 'AM-0001' || 
+          authUser.role === 'admin' || 
+          authUser.role === 'top_management'
+      }
     }
 
-    // Restrict to admin / top_management / employeeId AM-0001
-    const isAuthorized = 
-      authUser.employeeId === 'AM-0001' || 
-      authUser.role === 'admin' || 
-      authUser.role === 'top_management'
-
     if (!isAuthorized) {
-      return NextResponse.json({ success: false, error: 'Access denied: Administrator permissions required' }, { status: 403 })
+      return NextResponse.json({ success: false, error: 'Access denied: Invalid API Key or Unauthorized user' }, { status: 403 })
     }
 
     const body = await request.json()
-    const { minAndroidVersion, minIosVersion, androidUrl, iosUrl, maintenanceMode } = body
+    const currentConfig = await getSettingValue<AppConfig>('app_version_management', DEFAULT_CONFIG)
 
-    // Validation
-    if (
-      minAndroidVersion === undefined ||
-      minIosVersion === undefined ||
-      androidUrl === undefined ||
-      iosUrl === undefined ||
-      maintenanceMode === undefined
-    ) {
-      return NextResponse.json({ success: false, error: 'Missing required configuration fields' }, { status: 400 })
-    }
+    const minAndroidVersion = body.minAndroidVersion !== undefined ? String(body.minAndroidVersion).trim() : currentConfig.minAndroidVersion
+    const minIosVersion = body.minIosVersion !== undefined ? String(body.minIosVersion).trim() : currentConfig.minIosVersion
 
     const updatedConfig: AppConfig = {
-      minAndroidVersion: String(minAndroidVersion).trim(),
-      minIosVersion: String(minIosVersion).trim(),
-      androidUrl: String(androidUrl).trim(),
-      iosUrl: String(iosUrl).trim(),
-      maintenanceMode: Boolean(maintenanceMode)
+      minAndroidVersion,
+      minIosVersion,
+      updatedAt: new Date().toISOString()
     }
 
-    // 1. Save to PostgreSQL settings table
+    // 2. Save to PostgreSQL settings table
     await updateSettingByKey('app_version_management', updatedConfig)
 
-    // 2. Sync to Firebase Firestore
+    // 3. Sync to Firebase Firestore
     const synced = await syncAppConfigToFirestore(updatedConfig)
 
     return NextResponse.json({
       success: true,
       data: updatedConfig,
       firestoreSynced: synced,
-      message: 'App configuration updated and synchronized successfully'
+      message: 'App version configuration updated and synchronized successfully'
     })
   } catch (error) {
-    console.error('❌ Failed to update app configuration:', error)
+    console.error('❌ Failed to update app version configuration:', error)
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to update app configuration'
+      error: error instanceof Error ? error.message : 'Failed to update app version configuration'
     }, { status: 500 })
   }
 }
 
-/**
- * PATCH /api/settings/app-management
- * Alias for POST to support partial updates or patch requests
- */
+export async function POST(request: NextRequest) {
+  return handleUpdate(request)
+}
+
 export async function PATCH(request: NextRequest) {
-  return POST(request)
+  return handleUpdate(request)
 }

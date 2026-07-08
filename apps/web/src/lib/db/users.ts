@@ -1,8 +1,21 @@
 // MySQL User Service
 // Server-side only - do not use 'use client'
 
-import { query, queryOne, withRetry } from './config'
+import bcrypt from 'bcryptjs'
+import { query, queryOne, withRetry, execute } from './config'
 import { User } from '../types'
+
+const BCRYPT_ROUNDS = 10
+
+// A stored value is a bcrypt hash if it has the $2a$/$2b$/$2y$ prefix.
+function isBcryptHash(value: string): boolean {
+  return /^\$2[aby]\$/.test(value || '')
+}
+
+export async function hashPassword(plain: string): Promise<string> {
+  return bcrypt.hash(plain, BCRYPT_ROUNDS)
+}
+
 interface UserRow {
   id: number
   employee_id: string
@@ -40,7 +53,10 @@ function rowToUser(row: UserRow): User {
     isTodayTask: Boolean(row.is_today_task),
     warningCount: row.warning_count,
     role: row.role as User['role'],
-    password: row.password,
+    // SECURITY: never expose the stored password through API responses.
+    // Auth uses a direct SQL comparison (authenticateUser); admin-only flows
+    // that genuinely need it use getUserPasswordByEmployeeId().
+    password: '',
     status: row.status as User['status'],
     hoursLog: row.hours_log || undefined,
     idCardPhoto: row.id_card_photo || undefined,
@@ -49,6 +65,18 @@ function rowToUser(row: UserRow): User {
     tabPermissions: row.tab_permissions || undefined,
     isSystemAdmin: row.is_system_admin
   }
+}
+
+// Admin-only: read a user's stored password directly (bypasses rowToUser which
+// now blanks it). Only call from routes that have verified admin authorization.
+export async function getUserPasswordByEmployeeId(employee_id: string): Promise<string | null> {
+  return withRetry(async () => {
+    const row = await queryOne<{ password: string }>(
+      'SELECT password FROM users WHERE employee_id = $1',
+      [employee_id]
+    )
+    return row?.password ?? null
+  })
 }
 
 // Get all active users
@@ -137,6 +165,8 @@ export async function getUsersByEmployeeIds(employeeIds: string[]): Promise<User
 // Create a new user
 export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): Promise<User> {
   return withRetry(async () => {
+    // Store the password as a bcrypt hash, never plaintext.
+    const hashedPassword = await hashPassword(user.password)
     const result = await query<any>(
       `INSERT INTO users (
         employee_id, name, email, phone, telegram_token, department,
@@ -155,7 +185,7 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
         user.isTodayTask ? 1 : 0,
         user.warningCount,
         user.role,
-        user.password,
+        hashedPassword,
         user.status,
         user.hoursLog || null,
         JSON.stringify(user.tabPermissions || [])
@@ -231,7 +261,7 @@ export async function updateUser(employee_id: string, updates: Partial<User>): P
     }
     if (updates.password !== undefined) {
       fields.push(`password = $${paramIndex++}`)
-      values.push(updates.password)
+      values.push(await hashPassword(updates.password))
     }
     if (updates.status !== undefined) {
       fields.push(`status = $${paramIndex++}`)
@@ -280,11 +310,11 @@ export async function deleteUser(employee_id: string): Promise<boolean> {
       throw new Error('Cannot delete system admin user')
     }
 
-    const result = await query<any>(
+    const affected = await execute(
       'UPDATE users SET status = $1 WHERE employee_id = $2',
       ['inactive', employee_id]
     )
-    return result.affectedRows > 0
+    return affected > 0
   })
 }
 
@@ -322,14 +352,37 @@ export async function authenticateUser(employee_id: string, password: string): P
   return withRetry(async () => {
     const identifier = (employee_id || '').trim()
     if (!identifier) return null
+
     const row = await queryOne<UserRow>(
       `SELECT * FROM users
        WHERE (employee_id = $1 OR LOWER(email) = LOWER($1))
-         AND password = $2
-         AND status = $3`,
-      [identifier, password, 'active']
+         AND status = $2
+       LIMIT 1`,
+      [identifier, 'active']
     )
-    return row ? rowToUser(row) : null
+    if (!row) return null
+
+    const stored = row.password || ''
+    let valid = false
+
+    if (isBcryptHash(stored)) {
+      valid = await bcrypt.compare(password, stored)
+    } else {
+      // Legacy plaintext password: compare directly, then upgrade it to a bcrypt
+      // hash on success so existing accounts keep working but stop living in
+      // plaintext. Existing users are never locked out by the migration.
+      valid = stored.length > 0 && stored === password
+      if (valid) {
+        try {
+          const hash = await hashPassword(password)
+          await execute('UPDATE users SET password = $1 WHERE employee_id = $2', [hash, row.employee_id])
+        } catch (e) {
+          console.error('Failed to backfill password hash:', e)
+        }
+      }
+    }
+
+    return valid ? rowToUser(row) : null
   })
 }
 

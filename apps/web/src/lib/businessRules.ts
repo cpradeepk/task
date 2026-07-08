@@ -316,24 +316,35 @@ export class WorkHoursService {
    */
   static async checkHalfDayApplication(employeeId: string, date: string): Promise<boolean> {
     try {
+      // Normalize dates to YYYY-MM-DD: fromDate/toDate may be pg Date objects or
+      // ISO datetime strings, which never === a plain 'YYYY-MM-DD' string.
+      const toDay = (v: unknown): string => {
+        if (!v) return ''
+        if (v instanceof Date) return v.toISOString().split('T')[0]
+        return String(v).split('T')[0]
+      }
+
       // Check WFH applications for half-day
       const { getWFHByEmployeeId } = await import('./db/wfh')
       const wfhApplications = await getWFHByEmployeeId(employeeId)
-      const halfDayWFH = wfhApplications.some(wfh =>
-        (wfh.fromDate === date || (wfh.fromDate <= date && wfh.toDate >= date)) &&
-        wfh.status.toLowerCase() === 'approved' &&
-        wfh.wfhType.toLowerCase() === 'half day'
-      )
+      const halfDayWFH = wfhApplications.some(wfh => {
+        const from = toDay(wfh.fromDate)
+        const to = toDay(wfh.toDate)
+        return from <= date && to >= date &&
+          wfh.status.toLowerCase() === 'approved' &&
+          wfh.wfhType.toLowerCase() === 'half day'
+      })
 
       // Check leave applications for half-day
       const { getLeavesByEmployeeId } = await import('./db/leaves')
       const leaveApplications = await getLeavesByEmployeeId(employeeId)
-      const halfDayLeave = leaveApplications.some(leave =>
-        leave.fromDate === date &&
-        leave.toDate === date &&
-        leave.status.toLowerCase() === 'approved' &&
-        leave.leaveType.toLowerCase().includes('half')
-      )
+      const halfDayLeave = leaveApplications.some(leave => {
+        const from = toDay(leave.fromDate)
+        const to = toDay(leave.toDate)
+        return from === date && to === date &&
+          leave.status.toLowerCase() === 'approved' &&
+          leave.leaveType.toLowerCase().includes('half')
+      })
 
       return halfDayWFH || halfDayLeave
     } catch (error) {

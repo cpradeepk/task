@@ -66,7 +66,10 @@ export default function YourWorkScreen() {
   const [newDifficulties, setNewDifficulties] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const formattedSelectedDate = selectedDate.toISOString().split('T')[0]
+  // Use the IST calendar day so work before 05:30 IST isn't logged to the previous day.
+  const formattedSelectedDate = new Date(selectedDate.getTime() + 5.5 * 60 * 60 * 1000)
+    .toISOString()
+    .split('T')[0]
 
   // Daily hours helper functions
   const parseDailyHours = (dailyHoursString?: string): Record<string, number> => {

@@ -224,6 +224,24 @@ export const createContext = () => {
 }
 
 
+// ── Auth guards ────────────────────────────────────────────────────────────
+// context.user is populated from the JWT by the GraphQL route. These enforce
+// that a caller is authenticated / authorized before a resolver runs.
+function requireUser(context: any): { employeeId: string; role: string; name: string } {
+  if (!context || !context.user || !context.user.employeeId) {
+    throw new Error('UNAUTHENTICATED: You must be signed in.')
+  }
+  return context.user
+}
+
+function requireRole(context: any, roles: string[]): { employeeId: string; role: string; name: string } {
+  const user = requireUser(context)
+  if (!roles.includes(user.role)) {
+    throw new Error('FORBIDDEN: You do not have permission to perform this action.')
+  }
+  return user
+}
+
 export const resolvers = {
   Query: {
 
@@ -484,8 +502,10 @@ export const resolvers = {
       return result.rows || []
     },
 
-    user: async (_: any, { id }: any) => {
-      const result = await getPoolInstance().query('SELECT * FROM users WHERE id = $1', [id])
+    user: async (_: any, { employeeId }: any) => {
+      // The schema arg is `employeeId` and the users PK is `employee_id`
+      // (there is no `id` column) — the previous version always errored.
+      const result = await getPoolInstance().query('SELECT * FROM users WHERE employee_id = $1', [employeeId])
       return result.rows[0] || null
     },
 
@@ -502,23 +522,28 @@ export const resolvers = {
         const targetUserId = userId || user.employeeId
         const now = new Date()
         const { start, end } = getISTDayRangeInUTC(now)
+        const todayIST = new Date(now.getTime() + 5.5 * 60 * 60 * 1000).toISOString().split('T')[0]
+        let targetDate = date || todayIST
+        const isToday = targetDate === todayIST
 
-        // 1. Try to find an active attendance session for today in IST
-        // This fixes the UTC vs IST date mismatch where the frontend asks for "yesterday's" UTC date
-        // but the backend inserted the record with "today's" IST date.
-        const activeResult = await getPoolInstance().query(
-          `SELECT * FROM attendance_logs 
-           WHERE employee_id = $1 
-           AND sign_in_time >= $2 
-           AND sign_in_time <= $3
-           LIMIT 1`,
-          [targetUserId, start, end]
-        )
-        
-        let record = activeResult.rows[0]
+        let record: any = undefined
+
+        // 1. Only for TODAY, find an active session by sign_in_time. This handles
+        // the UTC/IST date mismatch, but must NOT be used when a past date is
+        // requested (it would return today's record mislabelled with that date).
+        if (isToday) {
+          const activeResult = await getPoolInstance().query(
+            `SELECT * FROM attendance_logs
+             WHERE employee_id = $1
+             AND sign_in_time >= $2
+             AND sign_in_time <= $3
+             LIMIT 1`,
+            [targetUserId, start, end]
+          )
+          record = activeResult.rows[0]
+        }
 
         // 2. Fallback to exact date matching if no active session found
-        let targetDate = date || now.toISOString().split('T')[0]
         if (!record) {
           const recordResult = await getPoolInstance().query(
             'SELECT * FROM attendance_logs WHERE employee_id = $1 AND date = $2',
@@ -659,6 +684,9 @@ export const resolvers = {
               createdAt: row.created_at,
               updatedAt: row.updated_at
             },
+            // UserWFHStatus schema requires a non-null `date` and has `contactNumber`.
+            date: row.from_date,
+            contactNumber: row.phone || row.contact_number || null,
             startDate: row.from_date,
             endDate: row.to_date,
             reason: row.reason || ''
@@ -922,7 +950,7 @@ export const resolvers = {
           CASE
             WHEN al.sign_in_time IS NOT NULL AND al.sign_out_time IS NULL THEN 'ONLINE'
             WHEN al.sign_in_time IS NOT NULL AND al.sign_out_time IS NOT NULL THEN 
-              CASE WHEN COALESCE(la.is_half_day, 0) = 1 THEN 'HALF_DAY' ELSE 'PRESENT' END
+              CASE WHEN COALESCE(la.is_half_day, FALSE) = TRUE THEN 'HALF_DAY' ELSE 'PRESENT' END
             WHEN la.status = 'Approved' THEN 'ON_LEAVE'
             WHEN wfh.status = 'Approved' THEN 'WFH'
             WHEN d.date > CURRENT_DATE THEN NULL
@@ -1257,7 +1285,7 @@ export const resolvers = {
       if (!employeeId) return 0
       const currentYear = new Date().getFullYear()
       const result = await getPoolInstance().query(
-        `SELECT COALESCE(SUM(EXTRACT(DAY FROM (to_date - from_date)) + 1), 0) as total_days
+        `SELECT COALESCE(SUM((to_date - from_date) + 1), 0) as total_days
          FROM leave_applications
          WHERE employee_id = $1
          AND status = 'Approved'
@@ -1272,7 +1300,7 @@ export const resolvers = {
       if (!employeeId) return 0
       const currentYear = new Date().getFullYear()
       const result = await getPoolInstance().query(
-        `SELECT COALESCE(SUM(EXTRACT(DAY FROM (to_date - from_date)) + 1), 0) as total_days
+        `SELECT COALESCE(SUM((to_date - from_date) + 1), 0) as total_days
          FROM wfh_applications
          WHERE employee_id = $1
          AND status = 'Approved'
@@ -2162,13 +2190,46 @@ export const resolvers = {
 
         const user = result.rows[0]
 
-        // Verify password (plain text comparison for now)
-        if (user.password !== password) {
+        // Verify password. Support bcrypt hashes, and upgrade legacy plaintext
+        // passwords to a hash on successful login (safe backfill — existing
+        // accounts keep working and stop living in plaintext).
+        const bcrypt = require('bcryptjs')
+        const storedPassword = user.password || ''
+        let passwordValid = false
+        if (/^\$2[aby]\$/.test(storedPassword)) {
+          passwordValid = await bcrypt.compare(password, storedPassword)
+        } else {
+          passwordValid = storedPassword.length > 0 && storedPassword === password
+          if (passwordValid) {
+            try {
+              const hash = await bcrypt.hash(password, 10)
+              await getPoolInstance().query(
+                'UPDATE users SET password = $1 WHERE employee_id = $2',
+                [hash, user.employee_id]
+              )
+            } catch (e) {
+              console.error('Failed to backfill password hash (graphql login):', e)
+            }
+          }
+        }
+        if (!passwordValid) {
           logResolverError('login', new Error('Invalid password'), startTime)
           throw new Error('Invalid credentials')
         }
 
-        // Generate JWT token
+        // Password login is a break-glass fallback for admin/service accounts only.
+        // Everyone else must sign in with OTP (/api/auth/otp/*).
+        const isAdminAccount = user.role === 'admin' || Boolean(user.is_system_admin)
+        if (!isAdminAccount) {
+          logResolverError('login', new Error('Password login disabled for non-admin'), startTime)
+          throw new Error('Password login is disabled for this account. Please sign in with OTP.')
+        }
+
+        // Generate JWT token (JWT_SECRET is required — no hardcoded fallback)
+        const jwtSecret = process.env.JWT_SECRET
+        if (!jwtSecret || jwtSecret.length < 16) {
+          throw new Error('JWT_SECRET is not configured')
+        }
         const jwt = require('jsonwebtoken')
         const token = jwt.sign(
           {
@@ -2176,7 +2237,7 @@ export const resolvers = {
             role: user.role,
             name: user.name
           },
-          process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production',
+          jwtSecret,
           { expiresIn: '7d' }
         )
 
@@ -2194,7 +2255,8 @@ export const resolvers = {
     },
 
     // Task mutations
-    createTask: async (_: any, { input }: any) => {
+    createTask: async (_: any, { input }: any, context: any) => {
+      requireUser(context)
       const taskId = `TSK-${Date.now()}`
       const support = input.support ? JSON.stringify(input.support) : '[]'
 
@@ -2216,7 +2278,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    updateTask: async (_: any, { taskId, input }: any) => {
+    updateTask: async (_: any, { taskId, input }: any, context: any) => {
+      requireUser(context)
       const updates: string[] = []
       const params: any[] = []
       let paramIndex = 1
@@ -2276,7 +2339,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    deleteTask: async (_: any, { taskId }: any) => {
+    deleteTask: async (_: any, { taskId }: any, context: any) => {
+      requireUser(context)
       await getPoolInstance().query(
         'UPDATE tasks SET deleted_at = NOW() WHERE task_id = $1',
         [taskId]
@@ -2285,7 +2349,8 @@ export const resolvers = {
     },
 
     // Bug mutations
-    createBug: async (_: any, { input }: any) => {
+    createBug: async (_: any, { input }: any, context: any) => {
+      requireUser(context)
       // ✅ UPDATED: Generate sequential bug ID with DEV- prefix
       // Get latest bug ID from database to continue numbering
       const latestBugResult = await getPoolInstance().query(
@@ -2316,7 +2381,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    updateBug: async (_: any, { bugId, input }: any) => {
+    updateBug: async (_: any, { bugId, input }: any, context: any) => {
+      requireUser(context)
       const updates: string[] = []
       const params: any[] = []
       let paramIndex = 1
@@ -2332,7 +2398,9 @@ export const resolvers = {
         estimatedHours: 'estimated_hours',
         actualHours: 'actual_hours',
         remarks: 'remarks',
-        resolvedDate: 'resolved_date'
+        resolvedDate: 'resolved_date',
+        startDate: 'start_date',
+        endDate: 'end_date'
       }
 
       Object.keys(input).forEach(key => {
@@ -2362,7 +2430,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    deleteBug: async (_: any, { bugId }: any) => {
+    deleteBug: async (_: any, { bugId }: any, context: any) => {
+      requireUser(context)
       await getPoolInstance().query(
         'UPDATE bugs SET deleted_at = NOW() WHERE bug_id = $1',
         [bugId]
@@ -2371,7 +2440,8 @@ export const resolvers = {
     },
 
     // User mutations
-    createUser: async (_: any, { input }: any) => {
+    createUser: async (_: any, { input }: any, context: any) => {
+      requireRole(context, ['admin', 'top_management'])
       const bcrypt = require('bcryptjs')
       const hashedPassword = await bcrypt.hash(input.password, 10)
 
@@ -2389,7 +2459,8 @@ export const resolvers = {
       return result.rows[0]
     },
 
-    updateUser: async (_: any, { employeeId, input }: any) => {
+    updateUser: async (_: any, { employeeId, input }: any, context: any) => {
+      requireRole(context, ['admin', 'top_management'])
       const updates: string[] = []
       const params: any[] = []
       let paramIndex = 1

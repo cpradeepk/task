@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserByEmployeeId } from '@/lib/db/users'
+import { randomBytes } from 'crypto'
+import { getUserByEmployeeId, updateUser } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
+import { requireRole } from '@/lib/auth-server'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ employeeId: string }> }
 ) {
   try {
+    // Admin-only: this emails a user's login credentials.
+    const auth = await requireRole(request, ['admin', 'top_management'])
+    if (!auth.ok) return auth.response
+
     const { employeeId } = await params
 
     if (!employeeId) {
@@ -16,7 +22,7 @@ export async function POST(
       }, { status: 400 })
     }
 
-    // Get user details from MySQL
+    // Get user details
     const user = await getUserByEmployeeId(employeeId)
 
     if (!user) {
@@ -33,12 +39,11 @@ export async function POST(
       }, { status: 400 })
     }
 
-    if (!user.password) {
-      return NextResponse.json({
-        success: false,
-        error: 'User password not found in system'
-      }, { status: 400 })
-    }
+    // Passwords are stored as bcrypt hashes and cannot be recovered, so generate
+    // a new temporary password, store it (hashed via updateUser), and email the
+    // plaintext to the user.
+    const tempPassword = randomBytes(12).toString('base64url').slice(0, 12)
+    await updateUser(employeeId, { password: tempPassword } as any)
 
     // Check if email service is available
     const isAvailable = await emailService.isAvailableAsync()
@@ -61,7 +66,7 @@ export async function POST(
       userEmail: user.email,
       userName: user.name,
       employeeId: user.employeeId,
-      temporaryPassword: user.password, // Use password from MySQL
+      temporaryPassword: tempPassword,
       department: user.department || 'Not specified',
       role: user.role || 'Employee',
       manager: managerName,

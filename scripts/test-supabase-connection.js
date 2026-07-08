@@ -10,8 +10,14 @@
 const { Client } = require('pg')
 const dns = require('dns').promises
 
-const SUPABASE_HOST = 'db.rbckjkdohzbclomrufrx.supabase.co'
-const SUPABASE_PASSWORD = 'W8zTtc>qL3?'
+// SECURITY: never hardcode DB credentials. Provide via environment variables.
+const SUPABASE_HOST = process.env.SUPABASE_HOST
+const SUPABASE_PASSWORD = process.env.SUPABASE_PASSWORD
+
+if (!SUPABASE_HOST || !SUPABASE_PASSWORD) {
+  console.error('Set SUPABASE_HOST and SUPABASE_PASSWORD environment variables before running this script.')
+  process.exit(1)
+}
 
 // Connection strings to test
 const CONNECTION_STRINGS = {
