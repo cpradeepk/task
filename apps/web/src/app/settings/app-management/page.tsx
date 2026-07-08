@@ -40,11 +40,12 @@ export default function AppManagement() {
       return
     }
 
-    // Only Admin / Top Management / User AM-0001 can access App Management
+    // Only Admin / Top Management / Management / User AM-0001 can access App Management
     const isAuthorized = 
       user.employeeId === 'AM-0001' || 
       user.role === 'admin' || 
-      user.role === 'top_management'
+      user.role === 'top_management' ||
+      user.role === 'management'
 
     if (!isAuthorized) {
       router.push('/dashboard')
