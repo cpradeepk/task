@@ -129,8 +129,17 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
     return 'fingerprint'
   }
 
+  const handleFocus = () => {
+    if (inputRef.current?.isFocused()) {
+      inputRef.current.blur()
+      setTimeout(() => inputRef.current?.focus(), 50)
+    } else {
+      inputRef.current?.focus()
+    }
+  }
+
   return (
-    <TouchableWithoutFeedback onPress={() => inputRef.current?.focus()}>
+    <TouchableWithoutFeedback onPress={handleFocus}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Top Brand Accent */}
         <View style={[styles.gradientBar, { backgroundColor: colors.primary }]} />
@@ -146,6 +155,7 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
           style={styles.hiddenInput}
           autoComplete="off"
           importantForAutofill="no"
+          autoFocus={true}
         />
 
         <View style={styles.content}>
@@ -160,7 +170,7 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
           {/* PIN Indicators */}
           <TouchableOpacity 
             activeOpacity={1} 
-            onPress={() => inputRef.current?.focus()}
+            onPress={handleFocus}
             style={styles.interactiveArea}
           >
             <Animated.View

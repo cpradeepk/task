@@ -57,7 +57,8 @@ async function handleUpdate(request: NextRequest) {
         isAuthorized = 
           authUser.employeeId === 'AM-0001' || 
           authUser.role === 'admin' || 
-          authUser.role === 'top_management'
+          authUser.role === 'top_management' ||
+          authUser.role === 'management'
       }
     }
 

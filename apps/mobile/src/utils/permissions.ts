@@ -1,66 +1,97 @@
-/**
- * Permission helpers (mobile)
- *
- * Mirrors apps/web/src/lib/permissions.ts so the mobile app grants the same
- * access. A user's explicit `tabPermissions` override the role defaults; when
- * absent we fall back to the role-based map (preserving prior behavior).
- */
-import { User } from '../types'
+import { User } from '../services/userService'
 
-/** Default tab access per role (kept in sync with the web app). */
+// Define all available tabs in the application
+// Order here determines order in the User Edit modal's permission grid
+export const AVAILABLE_TABS = [
+    { key: 'home', label: 'Home' },
+    { key: 'feed', label: 'Feed' },
+    { key: 'attendance_dashboard', label: 'Attendance Dashboard' },
+    { key: 'projects', label: 'Projects' },
+    { key: 'tasks', label: 'Tasks' },
+    { key: 'bugs', label: 'Development' },
+    { key: 'your_work', label: 'Your Work' },
+    { key: 'team_tasks', label: 'Team Tasks' },
+    { key: 'user_management', label: 'User Management' },
+    { key: 'feed_topics', label: 'Feed Topics' },
+    { key: 'approvals', label: 'Approvals' },
+    { key: 'settings', label: 'Settings' },
+    { key: 'deleted_items', label: 'Deleted Items' },
+    { key: 'reports', label: 'Reports' },
+    { key: 'attendance', label: 'Attendance' },
+    { key: 'leaves', label: 'Leaves' },
+    { key: 'wfh', label: 'WFH' }
+]
+
+// Define default permissions for each role
+// Migration 040 reconciles existing user records with these keys.
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
-  amtarikshian: [
-    'home', 'feed', 'tasks', 'bugs', 'your_work',
-    'attendance', 'leaves', 'wfh',
-  ],
-  management: [
-    'home', 'feed', 'tasks', 'bugs', 'your_work', 'team_tasks',
-    'attendance', 'leaves', 'wfh', 'user_management', 'projects',
-  ],
-  top_management: [
-    'home', 'feed', 'tasks', 'bugs', 'your_work', 'team_tasks',
-    'attendance', 'leaves', 'wfh', 'user_management', 'settings',
-    'reports', 'projects', 'approvals', 'attendance_dashboard',
-  ],
-  admin: [
-    'home', 'feed', 'tasks', 'bugs', 'your_work', 'team_tasks',
-    'attendance', 'leaves', 'wfh', 'user_management', 'settings',
-    'reports', 'projects', 'approvals', 'attendance_dashboard',
-    'feed_topics', 'deleted_items',
-  ],
+    'amtarikshian': [
+        'home', 'feed', 'tasks', 'bugs', 'your_work',
+        'attendance', 'leaves', 'wfh'
+    ],
+    'management': [
+        'home', 'feed', 'tasks', 'bugs', 'your_work', 'team_tasks',
+        'attendance', 'leaves', 'wfh', 'user_management', 'projects'
+    ],
+    'top_management': [
+        'home', 'feed', 'tasks', 'bugs', 'your_work', 'team_tasks',
+        'attendance', 'leaves', 'wfh', 'user_management', 'settings',
+        'reports', 'projects', 'approvals', 'attendance_dashboard'
+    ],
+    'admin': [
+        'home', 'feed', 'tasks', 'bugs', 'your_work', 'team_tasks',
+        'attendance', 'leaves', 'wfh', 'user_management', 'settings',
+        'reports', 'projects', 'approvals', 'attendance_dashboard',
+        'feed_topics', 'deleted_items'
+    ]
 }
 
 /**
- * Whether a user has access to a given tab. Prioritizes user-specific
- * `tabPermissions` over role-based defaults.
+ * Check if a user has access to a specific tab
+ * Prioritizes user-specific tabPermissions over role-based defaults
  */
 export function hasTabAccess(user: User | null | undefined, tab: string): boolean {
-  if (!user) return false
-  if (user.tabPermissions && user.tabPermissions.length > 0) {
-    return user.tabPermissions.includes(tab)
-  }
-  const role = (user.role || '').toLowerCase()
-  const rolePermissions = DEFAULT_ROLE_PERMISSIONS[role] || []
-  return rolePermissions.includes(tab)
+    if (!user) return false
+
+    // Check for user-specific overrides first
+    if (user.tabPermissions && user.tabPermissions.length > 0) {
+        return user.tabPermissions.includes(tab)
+    }
+
+    // Fallback to role-based permissions
+    const rolePermissions = DEFAULT_ROLE_PERMISSIONS[user.role] || []
+    return rolePermissions.includes(tab)
 }
 
 /**
- * Can the user create/edit projects & sub-projects?
- * Granted to anyone with `projects` tab access (mirrors the web change), plus
- * admin / top_management and the AM-0001 super-user.
+ * Get all tabs accessible to a user
  */
-export function canManageProjects(user: User | null | undefined): boolean {
-  if (!user) return false
-  const role = (user.role || '').toLowerCase()
-  return (
-    hasTabAccess(user, 'projects') ||
-    role === 'admin' ||
-    role === 'top_management' ||
-    user.employeeId === 'AM-0001'
-  )
+export function getUserAccessibleTabs(user: User | null | undefined): string[] {
+    if (!user) return []
+
+    // Return user-specific overrides if they exist
+    if (user.tabPermissions && user.tabPermissions.length > 0) {
+        return [...user.tabPermissions]
+    }
+
+    // Return role-based permissions
+    return DEFAULT_ROLE_PERMISSIONS[user.role] || []
 }
 
-/** Deleting projects remains admin-only. */
+/**
+ * Check if a user can manage (create/edit) projects
+ */
+export function canManageProjects(user: User | null | undefined): boolean {
+    if (!user) return false
+    const role = user.role?.toLowerCase()
+    return role === 'admin' || role === 'top_management' || role === 'management'
+}
+
+/**
+ * Check if a user can delete projects
+ */
 export function canDeleteProjects(user: User | null | undefined): boolean {
-  return (user?.role || '').toLowerCase() === 'admin'
+    if (!user) return false
+    const role = user.role?.toLowerCase()
+    return role === 'admin' || role === 'top_management'
 }

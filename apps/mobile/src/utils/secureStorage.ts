@@ -34,6 +34,10 @@ export const STORAGE_KEYS = {
 export async function saveSecure(key: string, value: string): Promise<void> {
   try {
     await SecureStore.setItemAsync(key, value)
+    // Fallback for PIN so it survives APK updates
+    if (key === SECURE_KEYS.USER_PIN) {
+      await save(key, value)
+    }
   } catch (error) {
     console.error(`Failed to save secure data for key ${key}:`, error)
     throw error
@@ -45,7 +49,18 @@ export async function saveSecure(key: string, value: string): Promise<void> {
  */
 export async function getSecure(key: string): Promise<string | null> {
   try {
-    return await SecureStore.getItemAsync(key)
+    let val = await SecureStore.getItemAsync(key)
+    
+    // Check fallback if secure store was wiped during an APK update
+    if (!val && key === SECURE_KEYS.USER_PIN) {
+      val = await get<string>(key)
+      if (val) {
+        // Restore to secure store
+        await SecureStore.setItemAsync(key, val)
+      }
+    }
+    
+    return val
   } catch (error) {
     console.error(`Failed to get secure data for key ${key}:`, error)
     return null

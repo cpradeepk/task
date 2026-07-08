@@ -7,11 +7,13 @@ import { materialTypography, materialSpacing } from '../config/materialTheme'
 import { AuthContext } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { DebugMenu } from './DebugMenu'
+import { hasTabAccess } from '../utils/permissions'
 
 interface NavigationItem {
   screen: string
   label: string
   icon: string
+  key?: string
 }
 
 interface CustomDrawerContentProps {
@@ -94,15 +96,19 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
     { screen: 'AttendanceDashboard', label: 'Attendance Dashboard', icon: 'clock-outline' },
   ]
 
-  const adminItems: NavigationItem[] = [
-    { screen: 'Projects', label: 'Projects', icon: 'folder-outline' },
-    { screen: 'Users', label: 'User Management', icon: 'account-group' },
-    { screen: 'FeedTopics', label: 'Feed Topics', icon: 'message-text-outline' },
-    { screen: 'AttendanceApprovals', label: 'Approvals', icon: 'check-decagram' },
-    { screen: 'Settings', label: 'Settings', icon: 'cog-outline' },
-    { screen: 'DeletedItems', label: 'Deleted Items', icon: 'delete-outline' },
-    { screen: 'Reports', label: 'Reports', icon: 'chart-bar' },
-  ]
+  const adminItems = React.useMemo(() => {
+    if (!currentUser) return []
+    const rawAdminItems: NavigationItem[] = [
+      { screen: 'Projects', label: 'Projects', icon: 'folder-outline', key: 'projects' },
+      { screen: 'Users', label: 'User Management', icon: 'account-group', key: 'user_management' },
+      { screen: 'FeedTopics', label: 'Feed Topics', icon: 'message-text-outline', key: 'feed_topics' },
+      { screen: 'AttendanceApprovals', label: 'Approvals', icon: 'check-decagram', key: 'approvals' },
+      { screen: 'Settings', label: 'Settings', icon: 'cog-outline', key: 'settings' },
+      { screen: 'DeletedItems', label: 'Deleted Items', icon: 'delete-outline', key: 'deleted_items' },
+      { screen: 'Reports', label: 'Reports', icon: 'chart-bar', key: 'reports' },
+    ]
+    return rawAdminItems.filter(item => hasTabAccess(currentUser, item.key!))
+  }, [currentUser])
 
   const accountItems: NavigationItem[] = [
     { screen: 'Settings', label: 'Account', icon: 'account-circle-outline' },
@@ -139,7 +145,8 @@ export default function CustomDrawerContent({ visible, onClose }: CustomDrawerCo
     }
     onClose();
   }
-  const showAdminSection = currentUser?.role === 'admin' || currentUser?.role === 'top_management'
+  
+  const showAdminSection = adminItems.length > 0
 
   const handleLogout = async () => {
     await signOut()
