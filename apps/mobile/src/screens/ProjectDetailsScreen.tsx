@@ -503,6 +503,15 @@ export default function ProjectDetailsScreen() {
                     ) : null}
                   </View>
                 ) : null}
+
+                <Button 
+                  mode="contained-tonal" 
+                  icon="shield-key" 
+                  onPress={() => navigation.push('ProjectCredentials', { projectId: project.projectId })}
+                  style={{ marginTop: 12 }}
+                >
+                  View Credentials & Env
+                </Button>
               </View>
             )}
           </Card.Content>

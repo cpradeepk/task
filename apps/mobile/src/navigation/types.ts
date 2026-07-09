@@ -29,6 +29,7 @@ export type RootStackParamList = {
     TeamTasks: undefined;
     Projects: undefined;
     ProjectDetails: { projectId: string };
+    ProjectCredentials: { projectId: string };
     Users: undefined;
     FeedTopics: undefined;
     DeletedItems: undefined;

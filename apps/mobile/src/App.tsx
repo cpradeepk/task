@@ -34,6 +34,7 @@ import YourWorkScreen from './screens/YourWorkScreen'
 import TeamTasksScreen from './screens/TeamTasksScreen'
 import ProjectsScreen from './screens/ProjectsScreen'
 import ProjectDetailsScreen from './screens/ProjectDetailsScreen'
+import ProjectCredentialsScreen from './screens/ProjectCredentialsScreen'
 import UsersScreen from './screens/UsersScreen'
 import FeedTopicsScreen from './screens/FeedTopicsScreen'
 import DeletedItemsScreen from './screens/DeletedItemsScreen'
@@ -1235,6 +1236,13 @@ function AppContent() {
                       component={ProjectDetailsScreen}
                       options={{
                         headerTitle: 'Project Details',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="ProjectCredentials"
+                      component={ProjectCredentialsScreen}
+                      options={{
+                        headerTitle: 'Project Credentials',
                       }}
                     />
                     <Stack.Screen
