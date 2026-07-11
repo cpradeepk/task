@@ -62,6 +62,22 @@ export function getBugStatusStyle(status: string | null | undefined): BadgeStyle
 }
 
 /**
+ * Requirement status → semantic style
+ */
+export function getRequirementStatusStyle(status: string | null | undefined): BadgeStyle {
+  switch (status) {
+    case 'Draft':       return style('neutral', Circle, 'Draft')
+    case 'In Review':   return style('warning', Loader, 'In Review')
+    case 'Approved':    return style('success', CheckCircle2, 'Approved')
+    case 'Rejected':    return style('danger', Ban, 'Rejected')
+    case 'Implemented': return style('info', RefreshCw, 'Implemented')
+    case 'Verified':    return style('success', CheckCircle2, 'Verified')
+    case 'Deprecated':  return style('neutral', Pause, 'Deprecated')
+    default:            return style('neutral', Circle, status || '—')
+  }
+}
+
+/**
  * Bug severity → semantic style
  */
 export function getBugSeverityStyle(severity: string | null | undefined): BadgeStyle {
