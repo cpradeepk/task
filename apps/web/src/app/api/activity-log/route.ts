@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
-    const entityType = searchParams.get('entityType') as 'task' | 'bug' | 'leave' | 'wfh' | null
+    const entityType = searchParams.get('entityType') as 'task' | 'bug' | 'leave' | 'wfh' | 'requirement' | null
     const entityId = searchParams.get('entityId')
     const filter = searchParams.get('filter') || 'all' // 'all', 'comments', 'activities'
     const sortOrder = (searchParams.get('sortOrder') || 'desc') as 'asc' | 'desc'
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate entityType
-    if (!['task', 'bug', 'leave', 'wfh'].includes(entityType)) {
+    if (!['task', 'bug', 'leave', 'wfh', 'requirement'].includes(entityType)) {
       return NextResponse.json(
         { 
           success: false, 

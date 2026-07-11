@@ -733,8 +733,36 @@ export const typeDefs = `#graphql
     createdAt: String!
     updatedAt: String!
     sections: [RequirementSection!]!
+    approvals: [RequirementApproval!]!
+    devLinks: [RequirementDevLink!]!
     createdByUser: User
     reviewerUser: User
+  }
+
+  type RequirementDevLink {
+    id: ID!
+    requirementId: String!
+    devId: String!
+    relationshipType: String!
+    devStatus: String
+    devTitle: String
+    createdAt: String!
+  }
+
+  input CreateDevItemFromRequirementInput {
+    assignedTo: String
+  }
+
+  type RequirementApproval {
+    id: ID!
+    requirementId: String!
+    approverId: String!
+    approverName: String!
+    decision: String!
+    note: String
+    approvedContentHash: String!
+    isCurrent: Boolean!
+    createdAt: String!
   }
 
   type RequirementSection {
@@ -759,6 +787,18 @@ export const typeDefs = `#graphql
     contentHtml: String!
     contentHash: String!
     createdAt: String!
+  }
+
+  type RequirementBaseline {
+    id: ID!
+    projectId: String!
+    versionLabel: String!
+    releaseNote: String
+    docContentHash: String!
+    frozenBy: String!
+    frozenByName: String!
+    createdAt: String!
+    snapshotJson: String!
   }
 
   input CreateRequirementInput {
@@ -791,6 +831,8 @@ export const typeDefs = `#graphql
     requirements(projectId: String!, includeSubprojects: Boolean, status: String, search: String): [Requirement!]!
     requirement(requirementId: ID!): Requirement
     requirementSectionRevisions(sectionId: ID!): [RequirementSectionRevision!]!
+    requirementBaselines(projectId: String!): [RequirementBaseline!]!
+    requirementBaseline(id: ID!): RequirementBaseline
   }
 
   extend type Mutation {
@@ -802,6 +844,13 @@ export const typeDefs = `#graphql
     deleteRequirementSection(sectionId: ID!): Boolean!
     reorderRequirementSections(requirementId: ID!, sectionIds: [ID!]!): Boolean!
     restoreRequirementSectionRevision(sectionId: ID!, revisionId: ID!): RequirementSection!
+    submitRequirementForReview(requirementId: ID!): Requirement!
+    approveRequirement(requirementId: ID!, note: String): Requirement!
+    rejectRequirement(requirementId: ID!, note: String!): Requirement!
+    updateRequirementStatus(requirementId: ID!, status: String!): Requirement!
+    createRequirementBaseline(projectId: String!, versionLabel: String, releaseNote: String): RequirementBaseline!
+    rollbackRequirementToVersion(requirementId: ID!, baselineId: ID!): Requirement!
+    createDevItemFromRequirement(requirementId: ID!, input: CreateDevItemFromRequirementInput): Bug!
   }
 `
 

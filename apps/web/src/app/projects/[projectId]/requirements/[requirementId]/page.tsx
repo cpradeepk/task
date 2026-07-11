@@ -31,10 +31,17 @@ const GET_REQUIREMENT = `
     requirement(requirementId: $requirementId) {
       requirementId title status reviewerId subprojectId updatedAt
       createdByUser { name }
+      reviewerUser { name }
       sections { id heading label contentHtml displayOrder lockVersion revisionCount }
+      approvals { id approverName decision note isCurrent createdAt }
+      devLinks { id devId relationshipType devStatus devTitle }
     }
   }
 `
+const CREATE_DEV = `mutation CreateDev($requirementId: ID!) { createDevItemFromRequirement(requirementId: $requirementId) { bugId } }`
+const SUBMIT_REVIEW = `mutation Submit($requirementId: ID!) { submitRequirementForReview(requirementId: $requirementId) { status } }`
+const APPROVE = `mutation Approve($requirementId: ID!, $note: String) { approveRequirement(requirementId: $requirementId, note: $note) { status } }`
+const REJECT = `mutation Reject($requirementId: ID!, $note: String!) { rejectRequirement(requirementId: $requirementId, note: $note) { status } }`
 const CREATE_SECTION = `
   mutation CreateSection($input: CreateRequirementSectionInput!) {
     createRequirementSection(input: $input) { id }
@@ -60,6 +67,8 @@ const RESTORE_REVISION = `
     restoreRequirementSectionRevision(sectionId: $sectionId, revisionId: $revisionId) { id }
   }
 `
+const GET_BASELINES = `query GetBaselines($projectId: String!) { requirementBaselines(projectId: $projectId) { id versionLabel createdAt } }`
+const ROLLBACK = `mutation Rollback($requirementId: ID!, $baselineId: ID!) { rollbackRequirementToVersion(requirementId: $requirementId, baselineId: $baselineId) { status } }`
 
 interface Section {
   id: string
@@ -86,6 +95,7 @@ export default function RequirementEditorPage() {
   const [historyFor, setHistoryFor] = useState<string | null>(null)
   const [revisions, setRevisions] = useState<any[]>([])
   const [adding, setAdding] = useState(false)
+  const [baselines, setBaselines] = useState<any[]>([])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -107,6 +117,33 @@ export default function RequirementEditorPage() {
   }, [requirementId, router])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    gql(GET_BASELINES, { projectId }).then((d) => setBaselines(d.requirementBaselines || [])).catch(() => {})
+  }, [projectId])
+
+  const rollback = async (baselineId: string) => {
+    if (!baselineId) return
+    if (!confirm('Roll this requirement back to that version? It will re-enter review.')) return
+    try {
+      await gql(ROLLBACK, { requirementId, baselineId })
+      await load()
+    } catch (err: any) {
+      alert(err.message || 'Rollback failed')
+    }
+  }
+
+  const createDevItem = async () => {
+    if (!confirm('Create a DEV feature from this requirement? It will advance to Implemented.')) return
+    try {
+      const data = await gql(CREATE_DEV, { requirementId })
+      const bugId = data.createDevItemFromRequirement.bugId
+      await load()
+      if (confirm(`Created ${bugId}. Open it now?`)) router.push(`/bugs/${bugId}`)
+    } catch (err: any) {
+      alert(err.message || 'Failed to create DEV item')
+    }
+  }
 
   const patchDraft = (id: string, patch: Partial<Section>) =>
     setDrafts((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }))
@@ -177,6 +214,22 @@ export default function RequirementEditorPage() {
     }
   }
 
+  const runApproval = async (doc: string, vars: any) => {
+    try {
+      await gql(doc, vars)
+      await load()
+    } catch (err: any) {
+      alert(err.message || 'Action failed')
+    }
+  }
+  const submitReview = () => runApproval(SUBMIT_REVIEW, { requirementId })
+  const approve = () => runApproval(APPROVE, { requirementId, note: prompt('Approval note (optional):') || null })
+  const reject = () => {
+    const note = prompt('Rejection reason (required):')
+    if (!note || !note.trim()) return
+    runApproval(REJECT, { requirementId, note })
+  }
+
   if (forbidden) {
     return (
       <div className="max-w-3xl mx-auto p-8 text-center">
@@ -202,9 +255,77 @@ export default function RequirementEditorPage() {
         <span className={`text-xs px-2 py-0.5 rounded-full ${statusStyle.className}`}>{statusStyle.label}</span>
       </div>
       <h1 className="text-2xl font-semibold text-gray-900 mb-1">{requirement.title}</h1>
-      <p className="text-xs text-gray-400 mb-6">
-        Created by {requirement.createdByUser?.name || requirement.requirementId} · updated {formatDateTimeIST(requirement.updatedAt)}
+      <p className="text-xs text-gray-400 mb-4">
+        Created by {requirement.createdByUser?.name || requirement.requirementId}
+        {requirement.reviewerUser?.name ? ` · reviewer ${requirement.reviewerUser.name}` : ''}
+        {' · updated '}{formatDateTimeIST(requirement.updatedAt)}
       </p>
+
+      {/* Approval panel */}
+      <div className="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium text-gray-700">Review:</span>
+          {(requirement.status === 'Draft' || requirement.status === 'Rejected') && (
+            <button onClick={submitReview} className="px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">
+              Submit for review
+            </button>
+          )}
+          {requirement.status === 'In Review' && (
+            <>
+              <button onClick={approve} className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700">Approve</button>
+              <button onClick={reject} className="px-3 py-1.5 bg-rose-600 text-white rounded text-sm hover:bg-rose-700">Reject</button>
+            </>
+          )}
+          {requirement.status === 'Approved' && (
+            <button onClick={createDevItem} className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">
+              Create DEV feature
+            </button>
+          )}
+          <span className="text-xs text-gray-500 ml-auto">Current status: {statusStyle.label}</span>
+        </div>
+        {requirement.devLinks?.length > 0 && (
+          <div className="mt-3 pt-2 border-t border-gray-200">
+            <p className="text-xs font-medium text-gray-500 mb-1">Linked DEV items</p>
+            {requirement.devLinks.map((l: any) => (
+              <button
+                key={l.id}
+                onClick={() => router.push(`/bugs/${l.devId}`)}
+                className="flex items-center gap-2 text-xs text-gray-600 hover:text-indigo-600 w-full text-left py-0.5"
+              >
+                <span className="font-mono text-gray-400">{l.devId}</span>
+                <span className="truncate">{l.devTitle}</span>
+                <span className="ml-auto text-gray-400">{l.devStatus || 'deleted'}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {baselines.length > 0 && (
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+            <span className="text-xs text-gray-500">Roll back this requirement to:</span>
+            <select
+              defaultValue=""
+              onChange={(e) => { rollback(e.target.value); e.target.value = '' }}
+              className="px-2 py-1 border border-gray-300 rounded text-xs"
+            >
+              <option value="">Choose a version…</option>
+              {baselines.map((b) => <option key={b.id} value={b.id}>v{b.versionLabel}</option>)}
+            </select>
+          </div>
+        )}
+        {requirement.approvals?.length > 0 && (
+          <div className="mt-3 space-y-1.5 border-t border-gray-200 pt-3">
+            {requirement.approvals.map((a: any) => (
+              <div key={a.id} className="text-xs text-gray-600 flex items-center gap-2">
+                <span className={a.decision === 'Approved' ? 'text-green-700' : 'text-rose-700'}>{a.decision}</span>
+                <span>by {a.approverName}</span>
+                {a.note && <span className="text-gray-400 truncate">— {a.note}</span>}
+                {a.isCurrent && <span className="text-indigo-600">(current)</span>}
+                <span className="ml-auto text-gray-400">{formatDateTimeIST(a.createdAt)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="space-y-6">
         {sections.map((s) => (
