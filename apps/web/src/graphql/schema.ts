@@ -733,8 +733,21 @@ export const typeDefs = `#graphql
     createdAt: String!
     updatedAt: String!
     sections: [RequirementSection!]!
+    approvals: [RequirementApproval!]!
     createdByUser: User
     reviewerUser: User
+  }
+
+  type RequirementApproval {
+    id: ID!
+    requirementId: String!
+    approverId: String!
+    approverName: String!
+    decision: String!
+    note: String
+    approvedContentHash: String!
+    isCurrent: Boolean!
+    createdAt: String!
   }
 
   type RequirementSection {
@@ -802,6 +815,10 @@ export const typeDefs = `#graphql
     deleteRequirementSection(sectionId: ID!): Boolean!
     reorderRequirementSections(requirementId: ID!, sectionIds: [ID!]!): Boolean!
     restoreRequirementSectionRevision(sectionId: ID!, revisionId: ID!): RequirementSection!
+    submitRequirementForReview(requirementId: ID!): Requirement!
+    approveRequirement(requirementId: ID!, note: String): Requirement!
+    rejectRequirement(requirementId: ID!, note: String!): Requirement!
+    updateRequirementStatus(requirementId: ID!, status: String!): Requirement!
   }
 `
 

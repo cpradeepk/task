@@ -8,7 +8,7 @@ import DOMPurify from 'dompurify'
 import CollapsibleText from './CollapsibleText'
 
 interface UnifiedTimelineProps {
-  entityType: 'task' | 'bug' | 'leave' | 'wfh'
+  entityType: 'task' | 'bug' | 'leave' | 'wfh' | 'requirement'
   entityId: string
   showCommentInput?: boolean
   sortOrder?: 'asc' | 'desc'

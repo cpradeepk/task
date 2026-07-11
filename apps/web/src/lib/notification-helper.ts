@@ -49,6 +49,13 @@ function mapNotificationTypeToPrefKey(type: string): string | null {
     case 'wfh_pending_approval': return 'wfhPendingApproval'
     case 'task_commented': return 'taskCommented'
     case 'bug_commented': return 'bugCommented'
+    // Requirements module — map to existing bug-class pref keys initially
+    // (no dedicated requirement pref keys yet, avoids a prefs migration).
+    case 'requirement_review_requested': return 'bugAssigned'
+    case 'requirement_approved': return 'bugUpdated'
+    case 'requirement_rejected': return 'bugUpdated'
+    case 'requirement_updated_after_approval': return 'bugUpdated'
+    case 'requirement_dev_item_created': return 'bugAssigned'
     default: return null
   }
 }

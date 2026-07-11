@@ -31,10 +31,15 @@ const GET_REQUIREMENT = `
     requirement(requirementId: $requirementId) {
       requirementId title status reviewerId subprojectId updatedAt
       createdByUser { name }
+      reviewerUser { name }
       sections { id heading label contentHtml displayOrder lockVersion revisionCount }
+      approvals { id approverName decision note isCurrent createdAt }
     }
   }
 `
+const SUBMIT_REVIEW = `mutation Submit($requirementId: ID!) { submitRequirementForReview(requirementId: $requirementId) { status } }`
+const APPROVE = `mutation Approve($requirementId: ID!, $note: String) { approveRequirement(requirementId: $requirementId, note: $note) { status } }`
+const REJECT = `mutation Reject($requirementId: ID!, $note: String!) { rejectRequirement(requirementId: $requirementId, note: $note) { status } }`
 const CREATE_SECTION = `
   mutation CreateSection($input: CreateRequirementSectionInput!) {
     createRequirementSection(input: $input) { id }
@@ -177,6 +182,22 @@ export default function RequirementEditorPage() {
     }
   }
 
+  const runApproval = async (doc: string, vars: any) => {
+    try {
+      await gql(doc, vars)
+      await load()
+    } catch (err: any) {
+      alert(err.message || 'Action failed')
+    }
+  }
+  const submitReview = () => runApproval(SUBMIT_REVIEW, { requirementId })
+  const approve = () => runApproval(APPROVE, { requirementId, note: prompt('Approval note (optional):') || null })
+  const reject = () => {
+    const note = prompt('Rejection reason (required):')
+    if (!note || !note.trim()) return
+    runApproval(REJECT, { requirementId, note })
+  }
+
   if (forbidden) {
     return (
       <div className="max-w-3xl mx-auto p-8 text-center">
@@ -202,9 +223,43 @@ export default function RequirementEditorPage() {
         <span className={`text-xs px-2 py-0.5 rounded-full ${statusStyle.className}`}>{statusStyle.label}</span>
       </div>
       <h1 className="text-2xl font-semibold text-gray-900 mb-1">{requirement.title}</h1>
-      <p className="text-xs text-gray-400 mb-6">
-        Created by {requirement.createdByUser?.name || requirement.requirementId} · updated {formatDateTimeIST(requirement.updatedAt)}
+      <p className="text-xs text-gray-400 mb-4">
+        Created by {requirement.createdByUser?.name || requirement.requirementId}
+        {requirement.reviewerUser?.name ? ` · reviewer ${requirement.reviewerUser.name}` : ''}
+        {' · updated '}{formatDateTimeIST(requirement.updatedAt)}
       </p>
+
+      {/* Approval panel */}
+      <div className="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium text-gray-700">Review:</span>
+          {(requirement.status === 'Draft' || requirement.status === 'Rejected') && (
+            <button onClick={submitReview} className="px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">
+              Submit for review
+            </button>
+          )}
+          {requirement.status === 'In Review' && (
+            <>
+              <button onClick={approve} className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700">Approve</button>
+              <button onClick={reject} className="px-3 py-1.5 bg-rose-600 text-white rounded text-sm hover:bg-rose-700">Reject</button>
+            </>
+          )}
+          <span className="text-xs text-gray-500 ml-auto">Current status: {statusStyle.label}</span>
+        </div>
+        {requirement.approvals?.length > 0 && (
+          <div className="mt-3 space-y-1.5 border-t border-gray-200 pt-3">
+            {requirement.approvals.map((a: any) => (
+              <div key={a.id} className="text-xs text-gray-600 flex items-center gap-2">
+                <span className={a.decision === 'Approved' ? 'text-green-700' : 'text-rose-700'}>{a.decision}</span>
+                <span>by {a.approverName}</span>
+                {a.note && <span className="text-gray-400 truncate">— {a.note}</span>}
+                {a.isCurrent && <span className="text-indigo-600">(current)</span>}
+                <span className="ml-auto text-gray-400">{formatDateTimeIST(a.createdAt)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="space-y-6">
         {sections.map((s) => (

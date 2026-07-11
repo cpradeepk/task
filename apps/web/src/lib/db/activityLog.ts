@@ -8,7 +8,7 @@ import { query, withRetry, withTimeout, execute } from './config'
  */
 export interface ActivityLog {
   id: number
-  entityType: 'task' | 'bug' | 'leave' | 'wfh'
+  entityType: 'task' | 'bug' | 'leave' | 'wfh' | 'requirement'
   entityId: string
   userId: string
   userName?: string // Populated via JOIN with users table
@@ -26,7 +26,7 @@ export interface ActivityLog {
  * Input for creating a new activity log entry
  */
 export interface CreateActivityLogInput {
-  entityType: 'task' | 'bug' | 'leave' | 'wfh'
+  entityType: 'task' | 'bug' | 'leave' | 'wfh' | 'requirement'
   entityId: string
   userId: string
   actionType: string
@@ -178,7 +178,7 @@ export async function getActivityLogById(id: number): Promise<ActivityLog | null
  * const timeline = await getActivityLogByEntity('task', 'JSR-001', 'desc')
  */
 export async function getActivityLogByEntity(
-  entityType: 'task' | 'bug' | 'leave' | 'wfh',
+  entityType: 'task' | 'bug' | 'leave' | 'wfh' | 'requirement',
   entityId: string,
   sortOrder: 'asc' | 'desc' = 'desc'
 ): Promise<ActivityLog[]> {
@@ -242,7 +242,7 @@ export async function getActivityLogByEntity(
  * @returns Array of comment entries
  */
 export async function getCommentsByEntity(
-  entityType: 'task' | 'bug' | 'leave' | 'wfh',
+  entityType: 'task' | 'bug' | 'leave' | 'wfh' | 'requirement',
   entityId: string,
   sortOrder: 'asc' | 'desc' = 'desc'
 ): Promise<ActivityLog[]> {
@@ -296,7 +296,7 @@ export async function getCommentsByEntity(
  * @returns Array of system activity entries
  */
 export async function getSystemActivitiesByEntity(
-  entityType: 'task' | 'bug' | 'leave' | 'wfh',
+  entityType: 'task' | 'bug' | 'leave' | 'wfh' | 'requirement',
   entityId: string,
   sortOrder: 'asc' | 'desc' = 'desc'
 ): Promise<ActivityLog[]> {
@@ -389,7 +389,7 @@ export async function deleteActivityLog(id: number, userId: string): Promise<boo
  * @returns Array of prompt entries
  */
 export async function getPromptsByEntity(
-  entityType: 'task' | 'bug' | 'leave' | 'wfh',
+  entityType: 'task' | 'bug' | 'leave' | 'wfh' | 'requirement',
   entityId: string,
   sortOrder: 'asc' | 'desc' = 'desc'
 ): Promise<ActivityLog[]> {
@@ -442,7 +442,7 @@ export async function getPromptsByEntity(
  * @param fieldLabel - Human-readable field name (optional)
  */
 export async function logFieldChange(
-  entityType: 'task' | 'bug' | 'leave' | 'wfh',
+  entityType: 'task' | 'bug' | 'leave' | 'wfh' | 'requirement',
   entityId: string,
   userId: string,
   fieldName: string,
@@ -487,7 +487,7 @@ export async function logFieldChange(
  * })
  */
 export async function logEntityChanges(
-  entityType: 'task' | 'bug' | 'leave' | 'wfh',
+  entityType: 'task' | 'bug' | 'leave' | 'wfh' | 'requirement',
   entityId: string,
   userId: string,
   oldEntity: Record<string, any>,
