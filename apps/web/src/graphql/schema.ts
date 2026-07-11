@@ -718,5 +718,90 @@ export const typeDefs = `#graphql
     signOutTime: String!
     reason: String
   }
+
+  # ── Requirements module (Phase 1) ──────────────────────────────────────────
+  type Requirement {
+    id: ID!
+    requirementId: String!
+    projectId: String!
+    subprojectId: String
+    title: String!
+    status: String!
+    createdBy: String!
+    reviewerId: String
+    currentApprovalId: Int
+    createdAt: String!
+    updatedAt: String!
+    sections: [RequirementSection!]!
+    createdByUser: User
+    reviewerUser: User
+  }
+
+  type RequirementSection {
+    id: ID!
+    requirementId: String!
+    heading: String!
+    label: String!
+    contentHtml: String!
+    displayOrder: Int!
+    lockVersion: Int!
+    updatedAt: String!
+    revisionCount: Int!
+  }
+
+  type RequirementSectionRevision {
+    id: ID!
+    sectionId: Int!
+    editorId: String!
+    editorName: String!
+    heading: String!
+    label: String!
+    contentHtml: String!
+    contentHash: String!
+    createdAt: String!
+  }
+
+  input CreateRequirementInput {
+    projectId: String!
+    subprojectId: String
+    title: String!
+    reviewerId: String
+  }
+
+  input UpdateRequirementInput {
+    title: String
+    reviewerId: String
+  }
+
+  input CreateRequirementSectionInput {
+    requirementId: String!
+    heading: String!
+    label: String!
+    contentHtml: String!
+  }
+
+  input UpdateRequirementSectionInput {
+    heading: String!
+    label: String!
+    contentHtml: String!
+    lockVersion: Int!
+  }
+
+  extend type Query {
+    requirements(projectId: String!, includeSubprojects: Boolean, status: String, search: String): [Requirement!]!
+    requirement(requirementId: ID!): Requirement
+    requirementSectionRevisions(sectionId: ID!): [RequirementSectionRevision!]!
+  }
+
+  extend type Mutation {
+    createRequirement(input: CreateRequirementInput!): Requirement!
+    updateRequirement(requirementId: ID!, input: UpdateRequirementInput!): Requirement!
+    deleteRequirement(requirementId: ID!): Boolean!
+    createRequirementSection(input: CreateRequirementSectionInput!): RequirementSection!
+    updateRequirementSection(sectionId: ID!, input: UpdateRequirementSectionInput!): RequirementSection!
+    deleteRequirementSection(sectionId: ID!): Boolean!
+    reorderRequirementSections(requirementId: ID!, sectionIds: [ID!]!): Boolean!
+    restoreRequirementSectionRevision(sectionId: ID!, revisionId: ID!): RequirementSection!
+  }
 `
 

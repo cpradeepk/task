@@ -1,0 +1,163 @@
+'use client'
+
+/**
+ * Requirements list for a project (or subproject — a subproject is a projects row).
+ * Mirrors the credentials sub-page: client page, GraphQL data, 401→/, 403→forbidden.
+ */
+
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { getRequirementStatusStyle } from '@/lib/statusColors'
+import { formatDateTimeIST } from '@/lib/datetime-utils'
+import { Plus, ArrowLeft } from 'lucide-react'
+
+async function gql(query: string, variables: any) {
+  const res = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+  })
+  const result = await res.json()
+  if (result.errors) throw new Error(result.errors[0]?.message || 'Request failed')
+  return result.data
+}
+
+const GET_REQUIREMENTS = `
+  query GetRequirements($projectId: String!, $includeSubprojects: Boolean) {
+    requirements(projectId: $projectId, includeSubprojects: $includeSubprojects) {
+      requirementId title status subprojectId reviewerId updatedAt
+      sections { id }
+    }
+  }
+`
+
+const CREATE_REQUIREMENT = `
+  mutation CreateRequirement($input: CreateRequirementInput!) {
+    createRequirement(input: $input) { requirementId }
+  }
+`
+
+interface RequirementRow {
+  requirementId: string
+  title: string
+  status: string
+  subprojectId?: string
+  reviewerId?: string
+  updatedAt: string
+  sections: { id: string }[]
+}
+
+export default function RequirementsListPage() {
+  const router = useRouter()
+  const params = useParams()
+  const projectId = String(params.projectId)
+
+  const [requirements, setRequirements] = useState<RequirementRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [forbidden, setForbidden] = useState(false)
+  const [includeSubprojects, setIncludeSubprojects] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [creating, setCreating] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await gql(GET_REQUIREMENTS, { projectId, includeSubprojects })
+      setRequirements(data.requirements || [])
+      setForbidden(false)
+    } catch (err: any) {
+      if (/UNAUTHENTICATED/i.test(err.message)) { router.push('/'); return }
+      if (/FORBIDDEN/i.test(err.message)) { setForbidden(true); return }
+      console.error('Failed to load requirements:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [projectId, includeSubprojects, router])
+
+  useEffect(() => { load() }, [load])
+
+  const handleCreate = async () => {
+    if (!newTitle.trim()) return
+    setCreating(true)
+    try {
+      const data = await gql(CREATE_REQUIREMENT, { input: { projectId, title: newTitle.trim() } })
+      setNewTitle('')
+      router.push(`/projects/${projectId}/requirements/${data.createRequirement.requirementId}`)
+    } catch (err: any) {
+      alert(err.message || 'Failed to create requirement')
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  if (forbidden) {
+    return (
+      <div className="max-w-3xl mx-auto p-8 text-center">
+        <p className="text-gray-600">You don&apos;t have access to this project&apos;s requirements.</p>
+        <button onClick={() => router.push(`/projects/${projectId}`)} className="mt-4 text-indigo-600 hover:underline">
+          Back to project
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => router.push(`/projects/${projectId}`)} className="text-gray-500 hover:text-gray-800">
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-2xl font-semibold text-gray-900">Requirements</h1>
+        <label className="ml-auto flex items-center gap-2 text-sm text-gray-600">
+          <input type="checkbox" checked={includeSubprojects} onChange={(e) => setIncludeSubprojects(e.target.checked)} />
+          Include subprojects
+        </label>
+      </div>
+
+      <div className="flex gap-2 mb-6">
+        <input
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
+          placeholder="New requirement title…"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+        />
+        <button
+          onClick={handleCreate}
+          disabled={creating || !newTitle.trim()}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
+        >
+          <Plus size={16} /> Add
+        </button>
+      </div>
+
+      {loading ? (
+        <p className="text-gray-500">Loading…</p>
+      ) : requirements.length === 0 ? (
+        <p className="text-gray-500">No requirements yet. Add one above.</p>
+      ) : (
+        <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
+          {requirements.map((r) => {
+            const s = getRequirementStatusStyle(r.status)
+            return (
+              <button
+                key={r.requirementId}
+                onClick={() => router.push(`/projects/${projectId}/requirements/${r.requirementId}`)}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left"
+              >
+                <span className="font-mono text-xs text-gray-400">{r.requirementId}</span>
+                <span className="flex-1 text-sm text-gray-800 truncate">{r.title}</span>
+                {r.subprojectId && (
+                  <span className="text-xs text-gray-400">{r.subprojectId}</span>
+                )}
+                <span className="text-xs text-gray-400">{r.sections.length} section(s)</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${s.className}`}>{s.label}</span>
+                <span className="text-xs text-gray-400 w-32 text-right">{formatDateTimeIST(r.updatedAt)}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}

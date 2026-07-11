@@ -129,6 +129,39 @@ export function generateSequentialBugId(lastBugId?: string): string {
 }
 
 /**
+ * Generate the next sequential requirement id (REQ-0001), mirroring
+ * generateSequentialBugId including the 9999 → A001 rollover.
+ */
+export function generateSequentialRequirementId(lastRequirementId?: string): string {
+  if (!lastRequirementId) {
+    return 'REQ-0001'
+  }
+
+  const idPart = lastRequirementId.replace(/^REQ-/, '')
+  const numericValue = parseInt(idPart, 10)
+
+  if (!isNaN(numericValue)) {
+    const nextNumber = numericValue + 1
+    if (nextNumber > 9999) {
+      return 'REQ-A001'
+    }
+    return `REQ-${nextNumber.toString().padStart(4, '0')}`
+  }
+
+  const match = idPart.match(/^([A-Z]+)(\d+)$/)
+  if (match) {
+    const prefix = match[1]
+    const nextNumber = parseInt(match[2], 10) + 1
+    if (nextNumber > 999) {
+      return `REQ-${incrementAlphaPrefix(prefix)}001`
+    }
+    return `REQ-${prefix}${nextNumber.toString().padStart(3, '0')}`
+  }
+
+  return `REQ-${(parseInt(idPart) + 1).toString().padStart(4, '0')}`
+}
+
+/**
  * Helper function to increment alphabetic prefix (A → B, Z → AA, AZ → BA, etc.)
  */
 function incrementAlphaPrefix(prefix: string): string {

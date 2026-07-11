@@ -11,6 +11,7 @@ import {
 import { mentionQueries, mentionMutations, mentionFieldResolvers } from './mention-resolvers'
 import { notificationQueries, notificationMutations, FeedNotificationFieldResolvers, createNotificationLoader } from './notification-resolvers'
 import { pushTokenMutations } from './push-token-resolvers'
+import { requirementQueries, requirementMutations, requirementFieldResolvers } from './requirement-resolvers'
 import { parseMentions, storeMentions } from '@/lib/mention-parser'
 import { createCommentNotification, createReactionNotification, createPostStatusNotification } from '@/lib/notification-helper'
 import { format, differenceInMinutes, startOfMonth, endOfMonth, startOfDay, endOfDay, addMinutes } from 'date-fns'
@@ -1258,7 +1259,10 @@ export const resolvers = {
     ...mentionQueries,
 
     // Notification Queries
-    ...notificationQueries
+    ...notificationQueries,
+
+    // Requirement Queries
+    ...requirementQueries
   },
 
   // Field resolvers for User
@@ -3133,6 +3137,9 @@ export const resolvers = {
     // Push Token Mutations
     ...pushTokenMutations,
 
+    // Requirement Mutations
+    ...requirementMutations,
+
     // Attendance Mutations
     signIn: async (_: any, __: any, context: any) => {
       const { user, req } = context
@@ -3537,6 +3544,9 @@ export const resolvers = {
   ...mentionFieldResolvers,
 
   // Notification Field Resolvers
-  FeedNotification: FeedNotificationFieldResolvers
+  FeedNotification: FeedNotificationFieldResolvers,
+
+  // Requirement Field Resolvers
+  ...requirementFieldResolvers
 }
 
