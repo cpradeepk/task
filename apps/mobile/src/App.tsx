@@ -34,6 +34,8 @@ import YourWorkScreen from './screens/YourWorkScreen'
 import TeamTasksScreen from './screens/TeamTasksScreen'
 import ProjectsScreen from './screens/ProjectsScreen'
 import ProjectDetailsScreen from './screens/ProjectDetailsScreen'
+import RequirementsListScreen from './screens/RequirementsListScreen'
+import RequirementDetailScreen from './screens/RequirementDetailScreen'
 import UsersScreen from './screens/UsersScreen'
 import FeedTopicsScreen from './screens/FeedTopicsScreen'
 import DeletedItemsScreen from './screens/DeletedItemsScreen'
@@ -1235,6 +1237,20 @@ function AppContent() {
                       component={ProjectDetailsScreen}
                       options={{
                         headerTitle: 'Project Details',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="RequirementsList"
+                      component={RequirementsListScreen}
+                      options={{
+                        headerTitle: 'Requirements',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="RequirementDetails"
+                      component={RequirementDetailScreen}
+                      options={{
+                        headerTitle: 'Requirement',
                       }}
                     />
                     <Stack.Screen

@@ -508,6 +508,26 @@ export default function ProjectDetailsScreen() {
           </Card.Content>
         </Card>
 
+        {/* Requirements Module entry */}
+        <Card style={styles.sectionCard}>
+          <TouchableOpacity
+            style={styles.navRow}
+            onPress={() =>
+              navigation.navigate('RequirementsList', {
+                projectId: project.projectId,
+                projectName: project.projectName,
+              })
+            }
+          >
+            <IconButton icon="file-document-outline" iconColor={colors.primary} size={24} style={{ margin: 0 }} />
+            <View style={styles.navRowText}>
+              <Text style={styles.navRowTitle}>Requirements</Text>
+              <Text style={styles.navRowSubtitle}>Author, review, freeze &amp; version requirement documents</Text>
+            </View>
+            <IconButton icon="chevron-right" size={22} style={{ margin: 0 }} />
+          </TouchableOpacity>
+        </Card>
+
         {/* Subprojects Section */}
         {!project.parentProjectId ? (
           <Card style={styles.sectionCard}>
@@ -765,6 +785,26 @@ const getStyles = (colors: any, responsive: any) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: materialSpacing.sm,
+  },
+  navRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: materialSpacing.sm,
+    paddingHorizontal: materialSpacing.md,
+  },
+  navRowText: {
+    flex: 1,
+    marginLeft: materialSpacing.xs,
+  },
+  navRowTitle: {
+    ...materialTypography.titleMedium,
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  navRowSubtitle: {
+    ...materialTypography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   sectionCardTitle: {
     ...materialTypography.titleMedium,
