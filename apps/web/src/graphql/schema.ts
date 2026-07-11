@@ -734,8 +734,23 @@ export const typeDefs = `#graphql
     updatedAt: String!
     sections: [RequirementSection!]!
     approvals: [RequirementApproval!]!
+    devLinks: [RequirementDevLink!]!
     createdByUser: User
     reviewerUser: User
+  }
+
+  type RequirementDevLink {
+    id: ID!
+    requirementId: String!
+    devId: String!
+    relationshipType: String!
+    devStatus: String
+    devTitle: String
+    createdAt: String!
+  }
+
+  input CreateDevItemFromRequirementInput {
+    assignedTo: String
   }
 
   type RequirementApproval {
@@ -835,6 +850,7 @@ export const typeDefs = `#graphql
     updateRequirementStatus(requirementId: ID!, status: String!): Requirement!
     createRequirementBaseline(projectId: String!, versionLabel: String, releaseNote: String): RequirementBaseline!
     rollbackRequirementToVersion(requirementId: ID!, baselineId: ID!): Requirement!
+    createDevItemFromRequirement(requirementId: ID!, input: CreateDevItemFromRequirementInput): Bug!
   }
 `
 

@@ -1,8 +1,9 @@
 // GraphQL resolvers for the Requirements module (Phase 1: CRUD + sections + history).
 // Merged into resolvers.ts like notification-resolvers.
 import * as reqDb from '@/lib/db/requirements'
-import { generateSequentialRequirementId } from '@/lib/data'
+import { generateSequentialRequirementId, generateSequentialBugId } from '@/lib/data'
 import { isUserAssignedToProject } from '@/lib/db/project-users'
+import { createBug, getLatestBugId } from '@/lib/db/bugs'
 import { createActivityLog } from '@/lib/db/activityLog'
 import { createNotification } from '@/lib/notification-helper'
 
@@ -321,6 +322,66 @@ export const requirementMutations = {
     })
   },
 
+  // Create a DEV feature (bugs.type='feature') from an approved requirement,
+  // pre-filled from its sections, scoped to the same project/subproject, linked
+  // both ways; the requirement auto-advances to Implemented.
+  createDevItemFromRequirement: async (_: any, { requirementId, input }: any, context: any) => {
+    const req = await reqDb.getRequirementById(requirementId)
+    if (!req) throw new Error('Requirement not found')
+    const user = await requireProjectMember(context, req.projectId)
+    if (req.status !== 'Approved') {
+      throw new Error('FORBIDDEN: DEV items can only be created from an approved requirement.')
+    }
+    const sections = await reqDb.getSections(requirementId)
+    const description = sections.map((s) => `<h3>${s.heading}</h3>${s.contentHtml}`).join('\n') ||
+      `<p>Implements requirement ${req.requirementId}</p>`
+
+    let bug: any = null
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      const latest = await getLatestBugId()
+      const bugId = generateSequentialBugId(latest)
+      try {
+        bug = await createBug({
+          bugId, title: req.title, description,
+          severity: 'Minor', priority: 'Low', status: 'Open', category: 'Other',
+          platform: 'Web', environment: 'Production',
+          assignedTo: input?.assignedTo || undefined, assignedBy: user.employeeId, reportedBy: user.employeeId,
+          reopenedCount: 0, type: 'feature',
+          projectId: req.projectId, subprojectId: req.subprojectId || undefined,
+        } as any)
+        break
+      } catch (err: any) {
+        const dup = err?.code === '23505' || /duplicate key|unique constraint/i.test(err?.message || '')
+        if (dup && attempt < 5) continue
+        throw err
+      }
+    }
+    if (!bug) throw new Error('Failed to create DEV item')
+
+    await reqDb.insertDevLink(requirementId, bug.bugId, 'implements', user.employeeId)
+    await reqDb.setRequirementStatus(requirementId, 'Implemented', req.currentApprovalId ?? null)
+    await createActivityLog({
+      entityType: 'requirement', entityId: requirementId, userId: user.employeeId,
+      actionType: 'dev_item_created', newValue: bug.bugId,
+      description: `Created DEV item ${bug.bugId} from requirement`, isComment: false,
+    }).catch(() => {})
+    if (input?.assignedTo && input.assignedTo !== user.employeeId) {
+      await createNotification({
+        userId: input.assignedTo, actorId: user.employeeId, notificationType: 'bug_assigned', bugId: bug.bugId,
+        title: 'DEV item assigned', message: `${bug.bugId} (${req.title}) was assigned to you.`,
+        linkUrl: `/bugs/${bug.bugId}`, metadata: { requirementId },
+      }).catch(() => {})
+    }
+    if (req.createdBy !== user.employeeId) {
+      await createNotification({
+        userId: req.createdBy, actorId: user.employeeId, notificationType: 'requirement_dev_item_created',
+        title: 'DEV item created', message: `${bug.bugId} was created from your requirement ${req.requirementId}.`,
+        linkUrl: requirementLink(requirementId, req.projectId), metadata: { requirementId, bugId: bug.bugId },
+      }).catch(() => {})
+    }
+    return bug
+  },
+
   // Roll ONE requirement's working copy back to its content in a chosen version.
   // Creates new revisions and sends the requirement back into review (FR-5).
   rollbackRequirementToVersion: async (_: any, { requirementId, baselineId }: any, context: any) => {
@@ -345,6 +406,7 @@ export const requirementFieldResolvers = {
       const list = await reqDb.getApprovals(r.requirementId)
       return list.map((a) => ({ ...a, isCurrent: a.id === r.currentApprovalId }))
     },
+    devLinks: (r: any) => reqDb.getDevLinks(r.requirementId),
     createdByUser: (r: any, _: any, { loaders }: any) =>
       r.createdBy ? loaders.user.load(r.createdBy) : null,
     reviewerUser: (r: any, _: any, { loaders }: any) =>

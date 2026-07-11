@@ -34,9 +34,11 @@ const GET_REQUIREMENT = `
       reviewerUser { name }
       sections { id heading label contentHtml displayOrder lockVersion revisionCount }
       approvals { id approverName decision note isCurrent createdAt }
+      devLinks { id devId relationshipType devStatus devTitle }
     }
   }
 `
+const CREATE_DEV = `mutation CreateDev($requirementId: ID!) { createDevItemFromRequirement(requirementId: $requirementId) { bugId } }`
 const SUBMIT_REVIEW = `mutation Submit($requirementId: ID!) { submitRequirementForReview(requirementId: $requirementId) { status } }`
 const APPROVE = `mutation Approve($requirementId: ID!, $note: String) { approveRequirement(requirementId: $requirementId, note: $note) { status } }`
 const REJECT = `mutation Reject($requirementId: ID!, $note: String!) { rejectRequirement(requirementId: $requirementId, note: $note) { status } }`
@@ -128,6 +130,18 @@ export default function RequirementEditorPage() {
       await load()
     } catch (err: any) {
       alert(err.message || 'Rollback failed')
+    }
+  }
+
+  const createDevItem = async () => {
+    if (!confirm('Create a DEV feature from this requirement? It will advance to Implemented.')) return
+    try {
+      const data = await gql(CREATE_DEV, { requirementId })
+      const bugId = data.createDevItemFromRequirement.bugId
+      await load()
+      if (confirm(`Created ${bugId}. Open it now?`)) router.push(`/bugs/${bugId}`)
+    } catch (err: any) {
+      alert(err.message || 'Failed to create DEV item')
     }
   }
 
@@ -262,8 +276,29 @@ export default function RequirementEditorPage() {
               <button onClick={reject} className="px-3 py-1.5 bg-rose-600 text-white rounded text-sm hover:bg-rose-700">Reject</button>
             </>
           )}
+          {requirement.status === 'Approved' && (
+            <button onClick={createDevItem} className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">
+              Create DEV feature
+            </button>
+          )}
           <span className="text-xs text-gray-500 ml-auto">Current status: {statusStyle.label}</span>
         </div>
+        {requirement.devLinks?.length > 0 && (
+          <div className="mt-3 pt-2 border-t border-gray-200">
+            <p className="text-xs font-medium text-gray-500 mb-1">Linked DEV items</p>
+            {requirement.devLinks.map((l: any) => (
+              <button
+                key={l.id}
+                onClick={() => router.push(`/bugs/${l.devId}`)}
+                className="flex items-center gap-2 text-xs text-gray-600 hover:text-indigo-600 w-full text-left py-0.5"
+              >
+                <span className="font-mono text-gray-400">{l.devId}</span>
+                <span className="truncate">{l.devTitle}</span>
+                <span className="ml-auto text-gray-400">{l.devStatus || 'deleted'}</span>
+              </button>
+            ))}
+          </div>
+        )}
         {baselines.length > 0 && (
           <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
             <span className="text-xs text-gray-500">Roll back this requirement to:</span>
