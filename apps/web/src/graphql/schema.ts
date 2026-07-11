@@ -774,6 +774,18 @@ export const typeDefs = `#graphql
     createdAt: String!
   }
 
+  type RequirementBaseline {
+    id: ID!
+    projectId: String!
+    versionLabel: String!
+    releaseNote: String
+    docContentHash: String!
+    frozenBy: String!
+    frozenByName: String!
+    createdAt: String!
+    snapshotJson: String!
+  }
+
   input CreateRequirementInput {
     projectId: String!
     subprojectId: String
@@ -804,6 +816,8 @@ export const typeDefs = `#graphql
     requirements(projectId: String!, includeSubprojects: Boolean, status: String, search: String): [Requirement!]!
     requirement(requirementId: ID!): Requirement
     requirementSectionRevisions(sectionId: ID!): [RequirementSectionRevision!]!
+    requirementBaselines(projectId: String!): [RequirementBaseline!]!
+    requirementBaseline(id: ID!): RequirementBaseline
   }
 
   extend type Mutation {
@@ -819,6 +833,8 @@ export const typeDefs = `#graphql
     approveRequirement(requirementId: ID!, note: String): Requirement!
     rejectRequirement(requirementId: ID!, note: String!): Requirement!
     updateRequirementStatus(requirementId: ID!, status: String!): Requirement!
+    createRequirementBaseline(projectId: String!, versionLabel: String, releaseNote: String): RequirementBaseline!
+    rollbackRequirementToVersion(requirementId: ID!, baselineId: ID!): Requirement!
   }
 `
 

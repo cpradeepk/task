@@ -86,6 +86,18 @@ export const requirementQueries = {
     if (req) await requireProjectMember(context, req.projectId)
     return reqDb.getSectionRevisions(Number(sectionId))
   },
+
+  requirementBaselines: async (_: any, { projectId }: any, context: any) => {
+    await requireProjectMember(context, projectId)
+    return reqDb.getBaselines(projectId)
+  },
+
+  requirementBaseline: async (_: any, { id }: any, context: any) => {
+    const b = await reqDb.getBaselineById(Number(id))
+    if (!b) return null
+    await requireProjectMember(context, b.projectId)
+    return b
+  },
 }
 
 export const requirementMutations = {
@@ -298,6 +310,31 @@ export const requirementMutations = {
     }).catch(() => {})
     return reqDb.getRequirementById(requirementId)
   },
+
+  // Freeze the whole project's requirements doc to a new version (bulk-approves
+  // stragglers per user decision). Any project member may freeze.
+  createRequirementBaseline: async (_: any, { projectId, versionLabel, releaseNote }: any, context: any) => {
+    const user = await requireProjectMember(context, projectId)
+    return reqDb.createBaseline({
+      projectId, versionLabel: versionLabel || undefined, releaseNote: releaseNote || undefined,
+      frozenBy: user.employeeId, frozenByName: user.name,
+    })
+  },
+
+  // Roll ONE requirement's working copy back to its content in a chosen version.
+  // Creates new revisions and sends the requirement back into review (FR-5).
+  rollbackRequirementToVersion: async (_: any, { requirementId, baselineId }: any, context: any) => {
+    const req = await reqDb.getRequirementById(requirementId)
+    if (!req) throw new Error('Requirement not found')
+    const user = await requireProjectMember(context, req.projectId)
+    await reqDb.rollbackRequirementToBaseline(requirementId, Number(baselineId), user.employeeId, user.name)
+    await createActivityLog({
+      entityType: 'requirement', entityId: requirementId, userId: user.employeeId,
+      actionType: 'rolled_back', description: `Rolled back to a previous version by ${user.name}`, isComment: false,
+    }).catch(() => {})
+    await handlePostEditReReview(req, user)
+    return reqDb.getRequirementById(requirementId)
+  },
 }
 
 export const requirementFieldResolvers = {
@@ -315,5 +352,9 @@ export const requirementFieldResolvers = {
   },
   RequirementSection: {
     revisionCount: (s: any) => reqDb.getRevisionCount(s.id),
+  },
+  RequirementBaseline: {
+    // Expose the frozen doc snapshot as a JSON string; the client parses it.
+    snapshotJson: (b: any) => JSON.stringify(b.snapshot ?? []),
   },
 }

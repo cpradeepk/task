@@ -65,6 +65,8 @@ const RESTORE_REVISION = `
     restoreRequirementSectionRevision(sectionId: $sectionId, revisionId: $revisionId) { id }
   }
 `
+const GET_BASELINES = `query GetBaselines($projectId: String!) { requirementBaselines(projectId: $projectId) { id versionLabel createdAt } }`
+const ROLLBACK = `mutation Rollback($requirementId: ID!, $baselineId: ID!) { rollbackRequirementToVersion(requirementId: $requirementId, baselineId: $baselineId) { status } }`
 
 interface Section {
   id: string
@@ -91,6 +93,7 @@ export default function RequirementEditorPage() {
   const [historyFor, setHistoryFor] = useState<string | null>(null)
   const [revisions, setRevisions] = useState<any[]>([])
   const [adding, setAdding] = useState(false)
+  const [baselines, setBaselines] = useState<any[]>([])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -112,6 +115,21 @@ export default function RequirementEditorPage() {
   }, [requirementId, router])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    gql(GET_BASELINES, { projectId }).then((d) => setBaselines(d.requirementBaselines || [])).catch(() => {})
+  }, [projectId])
+
+  const rollback = async (baselineId: string) => {
+    if (!baselineId) return
+    if (!confirm('Roll this requirement back to that version? It will re-enter review.')) return
+    try {
+      await gql(ROLLBACK, { requirementId, baselineId })
+      await load()
+    } catch (err: any) {
+      alert(err.message || 'Rollback failed')
+    }
+  }
 
   const patchDraft = (id: string, patch: Partial<Section>) =>
     setDrafts((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }))
@@ -246,6 +264,19 @@ export default function RequirementEditorPage() {
           )}
           <span className="text-xs text-gray-500 ml-auto">Current status: {statusStyle.label}</span>
         </div>
+        {baselines.length > 0 && (
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+            <span className="text-xs text-gray-500">Roll back this requirement to:</span>
+            <select
+              defaultValue=""
+              onChange={(e) => { rollback(e.target.value); e.target.value = '' }}
+              className="px-2 py-1 border border-gray-300 rounded text-xs"
+            >
+              <option value="">Choose a version…</option>
+              {baselines.map((b) => <option key={b.id} value={b.id}>v{b.versionLabel}</option>)}
+            </select>
+          </div>
+        )}
         {requirement.approvals?.length > 0 && (
           <div className="mt-3 space-y-1.5 border-t border-gray-200 pt-3">
             {requirement.approvals.map((a: any) => (

@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import DOMPurify from 'dompurify'
 import { getRequirementStatusStyle } from '@/lib/statusColors'
 import { formatDateTimeIST } from '@/lib/datetime-utils'
 import { Plus, ArrowLeft } from 'lucide-react'
@@ -36,6 +37,18 @@ const CREATE_REQUIREMENT = `
     createRequirement(input: $input) { requirementId }
   }
 `
+const GET_BASELINES = `
+  query GetBaselines($projectId: String!) {
+    requirementBaselines(projectId: $projectId) {
+      id versionLabel releaseNote frozenByName createdAt snapshotJson
+    }
+  }
+`
+const CREATE_BASELINE = `
+  mutation Freeze($projectId: String!, $versionLabel: String, $releaseNote: String) {
+    createRequirementBaseline(projectId: $projectId, versionLabel: $versionLabel, releaseNote: $releaseNote) { id versionLabel }
+  }
+`
 
 interface RequirementRow {
   requirementId: string
@@ -58,6 +71,16 @@ export default function RequirementsListPage() {
   const [includeSubprojects, setIncludeSubprojects] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [creating, setCreating] = useState(false)
+  const [baselines, setBaselines] = useState<any[]>([])
+  const [viewing, setViewing] = useState<any | null>(null)
+  const [freezing, setFreezing] = useState(false)
+
+  const loadBaselines = useCallback(async () => {
+    try {
+      const data = await gql(GET_BASELINES, { projectId })
+      setBaselines(data.requirementBaselines || [])
+    } catch { /* non-fatal */ }
+  }, [projectId])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -74,7 +97,29 @@ export default function RequirementsListPage() {
     }
   }, [projectId, includeSubprojects, router])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load(); loadBaselines() }, [load, loadBaselines])
+
+  const freeze = async () => {
+    const releaseNote = prompt('Release note for this version (what changed):')
+    if (releaseNote === null) return
+    const versionLabel = prompt('Version label (blank = auto minor bump, e.g. 1.0 → 1.1):') || undefined
+    setFreezing(true)
+    try {
+      const data = await gql(CREATE_BASELINE, { projectId, versionLabel, releaseNote: releaseNote || null })
+      alert(`Frozen as v${data.createRequirementBaseline.versionLabel}. Any unapproved requirements were approved as part of the freeze.`)
+      await load()
+      await loadBaselines()
+    } catch (err: any) {
+      alert(err.message || 'Failed to freeze')
+    } finally {
+      setFreezing(false)
+    }
+  }
+
+  const viewVersion = (b: any) => {
+    try { setViewing({ ...b, items: JSON.parse(b.snapshotJson || '[]') }) }
+    catch { setViewing({ ...b, items: [] }) }
+  }
 
   const handleCreate = async () => {
     if (!newTitle.trim()) return
@@ -112,6 +157,30 @@ export default function RequirementsListPage() {
           <input type="checkbox" checked={includeSubprojects} onChange={(e) => setIncludeSubprojects(e.target.checked)} />
           Include subprojects
         </label>
+      </div>
+
+      {/* Versioning: freeze + load a frozen version */}
+      <div className="flex items-center gap-2 mb-5 flex-wrap">
+        <button
+          onClick={freeze}
+          disabled={freezing}
+          className="px-3 py-1.5 bg-gray-800 text-white rounded-md text-sm hover:bg-gray-900 disabled:opacity-50"
+        >
+          {freezing ? 'Freezing…' : 'Freeze version'}
+        </button>
+        {baselines.length > 0 && (
+          <select
+            defaultValue=""
+            onChange={(e) => { const b = baselines.find((x) => String(x.id) === e.target.value); if (b) viewVersion(b) }}
+            className="px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+          >
+            <option value="">Load a frozen version…</option>
+            {baselines.map((b) => (
+              <option key={b.id} value={b.id}>v{b.versionLabel} · {formatDateTimeIST(b.createdAt)}</option>
+            ))}
+          </select>
+        )}
+        <span className="text-xs text-gray-400">{baselines.length} frozen version(s)</span>
       </div>
 
       <div className="flex gap-2 mb-6">
@@ -156,6 +225,42 @@ export default function RequirementsListPage() {
               </button>
             )
           })}
+        </div>
+      )}
+
+      {viewing && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={() => setViewing(null)}>
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[85vh] overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-lg font-semibold">Frozen version v{viewing.versionLabel}</h2>
+              <button onClick={() => setViewing(null)} className="text-gray-400 hover:text-gray-700">✕</button>
+            </div>
+            <p className="text-xs text-gray-400 mb-2">
+              Frozen by {viewing.frozenByName} · {formatDateTimeIST(viewing.createdAt)} · read-only
+            </p>
+            {viewing.releaseNote && (
+              <p className="text-sm text-gray-600 mb-4 bg-gray-50 border border-gray-200 rounded p-2">
+                <strong>Release note:</strong> {viewing.releaseNote}
+              </p>
+            )}
+            <div className="space-y-4">
+              {viewing.items.map((it: any) => (
+                <div key={it.requirementId} className="border border-gray-200 rounded p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-mono text-xs text-gray-400">{it.requirementId}</span>
+                    <span className="text-sm font-medium text-gray-800">{it.title}</span>
+                    <span className="ml-auto text-xs text-gray-400">{it.status}</span>
+                  </div>
+                  {(it.sections || []).map((s: any, i: number) => (
+                    <div key={i} className="mb-2">
+                      <p className="text-xs font-medium text-gray-500">{s.heading} · {s.label}</p>
+                      <div className="prose prose-sm max-w-none text-gray-600" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(s.contentHtml || '') }} />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
