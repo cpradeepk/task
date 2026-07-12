@@ -34,6 +34,13 @@ import {
   Table as TableIcon
 } from 'lucide-react'
 
+// Fallback filter options (same defaults as tasks/create) so the Status/Priority
+// dropdowns still render if the settings query fails or the keys are missing
+const FALLBACK_TASK_STATUSES = ['Open', 'In Progress', 'Delayed', 'On Hold', 'ReOpened', 'Cancelled', 'Completed']
+  .map(value => ({ value, icon: '' }))
+const FALLBACK_TASK_PRIORITIES = ['U&I', 'NU&I', 'NI&U', 'NU&NI']
+  .map(value => ({ value, icon: '' }))
+
 // Helper function to execute GraphQL queries
 async function executeGraphQLQuery(query: string, variables: any) {
   const response = await fetch('/api/graphql', {
@@ -71,7 +78,7 @@ function ProjectDisplay({ project }: { project?: { projectId: string; projectNam
 }
 
 export default function TasksPage() {
-  const { selectedProjectIds } = useProjectFilter()
+  const { selectedProjectIds, projects: masterProjects } = useProjectFilter()
   const [tasks, setTasks] = useState<Task[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -80,6 +87,8 @@ export default function TasksPage() {
   const [priorityFilter, setPriorityFilter] = useState<string[]>([])
   const [assigneeFilter, setAssigneeFilter] = useState<string[]>([])
   const [subprojectFilter, setSubprojectFilter] = useState('all') // NEW: Subproject filter
+  // Narrows the master multi-project selection to a single project ('all' = every selected project)
+  const [projectNarrowFilter, setProjectNarrowFilter] = useState('all')
   const [viewMode, setViewMode] = useState<'cards' | 'grid'>('cards')
 
   // Type for task statistics
@@ -114,13 +123,34 @@ export default function TasksPage() {
     taskStatuses: Array<{ value: string; icon: string }>;
     taskPriorities: Array<{ value: string; icon: string }>;
   }>({
-    taskStatuses: [],
-    taskPriorities: []
+    taskStatuses: FALLBACK_TASK_STATUSES,
+    taskPriorities: FALLBACK_TASK_PRIORITIES
   })
 
   const router = useRouter()
   const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
+
+  // Projects currently chosen in the master (navbar) selector, with names for the narrowing dropdown
+  const masterSelectedProjects = useMemo(
+    () => masterProjects.filter(project => selectedProjectIds.includes(project.projectId)),
+    [masterProjects, selectedProjectIds]
+  )
+
+  // Effective project scope: the narrowed project when one is chosen, otherwise all master-selected projects
+  const effectiveProjectIds = useMemo(
+    () => (projectNarrowFilter !== 'all' && selectedProjectIds.includes(projectNarrowFilter)
+      ? [projectNarrowFilter]
+      : selectedProjectIds),
+    [projectNarrowFilter, selectedProjectIds]
+  )
+
+  // Drop the narrowing when it no longer matches the master selection
+  useEffect(() => {
+    if (projectNarrowFilter !== 'all' && !selectedProjectIds.includes(projectNarrowFilter)) {
+      setProjectNarrowFilter('all')
+    }
+  }, [selectedProjectIds, projectNarrowFilter])
 
   // Handle hydration and load persisted filters
   useEffect(() => {
@@ -208,8 +238,8 @@ export default function TasksPage() {
           }
 
           setSettingsData({
-            taskStatuses,
-            taskPriorities
+            taskStatuses: taskStatuses.length > 0 ? taskStatuses : FALLBACK_TASK_STATUSES,
+            taskPriorities: taskPriorities.length > 0 ? taskPriorities : FALLBACK_TASK_PRIORITIES
           })
           console.log('✅ [Tasks] Settings loaded successfully via GraphQL')
         }
@@ -261,8 +291,8 @@ export default function TasksPage() {
       if (subprojectFilter && subprojectFilter !== 'all') {
         variables.subprojectId = subprojectFilter
       }
-      if (selectedProjectIds && selectedProjectIds.length > 0) {
-        variables.projectIds = selectedProjectIds
+      if (effectiveProjectIds.length > 0) {
+        variables.projectIds = effectiveProjectIds
       }
 
       // Try GraphQL first with pagination and filters
@@ -291,8 +321,8 @@ export default function TasksPage() {
         if (statusFilter.length > 0) params.append('status', statusFilter.join(','))
         if (priorityFilter.length > 0) params.append('priority', priorityFilter.join(','))
         if (subprojectFilter && subprojectFilter !== 'all') params.append('subprojectId', subprojectFilter)
-        if (selectedProjectIds && selectedProjectIds.length > 0) {
-          params.append('projectIds', selectedProjectIds.join(','))
+        if (effectiveProjectIds.length > 0) {
+          params.append('projectIds', effectiveProjectIds.join(','))
         }
 
         const response = await fetch(`/api/tasks?${params.toString()}`)
@@ -362,7 +392,7 @@ export default function TasksPage() {
       setIsLoading(false)
       setIsLoadingMore(false)
     }
-  }, [currentUser, offset, assigneeFilter, statusFilter, priorityFilter, subprojectFilter, selectedProjectIds, tasks, ITEMS_PER_PAGE])
+  }, [currentUser, offset, assigneeFilter, statusFilter, priorityFilter, subprojectFilter, effectiveProjectIds, tasks, ITEMS_PER_PAGE])
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -389,7 +419,7 @@ export default function TasksPage() {
 
     console.log('🔵 [Tasks] Filters changed, reloading tasks from beginning...')
     loadTasks(false, false) // Reset to first page
-  }, [statusFilter, priorityFilter, assigneeFilter, subprojectFilter, selectedProjectIds, initialized])
+  }, [statusFilter, priorityFilter, assigneeFilter, subprojectFilter, projectNarrowFilter, selectedProjectIds, initialized])
 
   // Intersection Observer for infinite scroll (trigger at 80% scroll)
   useEffect(() => {
@@ -459,23 +489,28 @@ export default function TasksPage() {
     }
   }, [])
 
-  // Load subprojects when exactly one global project is selected
+  // Load subprojects for the effective project scope (narrowed project or all selected projects)
   useEffect(() => {
-    if (selectedProjectIds.length === 1) {
-      const parentId = selectedProjectIds[0]
-      fetch(`/api/projects?parentId=${parentId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setSubprojects(data.filter((p: any) => p.parentProjectId === parentId))
-          }
-        })
-        .catch(error => console.error('Failed to load subprojects:', error))
-    } else {
+    if (effectiveProjectIds.length === 0) {
       setSubprojects([])
       setSubprojectFilter('all')
+      return
     }
-  }, [selectedProjectIds])
+    const parentIds = new Set(effectiveProjectIds)
+    fetch('/api/projects')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const scopedSubprojects = data.filter((p: any) => p.parentProjectId && parentIds.has(p.parentProjectId))
+          setSubprojects(scopedSubprojects)
+          // Reset the subproject filter if its value fell outside the new scope
+          setSubprojectFilter(prev =>
+            prev !== 'all' && !scopedSubprojects.some((sp: any) => sp.projectId === prev) ? 'all' : prev
+          )
+        }
+      })
+      .catch(error => console.error('Failed to load subprojects:', error))
+  }, [effectiveProjectIds])
 
   useEffect(() => {
     if (!isHydrated) return
@@ -816,12 +851,30 @@ export default function TasksPage() {
 
           {/* Unified Filter Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
+            {/* Project Filter - narrows the master multi-project selection to one project */}
+            {selectedProjectIds.length > 1 && (
+              <div className="w-full">
+                <select
+                  value={projectNarrowFilter}
+                  onChange={(e) => setProjectNarrowFilter(e.target.value)}
+                  className="w-full px-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                >
+                  <option value="all">All selected projects</option>
+                  {masterSelectedProjects.map(project => (
+                    <option key={project.projectId} value={project.projectId}>
+                      {project.projectName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Subproject Filter */}
             <div className="w-full">
               <select
                 value={subprojectFilter}
                 onChange={(e) => setSubprojectFilter(e.target.value)}
-                disabled={selectedProjectIds.length !== 1 || subprojects.length === 0}
+                disabled={subprojects.length === 0}
                 className="w-full px-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="all">All Subprojects</option>
@@ -882,6 +935,7 @@ export default function TasksPage() {
                   setPriorityFilter([])
                   setAssigneeFilter(currentUser?.employeeId ? [currentUser.employeeId] : [])
                   setSubprojectFilter('all')
+                  setProjectNarrowFilter('all')
                 }}
                 className="w-full px-4 h-[42px] border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium flex items-center justify-center whitespace-nowrap"
               >

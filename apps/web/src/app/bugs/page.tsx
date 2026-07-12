@@ -74,7 +74,7 @@ function ProjectDisplay({ project }: { project?: { projectId: string; projectNam
 }
 
 export default function BugsPage() {
-  const { selectedProjectIds } = useProjectFilter()
+  const { selectedProjectIds, projects: masterProjects } = useProjectFilter()
   const [bugs, setBugs] = useState<Bug[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -85,6 +85,8 @@ export default function BugsPage() {
   const [assigneeFilter, setAssigneeFilter] = useState<string[]>([])
   const [typeFilter, setTypeFilter] = useState<string[]>([]) // New: Bug type filter
   const [subprojectFilter, setSubprojectFilter] = useState('all') // NEW: Subproject filter
+  // Narrows the master multi-project selection to a single project ('all' = every selected project)
+  const [projectNarrowFilter, setProjectNarrowFilter] = useState('all')
   const [viewMode, setViewMode] = useState<'cards' | 'grid'>('cards')
 
   // Type for bug statistics
@@ -155,6 +157,27 @@ export default function BugsPage() {
   const router = useRouter()
   const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
+
+  // Projects currently chosen in the master (navbar) selector, with names for the narrowing dropdown
+  const masterSelectedProjects = useMemo(
+    () => masterProjects.filter(project => selectedProjectIds.includes(project.projectId)),
+    [masterProjects, selectedProjectIds]
+  )
+
+  // Effective project scope: the narrowed project when one is chosen, otherwise all master-selected projects
+  const effectiveProjectIds = useMemo(
+    () => (projectNarrowFilter !== 'all' && selectedProjectIds.includes(projectNarrowFilter)
+      ? [projectNarrowFilter]
+      : selectedProjectIds),
+    [projectNarrowFilter, selectedProjectIds]
+  )
+
+  // Drop the narrowing when it no longer matches the master selection
+  useEffect(() => {
+    if (projectNarrowFilter !== 'all' && !selectedProjectIds.includes(projectNarrowFilter)) {
+      setProjectNarrowFilter('all')
+    }
+  }, [selectedProjectIds, projectNarrowFilter])
 
   // Handle hydration and load persisted filters
   useEffect(() => {
@@ -349,8 +372,8 @@ export default function BugsPage() {
       if (subprojectFilter && subprojectFilter !== 'all') {
         variables.subprojectId = subprojectFilter
       }
-      if (selectedProjectIds && selectedProjectIds.length > 0) {
-        variables.projectIds = selectedProjectIds
+      if (effectiveProjectIds.length > 0) {
+        variables.projectIds = effectiveProjectIds
       }
 
       // Try GraphQL first with pagination and filters
@@ -381,8 +404,8 @@ export default function BugsPage() {
         if (categoryFilter.length > 0) params.append('category', categoryFilter.join(','))
         if (typeFilter.length > 0) params.append('type', typeFilter.join(','))
         if (subprojectFilter && subprojectFilter !== 'all') params.append('subprojectId', subprojectFilter)
-        if (selectedProjectIds && selectedProjectIds.length > 0) {
-          params.append('projectIds', selectedProjectIds.join(','))
+        if (effectiveProjectIds.length > 0) {
+          params.append('projectIds', effectiveProjectIds.join(','))
         }
 
         const response = await fetch(`/api/bugs?${params.toString()}`)
@@ -448,7 +471,7 @@ export default function BugsPage() {
       setIsLoading(false)
       setIsLoadingMore(false)
     }
-  }, [offset, assigneeFilter, statusFilter, severityFilter, subprojectFilter, selectedProjectIds, bugs, ITEMS_PER_PAGE, currentUser])
+  }, [offset, assigneeFilter, statusFilter, severityFilter, categoryFilter, typeFilter, subprojectFilter, effectiveProjectIds, bugs, ITEMS_PER_PAGE, currentUser])
 
   // Reload bugs when filters change (reset pagination)
   useEffect(() => {
@@ -456,7 +479,7 @@ export default function BugsPage() {
 
     console.log('🔵 [Bugs] Filters changed, reloading bugs from beginning...')
     loadBugs(false, false) // Reset to first page
-  }, [statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, subprojectFilter, selectedProjectIds, initialized])
+  }, [statusFilter, severityFilter, categoryFilter, assigneeFilter, typeFilter, subprojectFilter, projectNarrowFilter, selectedProjectIds, initialized])
 
   // Intersection Observer for infinite scroll (trigger at 80% scroll)
   useEffect(() => {
@@ -569,23 +592,28 @@ export default function BugsPage() {
     }
   }, [])
 
-  // Load subprojects when exactly one global project is selected
+  // Load subprojects for the effective project scope (narrowed project or all selected projects)
   useEffect(() => {
-    if (selectedProjectIds.length === 1) {
-      const parentId = selectedProjectIds[0]
-      fetch(`/api/projects?parentId=${parentId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setSubprojects(data.filter((p: any) => p.parentProjectId === parentId))
-          }
-        })
-        .catch(error => console.error('Failed to load subprojects:', error))
-    } else {
+    if (effectiveProjectIds.length === 0) {
       setSubprojects([])
       setSubprojectFilter('all')
+      return
     }
-  }, [selectedProjectIds])
+    const parentIds = new Set(effectiveProjectIds)
+    fetch('/api/projects')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const scopedSubprojects = data.filter((p: any) => p.parentProjectId && parentIds.has(p.parentProjectId))
+          setSubprojects(scopedSubprojects)
+          // Reset the subproject filter if its value fell outside the new scope
+          setSubprojectFilter(prev =>
+            prev !== 'all' && !scopedSubprojects.some((sp: any) => sp.projectId === prev) ? 'all' : prev
+          )
+        }
+      })
+      .catch(error => console.error('Failed to load subprojects:', error))
+  }, [effectiveProjectIds])
 
   useEffect(() => {
     if (!isHydrated) return
@@ -932,12 +960,30 @@ export default function BugsPage() {
 
           {/* Unified Filter Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-9 gap-4 items-end">
+            {/* Project Filter - narrows the master multi-project selection to one project */}
+            {selectedProjectIds.length > 1 && (
+              <div className="w-full">
+                <select
+                  value={projectNarrowFilter}
+                  onChange={(e) => setProjectNarrowFilter(e.target.value)}
+                  className="w-full px-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                >
+                  <option value="all">All selected projects</option>
+                  {masterSelectedProjects.map(project => (
+                    <option key={project.projectId} value={project.projectId}>
+                      {project.projectName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Subproject Filter */}
             <div className="w-full">
               <select
                 value={subprojectFilter}
                 onChange={(e) => setSubprojectFilter(e.target.value)}
-                disabled={selectedProjectIds.length !== 1 || subprojects.length === 0}
+                disabled={subprojects.length === 0}
                 className="w-full px-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="all">All Subprojects</option>
@@ -1029,6 +1075,7 @@ export default function BugsPage() {
                   setCategoryFilter([])
                   setAssigneeFilter(currentUser?.employeeId ? [currentUser.employeeId] : [])
                   setSubprojectFilter('all')
+                  setProjectNarrowFilter('all')
                 }}
                 className="w-full px-4 h-[42px] border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors font-medium flex items-center justify-center whitespace-nowrap"
               >
