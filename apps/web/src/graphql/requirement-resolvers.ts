@@ -28,6 +28,16 @@ async function requireProjectMember(context: any, projectId: string): Promise<{ 
 
 const PRIVILEGED_ROLES = ['admin', 'top_management', 'management']
 
+// Standard document structure seeded into every new requirement (ordered).
+const DEFAULT_SECTION_SEEDS: Array<{ heading: string; label: string }> = [
+  { heading: 'Overview', label: 'Note' },
+  { heading: 'Scope', label: 'Note' },
+  { heading: 'Functional Requirements', label: 'Functional' },
+  { heading: 'Non-Functional Requirements', label: 'Non-Functional' },
+  { heading: 'Constraints & Assumptions', label: 'Constraint' },
+  { heading: 'Acceptance Criteria', label: 'Acceptance Criteria' },
+]
+
 const requirementLink = (requirementId: string, projectId: string) =>
   `/projects/${projectId}/requirements/${requirementId}`
 
@@ -109,7 +119,7 @@ export const requirementMutations = {
       const latest = await reqDb.getLatestRequirementId()
       const requirementId = generateSequentialRequirementId(latest)
       try {
-        return await reqDb.createRequirement({
+        const created = await reqDb.createRequirement({
           requirementId,
           projectId: input.projectId,
           subprojectId: input.subprojectId || undefined,
@@ -117,6 +127,19 @@ export const requirementMutations = {
           createdBy: user.employeeId,
           reviewerId: input.reviewerId || undefined,
         })
+        // Seed the standard document structure so every requirement starts
+        // with a consistent index of sections instead of a blank page.
+        for (const seed of DEFAULT_SECTION_SEEDS) {
+          await reqDb.createSection({
+            requirementId,
+            heading: seed.heading,
+            label: seed.label,
+            contentHtml: '',
+            editorId: user.employeeId,
+            editorName: user.name,
+          })
+        }
+        return created
       } catch (err: any) {
         const dup = err?.code === '23505' || /duplicate key|unique constraint/i.test(err?.message || '')
         if (dup && attempt < 5) continue
