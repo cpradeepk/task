@@ -29,7 +29,7 @@ async function requireProjectMember(context: any, projectId: string): Promise<{ 
 const PRIVILEGED_ROLES = ['admin', 'top_management', 'management']
 
 // Standard document structure seeded into every new requirement (ordered).
-const DEFAULT_SECTION_SEEDS: Array<{ heading: string; label: string }> = [
+const DEFAULT_SECTION_SEEDS: Array<{ heading: string; label: reqDb.SectionLabel }> = [
   { heading: 'Overview', label: 'Note' },
   { heading: 'Scope', label: 'Note' },
   { heading: 'Functional Requirements', label: 'Functional' },
