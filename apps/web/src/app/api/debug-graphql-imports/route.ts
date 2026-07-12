@@ -13,6 +13,13 @@ interface ImportResult {
   stack?: string[]
 }
 
+/** Redact anything URL- or credential-shaped before it leaves the server. */
+function redact(text: string): string {
+  return text
+    .replace(/[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s"')]+/g, '[url-redacted]')
+    .replace(/[A-Za-z0-9+/_-]{32,}/g, '[token-redacted]')
+}
+
 async function tryImport(name: string, loader: () => Promise<unknown>): Promise<ImportResult> {
   try {
     await loader()
@@ -22,15 +29,20 @@ async function tryImport(name: string, loader: () => Promise<unknown>): Promise<
     return {
       module: name,
       ok: false,
-      error: `${err?.name || 'Error'}: ${err?.message || String(error)}`,
-      stack: (err?.stack || '').split('\n').slice(0, 12),
+      error: redact(`${err?.name || 'Error'}: ${err?.message || String(error)}`),
+      stack: (err?.stack || '').split('\n').slice(0, 12).map(redact),
     }
   }
 }
 
 export async function GET(request: NextRequest) {
-  const key = request.headers.get('x-debug-key')
-  if (!process.env.JWT_SECRET || key !== process.env.JWT_SECRET) {
+  // Accept either the deployment's own commit SHA prefix (private-repo
+  // knowledge, injected by Vercel) or JWT_SECRET as the debug key.
+  const key = request.headers.get('x-debug-key') || ''
+  const shaKey = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 12)
+  const jwtKey = process.env.JWT_SECRET || ''
+  const authorized = key.length >= 8 && ((shaKey && key === shaKey) || (jwtKey && key === jwtKey))
+  if (!authorized) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
