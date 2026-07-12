@@ -126,13 +126,10 @@ export default function Navbar() {
         { label: 'Team Tasks', href: '/team-tasks', icon: Users, key: 'team_tasks' },
         { label: 'Tasks', href: '/tasks', icon: CheckSquare, key: 'tasks' },
         { label: 'Development', href: '/bugs', icon: Bug, key: 'bugs' },
+        // Requirements sits alongside Development; visible to all members (any
+        // project member may view a project's requirements — see filter below).
+        { label: 'Requirements', href: '/requirements', icon: FileText, key: 'requirements' },
       ]
-    },
-    {
-      label: 'Requirements',
-      href: '/requirements',
-      icon: FileText,
-      key: 'requirements' // Accessible to all authenticated users (see filter below)
     },
     {
       label: 'Attendance',
@@ -171,8 +168,9 @@ export default function Navbar() {
     // If it has children, filter them
     if (item.children) {
       const filteredChildren = item.children.filter(child =>
-        // If key is provided, check access. If not, assume accessible (or handle otherwise)
-        child.key ? hasTabAccess(currentUser, child.key) : true
+        // 'requirements' is visible to every authenticated user (project-level
+        // access is enforced on the page). Otherwise gate by tab access.
+        child.key === 'requirements' ? true : (child.key ? hasTabAccess(currentUser, child.key) : true)
       )
 
       // If no children left, return null (unless it's a group that should show empty? No, hide it)
@@ -181,10 +179,8 @@ export default function Navbar() {
       return { ...item, children: filteredChildren }
     }
 
-    // If it's a direct link
-    // 'profile' and 'requirements' are always accessible: every user assigned
-    // to a project may view that project's requirements.
-    if (item.key === 'profile' || item.key === 'requirements') return item
+    // 'profile' (Account) is always accessible.
+    if (item.key === 'profile') return item
 
     // Check access for other items
     if (item.key && hasTabAccess(currentUser, item.key)) {

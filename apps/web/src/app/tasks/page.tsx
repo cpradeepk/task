@@ -131,26 +131,44 @@ export default function TasksPage() {
   const currentUser = getCurrentUser()
   const { showGlobalLoading, hideGlobalLoading } = useLoading()
 
-  // Projects currently chosen in the master (navbar) selector, with names for the narrowing dropdown
-  const masterSelectedProjects = useMemo(
-    () => masterProjects.filter(project => selectedProjectIds.includes(project.projectId)),
-    [masterProjects, selectedProjectIds]
+  // Effective UI scope of projects: the explicit master selection when non-empty, else ALL master projects ("All")
+  const scopeProjectIds = useMemo(
+    () => (selectedProjectIds.length ? selectedProjectIds : masterProjects.map(p => p.projectId)),
+    [selectedProjectIds, masterProjects]
   )
 
-  // Effective project scope: the narrowed project when one is chosen, otherwise all master-selected projects
+  // Projects in scope, with names, for the narrowing dropdown
+  const scopeProjects = useMemo(
+    () => (selectedProjectIds.length
+      ? masterProjects.filter(project => selectedProjectIds.includes(project.projectId))
+      : masterProjects),
+    [selectedProjectIds, masterProjects]
+  )
+
+  // Server query scope: narrowed project when chosen, else the raw master selection
+  // (kept EMPTY under "All" so the server keeps returning all rows, incl. null-project ones)
   const effectiveProjectIds = useMemo(
-    () => (projectNarrowFilter !== 'all' && selectedProjectIds.includes(projectNarrowFilter)
+    () => (projectNarrowFilter !== 'all' && scopeProjectIds.includes(projectNarrowFilter)
       ? [projectNarrowFilter]
       : selectedProjectIds),
-    [projectNarrowFilter, selectedProjectIds]
+    [projectNarrowFilter, scopeProjectIds, selectedProjectIds]
   )
 
-  // Drop the narrowing when it no longer matches the master selection
+  // Subproject-loading scope: narrowed project when chosen, else the full UI scope
+  // (loads subprojects across all projects under "All")
+  const subprojectScopeIds = useMemo(
+    () => (projectNarrowFilter !== 'all' && scopeProjectIds.includes(projectNarrowFilter)
+      ? [projectNarrowFilter]
+      : scopeProjectIds),
+    [projectNarrowFilter, scopeProjectIds]
+  )
+
+  // Drop the narrowing when it no longer matches the current scope
   useEffect(() => {
-    if (projectNarrowFilter !== 'all' && !selectedProjectIds.includes(projectNarrowFilter)) {
+    if (projectNarrowFilter !== 'all' && !scopeProjectIds.includes(projectNarrowFilter)) {
       setProjectNarrowFilter('all')
     }
-  }, [selectedProjectIds, projectNarrowFilter])
+  }, [scopeProjectIds, projectNarrowFilter])
 
   // Handle hydration and load persisted filters
   useEffect(() => {
@@ -475,10 +493,20 @@ export default function TasksPage() {
     }
   }, [])
 
+  // Fetch /api/projects with the bearer token (the auth cookie can be stale,
+  // and /api/projects now 401s unauthenticated requests).
+  const fetchProjects = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    return fetch('/api/projects', {
+      credentials: 'include',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  }
+
   // NEW: Load projects
   const loadProjects = useCallback(async () => {
     try {
-      const response = await fetch('/api/projects')
+      const response = await fetchProjects()
       const data = await response.json()
       if (Array.isArray(data)) {
         const mainProjects = data.filter((p: any) => !p.parentProjectId)
@@ -489,15 +517,15 @@ export default function TasksPage() {
     }
   }, [])
 
-  // Load subprojects for the effective project scope (narrowed project or all selected projects)
+  // Load subprojects for the UI scope (narrowed project, or all projects in scope under "All")
   useEffect(() => {
-    if (effectiveProjectIds.length === 0) {
+    if (subprojectScopeIds.length === 0) {
       setSubprojects([])
       setSubprojectFilter('all')
       return
     }
-    const parentIds = new Set(effectiveProjectIds)
-    fetch('/api/projects')
+    const parentIds = new Set(subprojectScopeIds)
+    fetchProjects()
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -510,7 +538,7 @@ export default function TasksPage() {
         }
       })
       .catch(error => console.error('Failed to load subprojects:', error))
-  }, [effectiveProjectIds])
+  }, [subprojectScopeIds])
 
   useEffect(() => {
     if (!isHydrated) return
@@ -841,7 +869,7 @@ export default function TasksPage() {
         )}
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative z-30">
           <div className="flex items-center space-x-2 mb-4">
             <Filter className="h-5 w-5 text-gray-600" />
             <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
@@ -851,16 +879,16 @@ export default function TasksPage() {
 
           {/* Unified Filter Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
-            {/* Project Filter - narrows the master multi-project selection to one project */}
-            {selectedProjectIds.length > 1 && (
+            {/* Project Filter - narrows the current project scope to one project */}
+            {scopeProjectIds.length > 1 && (
               <div className="w-full">
                 <select
                   value={projectNarrowFilter}
                   onChange={(e) => setProjectNarrowFilter(e.target.value)}
                   className="w-full px-4 h-[42px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                 >
-                  <option value="all">All selected projects</option>
-                  {masterSelectedProjects.map(project => (
+                  <option value="all">All projects in scope</option>
+                  {scopeProjects.map(project => (
                     <option key={project.projectId} value={project.projectId}>
                       {project.projectName}
                     </option>
