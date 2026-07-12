@@ -10,7 +10,7 @@ import { useRouter, useParams } from 'next/navigation'
 import DOMPurify from 'dompurify'
 import { getRequirementStatusStyle } from '@/lib/statusColors'
 import { formatDateTimeIST } from '@/lib/datetime-utils'
-import { Plus, ArrowLeft } from 'lucide-react'
+import { Plus, ArrowLeft, ChevronDown } from 'lucide-react'
 
 async function gql(query: string, variables: any) {
   // Send the localStorage token: the auth cookie expires independently of the
@@ -56,6 +56,13 @@ const GET_EDIT_ACCESS = `
     requirementEditAccess(projectId: $projectId)
   }
 `
+const GET_REQ_SECTIONS = `
+  query GetReqSections($requirementId: ID!) {
+    requirement(requirementId: $requirementId) {
+      sections { id heading label contentHtml displayOrder }
+    }
+  }
+`
 const CREATE_BASELINE = `
   mutation Freeze($projectId: String!, $versionLabel: String, $releaseNote: String) {
     createRequirementBaseline(projectId: $projectId, versionLabel: $versionLabel, releaseNote: $releaseNote) { id versionLabel }
@@ -88,6 +95,10 @@ export default function RequirementsListPage() {
   const [freezing, setFreezing] = useState(false)
   // View is member-level; mutating controls need the per-user edit permission.
   const [canEdit, setCanEdit] = useState(false)
+  // Accordion: which requirement rows are expanded + their lazily-loaded sections.
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({})
+  const [sectionsCache, setSectionsCache] = useState<Record<string, any[]>>({})
+  const [loadingSections, setLoadingSections] = useState<Record<string, boolean>>({})
 
   const loadBaselines = useCallback(async () => {
     try {
@@ -153,6 +164,25 @@ export default function RequirementsListPage() {
       alert(err.message || 'Failed to create requirement')
     } finally {
       setCreating(false)
+    }
+  }
+
+  const toggleExpand = async (requirementId: string) => {
+    const willExpand = !expandedIds[requirementId]
+    setExpandedIds((prev) => ({ ...prev, [requirementId]: willExpand }))
+    if (willExpand && !sectionsCache[requirementId]) {
+      setLoadingSections((prev) => ({ ...prev, [requirementId]: true }))
+      try {
+        const data = await gql(GET_REQ_SECTIONS, { requirementId })
+        const sections = (data.requirement?.sections || [])
+          .slice()
+          .sort((a: any, b: any) => a.displayOrder - b.displayOrder)
+        setSectionsCache((prev) => ({ ...prev, [requirementId]: sections }))
+      } catch {
+        setSectionsCache((prev) => ({ ...prev, [requirementId]: [] }))
+      } finally {
+        setLoadingSections((prev) => ({ ...prev, [requirementId]: false }))
+      }
     }
   }
 
@@ -233,21 +263,68 @@ export default function RequirementsListPage() {
         <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
           {requirements.map((r) => {
             const s = getRequirementStatusStyle(r.status)
+            const isOpen = !!expandedIds[r.requirementId]
+            const sections = sectionsCache[r.requirementId]
+            const isLoadingSecs = !!loadingSections[r.requirementId]
             return (
-              <button
-                key={r.requirementId}
-                onClick={() => router.push(`/projects/${projectId}/requirements/${r.requirementId}`)}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left"
-              >
-                <span className="font-mono text-xs text-gray-400">{r.requirementId}</span>
-                <span className="flex-1 text-sm text-gray-800 truncate">{r.title}</span>
-                {r.subprojectId && (
-                  <span className="text-xs text-gray-400">{r.subprojectId}</span>
+              <div key={r.requirementId}>
+                <div className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+                  <button
+                    onClick={() => toggleExpand(r.requirementId)}
+                    aria-expanded={isOpen}
+                    aria-label={isOpen ? 'Collapse requirement' : 'Expand requirement'}
+                    className="p-1 -ml-1 text-gray-400 hover:text-gray-700 rounded shrink-0"
+                  >
+                    <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <button
+                    onClick={() => router.push(`/projects/${projectId}/requirements/${r.requirementId}`)}
+                    className="flex-1 flex items-center gap-3 text-left min-w-0"
+                  >
+                    <span className="font-mono text-xs text-gray-400 shrink-0">{r.requirementId}</span>
+                    <span className="flex-1 text-sm text-gray-800 truncate">{r.title}</span>
+                  </button>
+                  {r.subprojectId && (
+                    <span className="text-xs text-gray-400 hidden sm:inline">{r.subprojectId}</span>
+                  )}
+                  <span className="text-xs text-gray-400 hidden sm:inline">{r.sections.length} section(s)</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${s.className}`}>{s.label}</span>
+                  <span className="text-xs text-gray-400 w-32 text-right hidden md:inline">{formatDateTimeIST(r.updatedAt)}</span>
+                </div>
+                {isOpen && (
+                  <div className="pl-10 pr-4 pb-4 bg-gray-50/60 border-t border-gray-100">
+                    {isLoadingSecs ? (
+                      <p className="text-xs text-gray-400 py-3">Loading sections…</p>
+                    ) : !sections || sections.length === 0 ? (
+                      <p className="text-xs text-gray-400 py-3">No sections yet.</p>
+                    ) : (
+                      <div className="space-y-3 py-3">
+                        {sections.map((sec: any) => (
+                          <div key={sec.id}>
+                            <p className="text-xs font-semibold text-gray-600">
+                              {sec.heading} <span className="font-normal text-gray-400">· {sec.label}</span>
+                            </p>
+                            {sec.contentHtml ? (
+                              <div
+                                className="prose prose-sm max-w-none text-gray-600 mt-1"
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sec.contentHtml) }}
+                              />
+                            ) : (
+                              <p className="text-xs text-gray-300 italic mt-1">Empty</p>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => router.push(`/projects/${projectId}/requirements/${r.requirementId}`)}
+                          className="text-xs text-indigo-600 hover:underline"
+                        >
+                          Open full requirement →
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
-                <span className="text-xs text-gray-400">{r.sections.length} section(s)</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${s.className}`}>{s.label}</span>
-                <span className="text-xs text-gray-400 w-32 text-right">{formatDateTimeIST(r.updatedAt)}</span>
-              </button>
+              </div>
             )
           })}
         </div>
