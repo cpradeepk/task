@@ -13,9 +13,16 @@ import { formatDateTimeIST } from '@/lib/datetime-utils'
 import { Plus, ArrowLeft } from 'lucide-react'
 
 async function gql(query: string, variables: any) {
+  // Send the localStorage token: the auth cookie expires independently of the
+  // web session, so cookie-only requests can 401 while the app looks signed in.
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   const res = await fetch('/api/graphql', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: 'include',
     body: JSON.stringify({ query, variables }),
   })
   const result = await res.json()

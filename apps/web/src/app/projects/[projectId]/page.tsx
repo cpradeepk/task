@@ -488,7 +488,7 @@ export default function ProjectDetailsPage() {
           ) : (
             /* View Mode */
             <>
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-3xl font-bold text-gray-900">{project.projectName}</h1>
@@ -505,7 +505,7 @@ export default function ProjectDetailsPage() {
                   <p className="text-gray-600 text-sm">Project ID: {project.projectId}</p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
                     onClick={() => router.push(`/projects/${project.projectId}/requirements`)}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"

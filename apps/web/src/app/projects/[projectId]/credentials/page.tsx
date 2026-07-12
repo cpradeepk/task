@@ -23,7 +23,17 @@ const CRED_TYPES: CredentialType[] = ['database', 'ssh', 'ssh_key', 'firebase', 
 const ENVIRONMENTS: Environment[] = ['development', 'staging', 'production']
 
 async function api(path: string, init?: RequestInit) {
-  const res = await fetch(path, { credentials: 'include', ...init })
+  // Send the localStorage token: the auth cookie expires independently of the
+  // web session; without this the page 401s and bounces to the dashboard.
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  const res = await fetch(path, {
+    credentials: 'include',
+    ...init,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers || {}),
+    },
+  })
   const json = await res.json().catch(() => ({}))
   return { ok: res.ok, status: res.status, json }
 }

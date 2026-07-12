@@ -4,7 +4,7 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
-import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Code, Heading2 } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Code, Heading1, Heading2, Heading3 } from 'lucide-react'
 
 interface RichTextEditorProps {
   content: string
@@ -23,7 +23,7 @@ export default function RichTextEditor({
     extensions: [
       StarterKit.configure({
         heading: {
-          levels: [2, 3]
+          levels: [1, 2, 3]
         }
       }),
       Link.configure({
@@ -87,13 +87,33 @@ export default function RichTextEditor({
 
         <button
           type="button"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-neutral-800 transition-colors ${
+            editor.isActive('heading', { level: 1 }) ? 'bg-gray-300 dark:bg-neutral-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-400'
+          }`}
+          title="Heading 1"
+        >
+          <Heading1 className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-neutral-800 transition-colors ${
             editor.isActive('heading', { level: 2 }) ? 'bg-gray-300 dark:bg-neutral-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-400'
           }`}
-          title="Heading"
+          title="Heading 2"
         >
           <Heading2 className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-neutral-800 transition-colors ${
+            editor.isActive('heading', { level: 3 }) ? 'bg-gray-300 dark:bg-neutral-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-neutral-400'
+          }`}
+          title="Heading 3 (sub-heading)"
+        >
+          <Heading3 className="h-4 w-4" />
         </button>
 
         <div className="w-px h-6 bg-gray-300 dark:bg-neutral-700 mx-1" />
