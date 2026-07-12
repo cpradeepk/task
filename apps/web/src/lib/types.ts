@@ -467,6 +467,7 @@ export interface ProjectUser {
   employeeId: string
   assignedBy: string
   assignedAt: string
+  canEditRequirements: boolean
 }
 
 export interface ProjectUserWithUser extends ProjectUser {

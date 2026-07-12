@@ -833,6 +833,7 @@ export const typeDefs = `#graphql
     requirementSectionRevisions(sectionId: ID!): [RequirementSectionRevision!]!
     requirementBaselines(projectId: String!): [RequirementBaseline!]!
     requirementBaseline(id: ID!): RequirementBaseline
+    requirementEditAccess(projectId: String!): Boolean!
   }
 
   extend type Mutation {

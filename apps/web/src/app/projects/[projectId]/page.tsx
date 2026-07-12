@@ -53,8 +53,10 @@ export default function ProjectDetailsPage() {
   const [allUsers, setAllUsers] = useState<User[]>([])
   const [isAddingUser, setIsAddingUser] = useState(false)
   const [userSearchTerm, setUserSearchTerm] = useState('')
+  const [newUserCanEditRequirements, setNewUserCanEditRequirements] = useState(false)
   const [loadingAssignedUsers, setLoadingAssignedUsers] = useState(false)
   const [removingUserId, setRemovingUserId] = useState<string | null>(null)
+  const [togglingReqEditId, setTogglingReqEditId] = useState<string | null>(null)
   const [removalWarning, setRemovalWarning] = useState<{
     employeeId: string
     userName: string
@@ -143,13 +145,18 @@ export default function ProjectDetailsPage() {
       const response = await fetch(`/api/projects/${projectId}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employeeId: targetEmployeeId, assignedBy: employeeId })
+        body: JSON.stringify({
+          employeeId: targetEmployeeId,
+          assignedBy: employeeId,
+          canEditRequirements: newUserCanEditRequirements
+        })
       })
 
       if (response.ok) {
         await fetchAssignedUsers()
         setIsAddingUser(false)
         setUserSearchTerm('')
+        setNewUserCanEditRequirements(false)
       } else {
         const result = await response.json()
         alert(result.error || 'Failed to assign user')
@@ -157,6 +164,29 @@ export default function ProjectDetailsPage() {
     } catch (err) {
       console.error('Error assigning user:', err)
       alert('Failed to assign user')
+    }
+  }
+
+  const handleToggleRequirementsEdit = async (targetEmployeeId: string, canEdit: boolean) => {
+    setTogglingReqEditId(targetEmployeeId)
+    try {
+      const response = await fetch(`/api/projects/${projectId}/users`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employeeId: targetEmployeeId, canEditRequirements: canEdit })
+      })
+
+      if (response.ok) {
+        await fetchAssignedUsers()
+      } else {
+        const result = await response.json()
+        alert(result.error || 'Failed to update requirements-edit permission')
+      }
+    } catch (err) {
+      console.error('Error updating requirements-edit permission:', err)
+      alert('Failed to update requirements-edit permission')
+    } finally {
+      setTogglingReqEditId(null)
     }
   }
 
@@ -648,7 +678,7 @@ export default function ProjectDetailsPage() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-medium text-gray-700">Assign a user to this project</h3>
                 <button
-                  onClick={() => { setIsAddingUser(false); setUserSearchTerm('') }}
+                  onClick={() => { setIsAddingUser(false); setUserSearchTerm(''); setNewUserCanEditRequirements(false) }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-4 w-4" />
@@ -665,6 +695,15 @@ export default function ProjectDetailsPage() {
                   autoFocus
                 />
               </div>
+              <label className="flex items-center gap-2 mb-3 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newUserCanEditRequirements}
+                  onChange={(e) => setNewUserCanEditRequirements(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                Can edit requirements
+              </label>
               <div className="max-h-48 overflow-y-auto space-y-1">
                 {availableUsers.length > 0 ? (
                   availableUsers.slice(0, 10).map(user => (
@@ -729,6 +768,21 @@ export default function ProjectDetailsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-3">
+                    {canManageProjects && (
+                      <label
+                        className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer"
+                        title="Allow this user to edit requirements in this project"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={au.canEditRequirements}
+                          disabled={togglingReqEditId === au.employeeId}
+                          onChange={(e) => handleToggleRequirementsEdit(au.employeeId, e.target.checked)}
+                          className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                        />
+                        Req. edit
+                      </label>
+                    )}
                     <span className="text-xs text-gray-400">
                       {new Date(au.assignedAt).toLocaleDateString()}
                     </span>

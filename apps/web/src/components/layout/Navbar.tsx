@@ -129,6 +129,12 @@ export default function Navbar() {
       ]
     },
     {
+      label: 'Requirements',
+      href: '/requirements',
+      icon: FileText,
+      key: 'requirements' // Accessible to all authenticated users (see filter below)
+    },
+    {
       label: 'Attendance',
       icon: Calendar,
       key: 'attendance_group', // Virtual key
@@ -176,8 +182,9 @@ export default function Navbar() {
     }
 
     // If it's a direct link
-    // 'profile' is always accessible
-    if (item.key === 'profile') return item
+    // 'profile' and 'requirements' are always accessible: every user assigned
+    // to a project may view that project's requirements.
+    if (item.key === 'profile' || item.key === 'requirements') return item
 
     // Check access for other items
     if (item.key && hasTabAccess(currentUser, item.key)) {

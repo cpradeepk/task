@@ -15,6 +15,7 @@ interface ProjectUserRow {
   employee_id: string
   assigned_by: string
   assigned_at: string
+  can_edit_requirements: boolean
   created_at: string
   updated_at: string
 }
@@ -32,6 +33,7 @@ export interface ProjectUser {
   employeeId: string
   assignedBy: string
   assignedAt: string
+  canEditRequirements: boolean
 }
 
 export interface ProjectUserWithUser extends ProjectUser {
@@ -48,6 +50,7 @@ function rowToProjectUser(row: ProjectUserRow): ProjectUser {
     employeeId: row.employee_id,
     assignedBy: row.assigned_by,
     assignedAt: row.assigned_at,
+    canEditRequirements: row.can_edit_requirements ?? false,
   }
 }
 
@@ -57,6 +60,7 @@ function rowToProjectUserWithUser(row: ProjectUserWithUserRow): ProjectUserWithU
     employeeId: row.employee_id,
     assignedBy: row.assigned_by,
     assignedAt: row.assigned_at,
+    canEditRequirements: row.can_edit_requirements ?? false,
     userName: row.user_name,
     userEmail: row.user_email,
     userRole: row.user_role,
@@ -103,20 +107,63 @@ export async function getUserProjectIds(employeeId: string): Promise<string[]> {
 export async function assignUserToProject(
   projectId: string,
   employeeId: string,
-  assignedBy: string
+  assignedBy: string,
+  canEditRequirements?: boolean
 ): Promise<ProjectUser> {
   return withRetry(async () => {
+    // On re-assignment, only overwrite the edit flag when the caller passed it
+    // explicitly — legacy callers that omit it must not reset a granted flag.
     const row = await queryOne<ProjectUserRow>(
-      `INSERT INTO project_users (project_id, employee_id, assigned_by)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (project_id, employee_id) DO UPDATE SET updated_at = NOW()
+      `INSERT INTO project_users (project_id, employee_id, assigned_by, can_edit_requirements)
+       VALUES ($1, $2, $3, COALESCE($4, FALSE))
+       ON CONFLICT (project_id, employee_id)
+       DO UPDATE SET updated_at = NOW(),
+                     can_edit_requirements = COALESCE($4, project_users.can_edit_requirements)
        RETURNING *`,
-      [projectId, employeeId, assignedBy]
+      [projectId, employeeId, assignedBy, canEditRequirements ?? null]
     )
     if (!row) {
       throw new Error(`Failed to assign user ${employeeId} to project ${projectId}`)
     }
     return rowToProjectUser(row)
+  })
+}
+
+/**
+ * Toggle the per-assignment requirements-edit flag for an assigned user.
+ * Returns the updated assignment, or null when the user is not assigned.
+ */
+export async function setCanEditRequirements(
+  projectId: string,
+  employeeId: string,
+  canEdit: boolean
+): Promise<ProjectUser | null> {
+  return withRetry(async () => {
+    const row = await queryOne<ProjectUserRow>(
+      `UPDATE project_users
+       SET can_edit_requirements = $3, updated_at = NOW()
+       WHERE project_id = $1 AND employee_id = $2
+       RETURNING *`,
+      [projectId, employeeId, canEdit]
+    )
+    return row ? rowToProjectUser(row) : null
+  })
+}
+
+/**
+ * Check the per-assignment requirements-edit flag.
+ * False when the user is not assigned to the project at all.
+ */
+export async function canEditRequirements(
+  employeeId: string,
+  projectId: string
+): Promise<boolean> {
+  return withRetry(async () => {
+    const row = await queryOne<{ can_edit_requirements: boolean }>(
+      'SELECT can_edit_requirements FROM project_users WHERE employee_id = $1 AND project_id = $2',
+      [employeeId, projectId]
+    )
+    return row?.can_edit_requirements ?? false
   })
 }
 

@@ -2,7 +2,7 @@
 // Merged into resolvers.ts like notification-resolvers.
 import * as reqDb from '@/lib/db/requirements'
 import { generateSequentialRequirementId, generateSequentialBugId } from '@/lib/data'
-import { isUserAssignedToProject } from '@/lib/db/project-users'
+import { isUserAssignedToProject, canEditRequirements } from '@/lib/db/project-users'
 import { createBug, getLatestBugId } from '@/lib/db/bugs'
 import { createActivityLog } from '@/lib/db/activityLog'
 import { createNotification } from '@/lib/notification-helper'
@@ -27,6 +27,18 @@ async function requireProjectMember(context: any, projectId: string): Promise<{ 
 }
 
 const PRIVILEGED_ROLES = ['admin', 'top_management', 'management']
+
+// Editing requires membership AND (privileged role OR the per-assignment
+// can_edit_requirements flag). Viewing stays member-level (requireProjectMember).
+async function requireRequirementEditor(context: any, projectId: string): Promise<{ employeeId: string; role: string; name: string }> {
+  const user = await requireProjectMember(context, projectId)
+  if (PRIVILEGED_ROLES.includes(user.role)) return user
+  const hasEditFlag = await canEditRequirements(user.employeeId, projectId)
+  if (!hasEditFlag) {
+    throw new Error("FORBIDDEN: You don't have edit access to this project's requirements.")
+  }
+  return user
+}
 
 // Standard document structure seeded into every new requirement (ordered).
 const DEFAULT_SECTION_SEEDS: Array<{ heading: string; label: reqDb.SectionLabel }> = [
@@ -109,11 +121,22 @@ export const requirementQueries = {
     await requireProjectMember(context, b.projectId)
     return b
   },
+
+  // Permission probe for the UI: same check as requireRequirementEditor, but
+  // returns false instead of throwing so pages can render read-only mode.
+  requirementEditAccess: async (_: any, { projectId }: any, context: any) => {
+    try {
+      await requireRequirementEditor(context, projectId)
+      return true
+    } catch {
+      return false
+    }
+  },
 }
 
 export const requirementMutations = {
   createRequirement: async (_: any, { input }: any, context: any) => {
-    const user = await requireProjectMember(context, input.projectId)
+    const user = await requireRequirementEditor(context, input.projectId)
     // Sequential id with retry on unique-violation (read-latest+increment is not atomic).
     for (let attempt = 1; attempt <= 5; attempt++) {
       const latest = await reqDb.getLatestRequirementId()
@@ -152,14 +175,14 @@ export const requirementMutations = {
   updateRequirement: async (_: any, { requirementId, input }: any, context: any) => {
     const req = await reqDb.getRequirementById(requirementId)
     if (!req) throw new Error('Requirement not found')
-    await requireProjectMember(context, req.projectId)
+    await requireRequirementEditor(context, req.projectId)
     return reqDb.updateRequirement(requirementId, { title: input.title, reviewerId: input.reviewerId })
   },
 
   deleteRequirement: async (_: any, { requirementId }: any, context: any) => {
     const req = await reqDb.getRequirementById(requirementId)
     if (!req) return false
-    const user = await requireProjectMember(context, req.projectId)
+    const user = await requireRequirementEditor(context, req.projectId)
     // Only the author or a privileged role may delete.
     if (req.createdBy !== user.employeeId && !PRIVILEGED_ROLES.includes(user.role)) {
       throw new Error('FORBIDDEN: You cannot delete this requirement.')
@@ -170,7 +193,7 @@ export const requirementMutations = {
   createRequirementSection: async (_: any, { input }: any, context: any) => {
     const req = await reqDb.getRequirementById(input.requirementId)
     if (!req) throw new Error('Requirement not found')
-    const user = await requireProjectMember(context, req.projectId)
+    const user = await requireRequirementEditor(context, req.projectId)
     const section = await reqDb.createSection({
       requirementId: input.requirementId,
       heading: input.heading,
@@ -188,7 +211,7 @@ export const requirementMutations = {
     if (!section) throw new Error('Section not found')
     const req = await reqDb.getRequirementById(section.requirementId)
     if (!req) throw new Error('Requirement not found')
-    const user = await requireProjectMember(context, req.projectId)
+    const user = await requireRequirementEditor(context, req.projectId)
     const updated = await reqDb.updateSection(Number(sectionId), {
       heading: input.heading,
       label: input.label,
@@ -206,7 +229,7 @@ export const requirementMutations = {
     if (!section) return false
     const req = await reqDb.getRequirementById(section.requirementId)
     if (!req) return false
-    const user = await requireProjectMember(context, req.projectId)
+    const user = await requireRequirementEditor(context, req.projectId)
     const ok = await reqDb.softDeleteSection(Number(sectionId), user.employeeId)
     if (ok) await handlePostEditReReview(req, user)
     return ok
@@ -215,7 +238,7 @@ export const requirementMutations = {
   reorderRequirementSections: async (_: any, { requirementId, sectionIds }: any, context: any) => {
     const req = await reqDb.getRequirementById(requirementId)
     if (!req) throw new Error('Requirement not found')
-    const user = await requireProjectMember(context, req.projectId)
+    const user = await requireRequirementEditor(context, req.projectId)
     await reqDb.reorderSections(requirementId, (sectionIds as any[]).map(Number))
     await handlePostEditReReview(req, user)
     return true
@@ -226,7 +249,7 @@ export const requirementMutations = {
     if (!section) throw new Error('Section not found')
     const req = await reqDb.getRequirementById(section.requirementId)
     if (!req) throw new Error('Requirement not found')
-    const user = await requireProjectMember(context, req.projectId)
+    const user = await requireRequirementEditor(context, req.projectId)
     const restored = await reqDb.restoreSectionRevision(Number(sectionId), Number(revisionId), user.employeeId, user.name)
     await handlePostEditReReview(req, user)
     return restored
@@ -313,7 +336,7 @@ export const requirementMutations = {
   updateRequirementStatus: async (_: any, { requirementId, status }: any, context: any) => {
     const req = await reqDb.getRequirementById(requirementId)
     if (!req) throw new Error('Requirement not found')
-    const user = await requireProjectMember(context, req.projectId)
+    const user = await requireRequirementEditor(context, req.projectId)
     const reviewerOrPriv = PRIVILEGED_ROLES.includes(user.role) || req.reviewerId === user.employeeId
     if (status === 'Verified') {
       if (req.status !== 'Implemented' || !reviewerOrPriv) {
@@ -336,9 +359,9 @@ export const requirementMutations = {
   },
 
   // Freeze the whole project's requirements doc to a new version (bulk-approves
-  // stragglers per user decision). Any project member may freeze.
+  // stragglers per user decision). Requires requirements-edit access.
   createRequirementBaseline: async (_: any, { projectId, versionLabel, releaseNote }: any, context: any) => {
-    const user = await requireProjectMember(context, projectId)
+    const user = await requireRequirementEditor(context, projectId)
     return reqDb.createBaseline({
       projectId, versionLabel: versionLabel || undefined, releaseNote: releaseNote || undefined,
       frozenBy: user.employeeId, frozenByName: user.name,
@@ -351,7 +374,7 @@ export const requirementMutations = {
   createDevItemFromRequirement: async (_: any, { requirementId, input }: any, context: any) => {
     const req = await reqDb.getRequirementById(requirementId)
     if (!req) throw new Error('Requirement not found')
-    const user = await requireProjectMember(context, req.projectId)
+    const user = await requireRequirementEditor(context, req.projectId)
     if (req.status !== 'Approved') {
       throw new Error('FORBIDDEN: DEV items can only be created from an approved requirement.')
     }
@@ -410,7 +433,7 @@ export const requirementMutations = {
   rollbackRequirementToVersion: async (_: any, { requirementId, baselineId }: any, context: any) => {
     const req = await reqDb.getRequirementById(requirementId)
     if (!req) throw new Error('Requirement not found')
-    const user = await requireProjectMember(context, req.projectId)
+    const user = await requireRequirementEditor(context, req.projectId)
     await reqDb.rollbackRequirementToBaseline(requirementId, Number(baselineId), user.employeeId, user.name)
     await createActivityLog({
       entityType: 'requirement', entityId: requirementId, userId: user.employeeId,

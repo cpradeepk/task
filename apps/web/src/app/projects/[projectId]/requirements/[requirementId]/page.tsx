@@ -76,6 +76,7 @@ const RESTORE_REVISION = `
 `
 const GET_BASELINES = `query GetBaselines($projectId: String!) { requirementBaselines(projectId: $projectId) { id versionLabel createdAt } }`
 const ROLLBACK = `mutation Rollback($requirementId: ID!, $baselineId: ID!) { rollbackRequirementToVersion(requirementId: $requirementId, baselineId: $baselineId) { status } }`
+const GET_EDIT_ACCESS = `query GetEditAccess($projectId: String!) { requirementEditAccess(projectId: $projectId) }`
 
 interface Section {
   id: string
@@ -103,6 +104,8 @@ export default function RequirementEditorPage() {
   const [revisions, setRevisions] = useState<any[]>([])
   const [adding, setAdding] = useState(false)
   const [baselines, setBaselines] = useState<any[]>([])
+  // View is member-level; mutating controls need the per-user edit permission.
+  const [canEdit, setCanEdit] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -127,6 +130,7 @@ export default function RequirementEditorPage() {
 
   useEffect(() => {
     gql(GET_BASELINES, { projectId }).then((d) => setBaselines(d.requirementBaselines || [])).catch(() => {})
+    gql(GET_EDIT_ACCESS, { projectId }).then((d) => setCanEdit(Boolean(d.requirementEditAccess))).catch(() => setCanEdit(false))
   }, [projectId])
 
   const rollback = async (baselineId: string) => {
@@ -283,7 +287,7 @@ export default function RequirementEditorPage() {
               <button onClick={reject} className="px-3 py-1.5 bg-rose-600 text-white rounded text-sm hover:bg-rose-700">Reject</button>
             </>
           )}
-          {requirement.status === 'Approved' && (
+          {requirement.status === 'Approved' && canEdit && (
             <button onClick={createDevItem} className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">
               Create DEV feature
             </button>
@@ -306,7 +310,7 @@ export default function RequirementEditorPage() {
             ))}
           </div>
         )}
-        {baselines.length > 0 && (
+        {baselines.length > 0 && canEdit && (
           <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
             <span className="text-xs text-gray-500">Roll back this requirement to:</span>
             <select
@@ -338,47 +342,69 @@ export default function RequirementEditorPage() {
         {sections.map((s) => (
           <div key={s.id} className="border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
-              <input
-                value={s.heading}
-                onChange={(e) => patchDraft(s.id, { heading: e.target.value })}
-                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm font-medium"
-              />
-              <select
-                value={s.label}
-                onChange={(e) => patchDraft(s.id, { label: e.target.value })}
-                className="px-2 py-1 border border-gray-300 rounded text-sm"
-              >
-                {SECTION_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
-              </select>
+              {canEdit ? (
+                <>
+                  <input
+                    value={s.heading}
+                    onChange={(e) => patchDraft(s.id, { heading: e.target.value })}
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm font-medium"
+                  />
+                  <select
+                    value={s.label}
+                    onChange={(e) => patchDraft(s.id, { label: e.target.value })}
+                    className="px-2 py-1 border border-gray-300 rounded text-sm"
+                  >
+                    {SECTION_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 px-2 py-1 text-sm font-medium text-gray-800">{s.heading}</span>
+                  <span className="px-2 py-0.5 text-xs text-gray-500 bg-gray-100 rounded-full">{s.label}</span>
+                </>
+              )}
               <button onClick={() => openHistory(s.id)} title="History" className="p-1.5 text-gray-500 hover:text-indigo-600">
                 <History size={16} /><span className="sr-only">History</span>
               </button>
-              <button onClick={() => deleteSection(s.id)} title="Delete" className="p-1.5 text-gray-500 hover:text-rose-600">
-                <Trash2 size={16} />
-              </button>
+              {canEdit && (
+                <button onClick={() => deleteSection(s.id)} title="Delete" className="p-1.5 text-gray-500 hover:text-rose-600">
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
-            <RichTextEditor content={s.contentHtml} onChange={(html) => patchDraft(s.id, { contentHtml: html })} />
+            {canEdit ? (
+              <RichTextEditor content={s.contentHtml} onChange={(html) => patchDraft(s.id, { contentHtml: html })} />
+            ) : (
+              <div
+                className="prose prose-sm max-w-none text-gray-600"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(s.contentHtml || '') }}
+              />
+            )}
             <div className="flex items-center gap-3 mt-2">
-              <button
-                onClick={() => saveSection(s.id)}
-                disabled={savingId === s.id}
-                className="px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
-              >
-                <Save size={14} /> {savingId === s.id ? 'Saving…' : 'Save'}
-              </button>
+              {canEdit && (
+                <button
+                  onClick={() => saveSection(s.id)}
+                  disabled={savingId === s.id}
+                  className="px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
+                >
+                  <Save size={14} /> {savingId === s.id ? 'Saving…' : 'Save'}
+                </button>
+              )}
               <span className="text-xs text-gray-400">{s.revisionCount} revision(s)</span>
             </div>
           </div>
         ))}
       </div>
 
-      <button
-        onClick={addSection}
-        disabled={adding}
-        className="mt-6 px-4 py-2 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 hover:border-indigo-400 hover:text-indigo-600 flex items-center gap-1"
-      >
-        <Plus size={16} /> Add section
-      </button>
+      {canEdit && (
+        <button
+          onClick={addSection}
+          disabled={adding}
+          className="mt-6 px-4 py-2 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 hover:border-indigo-400 hover:text-indigo-600 flex items-center gap-1"
+        >
+          <Plus size={16} /> Add section
+        </button>
+      )}
 
       {historyFor && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={() => setHistoryFor(null)}>
@@ -395,7 +421,9 @@ export default function RequirementEditorPage() {
                   <div key={rev.id} className="border border-gray-200 rounded p-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium">{rev.heading} <span className="text-gray-400">· {rev.label}</span></span>
-                      <button onClick={() => restore(historyFor, rev.id)} className="text-xs text-indigo-600 hover:underline">Restore</button>
+                      {canEdit && (
+                        <button onClick={() => restore(historyFor, rev.id)} className="text-xs text-indigo-600 hover:underline">Restore</button>
+                      )}
                     </div>
                     <p className="text-xs text-gray-400 mb-2">{rev.editorName} · {formatDateTimeIST(rev.createdAt)}</p>
                     <div className="prose prose-sm max-w-none text-gray-600" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(rev.contentHtml || '') }} />

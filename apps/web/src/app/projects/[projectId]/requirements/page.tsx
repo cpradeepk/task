@@ -51,6 +51,11 @@ const GET_BASELINES = `
     }
   }
 `
+const GET_EDIT_ACCESS = `
+  query GetEditAccess($projectId: String!) {
+    requirementEditAccess(projectId: $projectId)
+  }
+`
 const CREATE_BASELINE = `
   mutation Freeze($projectId: String!, $versionLabel: String, $releaseNote: String) {
     createRequirementBaseline(projectId: $projectId, versionLabel: $versionLabel, releaseNote: $releaseNote) { id versionLabel }
@@ -81,12 +86,21 @@ export default function RequirementsListPage() {
   const [baselines, setBaselines] = useState<any[]>([])
   const [viewing, setViewing] = useState<any | null>(null)
   const [freezing, setFreezing] = useState(false)
+  // View is member-level; mutating controls need the per-user edit permission.
+  const [canEdit, setCanEdit] = useState(false)
 
   const loadBaselines = useCallback(async () => {
     try {
       const data = await gql(GET_BASELINES, { projectId })
       setBaselines(data.requirementBaselines || [])
     } catch { /* non-fatal */ }
+  }, [projectId])
+
+  const loadEditAccess = useCallback(async () => {
+    try {
+      const data = await gql(GET_EDIT_ACCESS, { projectId })
+      setCanEdit(Boolean(data.requirementEditAccess))
+    } catch { setCanEdit(false) }
   }, [projectId])
 
   const load = useCallback(async () => {
@@ -104,7 +118,7 @@ export default function RequirementsListPage() {
     }
   }, [projectId, includeSubprojects, router])
 
-  useEffect(() => { load(); loadBaselines() }, [load, loadBaselines])
+  useEffect(() => { load(); loadBaselines(); loadEditAccess() }, [load, loadBaselines, loadEditAccess])
 
   const freeze = async () => {
     const releaseNote = prompt('Release note for this version (what changed):')
@@ -168,13 +182,15 @@ export default function RequirementsListPage() {
 
       {/* Versioning: freeze + load a frozen version */}
       <div className="flex items-center gap-2 mb-5 flex-wrap">
-        <button
-          onClick={freeze}
-          disabled={freezing}
-          className="px-3 py-1.5 bg-gray-800 text-white rounded-md text-sm hover:bg-gray-900 disabled:opacity-50"
-        >
-          {freezing ? 'Freezing…' : 'Freeze version'}
-        </button>
+        {canEdit && (
+          <button
+            onClick={freeze}
+            disabled={freezing}
+            className="px-3 py-1.5 bg-gray-800 text-white rounded-md text-sm hover:bg-gray-900 disabled:opacity-50"
+          >
+            {freezing ? 'Freezing…' : 'Freeze version'}
+          </button>
+        )}
         {baselines.length > 0 && (
           <select
             defaultValue=""
@@ -190,27 +206,29 @@ export default function RequirementsListPage() {
         <span className="text-xs text-gray-400">{baselines.length} frozen version(s)</span>
       </div>
 
-      <div className="flex gap-2 mb-6">
-        <input
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
-          placeholder="New requirement title…"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-        />
-        <button
-          onClick={handleCreate}
-          disabled={creating || !newTitle.trim()}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
-        >
-          <Plus size={16} /> Add
-        </button>
-      </div>
+      {canEdit && (
+        <div className="flex gap-2 mb-6">
+          <input
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
+            placeholder="New requirement title…"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+          />
+          <button
+            onClick={handleCreate}
+            disabled={creating || !newTitle.trim()}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
+          >
+            <Plus size={16} /> Add
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <p className="text-gray-500">Loading…</p>
       ) : requirements.length === 0 ? (
-        <p className="text-gray-500">No requirements yet. Add one above.</p>
+        <p className="text-gray-500">{canEdit ? 'No requirements yet. Add one above.' : 'No requirements yet.'}</p>
       ) : (
         <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
           {requirements.map((r) => {
