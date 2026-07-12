@@ -16,7 +16,7 @@ import {
   removeUserFromProject,
   setCanEditRequirements,
 } from '@/lib/db/project-users'
-import { requireRole } from '@/lib/auth-server'
+import { requireAuth, requireRole } from '@/lib/auth-server'
 
 /**
  * GET /api/projects/[projectId]/users
@@ -28,6 +28,9 @@ export async function GET(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
     const { projectId } = await params
     const users = await getProjectUsers(projectId)
 
@@ -159,6 +162,9 @@ export async function DELETE(
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
+    const auth = await requireRole(request, ['admin', 'top_management', 'management'])
+    if (!auth.ok) return auth.response
+
     const { projectId } = await params
     const body = await request.json()
     const { employeeId } = body

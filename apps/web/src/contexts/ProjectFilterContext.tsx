@@ -33,7 +33,22 @@ export function ProjectFilterProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await fetch('/api/projects')
+      // Send the localStorage token: the auth cookie expires independently of
+      // the web session, so cookie-only requests can 401 while the app looks
+      // signed in.
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const response = await fetch('/api/projects', {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+      })
+      if (response.status === 401) {
+        // App may be mid-auth (stale cookie, token not yet in localStorage).
+        // Don't surface a red error — just show no projects.
+        setProjects([])
+        return
+      }
       if (!response.ok) {
         throw new Error('Failed to fetch projects')
       }

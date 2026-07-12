@@ -27,7 +27,20 @@ export default function RequirementsProjectPickerPage() {
         setError(null)
         // Same source as the navbar project filter: returns only projects the
         // current user is assigned to (plus their sub-projects), for all roles.
-        const response = await fetch('/api/projects')
+        // Send the localStorage token: the auth cookie expires independently of
+        // the web session, so cookie-only requests can 401 while the app looks
+        // signed in.
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        const response = await fetch('/api/projects', {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: 'include',
+        })
+        if (response.status === 401) {
+          router.push('/')
+          return
+        }
         if (!response.ok) {
           throw new Error('Failed to fetch projects')
         }

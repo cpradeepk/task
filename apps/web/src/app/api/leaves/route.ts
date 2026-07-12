@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllLeaves, createLeave } from '@/lib/db/leaves'
 import { withTimeout, query } from '@/lib/db/config'
+import { requireAuth } from '@/lib/auth-server'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
     console.log('Fetching leave applications from MySQL')
     const leaves = await withTimeout(
       getAllLeaves(),
@@ -29,6 +33,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
     const body = await request.json()
 
     // Validate required fields

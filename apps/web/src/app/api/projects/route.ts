@@ -52,15 +52,16 @@ export async function GET(request: NextRequest) {
     // management surfaces use /api/projects/hierarchy, which is intentionally
     // left role-based so admins can still manage all projects.
     const authUser = await getAuthUser(request)
-    if (authUser) {
-      const userProjectIds = await getUserProjectIds(authUser.employeeId)
-      // Include projects the user is assigned to, plus their sub-projects
-      const assignedSet = new Set(userProjectIds)
-      projects = projects.filter(p =>
-        assignedSet.has(p.projectId) ||
-        (p.parentProjectId && assignedSet.has(p.parentProjectId))
-      )
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const userProjectIds = await getUserProjectIds(authUser.employeeId)
+    // Include projects the user is assigned to, plus their sub-projects
+    const assignedSet = new Set(userProjectIds)
+    projects = projects.filter(p =>
+      assignedSet.has(p.projectId) ||
+      (p.parentProjectId && assignedSet.has(p.parentProjectId))
+    )
 
     return NextResponse.json(projects, { status: 200 })
   } catch (error) {

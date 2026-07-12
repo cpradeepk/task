@@ -5,7 +5,7 @@ import { emailService } from '@/lib/email/service'
 import { withTimeout } from '@/lib/db/config'
 import { createActivityLog } from '@/lib/db/activityLog'
 import { generateSequentialTaskId } from '@/lib/data'
-import { getAuthUser } from '@/lib/auth-server'
+import { getAuthUser, requireAuth } from '@/lib/auth-server'
 import { getUserProjectIds } from '@/lib/db/project-users'
 import { createNotification } from '@/lib/notification-helper'
 
@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
   console.log('🔵 [TASKS-GET] API called')
 
   try {
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
     // Parse pagination parameters from query string
     const { searchParams } = new URL(request.url)
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
@@ -86,6 +89,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
     const taskData = await request.json()
 
     // Basic validation for positive numbers
