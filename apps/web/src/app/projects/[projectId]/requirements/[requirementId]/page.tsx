@@ -62,6 +62,11 @@ const UPDATE_SECTION = `
 const DELETE_SECTION = `
   mutation DeleteSection($sectionId: ID!) { deleteRequirementSection(sectionId: $sectionId) }
 `
+const SPLIT_REQUIREMENT = `
+  mutation Split($requirementId: ID!) {
+    splitRequirementIntoSections(requirementId: $requirementId) { requirementId }
+  }
+`
 const GET_REVISIONS = `
   query GetRevisions($sectionId: ID!) {
     requirementSectionRevisions(sectionId: $sectionId) {
@@ -103,6 +108,7 @@ export default function RequirementEditorPage() {
   const [historyFor, setHistoryFor] = useState<string | null>(null)
   const [revisions, setRevisions] = useState<any[]>([])
   const [adding, setAdding] = useState(false)
+  const [splitting, setSplitting] = useState(false)
   const [baselines, setBaselines] = useState<any[]>([])
   // View is member-level; mutating controls need the per-user edit permission.
   const [canEdit, setCanEdit] = useState(false)
@@ -201,6 +207,19 @@ export default function RequirementEditorPage() {
       alert(err.message || 'Failed to add section')
     } finally {
       setAdding(false)
+    }
+  }
+
+  const splitSections = async () => {
+    if (!confirm('Reorganize this requirement into structured sections using AI? This rewrites its sections from the current content.')) return
+    setSplitting(true)
+    try {
+      await gql(SPLIT_REQUIREMENT, { requirementId })
+      await load()
+    } catch (err: any) {
+      alert(err.message || 'AI split failed. Please try again.')
+    } finally {
+      setSplitting(false)
     }
   }
 
@@ -397,13 +416,23 @@ export default function RequirementEditorPage() {
       </div>
 
       {canEdit && (
-        <button
-          onClick={addSection}
-          disabled={adding}
-          className="mt-6 px-4 py-2 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 hover:border-indigo-400 hover:text-indigo-600 flex items-center gap-1"
-        >
-          <Plus size={16} /> Add section
-        </button>
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <button
+            onClick={addSection}
+            disabled={adding}
+            className="px-4 py-2 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 hover:border-indigo-400 hover:text-indigo-600 flex items-center gap-1"
+          >
+            <Plus size={16} /> Add section
+          </button>
+          <button
+            onClick={splitSections}
+            disabled={splitting}
+            title="Use AI to reorganize this requirement's content into structured sections"
+            className="px-4 py-2 border border-indigo-300 rounded-md text-sm text-indigo-700 hover:bg-indigo-50 disabled:opacity-50 inline-flex items-center gap-1"
+          >
+            {splitting ? 'Splitting…' : '✨ Split with AI'}
+          </button>
+        </div>
       )}
 
       {historyFor && (

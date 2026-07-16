@@ -845,6 +845,7 @@ export const typeDefs = `#graphql
     deleteRequirementSection(sectionId: ID!): Boolean!
     reorderRequirementSections(requirementId: ID!, sectionIds: [ID!]!): Boolean!
     restoreRequirementSectionRevision(sectionId: ID!, revisionId: ID!): RequirementSection!
+    splitRequirementIntoSections(requirementId: ID!): Requirement!
     submitRequirementForReview(requirementId: ID!): Requirement!
     approveRequirement(requirementId: ID!, note: String): Requirement!
     rejectRequirement(requirementId: ID!, note: String!): Requirement!

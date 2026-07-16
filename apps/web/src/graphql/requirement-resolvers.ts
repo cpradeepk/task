@@ -6,6 +6,7 @@ import { isUserAssignedToProject, canEditRequirements } from '@/lib/db/project-u
 import { createBug, getLatestBugId } from '@/lib/db/bugs'
 import { createActivityLog } from '@/lib/db/activityLog'
 import { createNotification } from '@/lib/notification-helper'
+import { splitRequirementText } from '@/lib/ai/requirementSplitter'
 
 // ── Auth guards (local; mirror requireUser in resolvers.ts) ──────────────────
 function requireUser(context: any): { employeeId: string; role: string; name: string } {
@@ -258,6 +259,66 @@ export const requirementMutations = {
     const restored = await reqDb.restoreSectionRevision(Number(sectionId), Number(revisionId), user.employeeId, user.name)
     await handlePostEditReReview(req, user)
     return restored
+  },
+
+  // AI-assisted: reorganize the free-form body into structured sections.
+  splitRequirementIntoSections: async (_: any, { requirementId }: any, context: any) => {
+    const req = await reqDb.getRequirementById(requirementId)
+    if (!req) throw new Error('Requirement not found')
+    const user = await requireRequirementEditor(context, req.projectId)
+    const existing = await reqDb.getSections(requirementId)
+    // Build source text from current sections (strip tags for a clean prompt).
+    const sourceText = existing
+      .map((s) => `${s.heading}\n${(s.contentHtml || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()}`)
+      .join('\n\n')
+      .trim()
+    // Call the model FIRST — it throws before any mutation, so on AI failure the
+    // user's existing content is never touched.
+    const aiSections = await splitRequirementText(sourceText)
+
+    // Reuse the first existing section (keeps its revision history: the original
+    // free-form text survives as a prior revision), create the rest, and remove
+    // any leftover existing sections.
+    const first = existing[0]
+    if (first) {
+      await reqDb.updateSection(first.id, {
+        heading: aiSections[0].heading,
+        label: aiSections[0].label,
+        contentHtml: aiSections[0].contentHtml,
+        lockVersion: first.lockVersion,
+        editorId: user.employeeId,
+        editorName: user.name,
+      })
+    } else {
+      await reqDb.createSection({
+        requirementId,
+        heading: aiSections[0].heading,
+        label: aiSections[0].label,
+        contentHtml: aiSections[0].contentHtml,
+        editorId: user.employeeId,
+        editorName: user.name,
+      })
+    }
+    for (let i = 1; i < aiSections.length; i++) {
+      await reqDb.createSection({
+        requirementId,
+        heading: aiSections[i].heading,
+        label: aiSections[i].label,
+        contentHtml: aiSections[i].contentHtml,
+        editorId: user.employeeId,
+        editorName: user.name,
+      })
+    }
+    for (let i = 1; i < existing.length; i++) {
+      await reqDb.softDeleteSection(existing[i].id, user.employeeId)
+    }
+    await createActivityLog({
+      entityType: 'requirement', entityId: requirementId, userId: user.employeeId,
+      actionType: 'ai_split', description: `Split into ${aiSections.length} section(s) with AI by ${user.name}`,
+      isComment: false,
+    }).catch(() => {})
+    await handlePostEditReReview(req, user)
+    return reqDb.getRequirementById(requirementId)
   },
 
   submitRequirementForReview: async (_: any, { requirementId }: any, context: any) => {

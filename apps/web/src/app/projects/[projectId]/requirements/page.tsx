@@ -85,6 +85,11 @@ const REJECT_REQUIREMENT = `
     rejectRequirement(requirementId: $requirementId, note: $note) { status }
   }
 `
+const SPLIT_REQUIREMENT = `
+  mutation Split($requirementId: ID!) {
+    splitRequirementIntoSections(requirementId: $requirementId) { requirementId }
+  }
+`
 const CREATE_BASELINE = `
   mutation Freeze($projectId: String!, $versionLabel: String, $releaseNote: String) {
     createRequirementBaseline(projectId: $projectId, versionLabel: $versionLabel, releaseNote: $releaseNote) { id versionLabel }
@@ -128,6 +133,7 @@ export default function RequirementsListPage() {
   const [savingId, setSavingId] = useState<string | null>(null)
   const [savedId, setSavedId] = useState<string | null>(null)
   const [actingId, setActingId] = useState<string | null>(null)
+  const [splittingId, setSplittingId] = useState<string | null>(null)
 
   const loadBaselines = useCallback(async () => {
     try {
@@ -283,6 +289,29 @@ export default function RequirementsListPage() {
     const note = window.prompt('Reason for rejection:')
     if (note === null || !note.trim()) return
     return runStatusAction(requirementId, REJECT_REQUIREMENT, { requirementId, note: note.trim() })
+  }
+
+  // Save the latest draft, then ask the AI to reorganize the body into sections.
+  const handleSplit = async (r: RequirementRow) => {
+    if (!confirm('Split this requirement into structured sections using AI? Your current text is saved first, then reorganized.')) return
+    setSplittingId(r.requirementId)
+    try {
+      const first = sectionsCache[r.requirementId]?.[0]
+      const draft = drafts[r.requirementId]
+      if (first && draft !== undefined && draft !== first.contentHtml) {
+        await gql(UPDATE_SECTION, {
+          sectionId: first.id,
+          input: { heading: first.heading, label: first.label, contentHtml: draft, lockVersion: first.lockVersion },
+        })
+      }
+      await gql(SPLIT_REQUIREMENT, { requirementId: r.requirementId })
+      await fetchSections(r.requirementId, true)
+      await load()
+    } catch (err: any) {
+      alert(err?.message || 'AI split failed. Please try again.')
+    } finally {
+      setSplittingId(null)
+    }
   }
 
   if (forbidden) {
@@ -458,6 +487,14 @@ export default function RequirementsListPage() {
                                   className="px-3 py-1.5 bg-gray-800 text-white rounded-md text-xs hover:bg-gray-900 disabled:opacity-50"
                                 >
                                   {isSaving ? 'Saving…' : 'Save'}
+                                </button>
+                                <button
+                                  onClick={() => handleSplit(r)}
+                                  disabled={splittingId === r.requirementId || isSaving}
+                                  title="Use AI to reorganize this text into structured sections"
+                                  className="px-3 py-1.5 border border-indigo-300 text-indigo-700 rounded-md text-xs hover:bg-indigo-50 disabled:opacity-50 inline-flex items-center gap-1"
+                                >
+                                  {splittingId === r.requirementId ? 'Splitting…' : '✨ Split with AI'}
                                 </button>
                                 {savedId === r.requirementId && (
                                   <span className="text-xs text-green-600">Saved</span>
