@@ -40,24 +40,24 @@ async function requireRequirementEditor(context: any, projectId: string): Promis
   return user
 }
 
-// Standard document structure seeded into every new requirement (ordered).
-const DEFAULT_SECTION_SEEDS: Array<{ heading: string; label: reqDb.SectionLabel }> = [
-  { heading: 'Overview', label: 'Note' },
-  { heading: 'Scope', label: 'Note' },
-  { heading: 'Functional Requirements', label: 'Functional' },
-  { heading: 'Non-Functional Requirements', label: 'Non-Functional' },
-  { heading: 'Constraints & Assumptions', label: 'Constraint' },
-  { heading: 'Acceptance Criteria', label: 'Acceptance Criteria' },
-]
+// Every new requirement starts with ONE free-form body section. Users capture
+// everything in a single field; splitting into structured sections happens
+// later (AI-assisted). One insert = fewer failure points on create.
+const DEFAULT_SECTION_HEADING = 'Requirements'
+const DEFAULT_SECTION_LABEL: reqDb.SectionLabel = 'Note'
 
 const requirementLink = (requirementId: string, projectId: string) =>
   `/projects/${projectId}/requirements/${requirementId}`
 
-// FR-4 eligibility: reviewer or privileged role; and NOT the author or last editor
-// (separation of duties).
+// Approval eligibility. Privileged roles (admin/top_management/management) may
+// review ANY requirement — including ones they authored or last edited — because
+// small teams need a working approver. Non-privileged users may only approve if
+// they are the designated reviewer and neither the author nor the last editor.
 async function assertCanApprove(req: reqDb.Requirement, user: { employeeId: string; role: string }) {
-  const isReviewerOrPriv = req.reviewerId === user.employeeId || PRIVILEGED_ROLES.includes(user.role)
-  if (!isReviewerOrPriv) throw new Error('FORBIDDEN: You are not allowed to review this requirement.')
+  if (PRIVILEGED_ROLES.includes(user.role)) return
+  if (req.reviewerId !== user.employeeId) {
+    throw new Error('FORBIDDEN: You are not allowed to review this requirement.')
+  }
   if (req.createdBy === user.employeeId) throw new Error('FORBIDDEN: You cannot approve your own requirement.')
   const lastEditor = await reqDb.getLastSectionEditor(req.requirementId)
   if (lastEditor && lastEditor === user.employeeId) {
@@ -138,11 +138,12 @@ export const requirementMutations = {
   createRequirement: async (_: any, { input }: any, context: any) => {
     const user = await requireRequirementEditor(context, input.projectId)
     // Sequential id with retry on unique-violation (read-latest+increment is not atomic).
+    let created: reqDb.Requirement | null = null
     for (let attempt = 1; attempt <= 5; attempt++) {
       const latest = await reqDb.getLatestRequirementId()
       const requirementId = generateSequentialRequirementId(latest)
       try {
-        const created = await reqDb.createRequirement({
+        created = await reqDb.createRequirement({
           requirementId,
           projectId: input.projectId,
           subprojectId: input.subprojectId || undefined,
@@ -150,26 +151,30 @@ export const requirementMutations = {
           createdBy: user.employeeId,
           reviewerId: input.reviewerId || undefined,
         })
-        // Seed the standard document structure so every requirement starts
-        // with a consistent index of sections instead of a blank page.
-        for (const seed of DEFAULT_SECTION_SEEDS) {
-          await reqDb.createSection({
-            requirementId,
-            heading: seed.heading,
-            label: seed.label,
-            contentHtml: '',
-            editorId: user.employeeId,
-            editorName: user.name,
-          })
-        }
-        return created
+        break
       } catch (err: any) {
         const dup = err?.code === '23505' || /duplicate key|unique constraint/i.test(err?.message || '')
         if (dup && attempt < 5) continue
         throw err
       }
     }
-    throw new Error('Failed to generate a unique requirement ID')
+    if (!created) throw new Error('Failed to generate a unique requirement ID')
+
+    // Seed the single default body section. Non-fatal: the requirement already
+    // exists, so a seeding hiccup must not fail the create (or duplicate it).
+    try {
+      await reqDb.createSection({
+        requirementId: created.requirementId,
+        heading: DEFAULT_SECTION_HEADING,
+        label: DEFAULT_SECTION_LABEL,
+        contentHtml: '',
+        editorId: user.employeeId,
+        editorName: user.name,
+      })
+    } catch (seedErr) {
+      console.error('Failed to seed default section for', created.requirementId, seedErr)
+    }
+    return created
   },
 
   updateRequirement: async (_: any, { requirementId, input }: any, context: any) => {

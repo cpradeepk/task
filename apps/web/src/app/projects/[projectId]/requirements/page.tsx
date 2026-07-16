@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import DOMPurify from 'dompurify'
+import RichTextEditor from '@/components/RichTextEditor'
 import { getRequirementStatusStyle } from '@/lib/statusColors'
 import { formatDateTimeIST } from '@/lib/datetime-utils'
 import { Plus, ArrowLeft, ChevronDown } from 'lucide-react'
@@ -59,8 +60,29 @@ const GET_EDIT_ACCESS = `
 const GET_REQ_SECTIONS = `
   query GetReqSections($requirementId: ID!) {
     requirement(requirementId: $requirementId) {
-      sections { id heading label contentHtml displayOrder }
+      status
+      sections { id heading label contentHtml displayOrder lockVersion }
     }
+  }
+`
+const UPDATE_SECTION = `
+  mutation UpdateSection($sectionId: ID!, $input: UpdateRequirementSectionInput!) {
+    updateRequirementSection(sectionId: $sectionId, input: $input) { id lockVersion }
+  }
+`
+const SUBMIT_REQUIREMENT = `
+  mutation Submit($requirementId: ID!) {
+    submitRequirementForReview(requirementId: $requirementId) { status }
+  }
+`
+const APPROVE_REQUIREMENT = `
+  mutation Approve($requirementId: ID!, $note: String) {
+    approveRequirement(requirementId: $requirementId, note: $note) { status }
+  }
+`
+const REJECT_REQUIREMENT = `
+  mutation Reject($requirementId: ID!, $note: String!) {
+    rejectRequirement(requirementId: $requirementId, note: $note) { status }
   }
 `
 const CREATE_BASELINE = `
@@ -99,6 +121,13 @@ export default function RequirementsListPage() {
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({})
   const [sectionsCache, setSectionsCache] = useState<Record<string, any[]>>({})
   const [loadingSections, setLoadingSections] = useState<Record<string, boolean>>({})
+  // Inline single-field editing: per-requirement editor draft, freshest status,
+  // and per-requirement busy markers for save/status-action requests.
+  const [drafts, setDrafts] = useState<Record<string, string>>({})
+  const [statusCache, setStatusCache] = useState<Record<string, string>>({})
+  const [savingId, setSavingId] = useState<string | null>(null)
+  const [savedId, setSavedId] = useState<string | null>(null)
+  const [actingId, setActingId] = useState<string | null>(null)
 
   const loadBaselines = useCallback(async () => {
     try {
@@ -167,23 +196,93 @@ export default function RequirementsListPage() {
     }
   }
 
-  const toggleExpand = async (requirementId: string) => {
+  // Lazily (re)load a requirement's sections + status. `resetDraft` forces the
+  // editor draft back to the server's first-section content (used after a
+  // CONFLICT reload); otherwise the draft is only seeded when first missing.
+  const fetchSections = useCallback(async (requirementId: string, resetDraft: boolean) => {
+    setLoadingSections((prev) => ({ ...prev, [requirementId]: true }))
+    try {
+      const data = await gql(GET_REQ_SECTIONS, { requirementId })
+      const req = data.requirement
+      const sections = (req?.sections || [])
+        .slice()
+        .sort((a: any, b: any) => a.displayOrder - b.displayOrder)
+      setSectionsCache((prev) => ({ ...prev, [requirementId]: sections }))
+      if (req?.status) setStatusCache((prev) => ({ ...prev, [requirementId]: req.status }))
+      const firstHtml: string = sections[0]?.contentHtml ?? ''
+      setDrafts((prev) =>
+        resetDraft || prev[requirementId] === undefined
+          ? { ...prev, [requirementId]: firstHtml }
+          : prev
+      )
+    } catch {
+      setSectionsCache((prev) => ({ ...prev, [requirementId]: [] }))
+    } finally {
+      setLoadingSections((prev) => ({ ...prev, [requirementId]: false }))
+    }
+  }, [])
+
+  const toggleExpand = (requirementId: string) => {
     const willExpand = !expandedIds[requirementId]
     setExpandedIds((prev) => ({ ...prev, [requirementId]: willExpand }))
     if (willExpand && !sectionsCache[requirementId]) {
-      setLoadingSections((prev) => ({ ...prev, [requirementId]: true }))
-      try {
-        const data = await gql(GET_REQ_SECTIONS, { requirementId })
-        const sections = (data.requirement?.sections || [])
-          .slice()
-          .sort((a: any, b: any) => a.displayOrder - b.displayOrder)
-        setSectionsCache((prev) => ({ ...prev, [requirementId]: sections }))
-      } catch {
-        setSectionsCache((prev) => ({ ...prev, [requirementId]: [] }))
-      } finally {
-        setLoadingSections((prev) => ({ ...prev, [requirementId]: false }))
-      }
+      fetchSections(requirementId, false)
     }
+  }
+
+  const handleSave = async (r: RequirementRow) => {
+    const first = sectionsCache[r.requirementId]?.[0]
+    if (!first) return
+    setSavingId(r.requirementId)
+    setSavedId(null)
+    try {
+      await gql(UPDATE_SECTION, {
+        sectionId: first.id,
+        input: {
+          heading: first.heading,
+          label: first.label,
+          contentHtml: drafts[r.requirementId] ?? first.contentHtml ?? '',
+          lockVersion: first.lockVersion,
+        },
+      })
+      await fetchSections(r.requirementId, false)
+      setSavedId(r.requirementId)
+      setTimeout(() => setSavedId((cur) => (cur === r.requirementId ? null : cur)), 2000)
+    } catch (err: any) {
+      if (typeof err?.message === 'string' && err.message.startsWith('CONFLICT')) {
+        alert('This requirement was updated elsewhere. Reloading.')
+        await fetchSections(r.requirementId, true)
+      } else {
+        alert(err?.message || 'Something went wrong')
+      }
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  const runStatusAction = async (requirementId: string, mutation: string, variables: any) => {
+    setActingId(requirementId)
+    try {
+      await gql(mutation, variables)
+      await fetchSections(requirementId, false)
+      await load()
+    } catch (err: any) {
+      alert(err?.message || 'Something went wrong')
+    } finally {
+      setActingId(null)
+    }
+  }
+
+  const handleSubmit = (requirementId: string) =>
+    runStatusAction(requirementId, SUBMIT_REQUIREMENT, { requirementId })
+
+  const handleApprove = (requirementId: string) =>
+    runStatusAction(requirementId, APPROVE_REQUIREMENT, { requirementId, note: null })
+
+  const handleReject = (requirementId: string) => {
+    const note = window.prompt('Reason for rejection:')
+    if (note === null || !note.trim()) return
+    return runStatusAction(requirementId, REJECT_REQUIREMENT, { requirementId, note: note.trim() })
   }
 
   if (forbidden) {
@@ -262,63 +361,160 @@ export default function RequirementsListPage() {
       ) : (
         <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
           {requirements.map((r) => {
-            const s = getRequirementStatusStyle(r.status)
+            const freshStatus = statusCache[r.requirementId] ?? r.status
+            const s = getRequirementStatusStyle(freshStatus)
             const isOpen = !!expandedIds[r.requirementId]
             const sections = sectionsCache[r.requirementId]
             const isLoadingSecs = !!loadingSections[r.requirementId]
+            const first = sections?.[0]
+            const isSaving = savingId === r.requirementId
+            const isActing = actingId === r.requirementId
             return (
               <div key={r.requirementId}>
-                <div className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
-                  <button
-                    onClick={() => toggleExpand(r.requirementId)}
-                    aria-expanded={isOpen}
-                    aria-label={isOpen ? 'Collapse requirement' : 'Expand requirement'}
-                    className="p-1 -ml-1 text-gray-400 hover:text-gray-700 rounded shrink-0"
-                  >
-                    <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  <button
-                    onClick={() => router.push(`/projects/${projectId}/requirements/${r.requirementId}`)}
-                    className="flex-1 flex items-center gap-3 text-left min-w-0"
-                  >
-                    <span className="font-mono text-xs text-gray-400 shrink-0">{r.requirementId}</span>
-                    <span className="flex-1 text-sm text-gray-800 truncate">{r.title}</span>
-                  </button>
+                <button
+                  onClick={() => toggleExpand(r.requirementId)}
+                  aria-expanded={isOpen}
+                  aria-label={isOpen ? 'Collapse requirement' : 'Expand requirement'}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left"
+                >
+                  <ChevronDown
+                    size={16}
+                    className={`shrink-0 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                  />
+                  <span className="font-mono text-xs text-gray-400 shrink-0">{r.requirementId}</span>
+                  <span className="flex-1 text-sm text-gray-800 truncate">{r.title}</span>
                   {r.subprojectId && (
                     <span className="text-xs text-gray-400 hidden sm:inline">{r.subprojectId}</span>
                   )}
                   <span className="text-xs text-gray-400 hidden sm:inline">{r.sections.length} section(s)</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${s.className}`}>{s.label}</span>
                   <span className="text-xs text-gray-400 w-32 text-right hidden md:inline">{formatDateTimeIST(r.updatedAt)}</span>
-                </div>
+                </button>
                 {isOpen && (
-                  <div className="pl-10 pr-4 pb-4 bg-gray-50/60 border-t border-gray-100">
-                    {isLoadingSecs ? (
+                  <div className="px-4 pb-4 sm:pl-10 bg-gray-50/60 border-t border-gray-100">
+                    {isLoadingSecs && !sections ? (
                       <p className="text-xs text-gray-400 py-3">Loading sections…</p>
-                    ) : !sections || sections.length === 0 ? (
-                      <p className="text-xs text-gray-400 py-3">No sections yet.</p>
                     ) : (
-                      <div className="space-y-3 py-3">
-                        {sections.map((sec: any) => (
-                          <div key={sec.id}>
-                            <p className="text-xs font-semibold text-gray-600">
-                              {sec.heading} <span className="font-normal text-gray-400">· {sec.label}</span>
-                            </p>
-                            {sec.contentHtml ? (
-                              <div
-                                className="prose prose-sm max-w-none text-gray-600 mt-1"
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sec.contentHtml) }}
-                              />
-                            ) : (
-                              <p className="text-xs text-gray-300 italic mt-1">Empty</p>
+                      <div className="space-y-4 py-3">
+                        {/* Inline status actions, driven by the freshest status */}
+                        {canEdit && (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-gray-500">
+                              Status: <span className="font-medium text-gray-700">{s.label}</span>
+                            </span>
+                            {(freshStatus === 'Draft' || freshStatus === 'Rejected') && (
+                              <button
+                                onClick={() => handleSubmit(r.requirementId)}
+                                disabled={isActing}
+                                className="px-2.5 py-1 bg-indigo-600 text-white rounded-md text-xs hover:bg-indigo-700 disabled:opacity-50"
+                              >
+                                {isActing ? 'Working…' : 'Submit for Review'}
+                              </button>
+                            )}
+                            {freshStatus === 'In Review' && (
+                              <>
+                                <button
+                                  onClick={() => handleApprove(r.requirementId)}
+                                  disabled={isActing}
+                                  className="px-2.5 py-1 bg-green-600 text-white rounded-md text-xs hover:bg-green-700 disabled:opacity-50"
+                                >
+                                  {isActing ? 'Working…' : 'Approve'}
+                                </button>
+                                <button
+                                  onClick={() => handleReject(r.requirementId)}
+                                  disabled={isActing}
+                                  className="px-2.5 py-1 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 disabled:opacity-50"
+                                >
+                                  {isActing ? 'Working…' : 'Reject'}
+                                </button>
+                              </>
                             )}
                           </div>
-                        ))}
+                        )}
+
+                        {!sections || sections.length === 0 ? (
+                          <p className="text-xs text-gray-400">No sections yet.</p>
+                        ) : canEdit && first ? (
+                          <>
+                            {/* Editable primary body (first section) */}
+                            <div>
+                              <p className="text-xs font-semibold text-gray-600 mb-1">
+                                {first.heading} <span className="font-normal text-gray-400">· {first.label}</span>
+                              </p>
+                              <div className="bg-white border border-gray-200 rounded-md">
+                                <RichTextEditor
+                                  key={`${r.requirementId}-${first.lockVersion}`}
+                                  content={drafts[r.requirementId] ?? first.contentHtml ?? ''}
+                                  onChange={(html) =>
+                                    setDrafts((prev) => ({ ...prev, [r.requirementId]: html }))
+                                  }
+                                  placeholder="Describe the requirement…"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2 mt-2">
+                                <button
+                                  onClick={() => handleSave(r)}
+                                  disabled={isSaving}
+                                  className="px-3 py-1.5 bg-gray-800 text-white rounded-md text-xs hover:bg-gray-900 disabled:opacity-50"
+                                >
+                                  {isSaving ? 'Saving…' : 'Save'}
+                                </button>
+                                {savedId === r.requirementId && (
+                                  <span className="text-xs text-green-600">Saved</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Legacy: additional sections stay read-only */}
+                            {sections.length > 1 && (
+                              <div className="space-y-3">
+                                <p className="text-xs text-amber-600">
+                                  This requirement has additional sections — open the full editor to edit them.
+                                </p>
+                                {sections.slice(1).map((sec: any) => (
+                                  <div key={sec.id}>
+                                    <p className="text-xs font-semibold text-gray-600">
+                                      {sec.heading} <span className="font-normal text-gray-400">· {sec.label}</span>
+                                    </p>
+                                    {sec.contentHtml ? (
+                                      <div
+                                        className="prose prose-sm max-w-none text-gray-600 mt-1"
+                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sec.contentHtml) }}
+                                      />
+                                    ) : (
+                                      <p className="text-xs text-gray-300 italic mt-1">Empty</p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          /* Read-only: no edit permission — render all sections */
+                          <div className="space-y-3">
+                            {sections.map((sec: any) => (
+                              <div key={sec.id}>
+                                <p className="text-xs font-semibold text-gray-600">
+                                  {sec.heading} <span className="font-normal text-gray-400">· {sec.label}</span>
+                                </p>
+                                {sec.contentHtml ? (
+                                  <div
+                                    className="prose prose-sm max-w-none text-gray-600 mt-1"
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sec.contentHtml) }}
+                                  />
+                                ) : (
+                                  <p className="text-xs text-gray-300 italic mt-1">Empty</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
                         <button
                           onClick={() => router.push(`/projects/${projectId}/requirements/${r.requirementId}`)}
                           className="text-xs text-indigo-600 hover:underline"
                         >
-                          Open full requirement →
+                          Open full editor →
                         </button>
                       </div>
                     )}
