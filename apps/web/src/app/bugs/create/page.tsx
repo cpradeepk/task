@@ -456,7 +456,8 @@ function CreateBugPageContent() {
     if (!isReleaseMode && (!formData.title || !formData.title.trim())) missing.push('title')
     if (!formData.description || !formData.description.trim()) missing.push('description')
     if (!formData.projectId) missing.push('projectId')
-    if (!formData.subprojectId) missing.push('subprojectId')
+    // Subproject is only required when the selected project actually has subprojects.
+    if (subprojects.length > 0 && !formData.subprojectId) missing.push('subprojectId')
     if (!formData.type) missing.push('type')
 
     // Release-specific validation: assignee + start date + at least one platform.
@@ -710,7 +711,7 @@ function CreateBugPageContent() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Subproject <span className="text-red-500">*</span>
+                      Subproject {subprojects.length > 0 && <span className="text-red-500">*</span>}
                       {missingFields.includes('subprojectId') && (
                         <span className="text-red-500 text-xs ml-2">Required</span>
                       )}
@@ -727,9 +728,9 @@ function CreateBugPageContent() {
                       }}
                       className={getFieldClass('subprojectId', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white')}
                       disabled={!formData.projectId || isLoadingSubprojects}
-                      required
+                      required={subprojects.length > 0}
                     >
-                      <option value="">Select subproject...</option>
+                      <option value="">{subprojects.length === 0 ? 'No subprojects' : 'Select subproject...'}</option>
                       {subprojects.map(subproject => (
                         <option key={subproject.projectId} value={subproject.projectId}>
                           {subproject.projectName}

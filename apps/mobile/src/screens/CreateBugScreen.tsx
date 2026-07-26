@@ -257,7 +257,8 @@ export default function CreateBugScreen() {
         Alert.alert('Validation Error', 'Project is required')
         return
       }
-      if (!subprojectId) {
+      // Subproject is only required when the selected project has subprojects.
+      if (subprojects.length > 0 && !subprojectId) {
         Alert.alert('Validation Error', 'Subproject is required')
         return
       }
@@ -430,7 +431,7 @@ export default function CreateBugScreen() {
     } finally {
       setIsSubmitting(false)
     }
-  }, [title, description, projectId, subprojectId, bugType, severity, priority, category, platform, environment, browser, device, feature, tags, relatedBugs, assignedTo, currentUser, navigation, attachedFile, stepsToReproduce, expectedBehavior, actualBehavior, serverLogs, frontendLogs, behaviour, isReleaseMode, releasePlatforms, releaseSections, selectedReleaseBugIds, startDate, subName])
+  }, [title, description, projectId, subprojectId, subprojects, bugType, severity, priority, category, platform, environment, browser, device, feature, tags, relatedBugs, assignedTo, currentUser, navigation, attachedFile, stepsToReproduce, expectedBehavior, actualBehavior, serverLogs, frontendLogs, behaviour, isReleaseMode, releasePlatforms, releaseSections, selectedReleaseBugIds, startDate, subName])
 
   // Helper to safely format picker items and avoid undefined properties causing native Picker crashes
   const getPickerItems = (items: any) => {

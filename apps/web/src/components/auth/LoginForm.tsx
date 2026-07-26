@@ -365,7 +365,7 @@ export default function LoginForm() {
   const [employeeId, setEmployeeId] = useState('')
   const [password, setPassword] = useState('')
   const [otp, setOtp] = useState('')
-  const [mode, setMode] = useState<LoginMode>('otp')
+  const [mode, setMode] = useState<LoginMode>('password')
   const [otpStep, setOtpStep] = useState<OtpStep>('id')
   const [maskedPhone, setMaskedPhone] = useState('')
   const [cooldown, setCooldown] = useState(0)
@@ -463,14 +463,18 @@ export default function LoginForm() {
     setError('')
     setWarpPulse(1) // ENGAGE WARP SPEED!
 
-    // Admin/service break-glass password login
+    // Default: employee ID / email + password login
     if (mode === 'password') {
+      if (!employeeId.trim() || !password) {
+        setError('Please enter your Employee ID or email and password')
+        return
+      }
       setIsLoading(true)
       showGlobalLoading('Signing in...')
       try {
         const success = await login(employeeId.trim(), password)
         if (success) router.push('/dashboard')
-        else setError('Invalid credentials, or this account must use OTP')
+        else setError('Invalid credentials')
       } catch {
         setError('An error occurred during login')
       } finally {
@@ -568,7 +572,7 @@ export default function LoginForm() {
                 onChange={(e) => setEmployeeId(e.target.value)}
                 disabled={mode === 'otp' && otpStep === 'code'}
                 className="peer w-full px-3 pt-5 pb-2 placeholder:text-transparent bg-transparent border-b-2 border-white/30 focus:border-indigo-400 focus:outline-none disabled:opacity-60"
-                placeholder="Employee ID"
+                placeholder="Employee ID or Email"
                 autoComplete="username"
                 aria-invalid={!!error && !employeeId}
               />
@@ -576,11 +580,11 @@ export default function LoginForm() {
                 htmlFor="employeeId"
                 className="absolute left-3 -top-2 text-sm text-white/70 transition-all duration-300 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2 peer-focus:text-sm peer-focus:text-indigo-300"
               >
-                Employee ID
+                Employee ID or Email
               </label>
             </div>
 
-            {/* Password (admin fallback only) */}
+            {/* Password (default login) */}
             {mode === 'password' && (
               <div className="relative">
                 <input
@@ -671,24 +675,24 @@ export default function LoginForm() {
 
             {/* Mode toggle */}
             <div className="text-center text-sm text-white/70">
-              {mode === 'otp' ? (
+              {mode === 'password' ? (
+                <button
+                  type="button"
+                  onClick={() => { setMode('otp'); setError(''); setPassword(''); setOtpStep('id'); setOtp('') }}
+                  className="hover:text-white underline-offset-4 hover:underline"
+                >
+                  Login with OTP instead
+                </button>
+              ) : (
                 <button
                   type="button"
                   onClick={() => { setMode('password'); setError(''); setOtpStep('id'); setOtp('') }}
                   className="hover:text-white underline-offset-4 hover:underline"
                 >
-                  Admin password login
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => { setMode('otp'); setError(''); setPassword('') }}
-                  className="hover:text-white underline-offset-4 hover:underline"
-                >
-                  ← Back to OTP login
+                  ← Back to password login
                 </button>
               )}
-              <p className="mt-2 text-white/60">Use your Employee ID (e.g., AM-0001)</p>
+              <p className="mt-2 text-white/60">Use your Employee ID (e.g., AM-0001) or email</p>
             </div>
 
             {/* Legal footer links */}

@@ -3,36 +3,21 @@ import { authenticateUser } from '@/lib/db/users'
 import { issueAuthToken } from '@/lib/auth-server'
 
 /**
- * Password login is now a break-glass fallback for admin / system-admin
- * accounts only. Regular users authenticate via OTP (/api/auth/otp/*).
+ * Password login for all active users. The identifier accepts an employee ID
+ * or an email address (authenticateUser matches both). OTP remains available
+ * as an alternative via /api/auth/otp/*.
  */
-function isAdminAccount(user: { role?: string; isSystemAdmin?: number }): boolean {
-  return user.role === 'admin' || Boolean(user.isSystemAdmin)
-}
-
 export async function POST(request: NextRequest) {
   try {
     const { employeeId, password } = await request.json()
 
-    // Authenticate user from database
+    // Authenticate user from database (employee ID or email + password)
     const user = await authenticateUser(employeeId, password)
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Invalid credentials' },
         { status: 401 }
-      )
-    }
-
-    // Only admin/service accounts may use password login as a fallback.
-    if (!isAdminAccount(user)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Password login is disabled for this account. Please sign in with OTP.',
-          code: 'OTP_REQUIRED',
-        },
-        { status: 403 }
       )
     }
 
