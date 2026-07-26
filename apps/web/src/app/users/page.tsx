@@ -276,9 +276,12 @@ export default function UserManagement() {
           alert('Failed to update user. Please try again.')
         }
       } else {
-        // Add new user
-        const success = await addUser(userData)
-        if (success) {
+        // Add new user. The server allocates the employee ID and, when the admin
+        // left the password blank, generates a strong one — both come back here.
+        const result = await addUser(userData)
+        if (result.success) {
+          const createdEmployeeId = result.user?.employeeId || userData.employeeId
+
           // Clear cache and reload with fresh data without showing loading state
           optimizedDataService.clearUserCache()
           try {
@@ -290,45 +293,48 @@ export default function UserManagement() {
           }
           setIsModalOpen(false)
 
-          // Automatically send credentials email for new user if email is provided.
-          // Pass the password the admin just chose so it is emailed and kept as the
-          // user's actual password — without it the endpoint would generate a new
-          // one and the admin's password would never work for the first login.
+          // Email the exact password that was just stored. Passing it explicitly
+          // stops send-credentials from minting a replacement, which would leave
+          // the admin holding a password that no longer works.
           if (userData.email) {
             try {
               const response = await fetchWithTimeout(
-                `/api/users/${userData.employeeId}/send-credentials`,
+                `/api/users/${createdEmployeeId}/send-credentials`,
                 {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
                   },
                   body: JSON.stringify(
-                    (userData as { password?: string }).password
-                      ? { password: (userData as { password?: string }).password }
-                      : {}
+                    result.initialPassword ? { password: result.initialPassword } : {}
                   ),
                 },
                 15000 // 15 second timeout
               )
 
-              const result = await response.json()
+              const emailResult = await response.json()
 
-              if (result.success) {
-                alert(`✅ User created successfully! Credentials email sent to ${userData.email}`)
+              if (emailResult.success) {
+                alert(`✅ User ${createdEmployeeId} created. Credentials emailed to ${userData.email}`)
               } else {
-                alert(`✅ User created successfully! However, failed to send credentials email: ${result.error}`)
+                alert(
+                  `✅ User ${createdEmployeeId} created, but the credentials email failed: ${emailResult.error}\n\n` +
+                  `Password: ${result.initialPassword}\n\nShare it securely, or resend from the user list.`
+                )
               }
             } catch (emailError) {
               console.error('Failed to send credentials email:', emailError)
               const errorMessage = emailError instanceof Error ? emailError.message : 'Unknown error'
-              alert(`✅ User created successfully! However, ${errorMessage}. You can send it manually from the user list.`)
+              alert(
+                `✅ User ${createdEmployeeId} created, but the credentials email failed: ${errorMessage}\n\n` +
+                `Password: ${result.initialPassword}\n\nShare it securely, or resend from the user list.`
+              )
             }
           } else {
-            alert('✅ User created successfully!')
+            alert(`✅ User ${createdEmployeeId} created. Password: ${result.initialPassword}`)
           }
         } else {
-          alert('Failed to add user. This might be due to Google Sheets quota limits. Please wait a moment and try again.')
+          alert(`Failed to add user: ${result.error}`)
         }
       }
     } catch (error) {

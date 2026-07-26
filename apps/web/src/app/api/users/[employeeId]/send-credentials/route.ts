@@ -46,15 +46,9 @@ export async function POST(
       }, { status: 400 })
     }
 
-    // The password we email must always be the one that is stored, so write it
-    // back either way. On create the admin's chosen password is supplied and is
-    // preserved (previously it was silently replaced, so the new user's first
-    // login always failed). A manual resend has no plaintext to recover, so a
-    // fresh temporary password is generated instead.
-    const tempPassword = suppliedPassword || randomBytes(12).toString('base64url').slice(0, 12)
-    await updateUser(employeeId, { password: tempPassword } as any)
-
-    // Check if email service is available
+    // Check the email service BEFORE touching the password. Rotating first meant
+    // that if SMTP was down we had already replaced the user's password with a
+    // random string nobody would ever receive, locking them out silently.
     const isAvailable = await emailService.isAvailableAsync()
     if (!isAvailable) {
       return NextResponse.json({
@@ -62,6 +56,14 @@ export async function POST(
         error: 'Email service is not available'
       }, { status: 503 })
     }
+
+    // The password we email must always be the one that is stored, so write it
+    // back either way. On create the admin's chosen password is supplied and is
+    // preserved (previously it was silently replaced, so the new user's first
+    // login always failed). A manual resend has no plaintext to recover, so a
+    // fresh temporary password is generated instead.
+    const tempPassword = suppliedPassword || randomBytes(12).toString('base64url').slice(0, 12)
+    await updateUser(employeeId, { password: tempPassword } as any)
 
     // Get manager details if available
     let managerName = undefined

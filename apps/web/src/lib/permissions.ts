@@ -22,11 +22,31 @@ export const AVAILABLE_TABS = [
     { key: 'wfh', label: 'WFH' }
 ]
 
+/**
+ * Tabs pre-selected when an admin creates a user. Keeps a new joiner immediately
+ * useful without an extra permissions pass.
+ */
+export const DEFAULT_NEW_USER_PERMISSIONS: string[] = [
+    'home', 'feed', 'tasks', 'bugs', 'your_work', 'team_tasks', 'attendance'
+]
+
 // Define default permissions for each role
 // Migration 040 reconciles existing user records with these keys.
+//
+// NOTE ON ROLE KEYS: the database CHECK constraint stores 'employee', but this
+// map was keyed only on the legacy 'amtarikshian'. DEFAULT_ROLE_PERMISSIONS['employee']
+// was therefore undefined, so hasTabAccess() returned false for every tab and a
+// newly created employee saw an empty app. Both keys are now present and point at
+// the same list; 'amtarikshian' is retained so existing rows keep working.
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
+    'employee': [
+        'home', 'feed', 'tasks', 'bugs', 'your_work', 'team_tasks',
+        'attendance', 'leaves', 'wfh'
+    ],
+    // Legacy alias for 'employee' — kept so users still stored under the old key
+    // do not lose access. Safe to remove once no rows use it.
     'amtarikshian': [
-        'home', 'feed', 'tasks', 'bugs', 'your_work',
+        'home', 'feed', 'tasks', 'bugs', 'your_work', 'team_tasks',
         'attendance', 'leaves', 'wfh'
     ],
     'management': [

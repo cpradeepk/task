@@ -47,7 +47,9 @@ function rowToUser(row: UserRow): User {
     email: row.email,
     phone: row.phone,
     telegramToken: row.telegram_token || undefined,
-    department: row.department,
+    // department is nullable since migration 061; keep the User type's `string`
+    // contract honest so callers never see null.
+    department: row.department || '',
     managerEmail: row.manager_email || undefined,
     managerId: row.manager_id || undefined,
     isTodayTask: Boolean(row.is_today_task),
@@ -162,24 +164,52 @@ export async function getUsersByEmployeeIds(employeeIds: string[]): Promise<User
   })
 }
 
+export const EMPLOYEE_ID_PREFIX = process.env.EMPLOYEE_ID_PREFIX || 'AM'
+
+/**
+ * Next free employee ID, computed in the database across ALL users — active and
+ * inactive alike. The old client-side generator only saw active users, so once
+ * the highest-numbered employees were deactivated it handed back an ID that was
+ * already taken (and rewound all the way to AM-0001 when the list was empty),
+ * which surfaced as a unique-violation the UI reported as a Google Sheets quota
+ * error.
+ */
+export async function getNextEmployeeId(prefix: string = EMPLOYEE_ID_PREFIX): Promise<string> {
+  const row = await queryOne<{ max_num: number | null }>(
+    `SELECT MAX(CAST(SUBSTRING(employee_id FROM '^' || $1 || '-([0-9]+)$') AS INTEGER)) AS max_num
+       FROM users
+      WHERE employee_id ~ ('^' || $1 || '-[0-9]+$')`,
+    [prefix]
+  )
+  const next = (row?.max_num ?? 0) + 1
+  return `${prefix}-${String(next).padStart(4, '0')}`
+}
+
+const UNIQUE_VIOLATION = '23505'
+
 // Create a new user
 export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): Promise<User> {
-  return withRetry(async () => {
-    // Store the password as a bcrypt hash, never plaintext.
-    const hashedPassword = await hashPassword(user.password)
-    const result = await query<any>(
+  if (typeof user.password !== 'string' || user.password.trim() === '') {
+    throw new Error('A password is required to create a user')
+  }
+
+  // Store the password as a bcrypt hash, never plaintext.
+  const hashedPassword = await hashPassword(user.password)
+
+  const insertWithId = async (employeeId: string): Promise<void> => {
+    await query<any>(
       `INSERT INTO users (
         employee_id, name, email, phone, telegram_token, department,
         manager_email, manager_id, is_today_task, warning_count, role,
         password, status, hours_log, tab_permissions
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
       [
-        user.employeeId,
+        employeeId,
         user.name,
         user.email,
         user.phone,
         user.telegramToken || null,
-        user.department,
+        user.department || null,
         user.managerEmail || null,
         user.managerId || null,
         user.isTodayTask ? 1 : 0,
@@ -191,13 +221,32 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>): P
         JSON.stringify(user.tabPermissions || [])
       ]
     )
+  }
 
-    const createdUser = await getUserByEmployeeId(user.employeeId)
-    if (!createdUser) {
-      throw new Error('Failed to retrieve created user')
+  // Allocate the ID here rather than trusting the client. Two admins creating a
+  // user at the same moment still race, so retry on a unique violation with a
+  // freshly computed ID. Note this is deliberately NOT wrapped in withRetry —
+  // that helper blindly retries deterministic constraint failures.
+  let employeeId = user.employeeId?.trim() || (await getNextEmployeeId())
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await insertWithId(employeeId)
+      const createdUser = await getUserByEmployeeId(employeeId)
+      if (!createdUser) throw new Error('Failed to retrieve created user')
+      return createdUser
+    } catch (error) {
+      const code = (error as { code?: string })?.code
+      const detail = String((error as { detail?: string })?.detail || '')
+      // Only an employee_id collision is retryable. A duplicate email is a real
+      // input error and must surface to the admin unchanged.
+      if (code === UNIQUE_VIOLATION && detail.includes('employee_id')) {
+        employeeId = await getNextEmployeeId()
+        continue
+      }
+      throw error
     }
-    return createdUser
-  })
+  }
+  throw new Error('Could not allocate a unique employee ID after several attempts')
 }
 
 // Update user
@@ -259,7 +308,11 @@ export async function updateUser(employee_id: string, updates: Partial<User>): P
       fields.push(`role = $${paramIndex++}`)
       values.push(updates.role)
     }
-    if (updates.password !== undefined) {
+    // A blank/whitespace password means "leave the password alone", never "set it
+    // to the empty string". The UI sends the whole user object back on save and
+    // rowToUser blanks the password on read, so without this guard an ordinary
+    // edit stored bcrypt('') and locked the user out of their own account.
+    if (typeof updates.password === 'string' && updates.password.trim() !== '') {
       fields.push(`password = $${paramIndex++}`)
       values.push(await hashPassword(updates.password))
     }
@@ -352,6 +405,11 @@ export async function authenticateUser(employee_id: string, password: string): P
   return withRetry(async () => {
     const identifier = (employee_id || '').trim()
     if (!identifier) return null
+
+    // Never authenticate on an empty password. Accounts whose hash was corrupted
+    // to bcrypt('') by the old update path would otherwise accept a blank
+    // password, and the only guard was client-side in LoginForm.
+    if (typeof password !== 'string' || password === '') return null
 
     const row = await queryOne<UserRow>(
       `SELECT * FROM users

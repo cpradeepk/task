@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllUsers, getAllUsersIncludingInactive, createUser } from '@/lib/db/users'
 import { withTimeout } from '@/lib/db/config'
 import { requireAuth, requireRole } from '@/lib/auth-server'
+import { generateSecurePassword } from '@/lib/utils/password'
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,6 +49,30 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/** Turn a PostgreSQL error into something an admin can actually act on. */
+function describeCreateUserError(error: unknown): { message: string; status: number } {
+  const code = (error as { code?: string })?.code
+  const detail = String((error as { detail?: string })?.detail || '')
+
+  if (code === '23505') {
+    if (detail.includes('email')) return { message: 'That email address already belongs to another user.', status: 409 }
+    if (detail.includes('employee_id')) return { message: 'That employee ID is already taken.', status: 409 }
+    return { message: 'A user with those details already exists.', status: 409 }
+  }
+  if (code === '23514') {
+    return {
+      message: 'The selected role is not one the database accepts. Allowed roles are: employee, management, top_management, admin.',
+      status: 400,
+    }
+  }
+  if (code === '23502') return { message: 'A required field was missing.', status: 400 }
+
+  return {
+    message: error instanceof Error ? error.message : 'Failed to create user',
+    status: 500,
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Only admins/top management may create users.
@@ -56,9 +81,15 @@ export async function POST(request: NextRequest) {
 
     const userData = await request.json()
 
+    // An admin may leave the password blank; we generate a strong one and hand it
+    // back so the caller can email it. generateTemporaryPassword() is deliberately
+    // not used here — it produced a guessable `${employeeId}@2024`.
+    const suppliedPassword = typeof userData.password === 'string' ? userData.password.trim() : ''
+    const generatedPassword = suppliedPassword || generateSecurePassword(14)
+
     // Add user to database with timeout
     const user = await withTimeout(
-      createUser(userData),
+      createUser({ ...userData, password: generatedPassword }),
       15000, // 15 second timeout for create operations
       'Failed to create user - database timeout'
     )
@@ -66,15 +97,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: user,
+      // Returned once, so the create flow can email these credentials. The stored
+      // value is a bcrypt hash and can never be read back.
+      initialPassword: generatedPassword,
+      passwordWasGenerated: !suppliedPassword,
       source: 'database'
     })
   } catch (error) {
-    console.error('Failed to add user to MySQL:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Failed to add user - MySQL unavailable'
+    console.error('Failed to create user:', error)
+    const { message, status } = describeCreateUserError(error)
 
     return NextResponse.json({
       success: false,
-      error: errorMessage
-    }, { status: 500 })
+      error: message
+    }, { status })
   }
 }

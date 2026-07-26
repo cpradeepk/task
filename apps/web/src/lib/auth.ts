@@ -235,9 +235,25 @@ export async function updateUser(updatedUser: User): Promise<boolean> {
   }
 }
 
-export async function addUser(newUser: Omit<User, 'createdAt' | 'updatedAt'>): Promise<boolean> {
+export interface AddUserResult {
+  success: boolean
+  /** The created user, including the employee ID the server allocated. */
+  user?: User
+  /** Present on success — the plaintext password to email. Never stored. */
+  initialPassword?: string
+  passwordWasGenerated?: boolean
+  error?: string
+}
+
+/**
+ * Create a user. Returns the server's actual error message rather than a bare
+ * boolean — the old version discarded it, which is why a duplicate employee ID
+ * surfaced to admins as an invented "Google Sheets quota" message.
+ */
+export async function addUser(
+  newUser: Omit<User, 'createdAt' | 'updatedAt'>
+): Promise<AddUserResult> {
   try {
-    // Add user via API with timeout
     const response = await fetchWithTimeout(
       '/api/users',
       {
@@ -250,10 +266,24 @@ export async function addUser(newUser: Omit<User, 'createdAt' | 'updatedAt'>): P
       15000 // 15 second timeout
     )
 
-    return response.ok
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok || !result.success) {
+      return { success: false, error: result.error || `Request failed (${response.status})` }
+    }
+
+    return {
+      success: true,
+      user: result.data,
+      initialPassword: result.initialPassword,
+      passwordWasGenerated: result.passwordWasGenerated,
+    }
   } catch (error) {
     console.error('Failed to add user:', error)
-    return false
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error while creating the user',
+    }
   }
 }
 

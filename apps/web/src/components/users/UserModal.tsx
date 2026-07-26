@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { User } from '@/lib/types'
-import { generateTemporaryPassword } from '@/lib/utils/password'
 import { X, Save, User as UserIcon, Mail, Phone, Building, Shield, AlertCircle, CheckSquare, Square } from 'lucide-react'
 import LoadingButton from '@/components/ui/LoadingButton'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import { AVAILABLE_TABS, DEFAULT_ROLE_PERMISSIONS } from '@/lib/permissions'
+import { AVAILABLE_TABS, DEFAULT_ROLE_PERMISSIONS, DEFAULT_NEW_USER_PERMISSIONS } from '@/lib/permissions'
 
 interface UserModalProps {
   user: User | null
@@ -35,7 +34,6 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [isGeneratingId, setIsGeneratingId] = useState(false)
   const [isLookingUpManager, setIsLookingUpManager] = useState(false)
   const [managerInfo, setManagerInfo] = useState<{ name: string; id: string } | null>(null)
 
@@ -47,37 +45,12 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
   const [roleOptions, setRoleOptions] = useState<string[]>([])
   const [isLoadingRoles, setIsLoadingRoles] = useState(true)
 
-  // Function to generate next Employee ID using existing users data
-  const generateNextEmployeeId = (): string => {
-    try {
-      setIsGeneratingId(true)
-
-      // Use existing users data instead of making API call
-      const users = existingUsers
-
-      // Filter only AM- prefixed IDs and extract numbers
-      const elIds = users
-        .filter((user: any) => user.employeeId?.startsWith('AM-'))
-        .map((user: any) => {
-          const match = user.employeeId.match(/^AM-(\d{4})$/)
-          return match ? parseInt(match[1], 10) : 0
-        })
-        .filter((num: number) => num > 0)
-
-      // Find the highest number and increment
-      const maxId = elIds.length > 0 ? Math.max(...elIds) : 0
-      const nextId = maxId + 1
-
-      // Format as AM-0001, AM-0002, etc.
-      return `AM-${nextId.toString().padStart(4, '0')}`
-    } catch (error) {
-      console.error('Error generating Employee ID:', error)
-      // Fallback to AM-0001 if there's an error
-      return 'AM-0001'
-    } finally {
-      setIsGeneratingId(false)
-    }
-  }
+  // Employee IDs are allocated by the server inside the same statement as the
+  // INSERT (see getNextEmployeeId in lib/db/users.ts). The old client-side
+  // generator computed the next ID from the in-memory user list, which held only
+  // ACTIVE users — so once the highest-numbered employees were deactivated it
+  // handed back an ID that already existed, and an empty list rewound it to
+  // AM-0001. That collision was the real cause of the "failed to add user" error.
 
   // Load department and role options from settings
   useEffect(() => {
@@ -231,12 +204,11 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
         tabPermissions: user.tabPermissions || []
       })
     } else {
-      // Reset form for new user and generate Employee ID
+      // Reset form for a new user. The employee ID is assigned by the server on
+      // save, and a blank password means "generate a strong one and email it".
       if (isOpen) {
-        const nextEmployeeId = generateNextEmployeeId()
-        const tempPassword = generateTemporaryPassword(nextEmployeeId)
         setFormData({
-          employeeId: nextEmployeeId,
+          employeeId: '',
           name: '',
           email: '',
           phone: '',
@@ -247,9 +219,9 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
           isTodayTask: false,
           warningCount: 0,
           role: 'employee',
-          password: tempPassword,
+          password: '',
           status: 'active',
-          tabPermissions: []
+          tabPermissions: [...DEFAULT_NEW_USER_PERMISSIONS]
         })
       }
     }
@@ -310,11 +282,12 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
     setError('')
 
     try {
-      // Validation
-      // For new users, password is required. For editing, password is optional.
+      // Validation. Password is always optional: on create, a blank one means
+      // "generate a strong password server-side and email it"; on edit, it means
+      // "leave the existing password alone". Department is optional so companies
+      // without a department structure can still onboard people.
       const isEditMode = !!user
-      if (!formData.employeeId || !formData.name || !formData.email ||
-        !formData.phone || !formData.department || (!isEditMode && !formData.password)) {
+      if (!formData.name || !formData.email || !formData.phone) {
         throw new Error('Please fill in all required fields')
       }
 
@@ -330,28 +303,26 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
         throw new Error('Please enter a valid phone number')
       }
 
-      // Employee ID format validation (auto-generated IDs should always be valid)
-      if (!formData.employeeId.match(/^(AM-\d{4}|admin-\d{3})$/)) {
-        throw new Error('Invalid Employee ID format')
-      }
+      // On edit the employee ID is immutable and whatever the record already has
+      // is valid by definition — the old format check here rejected legacy IDs
+      // (e.g. EL-####) and made those users unsaveable. On create the server
+      // allocates the ID, so there is nothing to validate.
+      const { password, ...rest } = formData
+      const trimmedPassword = password.trim()
 
       const userData = {
-        ...formData,
-        // Only include password if it's provided (for new users or when changing password)
-        ...(formData.password ? { password: formData.password } : {}),
-        id: user?.employeeId || formData.employeeId,
+        ...rest,
+        // Only send a password when one was actually typed. Sending '' used to
+        // overwrite the stored hash with bcrypt(''), locking the user out.
+        ...(trimmedPassword ? { password: trimmedPassword } : {}),
+        ...(isEditMode ? { employeeId: user.employeeId } : {}),
         createdAt: user?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       } as User
 
       onSave(userData)
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
-      if (errorMessage.includes('quota') || errorMessage.includes('Quota')) {
-        setError('Google Sheets quota limit reached. Please wait a moment and try again.')
-      } else {
-        setError(errorMessage)
-      }
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsLoading(false)
     }
@@ -442,24 +413,23 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Employee ID *
+                  Employee ID
                 </label>
                 <div className="relative">
                   <UserIcon className="input-icon" />
                   <input
                     type="text"
                     name="employeeId"
-                    value={isGeneratingId ? 'Generating...' : formData.employeeId}
+                    value={user ? formData.employeeId : ''}
                     onChange={handleInputChange}
-                    required
-                    disabled={true} // Always disabled - auto-generated for new users, non-editable for existing
+                    disabled={true} // Assigned by the server on create; immutable afterwards
                     className="input-field-with-icon disabled:bg-gray-100 disabled:text-gray-600"
-                    placeholder="Auto-generated"
+                    placeholder={user ? '' : 'Assigned on save'}
                   />
                 </div>
                 {!user && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Employee ID is automatically generated in format AM-0001, AM-0002, etc.
+                    Assigned by the server when you save, using the next free number.
                   </p>
                 )}
               </div>
@@ -523,7 +493,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Department *
+                  Department
                 </label>
                 <div className="relative">
                   <Building className="input-icon" />
@@ -531,12 +501,11 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                     name="department"
                     value={formData.department}
                     onChange={handleInputChange}
-                    required
                     className="input-field-with-icon"
                     disabled={isLoadingDepartments}
                   >
                     <option value="">
-                      {isLoadingDepartments ? 'Loading departments...' : 'Select department...'}
+                      {isLoadingDepartments ? 'Loading departments...' : 'No department'}
                     </option>
                     {departmentOptions.map(dept => (
                       <option key={dept} value={dept}>
@@ -630,7 +599,7 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password {user ? '(leave empty to keep current)' : '*'}
+                  Password {user ? '(leave empty to keep current)' : '(leave empty to auto-generate)'}
                 </label>
                 <input
                   type="password"
@@ -638,9 +607,13 @@ export default function UserModal({ user, isOpen, onClose, onSave, existingUsers
                   value={formData.password}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required={!user}
-                  placeholder={user ? "Enter new password (optional)" : "Enter password"}
+                  placeholder={user ? 'Enter new password (optional)' : 'Leave blank to generate one'}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  {user
+                    ? 'Leave blank and the existing password stays unchanged.'
+                    : 'Leave blank and a strong password is generated and emailed to the user.'}
+                </p>
               </div>
 
               <div>
