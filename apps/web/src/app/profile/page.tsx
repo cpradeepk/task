@@ -45,6 +45,7 @@ export default function Profile() {
 
   // Security integration from context
   const security = useSecurity()
+  const { isPinSet, beginPinSetup, disablePin } = security
   const biometricEnabled = security?.biometricEnabled || false
   const registerWebBiometrics = security?.registerWebBiometrics || (async () => false)
   const setBiometricEnabled = security?.setBiometricEnabled || (() => {})
@@ -104,8 +105,17 @@ export default function Profile() {
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
     }
 
+    const currentUserForPin = getCurrentUser()
+    if (!currentUserForPin) {
+      setSecurityError('You must be signed in to change your PIN.')
+      return
+    }
+    // Per-user key — the PIN used to live under one shared key, so two accounts
+    // on the same browser overwrote each other's.
+    const pinKey = `jsr_user_pin:${currentUserForPin.employeeId}`
+
     const inputHash = await hashPin(currentPin)
-    const storedHash = localStorage.getItem('jsr_user_pin')
+    const storedHash = localStorage.getItem(pinKey)
 
     if (storedHash !== inputHash) {
       setSecurityError('Incorrect current PIN.')
@@ -113,7 +123,7 @@ export default function Profile() {
     }
 
     const newHash = await hashPin(newPin)
-    localStorage.setItem('jsr_user_pin', newHash)
+    localStorage.setItem(pinKey, newHash)
     setSecuritySuccess('Security PIN changed successfully!')
     
     setCurrentPin('')
@@ -545,22 +555,50 @@ export default function Profile() {
               <div className="flex justify-between items-center">
                 <div>
                   <h4 className="font-semibold text-black">App Security PIN</h4>
-                  <p className="text-sm text-gray-500">Configure your 4-digit authentication lock PIN.</p>
+                  <p className="text-sm text-gray-500">
+                    {isPinSet
+                      ? 'A 4-digit PIN locks this browser after 5 minutes of inactivity.'
+                      : 'Optional. Adds a 4-digit lock on this browser after 5 minutes of inactivity.'}
+                  </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsPinEditing(!isPinEditing)
-                    setSecurityError('')
-                    setSecuritySuccess('')
-                  }}
-                  className="btn-secondary"
-                >
-                  {isPinEditing ? 'Cancel' : 'Change PIN'}
-                </button>
+                <div className="flex gap-2">
+                  {!isPinSet ? (
+                    <button type="button" onClick={beginPinSetup} className="btn-secondary">
+                      Set up PIN
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsPinEditing(!isPinEditing)
+                          setSecurityError('')
+                          setSecuritySuccess('')
+                        }}
+                        className="btn-secondary"
+                      >
+                        {isPinEditing ? 'Cancel' : 'Change PIN'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm('Turn off the security PIN for your account on this browser?')) {
+                            disablePin()
+                            setIsPinEditing(false)
+                            setSecurityError('')
+                            setSecuritySuccess('Security PIN turned off.')
+                          }
+                        }}
+                        className="btn-secondary"
+                      >
+                        Turn off
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
-              {isPinEditing && (
+              {isPinSet && isPinEditing && (
                 <form onSubmit={handleChangePinWeb} className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white p-4 rounded-lg border border-gray-200 mt-2">
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Current PIN</label>

@@ -13,7 +13,24 @@ interface SecurityContextType {
   setBiometricEnabled: (val: boolean) => void
   registerWebBiometrics: () => Promise<boolean>
   authenticateWebBiometrics: () => Promise<boolean>
+  /** Open the PIN setup screen. Only ever called from Profile → Security. */
+  beginPinSetup: () => void
+  /** Remove this user's PIN and any enrolled biometric credential. */
+  disablePin: () => void
 }
+
+/**
+ * The app lock is OPT-IN and per user.
+ *
+ * It used to be forced: any signed-in user without a PIN was shown a mandatory
+ * full-screen setup with no way past it. Because the hash lived under a single
+ * global localStorage key that was never persisted server-side, a new browser,
+ * a private window, cleared site data, or signing out from the lock screen
+ * itself all wiped it — so the setup screen reappeared on essentially every
+ * login. It is now something you switch on from Profile → Security.
+ */
+const LEGACY_PIN_KEY = 'jsr_user_pin'
+const pinKeyFor = (employeeId: string) => `jsr_user_pin:${employeeId}`
 
 const SecurityContext = createContext<SecurityContextType | undefined>(undefined)
 
@@ -44,6 +61,8 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [isClient, setIsClient] = useState(false)
   const [isThemeDark, setIsThemeDark] = useState(false)
+  // True only while the user is deliberately enrolling a PIN from Profile.
+  const [isEnrolling, setIsEnrolling] = useState(false)
 
   // PIN Inputs for setups
   const [setupPin, setSetupPin] = useState('')
@@ -81,10 +100,9 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   }
 
   const handleForceLogout = async () => {
+    // Deliberately does NOT delete the user's PIN — wiping it here is what
+    // guaranteed a "Create Security PIN" prompt on the next sign-in.
     localStorage.removeItem('jsr_current_user')
-    localStorage.removeItem('jsr_user_pin')
-    localStorage.removeItem('jsr_biometric_enabled')
-    localStorage.removeItem('jsr_biometric_credential_id')
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('jsr_unlocked')
     }
@@ -118,12 +136,17 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     }
     window.addEventListener('beforeunload', handleBeforeUnload)
 
+    // The old global key could belong to a different account on a shared browser,
+    // so it is discarded rather than migrated — inheriting someone else's PIN
+    // would lock the current user out of a screen they cannot bypass.
+    localStorage.removeItem(LEGACY_PIN_KEY)
+
     if (user) {
-      const pin = localStorage.getItem('jsr_user_pin')
+      const pin = localStorage.getItem(pinKeyFor(user.employeeId))
       const bioEnabled = localStorage.getItem('jsr_biometric_enabled') === 'true'
       setIsPinSet(!!pin)
       setBiometricEnabled(bioEnabled)
-      
+
       if (pin) {
         // Check if unlocked in session OR if user was active recently (within 5 minutes)
         const wasUnlocked = sessionStorage.getItem('jsr_unlocked') === 'true'
@@ -242,7 +265,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         const isInitialLoad = currentUser === null
         setCurrentUser(user)
         if (user) {
-          const pin = localStorage.getItem('jsr_user_pin')
+          const pin = localStorage.getItem(pinKeyFor(user.employeeId))
           const bioEnabled = localStorage.getItem('jsr_biometric_enabled') === 'true'
           setIsPinSet(!!pin)
           setBiometricEnabled(bioEnabled)
@@ -253,6 +276,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
           setIsUnlocked(true)
           setIsPinSet(false)
           setBiometricEnabled(false)
+          setIsEnrolling(false)
         }
       }
     }, 1000)
@@ -417,15 +441,37 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
   }
 
   const savePinAndOfferBiometrics = async (finalPin: string) => {
+    if (!currentUser) return
     const hash = await hashPin(finalPin)
-    localStorage.setItem('jsr_user_pin', hash)
+    localStorage.setItem(pinKeyFor(currentUser.employeeId), hash)
     setIsPinSet(true)
-    
+
     if (isBiometricsSupportedOnWeb()) {
       setShowEnableBiometricOffer(true)
     } else {
+      setIsEnrolling(false)
       setIsUnlocked(true)
     }
+  }
+
+  const beginPinSetup = () => {
+    setSetupPin('')
+    setConfirmPin('')
+    setSetupStep('create')
+    setSetupError('')
+    setIsEnrolling(true)
+  }
+
+  const disablePin = () => {
+    if (currentUser) {
+      localStorage.removeItem(pinKeyFor(currentUser.employeeId))
+    }
+    localStorage.removeItem('jsr_biometric_enabled')
+    localStorage.removeItem('jsr_biometric_credential_id')
+    setIsPinSet(false)
+    setBiometricEnabled(false)
+    setIsEnrolling(false)
+    setIsUnlocked(true)
   }
 
   const handleOfferResponse = async (enable: boolean) => {
@@ -433,6 +479,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     if (enable) {
       await registerWebBiometrics()
     }
+    setIsEnrolling(false)
     setIsUnlocked(true)
   }
 
@@ -441,7 +488,7 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     setUnlockError('')
     setUnlockPin(val)
     if (val.length === 4) {
-      const storedHash = localStorage.getItem('jsr_user_pin')
+      const storedHash = currentUser ? localStorage.getItem(pinKeyFor(currentUser.employeeId)) : null
       const inputHash = await hashPin(val)
       if (storedHash === inputHash) {
         setIsUnlocked(true)
@@ -457,8 +504,10 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
 
   if (!isClient) return null
 
-  // Intercept Flow 1: PIN Setup Screen
-  if (currentUser && !isPinSet) {
+  // Flow 1: PIN Setup — shown ONLY when the user opts in from Profile → Security.
+  // Previously this was `currentUser && !isPinSet`, which forced every signed-in
+  // user without a local PIN through an unskippable setup screen on each login.
+  if (currentUser && isEnrolling && !isPinSet) {
     return (
       <div 
         onClick={handleBackgroundClick}
@@ -723,6 +772,8 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         setBiometricEnabled,
         registerWebBiometrics,
         authenticateWebBiometrics,
+        beginPinSetup,
+        disablePin,
       }}
     >
       {children}
