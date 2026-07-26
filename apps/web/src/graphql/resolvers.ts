@@ -247,7 +247,13 @@ export const resolvers = {
   Query: {
 
     // Tasks
-    tasks: async (_: any, filters: any) => {
+    // These list resolvers previously took only (_, filters) — they never
+    // received context, so they were reachable without a session and returned
+    // every row in the deployment. GraphQL is exempt from the middleware auth
+    // gate (it carries the public `login` mutation), so authorization has to be
+    // enforced here.
+    tasks: async (_: any, filters: any, context: any) => {
+      requireUser(context)
       const { startTime } = logResolverStart('tasks', filters)
 
       try {
@@ -357,7 +363,8 @@ export const resolvers = {
     },
 
     // Bugs
-    bugs: async (_: any, filters: any) => {
+    bugs: async (_: any, filters: any, context: any) => {
+      requireUser(context)
       const { startTime } = logResolverStart('bugs', filters)
       try {
         let query = 'SELECT * FROM bugs WHERE deleted_at IS NULL'

@@ -10,7 +10,9 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  introspection: true, // Enable GraphQL Playground in development
+  // Schema introspection is a map of every type and field for an attacker.
+  // Enabled in development only — it was unconditionally on.
+  introspection: process.env.NODE_ENV !== 'production',
   formatError: (formattedError, error) => {
     // Log the full error in development for debugging
     if (isDevelopment) {
