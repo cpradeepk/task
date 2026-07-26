@@ -3,14 +3,8 @@
  * Generates secure temporary passwords for new users
  */
 
-/**
- * Generate a temporary password for a new user
- * Format: {employeeId}@2024 (e.g., AM-0001@2024)
- * This follows the existing pattern used in the system
- */
-export function generateTemporaryPassword(employeeId: string): string {
-  return `${employeeId}@2024`
-}
+// generateTemporaryPassword() was removed: it returned `${employeeId}@2024`,
+// which is guessable from a user's ID alone. Use generateSecurePassword().
 
 /**
  * Generate a secure random password

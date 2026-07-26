@@ -39,7 +39,12 @@ export interface User {
   managerId?: string        // Optional: Manager's employee ID
   isTodayTask: boolean      // Whether user has tasks for today
   warningCount: number      // Number of warnings received (for performance tracking)
-  role: 'amtarikshian' | 'management' | 'top_management' | 'admin'  // User role (determines permissions)
+  // Role vocabulary was inconsistent in three places: the database CHECK
+  // constraint allows ('employee','management','top_management','admin'), but
+  // this type and DEFAULT_ROLE_PERMISSIONS were keyed on 'amtarikshian', which
+  // the database never stores. 'employee' is the real value; 'amtarikshian' is
+  // kept in the union only so existing rows and older code still type-check.
+  role: 'employee' | 'amtarikshian' | 'management' | 'top_management' | 'admin'
   password: string          // Hashed password (never store plain text!)
   status: 'active' | 'inactive'  // Account status
   isSystemAdmin?: number    // Optional: 1 if user is system admin (cannot be deleted/deactivated), 0 or undefined otherwise
