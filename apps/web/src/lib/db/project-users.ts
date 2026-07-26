@@ -16,6 +16,8 @@ interface ProjectUserRow {
   assigned_by: string
   assigned_at: string
   can_edit_requirements: boolean
+  /** Project-scoped role (migration 062). Distinct from the user's global role. */
+  role: string
   created_at: string
   updated_at: string
 }
@@ -28,12 +30,16 @@ interface ProjectUserWithUserRow extends ProjectUserRow {
   user_status: string
 }
 
+/** Authority INSIDE one project. Distinct from users.role, which is global. */
+export type ProjectRole = 'manager' | 'team_leader' | 'member'
+
 export interface ProjectUser {
   projectId: string
   employeeId: string
   assignedBy: string
   assignedAt: string
   canEditRequirements: boolean
+  role: ProjectRole
 }
 
 export interface ProjectUserWithUser extends ProjectUser {
@@ -51,6 +57,7 @@ function rowToProjectUser(row: ProjectUserRow): ProjectUser {
     assignedBy: row.assigned_by,
     assignedAt: row.assigned_at,
     canEditRequirements: row.can_edit_requirements ?? false,
+    role: (row.role as ProjectRole) ?? 'member',
   }
 }
 
@@ -61,6 +68,7 @@ function rowToProjectUserWithUser(row: ProjectUserWithUserRow): ProjectUserWithU
     assignedBy: row.assigned_by,
     assignedAt: row.assigned_at,
     canEditRequirements: row.can_edit_requirements ?? false,
+    role: (row.role as ProjectRole) ?? 'member',
     userName: row.user_name,
     userEmail: row.user_email,
     userRole: row.user_role,
@@ -84,6 +92,52 @@ export async function getProjectUsers(projectId: string): Promise<ProjectUserWit
       [projectId]
     )
     return rows.map(rowToProjectUserWithUser)
+  })
+}
+
+/**
+ * A user's role in one project, or null when they are not a member.
+ * This is the per-project authority the global users.role column cannot express:
+ * the same person can manage one project and simply be a member of another.
+ */
+export async function getProjectRole(projectId: string, employeeId: string): Promise<ProjectRole | null> {
+  return withRetry(async () => {
+    const row = await queryOne<{ role: string }>(
+      'SELECT role FROM project_users WHERE project_id = $1 AND employee_id = $2',
+      [projectId, employeeId]
+    )
+    return (row?.role as ProjectRole) ?? null
+  })
+}
+
+/** Set a member's role within a project. */
+export async function setProjectRole(
+  projectId: string,
+  employeeId: string,
+  role: ProjectRole
+): Promise<boolean> {
+  return withRetry(async () => {
+    const rows = await query<{ project_id: string }[]>(
+      `UPDATE project_users SET role = $3, updated_at = NOW()
+        WHERE project_id = $1 AND employee_id = $2
+        RETURNING project_id`,
+      [projectId, employeeId, role]
+    )
+    return rows.length > 0
+  })
+}
+
+/** Projects where this user holds the given role (defaults to manager). */
+export async function getProjectIdsWithRole(
+  employeeId: string,
+  role: ProjectRole = 'manager'
+): Promise<string[]> {
+  return withRetry(async () => {
+    const rows = await query<{ project_id: string }[]>(
+      'SELECT project_id FROM project_users WHERE employee_id = $1 AND role = $2',
+      [employeeId, role]
+    )
+    return rows.map((row) => row.project_id)
   })
 }
 

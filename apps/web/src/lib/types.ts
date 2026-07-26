@@ -43,6 +43,8 @@ export interface User {
   password: string          // Hashed password (never store plain text!)
   status: 'active' | 'inactive'  // Account status
   isSystemAdmin?: number    // Optional: 1 if user is system admin (cannot be deleted/deactivated), 0 or undefined otherwise
+  isPlatformAdmin?: boolean // Migration 062: may manage companies; replaces the hardcoded 'AM-0001' checks
+  companyId?: string        // Company this session is acting in
   hoursLog?: string         // Optional: Hours worked log (format: 'DD/MM/YYYY - X Hours worked today')
   idCardPhoto?: string      // Optional: AWS S3 URL for employee ID card photo
   createdAt: string         // Timestamp when user was created
@@ -443,6 +445,7 @@ export interface BugFormData {
 export interface Project {
   projectId: string         // Unique project ID (e.g., "PRJ-001", "PRJ-002")
   projectName: string       // Project name (displayed in UI, e.g., "JSR Task Management System")
+  companyId?: string        // Owning company (migration 062); sub-projects inherit it
   parentProjectId?: string | null  // Parent project ID for sub-projects (NULL for main projects)
   description?: string | null      // Project description
   status: 'Active' | 'Inactive' | 'Deleted'  // Project status

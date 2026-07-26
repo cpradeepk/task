@@ -37,6 +37,8 @@ interface ProjectRow  {
   deleted_by: string | null
   release_enabled: boolean | null
   release_checklist: any | null
+  /** Owning company (migration 062). */
+  company_id: string | null
 }
 
 /**
@@ -47,6 +49,7 @@ function rowToProject(row: ProjectRow): Project {
   return {
     projectId: row.project_id,
     projectName: row.project_name,
+    companyId: row.company_id || undefined,
     parentProjectId: row.parent_project_id || undefined,
     description: row.description || undefined,
     status: row.status as Project['status'],
@@ -89,6 +92,22 @@ export async function getActiveProjects(): Promise<Project[]> {
       'SELECT * FROM projects WHERE status = $1 ORDER BY parent_project_id IS NOT NULL, project_id',
       ['Active']
     )
+    return rows.map(rowToProject)
+  })
+}
+
+/**
+ * Projects belonging to one company.
+ *
+ * getAllProjects()/getActiveProjects() span every tenant. Anything user-facing
+ * should go through here; the unscoped variants are for platform-admin views.
+ */
+export async function getProjectsByCompany(companyId: string, includeDeleted = false): Promise<Project[]> {
+  return withRetry(async () => {
+    const sql = includeDeleted
+      ? 'SELECT * FROM projects WHERE company_id = $1 ORDER BY parent_project_id IS NOT NULL, project_id'
+      : `SELECT * FROM projects WHERE company_id = $1 AND status != 'Deleted' ORDER BY parent_project_id IS NOT NULL, project_id`
+    const rows = await query<ProjectRow[]>(sql, [companyId])
     return rows.map(rowToProject)
   })
 }
@@ -223,12 +242,23 @@ export async function createProject(
     // Generate next project ID
     const project_id = await getNextProjectId()
 
+    // A sub-project always belongs to the same company as its parent; taking it
+    // from the caller would let a project be re-homed into another tenant.
+    let companyId = project.companyId || null
+    if (project.parentProjectId) {
+      const parent = await getProjectById(project.parentProjectId, true)
+      companyId = parent?.companyId || companyId
+    }
+    if (!companyId) {
+      throw new Error('A company is required to create a project')
+    }
+
     // Insert project
     await query<any>(
       `INSERT INTO projects (
         project_id, project_name, parent_project_id, description, status, created_by,
-        release_enabled, release_checklist
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        release_enabled, release_checklist, company_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         project_id,
         project.projectName,
@@ -237,7 +267,8 @@ export async function createProject(
         project.status || 'Active',
         createdBy,
         project.releaseEnabled ?? false,
-        project.releaseChecklist ? JSON.stringify(project.releaseChecklist) : null
+        project.releaseChecklist ? JSON.stringify(project.releaseChecklist) : null,
+        companyId
       ]
     )
 
