@@ -37,6 +37,7 @@ interface UserRow {
   updated_at: string
   tab_permissions: string[] | null
   is_system_admin?: number
+  is_platform_admin?: boolean
 }
 
 // Convert database row to User object
@@ -65,7 +66,8 @@ function rowToUser(row: UserRow): User {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     tabPermissions: row.tab_permissions || undefined,
-    isSystemAdmin: row.is_system_admin
+    isSystemAdmin: row.is_system_admin,
+    isPlatformAdmin: Boolean(row.is_platform_admin)
   }
 }
 
@@ -87,6 +89,29 @@ export async function getAllUsers(): Promise<User[]> {
     const rows = await query<UserRow[]>(
       'SELECT * FROM users WHERE status = $1 ORDER BY name',
       ['active']
+    )
+    return rows.map(rowToUser)
+  })
+}
+
+/**
+ * Users belonging to one company.
+ *
+ * getAllUsers() returns EVERY user in the deployment, which was fine as an
+ * internal tool but leaks across tenants now that several companies share it.
+ * Anything user-facing should go through here; getAllUsers is reserved for
+ * platform-admin views.
+ */
+export async function getUsersByCompany(companyId: string, includeInactive = false): Promise<User[]> {
+  return withRetry(async () => {
+    const rows = await query<UserRow[]>(
+      `SELECT u.*
+         FROM users u
+         JOIN user_companies uc ON uc.employee_id = u.employee_id
+        WHERE uc.company_id = $1
+          ${includeInactive ? '' : `AND u.status = 'active'`}
+        ORDER BY CASE WHEN u.status = 'active' THEN 0 ELSE 1 END, u.name`,
+      [companyId]
     )
     return rows.map(rowToUser)
   })
@@ -125,7 +150,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   })
 }
 
-// Get users by manager ID
+// Get users by manager ID (DIRECT reports only)
 export async function getUsersByManagerId(managerId: string): Promise<User[]> {
   return withRetry(async () => {
     const rows = await query<UserRow[]>(
@@ -133,6 +158,69 @@ export async function getUsersByManagerId(managerId: string): Promise<User[]> {
       [managerId, 'active']
     )
     return rows.map(rowToUser)
+  })
+}
+
+/** Guards against a cycle in manager_id, which is otherwise unbounded recursion. */
+const MAX_MANAGER_DEPTH = 10
+
+/**
+ * Everyone below a manager in the reporting tree — direct reports, their
+ * reports, and so on. Managers can themselves have managers, so visibility has
+ * to be transitive; the previous single-level filter meant a senior manager
+ * could not see their skip-level reports' work.
+ */
+export async function getReportsRecursive(managerId: string): Promise<User[]> {
+  return withRetry(async () => {
+    const rows = await query<UserRow[]>(
+      `WITH RECURSIVE chain AS (
+         SELECT u.*, 1 AS depth
+           FROM users u
+          WHERE u.manager_id = $1 AND u.status = 'active'
+         UNION ALL
+         SELECT u.*, c.depth + 1
+           FROM users u
+           JOIN chain c ON u.manager_id = c.employee_id
+          WHERE u.status = 'active'
+            AND c.depth < ${MAX_MANAGER_DEPTH}
+       )
+       SELECT DISTINCT ON (employee_id) *
+         FROM chain
+        ORDER BY employee_id, depth`,
+      [managerId]
+    )
+    return rows.map(rowToUser)
+  })
+}
+
+/** Employee IDs of everyone below a manager, plus the manager themselves. */
+export async function getVisibleEmployeeIds(managerId: string): Promise<string[]> {
+  const reports = await getReportsRecursive(managerId)
+  return [managerId, ...reports.map((user) => user.employeeId)]
+}
+
+/**
+ * Is `managerId` anywhere above `employeeId` in the reporting chain?
+ * Walks upward from the employee, which is cheaper than expanding the whole
+ * subtree when all we need is a yes/no.
+ */
+export async function isInManagerChain(managerId: string, employeeId: string): Promise<boolean> {
+  if (managerId === employeeId) return false
+  return withRetry(async () => {
+    const row = await queryOne<{ found: boolean }>(
+      `WITH RECURSIVE chain AS (
+         SELECT employee_id, manager_id, 1 AS depth
+           FROM users WHERE employee_id = $2
+         UNION ALL
+         SELECT u.employee_id, u.manager_id, c.depth + 1
+           FROM users u
+           JOIN chain c ON u.employee_id = c.manager_id
+          WHERE c.depth < ${MAX_MANAGER_DEPTH}
+       )
+       SELECT TRUE AS found FROM chain WHERE manager_id = $1 LIMIT 1`,
+      [managerId, employeeId]
+    )
+    return Boolean(row?.found)
   })
 }
 

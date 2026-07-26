@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUsersByManagerId } from '@/lib/db/users'
+import { getUsersByManagerId, getReportsRecursive } from '@/lib/db/users'
 import { requireAuth } from '@/lib/auth-server'
 
 export async function GET(
@@ -27,7 +27,13 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
-    const teamMembers = await getUsersByManagerId(managerId)
+    // ?recursive=true returns the whole reporting subtree, not just direct
+    // reports. Managers can have managers, so a senior manager must be able to
+    // see their skip-level reports' work.
+    const recursive = request.nextUrl.searchParams.get('recursive') === 'true'
+    const teamMembers = recursive
+      ? await getReportsRecursive(managerId)
+      : await getUsersByManagerId(managerId)
 
     return NextResponse.json({
       success: true,

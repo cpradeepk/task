@@ -321,10 +321,18 @@ export async function getUserManager(employeeId: string): Promise<User | null> {
 }
 
 // Get all team members for a manager (users who report to this manager)
-export async function getTeamMembers(managerId: string): Promise<User[]> {
+export async function getTeamMembers(managerId: string, recursive = true): Promise<User[]> {
   try {
-    const users = await getAllUsers()
-    return users.filter(user => user.managerId === managerId && user.status === 'active')
+    // Resolved server-side via a recursive CTE. The old implementation pulled
+    // every user and kept those with managerId === managerId — one level only,
+    // so a manager's manager saw nothing below their direct reports. It also
+    // depended on getAllUsers(), which is now company-scoped.
+    const response = await fetch(
+      `/api/users/team/${encodeURIComponent(managerId)}${recursive ? '?recursive=true' : ''}`
+    )
+    if (!response.ok) return []
+    const result = await response.json()
+    return result.data || []
   } catch (error) {
     console.error('Failed to get team members:', error)
     return []
