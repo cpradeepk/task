@@ -16,6 +16,7 @@ import {
 } from '@/lib/db/projects'
 import { getUserProjectIds } from '@/lib/db/project-users'
 import { getAuthUser } from '@/lib/auth-server'
+import { canAdminCompany } from '@/lib/authz'
 import { Project } from '@/lib/types'
 
 /**
@@ -91,33 +92,54 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // This route previously had no permission check at all — a "trust the
+    // frontend" TODO — so any caller could create projects, and `createdBy` was
+    // taken from the request body and therefore spoofable.
+    const authUser = await getAuthUser(request)
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
 
-    // Validate required fields
-    if (!body.projectName || !body.createdBy) {
+    if (!body.projectName) {
       return NextResponse.json(
-        { error: 'Missing required fields: projectName, createdBy' },
+        { error: 'Missing required field: projectName' },
         { status: 400 }
       )
     }
 
-    // TODO: Add permission check here
-    // For now, we'll trust the frontend to only allow admin/top_management
-    // In production, you should verify the user's role from session/token
+    // A sub-project inherits its parent's company; a top-level project belongs
+    // to the company this session is acting in.
+    const companyId = authUser.companyId
+    if (!body.parentProjectId && !companyId) {
+      return NextResponse.json(
+        { error: 'No active company for this session. Sign in again or pick a company.' },
+        { status: 400 }
+      )
+    }
 
-    // Prepare project data
+    if (companyId && !(await canAdminCompany(authUser, companyId))) {
+      return NextResponse.json(
+        { error: 'You do not have permission to create projects in this company.' },
+        { status: 403 }
+      )
+    }
+
+    // Prepare project data. createdBy comes from the verified session.
     const projectData: Omit<Project, 'projectId' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'deletedBy'> = {
       projectName: body.projectName,
+      companyId: companyId || undefined,
       parentProjectId: body.parentProjectId || undefined,
       description: body.description || undefined,
       status: body.status || 'Active',
-      createdBy: body.createdBy,
+      createdBy: authUser.employeeId,
       releaseEnabled: body.releaseEnabled ?? false,
       releaseChecklist: body.releaseChecklist ?? null
     }
 
     // Create project (validation happens in the database layer)
-    const newProject = await createProject(projectData, body.createdBy)
+    const newProject = await createProject(projectData, authUser.employeeId)
 
     return NextResponse.json(newProject, { status: 201 })
   } catch (error) {

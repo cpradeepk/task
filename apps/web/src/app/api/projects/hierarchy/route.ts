@@ -8,9 +8,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllProjects } from '@/lib/db/projects'
+import { getAllProjects, getProjectsByCompany } from '@/lib/db/projects'
 import { getUserProjectIds } from '@/lib/db/project-users'
 import { getAuthUser } from '@/lib/auth-server'
+import { canAdminCompany } from '@/lib/authz'
 import { Project } from '@/lib/types'
 
 /**
@@ -45,16 +46,28 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const includeDeleted = searchParams.get('includeDeleted') === 'true'
 
-    // Get all projects
-    const allProjects = await getAllProjects(includeDeleted)
+    const authUser = await getAuthUser(request)
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    // Build hierarchy
+    // Scope to the caller's company first. This route previously returned EVERY
+    // project with the membership filter commented out ("to expose all
+    // projects"), which becomes a cross-tenant leak now that one deployment
+    // serves several companies.
+    const allProjects = authUser.companyId && !authUser.isPlatformAdmin
+      ? await getProjectsByCompany(authUser.companyId, includeDeleted)
+      : await getAllProjects(includeDeleted)
+
     let hierarchy = buildHierarchy(allProjects)
 
-    // Filter by user assignment for non-admin/non-top_management users (Commented out to expose all projects)
-    /*
-    const authUser = await getAuthUser(request)
-    if (authUser && authUser.role !== 'admin' && authUser.role !== 'top_management') {
+    // Within the company, an admin managing projects sees all of them; everyone
+    // else sees only what they are assigned to.
+    const administers = authUser.companyId
+      ? await canAdminCompany(authUser, authUser.companyId)
+      : false
+
+    if (!administers && !authUser.isPlatformAdmin) {
       const userProjectIds = await getUserProjectIds(authUser.employeeId)
       const assignedSet = new Set(userProjectIds)
 
@@ -72,7 +85,6 @@ export async function GET(request: NextRequest) {
         )
       }))
     }
-    */
 
     return NextResponse.json(hierarchy, { status: 200 })
   } catch (error) {

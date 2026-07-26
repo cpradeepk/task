@@ -5,7 +5,7 @@
  *
  * GET /api/projects/[projectId]/users - List assigned users
  * POST /api/projects/[projectId]/users - Assign a user to the project
- * PATCH /api/projects/[projectId]/users - Toggle a user's requirements-edit flag
+ * PATCH /api/projects/[projectId]/users - Set a member's project role and/or requirements-edit flag
  * DELETE /api/projects/[projectId]/users - Remove a user from the project
  */
 
@@ -15,8 +15,13 @@ import {
   assignUserToProject,
   removeUserFromProject,
   setCanEditRequirements,
+  setProjectRole,
+  type ProjectRole,
 } from '@/lib/db/project-users'
 import { requireAuth, requireRole } from '@/lib/auth-server'
+import { canManageProject } from '@/lib/authz'
+
+const VALID_PROJECT_ROLES: ProjectRole[] = ['manager', 'team_leader', 'member']
 
 /**
  * GET /api/projects/[projectId]/users
@@ -118,27 +123,65 @@ export async function PATCH(
     if (!auth.ok) return auth.response
 
     const { projectId } = await params
-    const body = await request.json()
-    const { employeeId, canEditRequirements } = body
 
-    if (!employeeId || typeof canEditRequirements !== 'boolean') {
+    // Only someone who manages THIS project may change roles or flags on it —
+    // a global role is no longer sufficient now that authority is per project.
+    if (!(await canManageProject(auth.user, projectId))) {
       return NextResponse.json(
-        { success: false, error: 'employeeId and canEditRequirements (boolean) are required' },
+        { success: false, error: 'You do not manage this project.' },
+        { status: 403 }
+      )
+    }
+
+    const body = await request.json()
+    const { employeeId, canEditRequirements, role } = body
+
+    if (!employeeId) {
+      return NextResponse.json(
+        { success: false, error: 'employeeId is required' },
         { status: 400 }
       )
     }
 
-    const updated = await setCanEditRequirements(projectId, employeeId, canEditRequirements)
-    if (!updated) {
+    // Per-project role: manager / team_leader / member. This is what lets the
+    // same person lead one project and simply belong to another.
+    if (role !== undefined) {
+      if (!VALID_PROJECT_ROLES.includes(role)) {
+        return NextResponse.json(
+          { success: false, error: `role must be one of: ${VALID_PROJECT_ROLES.join(', ')}` },
+          { status: 400 }
+        )
+      }
+      const roleUpdated = await setProjectRole(projectId, employeeId, role)
+      if (!roleUpdated) {
+        return NextResponse.json(
+          { success: false, error: `User ${employeeId} is not assigned to project ${projectId}` },
+          { status: 404 }
+        )
+      }
+    }
+
+    if (typeof canEditRequirements === 'boolean') {
+      const updated = await setCanEditRequirements(projectId, employeeId, canEditRequirements)
+      if (!updated) {
+        return NextResponse.json(
+          { success: false, error: `User ${employeeId} is not assigned to project ${projectId}` },
+          { status: 404 }
+        )
+      }
+    }
+
+    if (role === undefined && typeof canEditRequirements !== 'boolean') {
       return NextResponse.json(
-        { success: false, error: `User ${employeeId} is not assigned to project ${projectId}` },
-        { status: 404 }
+        { success: false, error: 'Provide a role and/or canEditRequirements' },
+        { status: 400 }
       )
     }
 
+    const members = await getProjectUsers(projectId)
     return NextResponse.json({
       success: true,
-      data: updated,
+      data: members.find((member) => member.employeeId === employeeId) ?? null,
     })
   } catch (error) {
     console.error('Failed to update requirements-edit flag:', error)
