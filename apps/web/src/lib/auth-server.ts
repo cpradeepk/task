@@ -4,11 +4,19 @@
 import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
 import { NextResponse } from 'next/server'
+import { getDefaultCompanyId, isPlatformAdmin as dbIsPlatformAdmin } from './db/companies'
 
 export interface TokenPayload {
   employeeId: string
   role: string
   name: string
+  /**
+   * Company this session is acting in (migration 062). Optional so tokens
+   * issued before this change keep verifying — routes treat an absent claim as
+   * "resolve from the database" rather than "all companies".
+   */
+  companyId?: string | null
+  isPlatformAdmin?: boolean
 }
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7 // 7 days
@@ -31,7 +39,13 @@ function getJwtSecret(): string {
  */
 export function signAuthToken(payload: TokenPayload): string {
   return jwt.sign(
-    { employeeId: payload.employeeId, role: payload.role, name: payload.name },
+    {
+      employeeId: payload.employeeId,
+      role: payload.role,
+      name: payload.name,
+      companyId: payload.companyId ?? null,
+      isPlatformAdmin: payload.isPlatformAdmin ?? false,
+    },
     getJwtSecret(),
     { expiresIn: TOKEN_TTL_SECONDS }
   )
@@ -41,6 +55,8 @@ interface AuthUserLike {
   employeeId: string
   role: string
   name: string
+  companyId?: string | null
+  isPlatformAdmin?: boolean
 }
 
 /**
@@ -49,21 +65,41 @@ interface AuthUserLike {
  * OTP-verify routes so both issue identical sessions. The `password` field is
  * stripped from the returned user for safety.
  */
-export function issueAuthToken<T extends AuthUserLike>(
+export async function issueAuthToken<T extends AuthUserLike>(
   user: T,
   extra: Record<string, unknown> = {}
-): NextResponse {
+): Promise<NextResponse> {
+  // Resolve the company this session acts in, unless the caller already chose
+  // one (the company switcher passes it explicitly). A user belonging to
+  // several companies starts in their default.
+  let companyId = user.companyId ?? null
+  let platformAdmin = user.isPlatformAdmin ?? false
+  try {
+    if (companyId === null) {
+      companyId = await getDefaultCompanyId(user.employeeId)
+    }
+    if (!user.isPlatformAdmin) {
+      platformAdmin = await dbIsPlatformAdmin(user.employeeId)
+    }
+  } catch (error) {
+    // Before migration 062 these tables do not exist. Falling back to a null
+    // company keeps login working; routes then resolve scope from the database.
+    console.warn('Could not resolve company context for session:', error)
+  }
+
   const token = signAuthToken({
     employeeId: user.employeeId,
     role: user.role,
     name: user.name,
+    companyId,
+    isPlatformAdmin: platformAdmin,
   })
 
   const { password: _password, ...safeUser } = user as T & { password?: unknown }
 
   const response = NextResponse.json({
     success: true,
-    data: safeUser,
+    data: { ...safeUser, companyId, isPlatformAdmin: platformAdmin },
     token,
     ...extra,
   })
