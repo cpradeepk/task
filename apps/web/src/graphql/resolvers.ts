@@ -2477,14 +2477,21 @@ export const resolvers = {
         department: 'department',
         role: 'role',
         status: 'status',
-        isTodayTask: 'is_today_task'
+        isTodayTask: 'is_today_task',
+        // tabPermissions was missing, so the bulk permissions screen
+        // (app/users/permissions) matched zero fields and always threw
+        // 'No fields to update' — it could never save.
+        tabPermissions: 'tab_permissions',
+        managerId: 'manager_id',
+        managerEmail: 'manager_email'
       }
 
       Object.keys(input).forEach(key => {
         if (input[key] !== undefined && fieldMap[key]) {
           const dbColumn = fieldMap[key]
           updates.push(`${dbColumn} = $${paramIndex++}`)
-          params.push(input[key])
+          // tab_permissions is JSONB; the driver needs it serialized.
+          params.push(key === 'tabPermissions' ? JSON.stringify(input[key]) : input[key])
         }
       })
 
