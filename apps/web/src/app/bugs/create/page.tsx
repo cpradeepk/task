@@ -45,6 +45,8 @@ function CreateBugPageContent() {
   const [projectsLoaded, setProjectsLoaded] = useState(false)
   
   const [users, setUsers] = useState<User[]>([])
+  const [projectUsers, setProjectUsers] = useState<any[]>([])
+  const [isLoadingProjectUsers, setIsLoadingProjectUsers] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const [usersLoaded, setUsersLoaded] = useState(false)
@@ -246,6 +248,44 @@ function CreateBugPageContent() {
     }
   }, [projectsLoaded])
 
+  // Load the users assigned to the selected project, so assignee dropdowns offer
+  // only actual project members instead of every active user in the system.
+  // Mirrors the same helper in app/tasks/create/page.tsx.
+  const loadProjectUsers = useCallback(async (projectId: string) => {
+    if (!projectId) {
+      setProjectUsers([])
+      return
+    }
+
+    try {
+      setIsLoadingProjectUsers(true)
+      const response = await fetch(`/api/projects/${projectId}/users`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data) {
+          // The project users endpoint returns userName/userRole; other
+          // components expect name/role.
+          setProjectUsers(
+            data.data.map((pu: any) => ({
+              ...pu,
+              name: pu.userName || pu.name,
+              role: pu.userRole || pu.role
+            }))
+          )
+        } else {
+          setProjectUsers([])
+        }
+      } else {
+        setProjectUsers([])
+      }
+    } catch (error) {
+      console.error('Failed to load project users:', error)
+      setProjectUsers([])
+    } finally {
+      setIsLoadingProjectUsers(false)
+    }
+  }, [])
+
   // Load subprojects when project changes
   const loadSubprojects = useCallback(async (projectId: string) => {
     if (!projectId) {
@@ -296,16 +336,27 @@ function CreateBugPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, router, isHydrated])
 
-  // Load subprojects when project changes
+  // Load subprojects and project members when project changes
   useEffect(() => {
     if (formData.projectId) {
       loadSubprojects(formData.projectId)
+      loadProjectUsers(formData.projectId)
     } else {
       setSubprojects([])
+      setProjectUsers([])
       setFormData(prev => ({ ...prev, subprojectId: undefined }))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.projectId])
+
+  // Clear an assignee who is not a member of the newly selected project.
+  useEffect(() => {
+    if (!formData.assignedTo || isLoadingProjectUsers || !formData.projectId) return
+    if (!projectUsers.some(u => u.employeeId === formData.assignedTo)) {
+      setFormData(prev => ({ ...prev, assignedTo: '' }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectUsers, isLoadingProjectUsers])
 
   // If the chosen sub-project is no longer release-enabled, drop the release type.
   useEffect(() => {
@@ -1165,10 +1216,21 @@ function CreateBugPageContent() {
                       name="assignedTo"
                       value={formData.assignedTo || ''}
                       onChange={handleInputChange}
-                      className={getFieldClass('assignedTo', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white')}
+                      disabled={!formData.projectId || isLoadingProjectUsers}
+                      className={getFieldClass('assignedTo', 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white disabled:bg-gray-100')}
                     >
-                      <option value="">👤 Select assignee...</option>
-                      {users.map(user => (
+                      <option value="">
+                        {!formData.projectId
+                          ? 'Select a project first'
+                          : isLoadingProjectUsers
+                            ? 'Loading project members...'
+                            : projectUsers.length === 0
+                              ? 'No members assigned to this project'
+                              : '👤 Select assignee...'}
+                      </option>
+                      {/* Only project members — this previously listed every
+                          active user in the system. */}
+                      {projectUsers.map(user => (
                         <option key={user.employeeId} value={user.employeeId}>
                           {user.name} ({user.employeeId})
                         </option>
