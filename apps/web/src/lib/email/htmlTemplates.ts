@@ -1,3 +1,4 @@
+import { workItemLabels, type WorkItemType } from '../workItemType'
 /**
  * HTML Email Templates Service
  * Uses the designed HTML template files and replaces placeholders with actual data
@@ -260,6 +261,11 @@ export function getBugAssignmentHtmlTemplate(data: {
     projectName: data.projectName || 'No project assigned',
     feature: data.feature || 'Not specified',
     type: data.type || 'Not specified',
+    // Drives the wording throughout the body, so a feature request no longer
+    // reads as a bug. Falls back to "Bug Report" for rows with a NULL type,
+    // which is how they have always been treated.
+    itemNoun: workItemLabels(data.type as WorkItemType).noun,
+    itemEmoji: workItemLabels(data.type as WorkItemType).emoji,
     baseUrl: data.baseUrl || 'http://localhost:3000',
     currentYear: new Date().getFullYear()
   }
@@ -315,6 +321,11 @@ export function getBugCreationHtmlTemplate(data: {
     projectName: data.projectName || 'No project assigned',
     feature: data.feature || 'Not specified',
     type: data.type || 'Not specified',
+    // Drives the wording throughout the body, so a feature request no longer
+    // reads as a bug. Falls back to "Bug Report" for rows with a NULL type,
+    // which is how they have always been treated.
+    itemNoun: workItemLabels(data.type as WorkItemType).noun,
+    itemEmoji: workItemLabels(data.type as WorkItemType).emoji,
     baseUrl: data.baseUrl || 'http://localhost:3000',
     currentYear: new Date().getFullYear()
   }

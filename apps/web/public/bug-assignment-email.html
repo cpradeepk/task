@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bug Assigned to You</title>
+    <title>{{itemNoun}} Assigned to You</title>
     <style>
         * {
             margin: 0;
@@ -195,7 +195,7 @@
             <div class="logo">
                 <img src="{{baseUrl}}/images/logos/amtariksha_icon.png" alt="Karmayog Logo">
             </div>
-            <h1>🐛 Bug Assigned to You</h1>
+            <h1>{{itemEmoji}} {{itemNoun}} Assigned to You</h1>
             <p>A bug has been assigned for you to fix</p>
         </div>
         
@@ -209,10 +209,10 @@
             </p>
             
             <div class="highlight-box">
-                <h3 style="color: #DC2626; margin-bottom: 15px;">🐛 Bug Details</h3>
+                <h3 style="color: #DC2626; margin-bottom: 15px;">{{itemEmoji}} {{itemNoun}} Details</h3>
                 <div class="info-grid">
                     <div class="info-item">
-                        <span class="info-label">Bug ID:</span>
+                        <span class="info-label">{{itemNoun}} ID:</span>
                         <span class="info-value"><strong>{{bugId}}</strong></span>
                     </div>
                     <div class="info-item">
@@ -255,7 +255,7 @@
             
             <div style="text-align: center;">
                 <a href="{{baseUrl}}/bugs/{{bugId}}" class="cta-button">
-                    View Bug Details →
+                    View {{itemNoun}} Details →
                 </a>
             </div>
             
