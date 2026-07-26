@@ -5,6 +5,7 @@
 
 import nodemailer from 'nodemailer'
 import { EMAIL_CONFIG, EmailType, EmailPriority } from './config'
+import { workItemSubject, type WorkItemType } from '../workItemType'
 import {
   getUserCredentialsHtmlTemplate,
   getTaskCreationHtmlTemplate,
@@ -438,6 +439,8 @@ export class EmailService {
     category: string
     platform: string
     environment: string
+    /** 'feature' | 'bug' | 'other' | 'release'. Drives the subject wording. */
+    type?: WorkItemType
   }) {
     try {
       console.log('📧 Ensuring email service is initialized...')
@@ -467,7 +470,7 @@ export class EmailService {
       return await this.sendEmail({
         to: data.assigneeEmail,
         cc: ccEmails.length > 0 ? ccEmails : undefined,
-        subject: `🐛 Bug Assigned: ${data.bugTitle} (${data.bugId})`,
+        subject: workItemSubject(data.type, 'Assigned', data.bugTitle, data.bugId),
         html,
         priority: 'high', // Bug assignments are high priority
         type: 'task_created', // Reusing task_created type for now
@@ -516,6 +519,8 @@ export class EmailService {
     category: string
     platform: string
     environment: string
+    /** 'feature' | 'bug' | 'other' | 'release'. Drives the subject wording. */
+    type?: WorkItemType
   }) {
     try {
       console.log('📧 Ensuring email service is initialized...')
@@ -545,7 +550,7 @@ export class EmailService {
       return await this.sendEmail({
         to: data.reporterEmail,
         cc: ccEmails.length > 0 ? ccEmails : undefined,
-        subject: `📋 Bug Report Created: ${data.bugTitle} (${data.bugId})`,
+        subject: workItemSubject(data.type, 'Created', data.bugTitle, data.bugId),
         html,
         priority: 'normal',
         type: 'task_created', // Reusing task_created type for now

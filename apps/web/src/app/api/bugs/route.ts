@@ -198,9 +198,11 @@ export async function POST(request: NextRequest) {
             category: bug.category,
             platform: bug.platform,
             environment: bug.environment,
+            // Without this a feature request was announced as a "Bug Report".
+            type: bug.type,
           })
 
-          console.log(`✅ Bug creation email sent to ${reporter.email}`)
+          console.log(`✅ Work item creation email sent to ${reporter.email}`)
         }
       }
     } catch (emailError) {

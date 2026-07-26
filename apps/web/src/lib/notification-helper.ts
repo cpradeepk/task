@@ -174,7 +174,10 @@ async function sendNotificationEmail(
           priority: bug.priority || 'Low',
           category: bug.category || 'Other',
           platform: bug.platform || 'Web',
-          environment: bug.environment || 'Production'
+          environment: bug.environment || 'Production',
+          // `SELECT *` already fetched this; passing it keeps a feature request
+          // from being announced as a bug.
+          type: bug.type
         })
         return
       }
