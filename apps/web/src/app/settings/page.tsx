@@ -184,7 +184,7 @@ export default function Settings() {
           error.message.includes('API request failed: 500') ||
           error.message.includes('Failed to get WFH applications')
         )) {
-          console.warn('Google Sheets API quota issue for WFH applications')
+          console.warn('WFH applications endpoint temporarily unavailable')
         }
         wfhsCount = 0
       }

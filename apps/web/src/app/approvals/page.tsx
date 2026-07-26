@@ -117,7 +117,7 @@ export default function Approvals() {
           leaveError.message.includes('API request failed: 500') ||
           leaveError.message.includes('Failed to get leave applications')
         )) {
-          console.warn('Google Sheets API issue for leave applications')
+          console.warn('Leave applications endpoint temporarily unavailable')
           hasAnyError = true
         }
         leaves = [] // Fallback to empty array
@@ -146,7 +146,7 @@ export default function Approvals() {
           wfhError.message.includes('API request failed: 500') ||
           wfhError.message.includes('Failed to get WFH applications')
         )) {
-          console.warn('Google Sheets API issue for WFH applications')
+          console.warn('WFH applications endpoint temporarily unavailable')
           hasAnyError = true
         }
         wfhs = [] // Fallback to empty array
@@ -305,9 +305,9 @@ export default function Approvals() {
           const errorText = await response.text()
           console.error('API Error:', response.status, errorText)
 
-          // Handle quota exceeded specifically
+          // Rate limited by the server
           if (response.status === 429) {
-            throw new Error('Google Sheets quota exceeded. Please try again in a few minutes.')
+            throw new Error('Too many requests. Please try again in a few minutes.')
           }
 
           throw new Error(`API request failed: ${response.status} - ${errorText}`)
@@ -334,9 +334,9 @@ export default function Approvals() {
           const errorText = await response.text()
           console.error('API Error:', response.status, errorText)
 
-          // Handle quota exceeded specifically
+          // Rate limited by the server
           if (response.status === 429) {
-            throw new Error('Google Sheets quota exceeded. Please try again in a few minutes.')
+            throw new Error('Too many requests. Please try again in a few minutes.')
           }
 
           throw new Error(`API request failed: ${response.status} - ${errorText}`)
@@ -363,8 +363,8 @@ export default function Approvals() {
       console.error('Error processing approval:', error)
 
       // Provide more specific error messages
-      if (error.message && error.message.includes('quota exceeded')) {
-        alert('Google Sheets quota exceeded. Please try again in a few minutes.')
+      if (error.message && error.message.includes('Too many requests')) {
+        alert('Too many requests. Please try again in a few minutes.')
       } else if (error.message && error.message.includes('Authentication failed')) {
         alert('Authentication error. Please refresh the page and try again.')
       } else if (error.message && error.message.includes('Failed to fetch')) {
