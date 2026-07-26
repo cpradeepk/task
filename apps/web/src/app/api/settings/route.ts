@@ -8,6 +8,7 @@
  * - No ENUM restrictions
  */
 
+import { getAuthUser } from '@/lib/auth-server'
 import { NextRequest, NextResponse } from 'next/server'
 import {
   getAllSettings,
@@ -39,6 +40,11 @@ import { cache } from '@/lib/cache'
  * - GET /api/settings?dropdowns=true - Get all dropdown options
  */
 export async function GET(request: NextRequest) {
+  // Resolve which company's settings to serve. Migration 062 made settings
+  // two-tier: a company's own row overrides the platform default, so the
+  // session's company decides which departments / roles / bug types come back.
+  const sessionUser = await getAuthUser(request)
+  const companyId = sessionUser?.companyId ?? null
   try {
     const searchParams = request.nextUrl.searchParams
     const key = searchParams.get('key')
@@ -70,7 +76,7 @@ export async function GET(request: NextRequest) {
         res.headers.set('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=3600')
         return res
       }
-      const dropdownSettings = await getDropdownSettings()
+      const dropdownSettings = await getDropdownSettings(companyId)
       await cache.set(cacheKey, dropdownSettings, 1440) // 24 hours
       return NextResponse.json({
         success: true,
@@ -81,7 +87,7 @@ export async function GET(request: NextRequest) {
 
     // Get specific setting by key
     if (key) {
-      const setting = await getSettingByKey(key)
+      const setting = await getSettingByKey(key, companyId)
       if (!setting) {
         return NextResponse.json(
           {

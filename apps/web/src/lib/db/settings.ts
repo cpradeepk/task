@@ -151,7 +151,17 @@ export async function getSettingById(id: number): Promise<Setting | null> {
 /**
  * Get a single setting by key
  */
-export async function getSettingByKey(key: string): Promise<Setting | null> {
+/**
+ * Company-aware setting lookup.
+ *
+ * Migration 062 made settings two-tier: a row with company_id IS NULL is the
+ * platform default, and a row with a company_id overrides it for that company.
+ * Resolution prefers the company's own row and falls back to the default, so a
+ * deployment that has configured nothing behaves exactly as before.
+ *
+ * Passing no companyId returns the platform default only.
+ */
+export async function getSettingByKey(key: string, companyId?: string | null): Promise<Setting | null> {
   try {
     const sql = `
       SELECT
@@ -166,9 +176,12 @@ export async function getSettingByKey(key: string): Promise<Setting | null> {
         updated_at as updatedAt
       FROM settings
       WHERE key = $1 AND is_active = TRUE
+        AND (company_id IS NULL OR company_id = $2)
+      ORDER BY (company_id IS NULL)
+      LIMIT 1
     `
 
-    const results = await query<any[]>(sql, [key])
+    const results = await query<any[]>(sql, [key, companyId ?? null])
 
     if (results.length === 0) {
       return null
@@ -222,9 +235,9 @@ export async function getSettingByKey(key: string): Promise<Setting | null> {
 /**
  * Get setting value by key (returns just the value, not the full setting object)
  */
-export async function getSettingValue<T = any>(key: string, defaultValue?: T): Promise<T> {
+export async function getSettingValue<T = any>(key: string, defaultValue?: T, companyId?: string | null): Promise<T> {
   try {
-    const setting = await getSettingByKey(key)
+    const setting = await getSettingByKey(key, companyId)
     return setting ? setting.value as T : (defaultValue as T)
   } catch (error) {
     console.error(`Error fetching setting value for key "${key}":`, error)
@@ -345,19 +358,24 @@ export async function getSettingsByKeys(keys: string[]): Promise<Record<string, 
  * Get settings for dropdowns (backward compatibility helper)
  * Returns settings that are arrays (typically used for dropdowns)
  */
-export async function getDropdownSettings(): Promise<Record<string, string[]>> {
+export async function getDropdownSettings(companyId?: string | null): Promise<Record<string, string[]>> {
   try {
+    // DISTINCT ON collapses each key to a single row, preferring the company's
+    // own override (company_id IS NULL sorts last) over the platform default.
+    // This is what makes departments, roles and bug types configurable per
+    // company instead of shared across every tenant.
     const sql = `
-      SELECT
+      SELECT DISTINCT ON (key)
         key,
         value
       FROM settings
       WHERE is_active = TRUE
         AND jsonb_typeof(value) = 'array'
-      ORDER BY key
+        AND (company_id IS NULL OR company_id = $1)
+      ORDER BY key, (company_id IS NULL)
     `
 
-    const results = await query<any[]>(sql)
+    const results = await query<any[]>(sql, [companyId ?? null])
 
     const dropdowns: Record<string, string[]> = {}
     results.forEach(row => {
