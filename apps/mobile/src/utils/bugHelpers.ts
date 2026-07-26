@@ -47,14 +47,20 @@ export function isTestcaseBug(bugType?: string | null): boolean {
 }
 
 /**
- * Get bug type display name
+ * Get bug type display name.
+ *
+ * Mirrors workItemNoun() in apps/web/src/lib/workItemType.ts so both apps name a
+ * work item the same way. Migration 056 dropped 'testcase' and added 'release';
+ * 'testcase' is still recognised here for any client holding stale cached rows.
  */
 export function getBugTypeDisplayName(bugType?: string | null): string {
-  if (bugType === 'feature' || bugType === 'Feature') return 'Feature'
-  if (bugType === 'testcase' || bugType === 'Testcase') return 'Test Case'
-  if (bugType === 'bug' || bugType === 'Bug') return 'Bug'
-  if (bugType === 'other' || bugType === 'Other') return 'Other'
-  return bugType || 'Bug'
+  const normalized = (bugType || '').toLowerCase()
+  if (normalized === 'feature') return 'Feature Request'
+  if (normalized === 'release') return 'Release'
+  if (normalized === 'bug') return 'Bug Report'
+  if (normalized === 'other') return 'Work Item'
+  if (normalized === 'testcase') return 'Test Case'
+  return bugType || 'Bug Report'
 }
 
 /**

@@ -22,6 +22,7 @@ import {
 import { Text, Button, ActivityIndicator, Divider, Surface, Switch, IconButton, TextInput as PaperInput, Portal, Dialog, SegmentedButtons } from 'react-native-paper'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SearchablePicker } from '../components/SearchablePicker'
+import CompanySwitcher from '../components/CompanySwitcher'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as DocumentPicker from 'expo-document-picker'
 import { useNavigation } from '@react-navigation/native'
@@ -628,6 +629,12 @@ export default function SettingsScreen() {
                   </View>
                 </View>
               </View>
+            </Surface>
+
+            {/* Company switcher — renders nothing unless the user belongs to
+                more than one company (web migration 062). */}
+            <Surface style={styles.card} elevation={1}>
+              <CompanySwitcher onSwitched={loadProfileData} />
             </Surface>
 
             {/* Detailed Profile Info (Read Only) */}

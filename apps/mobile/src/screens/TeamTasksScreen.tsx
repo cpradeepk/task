@@ -87,8 +87,10 @@ export default function TeamTasksScreen() {
         const result = await get('/api/users')
         membersList = result.success ? result.data : []
       } else {
-        // Fetch team members
-        const result = await get(`/api/users/team/${user.employeeId}`)
+        // Fetch the whole reporting subtree, not just direct reports. Managers
+        // can have managers, so a senior manager needs to see their skip-level
+        // reports' work too — matching the web app.
+        const result = await get(`/api/users/team/${user.employeeId}?recursive=true`)
         membersList = result.success ? result.data : []
       }
 

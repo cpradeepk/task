@@ -263,7 +263,9 @@ export default function BugListScreen() {
 
   const typeSetting = settings.find((s: any) => s.key === 'bug_types')
   const parsedType = typeSetting ? parseSettingValue(typeSetting.value) : []
-  const typeOptionsRaw = parsedType.length > 0 ? parsedType : ['bug', 'feature', 'testcase', 'other']
+  // Migration 056 replaced 'testcase' with 'release' as an allowed work-item
+  // type; this fallback still offered the removed value.
+  const typeOptionsRaw = parsedType.length > 0 ? parsedType : ['feature', 'bug', 'other', 'release']
   const typeOptions = ['All', ...typeOptionsRaw]
 
   // Use REST API instead of GraphQL to avoid schema mismatch issues

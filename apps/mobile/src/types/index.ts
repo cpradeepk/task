@@ -210,6 +210,24 @@ export interface User {
   designation?: string
   /** User-specific tab access overrides; falls back to role defaults when empty. */
   tabPermissions?: string[]
+  /**
+   * Company this session is scoped to (web migration 062). Optional — sessions
+   * issued before the migration have no company and the server falls back to
+   * unscoped behaviour, so an app holding an older token keeps working until
+   * the user signs in again.
+   */
+  companyId?: string
+  /** Grants company management across tenants. Replaces the old AM-0001 check. */
+  isPlatformAdmin?: boolean
+}
+
+/** A company the signed-in user belongs to (GET /api/companies). */
+export interface CompanyMembership {
+  companyId: string
+  name: string
+  code: string
+  companyRole: 'company_admin' | 'member'
+  isDefault: boolean
 }
 
 export interface Leave {
