@@ -42,7 +42,7 @@ export default function AppManagement() {
 
     // Only Admin / Top Management / Management / User AM-0001 can access App Management
     const isAuthorized = 
-      user.employeeId === 'AM-0001' || 
+      user.isPlatformAdmin || 
       user.role === 'admin' || 
       user.role === 'top_management' ||
       user.role === 'management'

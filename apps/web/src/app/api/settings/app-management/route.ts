@@ -55,7 +55,7 @@ async function handleUpdate(request: NextRequest) {
       const authUser = await getAuthUser(request)
       if (authUser) {
         isAuthorized = 
-          authUser.employeeId === 'AM-0001' || 
+          (authUser as { isPlatformAdmin?: boolean }).isPlatformAdmin || 
           authUser.role === 'admin' || 
           authUser.role === 'top_management' ||
           authUser.role === 'management'

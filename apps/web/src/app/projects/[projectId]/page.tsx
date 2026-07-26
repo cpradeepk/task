@@ -361,7 +361,7 @@ export default function ProjectDetailsPage() {
   }
 
   // Only check permissions after hydration to avoid SSR/client mismatch
-  const canManageProjects = isHydrated && (hasTabAccess(getCurrentUser(), 'projects') || userRole === 'admin' || userRole === 'top_management' || employeeId === 'AM-0001')
+  const canManageProjects = isHydrated && (hasTabAccess(getCurrentUser(), 'projects') || userRole === 'admin' || userRole === 'top_management' || getCurrentUser()?.isPlatformAdmin)
   const canDelete = isHydrated && userRole === 'admin'
 
   if (loading) {

@@ -330,7 +330,7 @@ export default function Settings() {
       </div>
 
       {/* Quick Access Links */}
-      {(currentUser.role === 'admin' || currentUser.role === 'top_management' || currentUser.role === 'management' || currentUser.employeeId === 'AM-0001') && (
+      {(currentUser.role === 'admin' || currentUser.role === 'top_management' || currentUser.role === 'management' || currentUser.isPlatformAdmin) && (
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
             <SettingsIcon className="h-5 w-5" />

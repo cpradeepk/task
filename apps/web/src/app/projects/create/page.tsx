@@ -30,12 +30,14 @@ export default function CreateProjectPage() {
     const userStr = localStorage.getItem('jsr_current_user')
     let role = ''
     let empId = ''
+    let isPlatformAdmin = false
 
     if (userStr) {
       try {
         const user = JSON.parse(userStr)
         role = user.role || ''
         empId = user.employeeId || ''
+        isPlatformAdmin = Boolean(user.isPlatformAdmin)
         setUserRole(role)
         setEmployeeId(empId)
       } catch (error) {
@@ -43,8 +45,9 @@ export default function CreateProjectPage() {
       }
     }
 
-    // Check permissions: admin, top_management, or AM-0001
-    const hasPermission = role === 'admin' || role === 'top_management' || empId === 'AM-0001'
+    // Check permissions: company admins (still expressed as the legacy global
+    // roles) or a platform admin. Previously this hardcoded employeeId AM-0001.
+    const hasPermission = role === 'admin' || role === 'top_management' || isPlatformAdmin
     if (!hasPermission) {
       router.push('/projects')
     }

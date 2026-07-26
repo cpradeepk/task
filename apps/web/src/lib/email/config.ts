@@ -31,9 +31,12 @@ export const EMAIL_CONFIG = {
   templates: {
     baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
     logoUrl: process.env.EMAIL_LOGO_URL || '/images/logos/amtariksha_icon.png',
-    // Product name shown in emails (Karmayog by Amtariksha Tech Pvt Ltd)
-    companyName: 'Karmayog',
-    supportContact: 'contactus@karmayog.com',
+    // Product name shown in emails. This is the PLATFORM default; a company can
+    // override its own name and logo (companies.name / companies.logo_url) —
+    // resolve those with brandingForCompany() rather than reading these
+    // constants directly in anything a tenant receives.
+    companyName: process.env.EMAIL_COMPANY_NAME || 'Karmayog',
+    supportContact: process.env.EMAIL_SUPPORT_CONTACT || 'contactus@karmayog.com',
   },
 
   // Feature flags

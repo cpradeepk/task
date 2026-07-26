@@ -92,7 +92,7 @@ export default function PermissionsPage() {
     }
 
     // Only admin and AM-0001 can access this page
-    if (user.role !== 'admin' && user.employeeId !== 'AM-0001') {
+    if (user.role !== 'admin' && !user.isPlatformAdmin) {
       router.push('/dashboard')
       return
     }
