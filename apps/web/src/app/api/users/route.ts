@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllUsers, getAllUsersIncludingInactive, createUser } from '@/lib/db/users'
+import { getAllUsers, getAllUsersIncludingInactive, getUsersByCompany, createUser, getNextEmployeeId } from '@/lib/db/users'
+import { addUserToCompany, getCompanyById } from '@/lib/db/companies'
+import { canManageUsers } from '@/lib/authz'
 import { withTimeout } from '@/lib/db/config'
 import { requireAuth, requireRole } from '@/lib/auth-server'
 import { generateSecurePassword } from '@/lib/utils/password'
@@ -13,9 +15,19 @@ export async function GET(request: NextRequest) {
 
     const includeInactive = request.nextUrl.searchParams.get('includeInactive') === 'true'
 
-    // Get users from database with timeout
+    // Scope to the caller's company. This endpoint backs every assignee
+    // dropdown, so returning all users leaks names and emails across tenants.
+    // Platform admins, and sessions predating migration 062 (no companyId
+    // claim), keep the unscoped view.
+    const companyId = auth.user.companyId
+    const shouldScope = Boolean(companyId) && !auth.user.isPlatformAdmin
+
     const users = await withTimeout(
-      includeInactive ? getAllUsersIncludingInactive() : getAllUsers(),
+      shouldScope
+        ? getUsersByCompany(companyId as string, includeInactive)
+        : includeInactive
+          ? getAllUsersIncludingInactive()
+          : getAllUsers(),
       10000, // 10 second timeout
       'Failed to fetch users - database timeout'
     )
@@ -75,11 +87,24 @@ function describeCreateUserError(error: unknown): { message: string; status: num
 
 export async function POST(request: NextRequest) {
   try {
-    // Only admins/top management may create users.
     const auth = await requireRole(request, ['admin', 'top_management'])
     if (!auth.ok) return auth.response
 
     const userData = await request.json()
+
+    // The new user joins the company the caller is acting in — never one named
+    // in the request body, which would let a company admin plant users in
+    // another tenant. Platform admins may target a company explicitly.
+    const targetCompanyId = auth.user.isPlatformAdmin && typeof userData.companyId === 'string'
+      ? userData.companyId
+      : auth.user.companyId
+
+    if (targetCompanyId && !(await canManageUsers(auth.user, targetCompanyId))) {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to add users to this company.' },
+        { status: 403 }
+      )
+    }
 
     // An admin may leave the password blank; we generate a strong one and hand it
     // back so the caller can email it. generateTemporaryPassword() is deliberately
@@ -87,12 +112,23 @@ export async function POST(request: NextRequest) {
     const suppliedPassword = typeof userData.password === 'string' ? userData.password.trim() : ''
     const generatedPassword = suppliedPassword || generateSecurePassword(14)
 
-    // Add user to database with timeout
+    // Employee IDs are prefixed per company (companies.code), so a second
+    // company numbers its people independently instead of sharing the 'AM' run.
+    let employeeId: string | undefined = userData.employeeId?.trim() || undefined
+    if (!employeeId && targetCompanyId) {
+      const company = await getCompanyById(targetCompanyId)
+      if (company?.code) employeeId = await getNextEmployeeId(company.code)
+    }
+
     const user = await withTimeout(
-      createUser({ ...userData, password: generatedPassword }),
+      createUser({ ...userData, employeeId, password: generatedPassword }),
       15000, // 15 second timeout for create operations
       'Failed to create user - database timeout'
     )
+
+    if (targetCompanyId) {
+      await addUserToCompany(user.employeeId, targetCompanyId, 'member', true)
+    }
 
     return NextResponse.json({
       success: true,

@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { logout, getCurrentUser, getRoleDisplayName } from '@/lib/auth'
+import CompanySwitcher from './CompanySwitcher'
 import { User as UserType } from '@/lib/types'
 import { hasTabAccess } from '@/lib/permissions'
 import NotificationBell from './NotificationBell'
@@ -283,6 +284,9 @@ export default function Navbar() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            {/* Company switcher — renders nothing unless the user belongs to more than one */}
+            {isClient && currentUser && <CompanySwitcher />}
+
             {/* Project Filter Dropdown */}
             {isClient && currentUser && (
               <div className="relative mr-2" ref={dropdownRef}>
