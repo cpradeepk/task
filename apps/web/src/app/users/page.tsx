@@ -290,7 +290,10 @@ export default function UserManagement() {
           }
           setIsModalOpen(false)
 
-          // Automatically send credentials email for new user if email is provided
+          // Automatically send credentials email for new user if email is provided.
+          // Pass the password the admin just chose so it is emailed and kept as the
+          // user's actual password — without it the endpoint would generate a new
+          // one and the admin's password would never work for the first login.
           if (userData.email) {
             try {
               const response = await fetchWithTimeout(
@@ -300,7 +303,11 @@ export default function UserManagement() {
                   headers: {
                     'Content-Type': 'application/json',
                   },
-                  body: JSON.stringify({}),
+                  body: JSON.stringify(
+                    (userData as { password?: string }).password
+                      ? { password: (userData as { password?: string }).password }
+                      : {}
+                  ),
                 },
                 15000 // 15 second timeout
               )

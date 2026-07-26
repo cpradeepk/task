@@ -15,6 +15,13 @@ export async function POST(
 
     const { employeeId } = await params
 
+    // Optional: the caller may supply the password to email (e.g. the create-user
+    // flow, where the admin just chose one). Without it we generate a new
+    // temporary password — stored hashes cannot be reversed for emailing.
+    const body = await request.json().catch(() => ({} as Record<string, unknown>))
+    const suppliedPassword =
+      typeof body?.password === 'string' && body.password.trim() ? body.password : null
+
     if (!employeeId) {
       return NextResponse.json({
         success: false,
@@ -39,10 +46,12 @@ export async function POST(
       }, { status: 400 })
     }
 
-    // Passwords are stored as bcrypt hashes and cannot be recovered, so generate
-    // a new temporary password, store it (hashed via updateUser), and email the
-    // plaintext to the user.
-    const tempPassword = randomBytes(12).toString('base64url').slice(0, 12)
+    // The password we email must always be the one that is stored, so write it
+    // back either way. On create the admin's chosen password is supplied and is
+    // preserved (previously it was silently replaced, so the new user's first
+    // login always failed). A manual resend has no plaintext to recover, so a
+    // fresh temporary password is generated instead.
+    const tempPassword = suppliedPassword || randomBytes(12).toString('base64url').slice(0, 12)
     await updateUser(employeeId, { password: tempPassword } as any)
 
     // Check if email service is available
