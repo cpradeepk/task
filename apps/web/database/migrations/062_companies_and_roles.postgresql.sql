@@ -23,10 +23,18 @@
 -- company, so behaviour is unchanged until the application starts reading the
 -- new columns. Rollback: 062_companies_and_roles_rollback.postgresql.sql
 --
+-- SAFE TO RE-RUN. Every step is idempotent (IF NOT EXISTS / ON CONFLICT /
+-- exception-guarded), and the whole thing runs in ONE TRANSACTION — so a
+-- failure part-way leaves the database exactly as it was rather than
+-- half-migrated.
+--
 -- Configure the default company before running:
+-- ============================================================================
+
+BEGIN;
+
 DO $$ BEGIN PERFORM set_config('app.default_company_name', 'Amtariksha Tech', false); END $$;
 DO $$ BEGIN PERFORM set_config('app.default_company_code', 'AM',              false); END $$;
--- ============================================================================
 
 -- ---------------------------------------------------------------------------
 -- 1. companies
@@ -177,8 +185,14 @@ ON CONFLICT (employee_id, company_id) DO NOTHING;
 
 -- Existing system admins also become platform admins, so nobody is locked out
 -- of company management the moment the app starts enforcing this.
+--
+-- is_system_admin is INTEGER in the live database but BOOLEAN in
+-- postgres_schema.sql, so a direct `= TRUE` fails with 42883 on one of them.
+-- Comparing the text form works for both ('1' vs 'true') without needing to
+-- know which this deployment has.
 UPDATE users SET is_platform_admin = TRUE
- WHERE is_system_admin = TRUE OR employee_id = 'AM-0001';
+ WHERE COALESCE(is_system_admin::text, '') IN ('1', 'true', 't')
+    OR employee_id = 'AM-0001';
 
 UPDATE projects SET company_id = 'COMP-001' WHERE company_id IS NULL;
 
@@ -220,6 +234,8 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 CREATE INDEX IF NOT EXISTS idx_projects_company_id ON projects(company_id);
+
+COMMIT;
 
 -- ============================================================================
 -- Verification
