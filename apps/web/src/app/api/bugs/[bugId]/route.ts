@@ -6,6 +6,7 @@ import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
 import { verifyToken, getAuthUser } from '@/lib/auth-server'
 import { getUserProjectIds } from '@/lib/db/project-users'
 import { createNotification } from '@/lib/notification-helper'
+import { canEditWorkItem } from '@/lib/authz'
 
 /**
  * Check whether an authenticated user can access a specific bug.
@@ -21,6 +22,24 @@ async function canAccessBug(authUser: { employeeId: string; role: string }, bug:
     if (accessibleProjectIds.includes(bug.projectId)) return true
   }
   return false
+}
+
+/**
+ * May this user MODIFY the bug? Stricter than canAccessBug, which only governs
+ * reading: being a project member is enough to view a bug but not to change it.
+ *
+ * Delegates to lib/authz.canEditWorkItem, so a project manager or team leader,
+ * or anyone above the owner in the reporting chain (at any depth), qualifies —
+ * this is what makes "managers can edit their reports' work" real.
+ */
+async function canModifyBug(
+  authUser: { employeeId: string; role: string; companyId?: string | null; isPlatformAdmin?: boolean },
+  bug: any
+): Promise<boolean> {
+  return canEditWorkItem(authUser, {
+    projectId: bug?.projectId ?? null,
+    ownerEmployeeId: bug?.assignedTo || bug?.reportedBy || null,
+  })
 }
 
 export async function GET(
@@ -83,12 +102,26 @@ export async function PUT(
       }, { status: 400 })
     }
 
-    // Get current user for activity logging
+    // PUT previously had NO authorization check — it read the user only for the
+    // activity log and fell back to 'system'. Any session could edit any bug.
     const authUser = await getAuthUser(request)
-    const userId = authUser?.employeeId || updates.assignedBy || 'system'
+    if (!authUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+    const userId = authUser.employeeId
 
     // Get the current bug state before updating
     const currentBug = await getBugById(bugId)
+
+    if (!currentBug) {
+      return NextResponse.json({ success: false, error: 'Bug not found' }, { status: 404 })
+    }
+    if (!(await canModifyBug(authUser, currentBug))) {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to edit this item.' },
+        { status: 403 }
+      )
+    }
 
     // Check if assignedTo field is changing (bug is being assigned/reassigned)
     const isAssignmentChange = updates.assignedTo && updates.assignedTo !== currentBug?.assignedTo
@@ -238,10 +271,23 @@ export async function DELETE(
       }, { status: 400 })
     }
 
-    // Get current user for activity logging
-    const token = request.cookies.get('token')?.value
-    const user = token ? verifyToken(token) : null
-    const userId = user?.employeeId || 'system'
+    // DELETE previously had NO authorization check either.
+    const user = await getAuthUser(request)
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+    const userId = user.employeeId
+
+    const bugToDelete = await getBugById(bugId)
+    if (!bugToDelete) {
+      return NextResponse.json({ success: false, error: 'Bug not found' }, { status: 404 })
+    }
+    if (!(await canModifyBug(user, bugToDelete))) {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to delete this item.' },
+        { status: 403 }
+      )
+    }
 
     // Log deletion activity before deleting
     try {

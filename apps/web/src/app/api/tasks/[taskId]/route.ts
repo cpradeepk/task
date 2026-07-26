@@ -7,6 +7,7 @@ import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
 import { getUserProjectIds } from '@/lib/db/project-users'
 import { createNotification } from '@/lib/notification-helper'
+import { canEditWorkItem } from '@/lib/authz'
 
 /**
  * Check whether an authenticated user can access a specific task.
@@ -23,6 +24,37 @@ async function canAccessTask(authUser: { employeeId: string; role: string }, tas
   if (task.projectId) {
     const accessibleProjectIds = await getUserProjectIds(authUser.employeeId)
     if (accessibleProjectIds.includes(task.projectId)) return true
+  }
+  return false
+}
+
+/**
+ * May this user MODIFY the task? Stricter than canAccessTask, which governs
+ * reading only — project membership is enough to view a task, not to change it.
+ *
+ * Delegates to lib/authz.canEditWorkItem, so a project manager or team leader,
+ * or anyone above an assignee in the reporting chain (at any depth), qualifies.
+ */
+async function canModifyTask(
+  authUser: { employeeId: string; role: string; companyId?: string | null; isPlatformAdmin?: boolean },
+  task: any
+): Promise<boolean> {
+  const owner = Array.isArray(task?.assignedTo)
+    ? task.assignedTo[0]
+    : task?.assignedTo || task?.assignedBy || null
+
+  if (await canEditWorkItem(authUser, { projectId: task?.projectId ?? null, ownerEmployeeId: owner })) {
+    return true
+  }
+
+  // Multi-assignee tasks: any assignee may edit, and so may their manager.
+  if (Array.isArray(task?.assignedTo)) {
+    for (const assignee of task.assignedTo) {
+      if (assignee === authUser.employeeId) return true
+      if (await canEditWorkItem(authUser, { projectId: task?.projectId ?? null, ownerEmployeeId: assignee })) {
+        return true
+      }
+    }
   }
   return false
 }
@@ -75,9 +107,13 @@ export async function PUT(
     const { taskId } = await params
     const updates = await request.json()
 
-    // Get current user for activity logging
+    // PUT previously had NO authorization check — it read the user only for the
+    // activity log and fell back to 'system'. Any session could edit any task.
     const authUser = await getAuthUser(request)
-    const userId = authUser?.employeeId || 'system'
+    if (!authUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+    const userId = authUser.employeeId
 
     // Basic validation for positive numbers
     if (updates.estimatedHours && updates.estimatedHours < 0) {
@@ -97,6 +133,16 @@ export async function PUT(
 
     // Get current task state before updating (for activity logging)
     const currentTask = await getTaskById(taskId)
+
+    if (!currentTask) {
+      return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
+    }
+    if (!(await canModifyTask(authUser, currentTask))) {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to edit this task.' },
+        { status: 403 }
+      )
+    }
 
     // Convert assignedTo from string to array if needed (for PostgreSQL JSONB array constraint)
     if (updates.assignedTo !== undefined && typeof updates.assignedTo === 'string') {
@@ -335,10 +381,23 @@ export async function DELETE(
   try {
     const { taskId } = await params
 
-    // Get current user for activity logging
-    const token = request.cookies.get('token')?.value
-    const user = token ? verifyToken(token) : null
-    const userId = user?.employeeId || 'system'
+    // DELETE previously had NO authorization check either.
+    const user = await getAuthUser(request)
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+    const userId = user.employeeId
+
+    const taskToDelete = await getTaskById(taskId)
+    if (!taskToDelete) {
+      return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
+    }
+    if (!(await canModifyTask(user, taskToDelete))) {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to delete this task.' },
+        { status: 403 }
+      )
+    }
 
     // Log deletion activity before deleting
     try {
