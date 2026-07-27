@@ -5,6 +5,34 @@
 -- Converted from MySQL: 2025-11-02
 -- Description: Complete schema migration from MySQL to PostgreSQL
 -- ============================================================================
+--
+--  ⚠️  THIS FILE IS NOT AUTHORITATIVE AND HAS DRIFTED FROM PRODUCTION.
+--
+--  It records the ORIGINAL schema only. It does NOT include the changes made by
+--  apps/web/database/migrations/*.sql, and at least one column type disagrees
+--  with the live database:
+--
+--    users.is_system_admin   declared BOOLEAN here, but INTEGER in production.
+--                            The application agrees with production (UserRow
+--                            types it `number` and compares `=== 1`).
+--                            Trusting this file caused migration 062 to fail
+--                            with "operator does not exist: integer = boolean".
+--
+--    users.is_today_task     declared BOOLEAN here, while the code writes 1/0 —
+--                            same smell, not yet confirmed against production.
+--
+--  Missing here entirely: companies, user_companies, project_users.role,
+--  users.is_platform_admin, settings.company_id, and company_id on projects,
+--  tasks, bugs and requirements (migrations 062 and 063).
+--
+--  DO NOT use this file to reason about production, and do not build test
+--  fixtures from it. Dump the real schema instead:
+--
+--      ./scripts/dump-live-schema.sh > live_schema.sql
+--
+--  Reconciling this file against that dump is worth doing; until then treat the
+--  migrations directory as the source of truth.
+-- ============================================================================
 
 -- Drop existing tables if they exist (in reverse order of dependencies)
 DROP TABLE IF EXISTS activity_log CASCADE;
