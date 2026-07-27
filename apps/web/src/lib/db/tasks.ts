@@ -26,6 +26,8 @@ interface TaskRow {
   related_tasks: string | null
   project_id: string | null
   subproject_id: string | null
+  /** Owning company (migration 063); set by a BEFORE INSERT trigger. */
+  company_id: string | null
   parent_task_id: string | null
   department: string | null
   deleted_at: string | null
@@ -141,6 +143,7 @@ function rowToTask(row: TaskRow): Task {
     relatedTasks: row.related_tasks || undefined,
     projectId: row.project_id || undefined,
     subprojectId: row.subproject_id || undefined,
+    companyId: row.company_id || undefined,
     parentTaskId: row.parent_task_id || undefined,
     department: row.department || undefined,
     deletedAt: row.deleted_at || undefined,
@@ -166,10 +169,19 @@ export async function getAllTasks(options?: {
   projectIds?: string[];
   subprojectId?: string;
   search?: string;
+  /** Restrict to one company (migration 063). Omit for platform-admin views. */
+  companyId?: string | null;
 }): Promise<Task[]> {
   return withRetry(async () => {
     let sql = 'SELECT * FROM tasks WHERE deleted_at IS NULL'
     const params: any[] = []
+
+    // Tenant scope. NULL company_id rows are legacy items migration 063 could
+    // not resolve; they stay visible so a rollout does not hide existing work.
+    if (options?.companyId) {
+      sql += ` AND (company_id = $${params.length + 1} OR company_id IS NULL)`
+      params.push(options.companyId)
+    }
 
     if (options?.status && options.status.length > 0) {
       sql += ` AND status = ANY($${params.length + 1})`

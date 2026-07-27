@@ -7,14 +7,19 @@ import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
 import { getUserProjectIds } from '@/lib/db/project-users'
 import { createNotification } from '@/lib/notification-helper'
-import { canEditWorkItem } from '@/lib/authz'
+import { canEditWorkItem, isSameCompany } from '@/lib/authz'
 
 /**
  * Check whether an authenticated user can access a specific task.
  * Admin/top_management always allowed.
  * Others allowed if they're an assignee, the assigner, a supporter, or a project member.
  */
-async function canAccessTask(authUser: { employeeId: string; role: string }, task: any): Promise<boolean> {
+async function canAccessTask(
+  authUser: { employeeId: string; role: string; companyId?: string | null; isPlatformAdmin?: boolean },
+  task: any
+): Promise<boolean> {
+  // Tenant boundary BEFORE the role check — see the bugs route for why.
+  if (!(await isSameCompany(authUser, task?.companyId))) return false
   if (['admin', 'top_management'].includes(authUser.role)) return true
   // assignedTo can be array (multi-assignee) or string (legacy)
   if (Array.isArray(task.assignedTo) && task.assignedTo.includes(authUser.employeeId)) return true
@@ -43,7 +48,11 @@ async function canModifyTask(
     ? task.assignedTo[0]
     : task?.assignedTo || task?.assignedBy || null
 
-  if (await canEditWorkItem(authUser, { projectId: task?.projectId ?? null, ownerEmployeeId: owner })) {
+  if (await canEditWorkItem(authUser, {
+    projectId: task?.projectId ?? null,
+    ownerEmployeeId: owner,
+    companyId: task?.companyId ?? null,
+  })) {
     return true
   }
 
@@ -51,7 +60,11 @@ async function canModifyTask(
   if (Array.isArray(task?.assignedTo)) {
     for (const assignee of task.assignedTo) {
       if (assignee === authUser.employeeId) return true
-      if (await canEditWorkItem(authUser, { projectId: task?.projectId ?? null, ownerEmployeeId: assignee })) {
+      if (await canEditWorkItem(authUser, {
+        projectId: task?.projectId ?? null,
+        ownerEmployeeId: assignee,
+        companyId: task?.companyId ?? null,
+      })) {
         return true
       }
     }

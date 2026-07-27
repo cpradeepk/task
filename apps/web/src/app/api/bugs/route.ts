@@ -41,7 +41,8 @@ export async function GET(request: NextRequest) {
 
     console.log('Fetching bugs data from MySQL with params:', filters)
 
-    let bugs = await getAllBugs(filters)
+    // Scope the list to the caller's company (migration 063).
+    let bugs = await getAllBugs({ ...filters, companyId: auth.user.companyId ?? null })
 
     // Optional project-access scoping (used by Reports — option B)
     if (searchParams.get('scopeByUserProjects') === 'true') {

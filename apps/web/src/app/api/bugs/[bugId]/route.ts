@@ -6,14 +6,21 @@ import { logEntityChanges, createActivityLog } from '@/lib/db/activityLog'
 import { verifyToken, getAuthUser } from '@/lib/auth-server'
 import { getUserProjectIds } from '@/lib/db/project-users'
 import { createNotification } from '@/lib/notification-helper'
-import { canEditWorkItem } from '@/lib/authz'
+import { canEditWorkItem, isSameCompany } from '@/lib/authz'
 
 /**
  * Check whether an authenticated user can access a specific bug.
  * Admin/top_management always allowed.
  * Others allowed if they're the reporter, an assignee, or a project member.
  */
-async function canAccessBug(authUser: { employeeId: string; role: string }, bug: any): Promise<boolean> {
+async function canAccessBug(
+  authUser: { employeeId: string; role: string; companyId?: string | null; isPlatformAdmin?: boolean },
+  bug: any
+): Promise<boolean> {
+  // Tenant boundary BEFORE the role check. Without this an admin of one company
+  // could read another company's bugs, because the role test never looked at
+  // which company owned the record.
+  if (!(await isSameCompany(authUser, bug?.companyId))) return false
   if (['admin', 'top_management'].includes(authUser.role)) return true
   if (bug.reportedBy === authUser.employeeId) return true
   if (bug.assignedTo === authUser.employeeId) return true
@@ -39,6 +46,7 @@ async function canModifyBug(
   return canEditWorkItem(authUser, {
     projectId: bug?.projectId ?? null,
     ownerEmployeeId: bug?.assignedTo || bug?.reportedBy || null,
+    companyId: bug?.companyId ?? null,
   })
 }
 

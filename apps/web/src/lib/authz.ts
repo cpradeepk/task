@@ -48,6 +48,30 @@ export async function isPlatformAdmin(actor: Actor): Promise<boolean> {
   return dbIsPlatformAdmin(actor.employeeId)
 }
 
+/**
+ * TENANT BOUNDARY — the check that must run before any per-item permission.
+ *
+ * Every other helper here answers "does this person have the right ROLE?", and
+ * a global admin passed those checks regardless of which company owned the
+ * record. That was the residual leak after 062: an admin of company A could
+ * read and edit company B's tasks and bugs, because the role test never
+ * consulted the record's company.
+ *
+ * Fails OPEN in exactly two situations, both deliberate:
+ *   - the record has no company (legacy rows migration 063 could not resolve);
+ *   - the session has no company (a token issued before 062).
+ * In both cases behaviour falls back to the pre-tenancy rules rather than
+ * locking people out of their own data mid-rollout.
+ *
+ * Platform admins cross tenants by definition — that is what the flag is for.
+ */
+export async function isSameCompany(actor: Actor, recordCompanyId?: string | null): Promise<boolean> {
+  if (!recordCompanyId) return true
+  if (!actor.companyId) return true
+  if (actor.companyId === recordCompanyId) return true
+  return isPlatformAdmin(actor)
+}
+
 /** Is the actor a member of this company at all? */
 export async function isCompanyMember(actor: Actor, companyId: string): Promise<boolean> {
   if (await isPlatformAdmin(actor)) return true
@@ -108,9 +132,13 @@ export async function canViewProject(actor: Actor, projectId: string): Promise<b
  */
 export async function canEditWorkItem(
   actor: Actor,
-  options: { projectId?: string | null; ownerEmployeeId?: string | null }
+  options: { projectId?: string | null; ownerEmployeeId?: string | null; companyId?: string | null }
 ): Promise<boolean> {
-  const { projectId, ownerEmployeeId } = options
+  const { projectId, ownerEmployeeId, companyId } = options
+
+  // Tenant boundary first — no role, ownership or manager relationship grants
+  // access to another company's record.
+  if (!(await isSameCompany(actor, companyId))) return false
 
   if (ownerEmployeeId && ownerEmployeeId === actor.employeeId) return true
 
@@ -139,8 +167,30 @@ export async function canEditWorkItem(
 export async function canViewUser(actor: Actor, targetEmployeeId: string): Promise<boolean> {
   if (targetEmployeeId === actor.employeeId) return true
   if (await isPlatformAdmin(actor)) return true
-  if (actor.companyId && (await canAdminCompany(actor, actor.companyId))) return true
+
+  // The target must be in the acting company before any role check applies,
+  // otherwise a company admin could read users from another tenant.
+  if (actor.companyId) {
+    const shared = await getCompanyRole(targetEmployeeId, actor.companyId)
+    if (shared === null) return false
+    if (await canAdminCompany(actor, actor.companyId)) return true
+  }
+
   return isInManagerChain(actor.employeeId, targetEmployeeId)
+}
+
+/**
+ * May the actor READ a work item? Looser than canEditWorkItem — project
+ * membership is enough to view — but the tenant boundary still applies.
+ */
+export async function canViewWorkItem(
+  actor: Actor,
+  options: { projectId?: string | null; ownerEmployeeId?: string | null; companyId?: string | null }
+): Promise<boolean> {
+  if (!(await isSameCompany(actor, options.companyId))) return false
+  if (options.ownerEmployeeId === actor.employeeId) return true
+  if (options.projectId && (await isUserAssignedToProject(options.projectId, actor.employeeId))) return true
+  return canEditWorkItem(actor, options)
 }
 
 /** May the actor approve leave / WFH / attendance for this employee? */

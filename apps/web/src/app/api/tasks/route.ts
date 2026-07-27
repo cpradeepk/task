@@ -45,7 +45,8 @@ export async function GET(request: NextRequest) {
     // Get tasks from MySQL with timeout
     console.log('🔵 [TASKS-GET] Fetching tasks from database...')
     let tasks = await withTimeout(
-      getAllTasks(filters),
+      // Scope the list to the caller's company (migration 063).
+      getAllTasks({ ...filters, companyId: auth.user.companyId ?? null }),
       10000,
       'Failed to fetch tasks - database timeout'
     )

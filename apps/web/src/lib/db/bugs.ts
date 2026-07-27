@@ -55,6 +55,7 @@ interface BugRow {
   related_bugs: string | null         // Comma-separated bug IDs (optional)
   project_id: string | null           // Project ID this bug belongs to (optional)
   subproject_id: string | null        // Subproject ID this bug belongs to (optional)
+  company_id: string | null           // Owning company (migration 063); set by a BEFORE INSERT trigger
   parent_dev_id: string | null        // Parent bug ID for subtasks (optional)
   feature: string | null              // Feature name this bug is related to (optional)
   type: string | null                 // Bug type: 'feature', 'bug', 'other', 'release' (optional)
@@ -117,6 +118,7 @@ function rowToBug(row: BugRow): Bug {
     tags: row.tags || undefined,
     relatedBugs: row.related_bugs || undefined,
     projectId: row.project_id || undefined,
+    companyId: row.company_id || undefined,
     subprojectId: row.subproject_id || undefined,
     parentDevId: row.parent_dev_id || undefined,
     feature: row.feature || undefined,
@@ -157,10 +159,19 @@ export async function getAllBugs(options?: {
   projectIds?: string[];
   subprojectId?: string;
   search?: string;
+  /** Restrict to one company (migration 063). Omit for platform-admin views. */
+  companyId?: string | null;
 }): Promise<Bug[]> {
   return withRetry(async () => {
     let sql = 'SELECT * FROM bugs WHERE deleted_at IS NULL'
     const params: any[] = []
+
+    // Tenant scope. NULL company_id rows are legacy items migration 063 could
+    // not resolve; they stay visible so a rollout does not hide existing work.
+    if (options?.companyId) {
+      sql += ` AND (company_id = $${params.length + 1} OR company_id IS NULL)`
+      params.push(options.companyId)
+    }
 
     if (options?.status && options.status.length > 0) {
       sql += ` AND status = ANY($${params.length + 1})`

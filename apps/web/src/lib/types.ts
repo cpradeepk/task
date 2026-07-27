@@ -102,6 +102,7 @@ export interface Task {
   remarks?: string          // Optional: Additional notes/comments
   difficulties?: string     // Optional: Challenges faced during task execution
   relatedTasks?: string | null // Optional: Comma-separated task IDs for multi-user assignments
+  companyId?: string        // Owning company (migration 063); used for tenant checks
   projectId?: string | null // Optional: Project ID this task belongs to (e.g., "PRJ-001")
   subprojectId?: string | null // Optional: Subproject ID this task belongs to (e.g., "PRJ-001-SUB-001")
   parentTaskId?: string | null // Optional: Parent task ID for subtasks (e.g., "JSR-0001")
@@ -354,6 +355,7 @@ export interface Bug {
   reopenedCount: number     // Number of times bug was reopened (default: 0)
   tags?: string             // Optional: Comma-separated tags (e.g., "login,authentication")
   relatedBugs?: string      // Optional: Comma-separated related bug IDs
+  companyId?: string        // Owning company (migration 063); used for tenant checks
   projectId?: string | null // Optional: Project ID this bug belongs to (e.g., "PRJ-001")
   subprojectId?: string | null // Optional: Subproject ID this bug belongs to
   parentDevId?: string | null // Optional: Parent bug ID for subtasks (e.g., "BUG-0001")
