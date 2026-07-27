@@ -9,6 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/auth-server'
+import { canManageProject } from '@/lib/authz'
 import { 
   getProjectById, 
   updateProject, 
@@ -86,6 +88,20 @@ export async function PUT(
     const body = await request.json()
 
     // Validate updatedBy field
+
+    // This route carried a "TODO: Add permission check / trust the frontend"
+    // comment, so any caller could edit any project, and the actor came from
+    // the request body and was therefore spoofable. Both now come from the
+    // verified session, and canManageProject applies the tenant boundary.
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+    if (!(await canManageProject(auth.user, projectId))) {
+      return NextResponse.json(
+        { error: 'You do not have permission to edit this project.' },
+        { status: 403 }
+      )
+    }
+
     if (!body.updatedBy) {
       return NextResponse.json(
         { error: 'Missing required field: updatedBy' },
@@ -115,7 +131,7 @@ export async function PUT(
     if (body.releaseChecklist !== undefined) updates.releaseChecklist = body.releaseChecklist
 
     // Update project (validation happens in the database layer)
-    const updatedProject = await updateProject(projectId, updates, body.updatedBy)
+    const updatedProject = await updateProject(projectId, updates, auth.user.employeeId)
 
     return NextResponse.json(updatedProject, { status: 200 })
   } catch (error) {
@@ -167,6 +183,20 @@ export async function DELETE(
     const body = await request.json()
 
     // Validate deletedBy field
+
+    // This route carried a "TODO: Add permission check / trust the frontend"
+    // comment, so any caller could delete any project, and the actor came from
+    // the request body and was therefore spoofable. Both now come from the
+    // verified session, and canManageProject applies the tenant boundary.
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+    if (!(await canManageProject(auth.user, projectId))) {
+      return NextResponse.json(
+        { error: 'You do not have permission to delete this project.' },
+        { status: 403 }
+      )
+    }
+
     if (!body.deletedBy) {
       return NextResponse.json(
         { error: 'Missing required field: deletedBy' },
@@ -187,7 +217,7 @@ export async function DELETE(
     }
 
     // Soft delete project (will fail if it has sub-projects)
-    const success = await softDeleteProject(projectId, body.deletedBy)
+    const success = await softDeleteProject(projectId, auth.user.employeeId)
 
     if (!success) {
       return NextResponse.json(

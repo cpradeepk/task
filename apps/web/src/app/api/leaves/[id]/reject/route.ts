@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rejectLeave, getLeaveById } from '@/lib/db/leaves'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
+import { requireAuth } from '@/lib/auth-server'
+import { canApproveFor } from '@/lib/authz'
 
 export async function POST(
   request: NextRequest,
@@ -10,8 +12,26 @@ export async function POST(
   try {
     const { id } = await params
     const body = await request.json()
-    const { approverId } = body
     const remarks = body.remarks || body.reason
+
+    // The approver used to come from the request body and was never verified,
+    // so anyone could reject anyone's leave while attributing it to someone
+    // else. It now comes from the verified session, and canApproveFor returns
+    // false for self so nobody rejects their own application.
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+    const approverId = auth.user.employeeId
+
+    const existingLeave = await getLeaveById(id)
+    if (!existingLeave) {
+      return NextResponse.json({ success: false, error: 'Leave application not found' }, { status: 404 })
+    }
+    if (!(await canApproveFor(auth.user, existingLeave.employeeId))) {
+      return NextResponse.json(
+        { success: false, error: 'You cannot reject this application.' },
+        { status: 403 }
+      )
+    }
 
     if (!id) {
       return NextResponse.json({

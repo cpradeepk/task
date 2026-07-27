@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/auth-server'
+import { canApproveFor } from '@/lib/authz'
 import { rejectWFH, getWFHById } from '@/lib/db/wfh'
 import { getUserByEmployeeId } from '@/lib/db/users'
 import { emailService } from '@/lib/email/service'
@@ -9,7 +11,24 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const { approverId, remarks } = await request.json()
+    const { remarks } = await request.json()
+
+    // approverId used to come from the request body unverified; it now comes
+    // from the session, and canApproveFor blocks rejecting your own application.
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+    const approverId = auth.user.employeeId
+
+    const existingWfh = await getWFHById(id)
+    if (!existingWfh) {
+      return NextResponse.json({ success: false, error: 'WFH application not found' }, { status: 404 })
+    }
+    if (!(await canApproveFor(auth.user, existingWfh.employeeId))) {
+      return NextResponse.json(
+        { success: false, error: 'You cannot reject this application.' },
+        { status: 403 }
+      )
+    }
 
     if (!id) {
       return NextResponse.json({
@@ -18,12 +37,6 @@ export async function POST(
       }, { status: 400 })
     }
 
-    if (!approverId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Approver ID is required'
-      }, { status: 400 })
-    }
 
     // Reject WFH in MySQL
     const wfh = await rejectWFH(id, approverId, remarks)

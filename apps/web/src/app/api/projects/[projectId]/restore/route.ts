@@ -7,6 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/auth-server'
+import { canManageProject } from '@/lib/authz'
 import { getProjectById, restoreProject } from '@/lib/db/projects'
 
 /**
@@ -22,6 +24,16 @@ export async function POST(
 ) {
   try {
     const { projectId } = await params
+
+    // Restoring a soft-deleted project had no permission check at all.
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+    if (!(await canManageProject(auth.user, projectId))) {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to restore this project.' },
+        { status: 403 }
+      )
+    }
 
     // TODO: Add permission check here (admin only)
     // For now, we'll trust the frontend to only allow admin

@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUserAccess } from '@/lib/auth-server'
 import { getTasksByEmployeeId, getSupportTasksForEmployee } from '@/lib/db/tasks'
 import { getBugsByEmployeeId } from '@/lib/db/bugs'
 import { getProjectById } from '@/lib/db/projects'
@@ -29,6 +30,11 @@ export async function GET(
 ) {
   try {
     const { employeeId } = await params
+
+    // Same exposure as the leave/WFH/task per-employee routes: the ID came from
+    // the URL unchecked, so anyone could read anyone's work items.
+    const auth = await requireUserAccess(request, employeeId)
+    if (!auth.ok) return auth.response
     const searchParams = request.nextUrl.searchParams
     const type = searchParams.get('type') || 'all'
     const projectId = searchParams.get('projectId')
