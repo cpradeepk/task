@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/auth-server'
 import { getUsersByEmployeeIds } from '@/lib/db/users'
 import { withTimeout } from '@/lib/db/config'
 import { cache, CACHE_KEYS } from '@/lib/cache'
@@ -6,6 +7,9 @@ import { cache, CACHE_KEYS } from '@/lib/cache'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}))
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
     const ids: string[] = Array.isArray(body?.employeeIds) ? body.employeeIds : []
 
     if (!ids || ids.length === 0) {

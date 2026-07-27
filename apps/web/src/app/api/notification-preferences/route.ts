@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUserAccess } from '@/lib/auth-server'
 import {
   getNotificationPreferences,
   updateNotificationPreferences,
@@ -27,6 +28,12 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // The employeeId came straight from the query string with no check, so
+    // anyone signed in could read (and via POST, rewrite) another person's
+    // notification settings.
+    const auth = await requireUserAccess(request, employeeId)
+    if (!auth.ok) return auth.response
 
     console.log(`Fetching notification preferences for employee: ${employeeId}`)
 
@@ -87,6 +94,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Same exposure as GET: employeeId came from the request body unchecked.
+    const auth = await requireUserAccess(request, employeeId)
+    if (!auth.ok) return auth.response
 
     if (action === 'update') {
       if (!preferences) {

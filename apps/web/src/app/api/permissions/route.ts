@@ -5,6 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/auth-server'
+import { canAdminCompany } from '@/lib/authz'
 import {
   getAllRolePermissions,
   getRolePermissions,
@@ -26,6 +28,17 @@ import {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Permission data governs who can do what — reading or rewriting it is a
+    // company-admin action. This route had no check of any kind.
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+    if (!auth.user.companyId || !(await canAdminCompany(auth.user, auth.user.companyId))) {
+      return NextResponse.json(
+        { success: false, error: 'Only company administrators may manage permissions.' },
+        { status: 403 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') || 'all'
     const role = searchParams.get('role')
@@ -96,6 +109,17 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Permission data governs who can do what — reading or rewriting it is a
+    // company-admin action. This route had no check of any kind.
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+    if (!auth.user.companyId || !(await canAdminCompany(auth.user, auth.user.companyId))) {
+      return NextResponse.json(
+        { success: false, error: 'Only company administrators may manage permissions.' },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json()
     const { action, role, employeeId, featureKey, permissions } = body
 

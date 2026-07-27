@@ -245,3 +245,31 @@ export async function assertProjectSecretAccess(
   return auth
 }
 
+
+/**
+ * Require a session that is allowed to see (or act on) `targetEmployeeId`'s
+ * records — themselves, someone reporting to them at any depth, or a company
+ * admin of the company they share.
+ *
+ * Most per-employee routes — leave, WFH, attendance, notification preferences,
+ * a user's task list — took the employee ID straight from the URL and ran no
+ * check at all, so any signed-in user could read or modify anyone else's
+ * records simply by changing the ID. This is the shared guard for all of them.
+ *
+ * Delegates to lib/authz.canViewUser, which applies the tenant boundary first.
+ */
+export async function requireUserAccess(
+  request: Request,
+  targetEmployeeId: string
+): Promise<AuthResult> {
+  const auth = await requireAuth(request)
+  if (!auth.ok) return auth
+
+  // Imported lazily: authz pulls in the database layer, and auth-server is
+  // imported by middleware, which must stay light.
+  const { canViewUser } = await import('./authz')
+  if (!(await canViewUser(auth.user, targetEmployeeId))) {
+    return { ok: false, response: forbidden('You do not have access to this user’s records') }
+  }
+  return auth
+}

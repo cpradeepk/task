@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getLeaveById, updateLeave, deleteLeave } from '@/lib/db/leaves'
+import { requireAuth } from '@/lib/auth-server'
+import { canApproveFor, canViewUser } from '@/lib/authz'
 
 export async function GET(
   request: NextRequest,
@@ -50,6 +52,39 @@ export async function PUT(
         success: false,
         error: 'Leave application ID is required'
       }, { status: 400 })
+    }
+
+    // Load the record first: who owns it decides what the caller may do. This
+    // route previously accepted arbitrary updates with NO check, so any signed-in
+    // user could approve their OWN leave by PUTing { status: 'Approved' }, or
+    // alter someone else's application.
+    const existing = await getLeaveById(id)
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Leave application not found' }, { status: 404 })
+    }
+
+    const auth = await requireAuth(request)
+    if (!auth.ok) return auth.response
+
+    const isDecision = typeof updates?.status === 'string' &&
+      ['Approved', 'Rejected'].includes(updates.status)
+
+    if (isDecision) {
+      // canApproveFor returns false for self, so nobody approves their own leave.
+      if (!(await canApproveFor(auth.user, existing.employeeId))) {
+        return NextResponse.json(
+          { success: false, error: 'You cannot approve or reject this application.' },
+          { status: 403 }
+        )
+      }
+    } else if (
+      existing.employeeId !== auth.user.employeeId &&
+      !(await canViewUser(auth.user, existing.employeeId))
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to modify this application.' },
+        { status: 403 }
+      )
     }
 
     const leave = await updateLeave(id, updates)
