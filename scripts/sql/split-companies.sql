@@ -291,15 +291,18 @@ COMMIT;
 
 -- ---- PREVIEW (read-only) ---------------------------------------------------
 -- Edit the two arrays, then run. Repeat per company before committing to it.
-WITH input AS (
+WITH RECURSIVE input AS (
     SELECT 'SW'::text                                   AS company_code,
            ARRAY['PRJ-XXX','PRJ-YYY']::text[]           AS project_ids,
            ARRAY['swarg']::text[]                       AS orphan_labels
 ),
+-- Recursive, NOT a single parent_project_id lookup: this data nests three deep
+-- in at least one place (PRJ-051 > PRJ-049 > PRJ-050), and a one-level match
+-- would strand the grandchild in the old company.
 tree AS (
-    SELECT p.project_id FROM projects p, input i
-     WHERE p.project_id = ANY(i.project_ids)
-        OR p.parent_project_id = ANY(i.project_ids)
+    SELECT p.project_id FROM projects p, input i WHERE p.project_id = ANY(i.project_ids)
+    UNION
+    SELECT c.project_id FROM projects c JOIN tree t ON c.parent_project_id = t.project_id
 ),
 refs AS (
     SELECT project_id FROM tree
@@ -337,10 +340,18 @@ BEGIN
         RAISE EXCEPTION 'No company with code % — run step 2 first', company_code;
     END IF;
 
-    -- The project tree: the named projects plus their sub-projects.
+    -- The whole descendant tree, at any depth. A single parent_project_id match
+    -- is not enough: this data nests three levels in at least one place
+    -- (PRJ-051 > PRJ-049 > PRJ-050), and the grandchild would be left behind in
+    -- the old company — with its work items pointing at a project belonging to
+    -- someone else.
     CREATE TEMP TABLE _tree ON COMMIT DROP AS
-        SELECT project_id FROM projects
-         WHERE project_id = ANY(project_ids) OR parent_project_id = ANY(project_ids);
+        WITH RECURSIVE t AS (
+            SELECT project_id FROM projects WHERE project_id = ANY(project_ids)
+            UNION
+            SELECT c.project_id FROM projects c JOIN t ON c.parent_project_id = t.project_id
+        )
+        SELECT project_id FROM t;
 
     -- Everything a work item might reference: real projects and bare labels.
     CREATE TEMP TABLE _refs ON COMMIT DROP AS
