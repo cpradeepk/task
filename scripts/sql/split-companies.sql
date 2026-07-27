@@ -276,6 +276,104 @@ COMMIT;
 
 
 -- ============================================================================
+-- STEP 4c — MOVE A SET OF PROJECTS TO A COMPANY  ◀ USE THIS ONE
+-- ============================================================================
+-- Supersedes steps 3, 4 and 4b for a real deployment, where each company owns
+-- SEVERAL projects rather than one. Everything is named in two places at the
+-- top; nothing else needs editing.
+--
+-- Sub-projects follow their parent automatically — list only the top-level
+-- project ids. Work items follow their project. Orphan labels (values in
+-- tasks.project_id that are not real projects) can be listed alongside the
+-- project ids and are matched too.
+--
+-- Run the PREVIEW first. It writes nothing.
+
+-- ---- PREVIEW (read-only) ---------------------------------------------------
+-- Edit the two arrays, then run. Repeat per company before committing to it.
+WITH input AS (
+    SELECT 'SW'::text                                   AS company_code,
+           ARRAY['PRJ-XXX','PRJ-YYY']::text[]           AS project_ids,
+           ARRAY['swarg']::text[]                       AS orphan_labels
+),
+tree AS (
+    SELECT p.project_id FROM projects p, input i
+     WHERE p.project_id = ANY(i.project_ids)
+        OR p.parent_project_id = ANY(i.project_ids)
+),
+refs AS (
+    SELECT project_id FROM tree
+    UNION
+    SELECT unnest(orphan_labels) FROM input
+)
+SELECT 'target company'  AS item,
+       COALESCE((SELECT c.company_id || ' — ' || c.name FROM companies c, input i WHERE c.code = i.company_code),
+                '!! no company with that code') AS detail
+UNION ALL
+SELECT 'projects (incl. sub-projects)', string_agg(project_id, ', ' ORDER BY project_id) FROM tree
+UNION ALL
+SELECT 'tasks moving',        count(*)::text FROM tasks        WHERE project_id IN (SELECT project_id FROM refs)
+UNION ALL
+SELECT 'bugs moving',         count(*)::text FROM bugs         WHERE project_id IN (SELECT project_id FROM refs)
+UNION ALL
+SELECT 'requirements moving', count(*)::text FROM requirements WHERE project_id IN (SELECT project_id FROM refs)
+UNION ALL
+SELECT 'people on those projects', count(DISTINCT employee_id)::text FROM project_users WHERE project_id IN (SELECT project_id FROM tree);
+
+-- ---- APPLY -----------------------------------------------------------------
+-- ⚠️  WRITES. Snapshot first. Keep the two arrays identical to the preview.
+BEGIN;
+
+DO $$
+DECLARE
+    company_code   TEXT   := 'SW';                          -- <<< company code
+    project_ids    TEXT[] := ARRAY['PRJ-XXX','PRJ-YYY'];    -- <<< top-level projects
+    orphan_labels  TEXT[] := ARRAY['swarg'];                -- <<< bare labels, or ARRAY[]::text[]
+    target VARCHAR(50);
+    n_p INT; n_t INT; n_b INT; n_r INT;
+BEGIN
+    SELECT company_id INTO target FROM companies WHERE code = upper(company_code);
+    IF target IS NULL THEN
+        RAISE EXCEPTION 'No company with code % — run step 2 first', company_code;
+    END IF;
+
+    -- The project tree: the named projects plus their sub-projects.
+    CREATE TEMP TABLE _tree ON COMMIT DROP AS
+        SELECT project_id FROM projects
+         WHERE project_id = ANY(project_ids) OR parent_project_id = ANY(project_ids);
+
+    -- Everything a work item might reference: real projects and bare labels.
+    CREATE TEMP TABLE _refs ON COMMIT DROP AS
+        SELECT project_id FROM _tree
+        UNION
+        SELECT unnest(orphan_labels);
+
+    IF NOT EXISTS (SELECT 1 FROM _refs) THEN
+        RAISE EXCEPTION 'Nothing matched. Existing projects: %',
+            (SELECT string_agg(project_id, ', ' ORDER BY project_id) FROM projects WHERE deleted_at IS NULL);
+    END IF;
+
+    UPDATE projects SET company_id = target WHERE project_id IN (SELECT project_id FROM _tree);
+    GET DIAGNOSTICS n_p = ROW_COUNT;
+    UPDATE tasks SET company_id = target WHERE project_id IN (SELECT project_id FROM _refs);
+    GET DIAGNOSTICS n_t = ROW_COUNT;
+    UPDATE bugs SET company_id = target WHERE project_id IN (SELECT project_id FROM _refs);
+    GET DIAGNOSTICS n_b = ROW_COUNT;
+    UPDATE requirements SET company_id = target WHERE project_id IN (SELECT project_id FROM _refs);
+    GET DIAGNOSTICS n_r = ROW_COUNT;
+
+    RAISE NOTICE 'moved to %: % projects, % tasks, % bugs, % requirements',
+        target, n_p, n_t, n_b, n_r;
+END $$;
+
+COMMIT;
+
+-- Repeat the whole block per company, changing the three variables each time.
+-- Whatever is left untouched stays in Amtariksha (COMP-001), so the largest
+-- company needs no move at all.
+
+
+-- ============================================================================
 -- STEP 5 — MOVE THE PEOPLE (optional, and reversible)
 -- ============================================================================
 -- Only run this if the people working on Swarg projects should LAND in Swarg
