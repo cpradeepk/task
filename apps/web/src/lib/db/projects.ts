@@ -183,12 +183,18 @@ export async function getProjectHierarchy(includeDeleted = false): Promise<Proje
  */
 export async function getNextProjectId(): Promise<string> {
   return withRetry(async () => {
-    const row = await queryOne<{ max_id: string | null }>(
-      'SELECT MAX(CAST(SUBSTRING(project_id FROM 5) AS INTEGER)) as max_id FROM projects WHERE project_id LIKE $1',
-      ['PRJ-%']
+    // LIKE 'PRJ-%' also matches a non-numeric suffix such as 'PRJ-ABC', and the
+    // CAST would then abort project creation entirely. A regex match keeps only
+    // genuinely numbered IDs. Free-text project IDs (this deployment has
+    // 'amtariksha' and 'swarg') are ignored either way.
+    const row = await queryOne<{ max_id: number | null }>(
+      `SELECT MAX(CAST(SUBSTRING(project_id FROM '^PRJ-([0-9]+)$') AS INTEGER)) AS max_id
+         FROM projects
+        WHERE project_id ~ '^PRJ-[0-9]+$'`
     )
     
-    const nextNumber = row && row.max_id ? parseInt(row.max_id) + 1 : 1
+    // MAX(CAST(... AS INTEGER)) already returns a number, so parseInt is not needed.
+    const nextNumber = (row?.max_id ?? 0) + 1
     return `PRJ-${String(nextNumber).padStart(3, '0')}`
   })
 }
