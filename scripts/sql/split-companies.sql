@@ -88,8 +88,44 @@ SELECT company_id, code, name FROM companies ORDER BY company_id;
 
 
 -- ============================================================================
+-- STEP 2b — FIND the real project identifier (read-only). Run this first.
+-- ============================================================================
+-- Steps 3-5 below assume the project is literally 'swarg'. It may not be:
+-- tasks.project_id has no foreign key to projects, so the value stored on a
+-- task can be a label that does not exist as a project row at all. If step 4
+-- reported `Project "swarg" not found`, run this to see what is actually there.
+
+-- Every project, with anything that looks like a match:
+SELECT project_id, project_name, parent_project_id, company_id,
+       CASE WHEN lower(project_id) LIKE '%swarg%'
+              OR lower(project_name) LIKE '%swarg%' THEN '  <-- looks like Swarg' END AS hint
+FROM projects
+WHERE deleted_at IS NULL
+ORDER BY parent_project_id NULLS FIRST, project_id;
+
+-- What work items actually reference, and whether that value is a real project.
+-- A "NO — orphan" row means the label was never a project, so migration 063
+-- could not scope it by project and fell back to the creator's company.
+SELECT ref AS project_ref,
+       CASE WHEN EXISTS (SELECT 1 FROM projects p WHERE p.project_id = ref)
+            THEN 'yes' ELSE 'NO — orphan' END AS is_a_real_project,
+       count(*) AS work_items
+FROM (
+    SELECT project_id AS ref FROM tasks WHERE project_id IS NOT NULL
+    UNION ALL
+    SELECT project_id FROM bugs WHERE project_id IS NOT NULL
+) refs
+GROUP BY ref
+ORDER BY work_items DESC;
+
+-- ▶ Take the real project_id from the first query and use it below. If Swarg's
+--   work lives only under an orphan label, use STEP 4b instead of STEP 4.
+
+
+-- ============================================================================
 -- STEP 3 — PREVIEW the Swarg move (read-only). Run before step 4.
 -- ============================================================================
+-- Replace 'swarg' in BOTH queries below with the real project_id from step 2b.
 -- Shows exactly what step 4 will change. If a count here looks wrong, STOP.
 
 WITH tree AS (
@@ -152,7 +188,9 @@ BEGIN
         SELECT project_id FROM projects WHERE parent_project_id = 'swarg';
 
     IF NOT EXISTS (SELECT 1 FROM _tree) THEN
-        RAISE EXCEPTION 'Project "swarg" not found';
+        RAISE EXCEPTION
+            'Project "swarg" not found. Run STEP 2b to find the real project_id. Existing projects: %',
+            (SELECT string_agg(project_id, ', ' ORDER BY project_id) FROM projects WHERE deleted_at IS NULL);
     END IF;
 
     UPDATE projects SET company_id = target WHERE project_id IN (SELECT project_id FROM _tree);
@@ -169,6 +207,69 @@ BEGIN
 
     RAISE NOTICE 'moved to %: % projects, % tasks, % bugs, % requirements',
         target, moved_proj, moved_tasks, moved_bugs, moved_reqs;
+END $$;
+
+COMMIT;
+
+
+-- ============================================================================
+-- STEP 4b — MOVE BY LABEL, when the work has no real project row
+-- ============================================================================
+-- Use INSTEAD OF step 4 if step 2b showed Swarg's work sitting under an "orphan"
+-- label — a value in tasks.project_id / bugs.project_id that is not a project.
+-- There is no foreign key on those columns, so this is possible and the data is
+-- still perfectly real; it just cannot be reached by joining projects.
+--
+-- Set the label once here. It matches BOTH a genuine project_id and an orphan
+-- label, so it is safe to use even if some of the work is properly linked.
+--
+-- ⚠️  WRITES. Snapshot first. Preview with the SELECT before running the DO block.
+
+-- Preview (read-only) — change 'swarg' to your label:
+SELECT 'tasks'  AS table, count(*) FROM tasks  WHERE project_id = 'swarg'
+UNION ALL SELECT 'bugs',  count(*) FROM bugs   WHERE project_id = 'swarg'
+UNION ALL SELECT 'projects (if any)', count(*) FROM projects
+    WHERE project_id = 'swarg' OR parent_project_id = 'swarg';
+
+BEGIN;
+
+DO $$
+DECLARE
+    label  TEXT := 'swarg';        -- <<< set this to your label from step 2b
+    target VARCHAR(50);
+    n_t INT; n_b INT; n_p INT;
+BEGIN
+    SELECT company_id INTO target FROM companies WHERE code = 'SW';
+    IF target IS NULL THEN
+        RAISE EXCEPTION 'No company with code SW — run step 2 first';
+    END IF;
+
+    -- Projects, if the label happens to be a real one (plus its children).
+    UPDATE projects SET company_id = target
+     WHERE project_id = label OR parent_project_id = label;
+    GET DIAGNOSTICS n_p = ROW_COUNT;
+
+    -- Work items referencing the label directly, plus anything under a
+    -- sub-project of it.
+    UPDATE tasks SET company_id = target
+     WHERE project_id = label
+        OR project_id IN (SELECT project_id FROM projects WHERE parent_project_id = label);
+    GET DIAGNOSTICS n_t = ROW_COUNT;
+
+    UPDATE bugs SET company_id = target
+     WHERE project_id = label
+        OR project_id IN (SELECT project_id FROM projects WHERE parent_project_id = label);
+    GET DIAGNOSTICS n_b = ROW_COUNT;
+
+    UPDATE requirements SET company_id = target
+     WHERE project_id = label
+        OR project_id IN (SELECT project_id FROM projects WHERE parent_project_id = label);
+
+    IF n_t = 0 AND n_b = 0 AND n_p = 0 THEN
+        RAISE EXCEPTION 'Nothing matched label "%". Check STEP 2b output.', label;
+    END IF;
+
+    RAISE NOTICE 'moved to % by label "%": % projects, % tasks, % bugs', target, label, n_p, n_t, n_b;
 END $$;
 
 COMMIT;
