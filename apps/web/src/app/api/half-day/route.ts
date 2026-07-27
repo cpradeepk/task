@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUserAccess } from '@/lib/auth-server'
 import { HalfDayService } from '@/lib/businessRules'
 import { getLeavesByEmployeeId } from '@/lib/db/leaves'
 import { getWFHByEmployeeId } from '@/lib/db/wfh'
@@ -39,6 +40,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'conflict') {
+      // employeeId came from the query string unchecked, exposing anyone's
+      // leave and WFH history for a given date.
+      if (employeeId) {
+        const auth = await requireUserAccess(request, employeeId)
+        if (!auth.ok) return auth.response
+      }
+
       if (!employeeId || !date) {
         return NextResponse.json({
           success: false,

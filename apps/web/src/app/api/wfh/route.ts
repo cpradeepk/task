@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUserAccess } from '@/lib/auth-server'
 import { getAllWFH, createWFH } from '@/lib/db/wfh'
 import { withTimeout, query } from '@/lib/db/config'
 
@@ -32,6 +33,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     // Validate required fields
+    // employeeId came from the body unchecked, so an application could be
+    // filed in someone else's name. You may file for yourself, or for someone
+    // you manage.
+    if (body?.employeeId) {
+      const auth = await requireUserAccess(request, body.employeeId)
+      if (!auth.ok) return auth.response
+    }
+
     const requiredFields = ['employeeId', 'employeeName', 'wfhType', 'fromDate', 'toDate', 'workLocation', 'contactNumber', 'reason']
     for (const field of requiredFields) {
       if (!body[field]) {

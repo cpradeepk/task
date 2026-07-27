@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUserAccess } from '@/lib/auth-server'
 import { WorkHoursService } from '@/lib/businessRules'
 
 export async function GET(request: NextRequest) {
@@ -26,6 +27,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'validate') {
+      // Same exposure: employeeId came straight from the query string.
+      if (employeeId) {
+        const auth = await requireUserAccess(request, employeeId)
+        if (!auth.ok) return auth.response
+      }
+
       if (!employeeId || !date) {
         return NextResponse.json({
           success: false,
