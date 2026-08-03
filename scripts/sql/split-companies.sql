@@ -459,6 +459,28 @@ WHERE b.company_id IS DISTINCT FROM p.company_id;
 
 
 -- ============================================================================
+-- THIS DEPLOYMENT'S ACTUAL MAPPING (confirmed with the owner)
+-- ============================================================================
+-- Run STEP 4c twice with these values. Amtariksha needs no move — anything not
+-- listed stays in COMP-001, which is 43 of the 52 projects.
+--
+--   Swarg Food (SW)      project_ids := ARRAY['PRJ-037']
+--                        -> 4 projects: PRJ-037 Swarg Food + Marketing & Sales,
+--                           Operations & Customer Care, Management
+--
+--   Tattva Silicon (TS)  project_ids := ARRAY['PRJ-051']
+--                        -> 5 projects: PRJ-051 + TS Agritech, TS-Academy,
+--                           TS-Website, and TS-Academy's own child Development
+--                           (PRJ-050 — the three-level case)
+--
+-- NOTE: PRJ-002 "Swarg" is an AMTARIKSHA product, not the food business, and
+-- stays in COMP-001 along with its 9 sub-projects. Only PRJ-037 "Swarg Food" is
+-- the Swarg Food company. The bare 'swarg' label (1 work item) relates to the
+-- Amtariksha product, so it is NOT listed as an orphan label for SW.
+--
+-- Both moves therefore use orphan_labels := ARRAY[]::text[].
+--
+-- ============================================================================
 -- STILL TO DECIDE — not scripted, because only you know the answer
 -- ============================================================================
 -- 'PRJ-001' and 'amtariksha' are currently in COMP-001 (Amtariksha Tech). If
